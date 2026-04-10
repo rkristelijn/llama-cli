@@ -28,6 +28,13 @@ SCENARIO("json string extraction") {
     }
   }
 
+  GIVEN("a JSON string with unicode escapes") {
+    WHEN("it contains \\u003c and \\u003e") {
+      std::string json = R"({"response":"\u003cwrite\u003ehello\u003c/write\u003e"})";
+      THEN("unicode is decoded to < and >") { CHECK(json_extract_string(json, "response") == "<write>hello</write>"); }
+    }
+  }
+
   GIVEN("a larger JSON object with multiple keys") {
     std::string json = R"({"model":"gemma4","response":"the answer","done":true})";
     WHEN("response is extracted") {

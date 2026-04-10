@@ -32,6 +32,16 @@ std::string json_extract_string(const std::string& json, const std::string& key)
         i++;
         continue;
       }
+      // Handle unicode escapes: \uXXXX (common: \u003c = <, \u003e = >)
+      if (next == 'u' && i + 5 < json.size()) {
+        std::string hex = json.substr(i + 2, 4);
+        unsigned long cp = std::stoul(hex, nullptr, 16);
+        if (cp < 128) {
+          result += static_cast<char>(cp);
+        }
+        i += 5;
+        continue;
+      }
     }
     result += json[i];
   }
