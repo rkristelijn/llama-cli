@@ -4,7 +4,7 @@
 
 THRESHOLD=20
 
-totals=$(cloc src/ --csv --quiet | grep SUM)
+totals=$(cloc src/ include/ --csv --quiet | grep SUM)
 comments=$(echo "$totals" | cut -d',' -f4)
 code=$(echo "$totals"     | cut -d',' -f5)
 

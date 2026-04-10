@@ -1,10 +1,17 @@
 #!/bin/sh
-# Pre-commit hook: block direct commits to main, verify build.
+# Pre-commit hook: block main, auto-format, verify build.
 
 branch=$(git symbolic-ref --short HEAD 2>/dev/null)
 if [ "$branch" = "main" ]; then
     echo "ERROR: direct commits to main are not allowed. Use a feature branch."
     exit 1
+fi
+
+# Auto-format staged C++ files
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|h)$')
+if [ -n "$staged" ]; then
+    echo "$staged" | xargs clang-format -i
+    echo "$staged" | xargs git add
 fi
 
 make -s || { echo "ERROR: build failed"; exit 1; }

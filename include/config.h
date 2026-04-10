@@ -13,21 +13,21 @@ enum class Mode { Interactive, Sync };
 
 // Application configuration
 struct Config {
-    std::string host = "localhost";
-    std::string port = "11434";
-    std::string model = "gemma4:e4b";
-    int timeout = 120;
-    Mode mode = Mode::Interactive;
-    std::string prompt;
+  std::string host = "localhost";
+  std::string port = "11434";
+  std::string model = "gemma4:e4b";
+  int timeout = 120;
+  Mode mode = Mode::Interactive;
+  std::string prompt;
 };
 
 // Load config from environment variables, overriding defaults
-Config load_env(const Config &defaults = Config{});
+Config load_env(const Config& defaults = Config{});
 
 // Load config from CLI arguments, overriding base config
-Config load_cli(int argc, const char * const argv[], const Config &base = Config{});
+Config load_cli(int argc, const char* const argv[], const Config& base = Config{});
 
 // Full config resolution: defaults -> env -> cli
-Config load_config(int argc, const char * const argv[]);
+Config load_config(int argc, const char* const argv[]);
 
 #endif
