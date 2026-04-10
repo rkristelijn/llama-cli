@@ -21,6 +21,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
+- [`include/annotation.h`](include/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`include/command.h`](include/command.h) — // command.h — REPL slash command parser
 - [`include/config.h`](include/config.h) — // config.h — Application configuration
 - [`include/json.h`](include/json.h) — // json.h — Minimal JSON helpers
@@ -28,16 +29,18 @@ Auto-generated overview of all files in this repo.
 - [`include/repl.h`](include/repl.h) — // repl.h — Interactive REPL loop
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
+- [`src/annotation.cpp`](src/annotation.cpp) — // annotation.cpp — Parse LLM tool annotations from response text
 - [`src/command.cpp`](src/command.cpp) — // command.cpp — REPL slash command parser and execution
 - [`src/config.cpp`](src/config.cpp) — // config.cpp — Configuration loading implementation
 - [`src/json.cpp`](src/json.cpp) — // json.cpp — Minimal JSON string extraction
 - [`src/main.cpp`](src/main.cpp) — // llama-cli — A local AI assistant in your terminal
 - [`src/ollama.cpp`](src/ollama.cpp) — // ollama.cpp — Ollama API client implementation
 - [`src/repl.cpp`](src/repl.cpp) — // repl.cpp — Interactive REPL loop with conversation memory and commands
+- [`test/test_annotation.cpp`](test/test_annotation.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`test/test_command.cpp`](test/test_command.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`test/test_comment_ratio.sh`](test/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_37 files indexed._
+_40 files indexed._
