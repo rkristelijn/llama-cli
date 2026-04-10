@@ -9,7 +9,7 @@ The following workflow is followed for every feature:
 
 ```mermaid
 graph LR
-    Define --> Build --> Verify --> Release
+    Define --> Build --> Test --> Audit --> Release
 ```
 
 ### Level 2 — Define
@@ -26,45 +26,49 @@ graph LR
 
 ```mermaid
 graph LR
-    E[Write tests] --> F[Implement minimal code]
+    E[Implement] --> F[Unit test]
 ```
 
-### Level 2 — Verify
+### Level 2 — Test
 
 ```mermaid
 graph LR
-    F[Unit test] --> G[Integration test]
-    G --> H[E2E test]
-    H --> I[Regression test]
-    I --> J[Local checks]
-    J --> K[Update docs]
+    F[Integration test] --> G[E2E test]
+```
+
+### Level 2 — Audit
+
+```mermaid
+graph LR
+    H[Regression test] --> I[Local checks]
+    I --> J[Update docs]
 ```
 
 ### Level 2 — Release
 
 ```mermaid
 graph LR
-    L[PR + merge] --> M[Release]
+    K[PR + merge] --> L[Release]
 ```
 
 ### Phases
 
-| # | Phase | Output |
-|---|-------|--------|
-| 1 | **Value discussion** | Why does this feature matter? What problem is solved? |
-| 2 | **Options analysis** | What are the possible approaches? Pros/cons of each |
-| 3 | **Decision + ADR** | One option is picked, rationale is documented in `docs/adr-xxx-*.md` |
-| 4 | **Design** | Mermaid diagrams are added to docs (sequence, class, flowchart) |
-| 5 | **Acceptance criteria** | What must be true for this feature to be considered done |
-| 6 | **Implement** | Minimal code is written to make tests pass |
-| 7 | **Unit test** | Individual components are verified |
-| 8 | **Integration test** | Components are verified to work together |
-| 9 | **E2E test** | The full user flow is verified |
-| 10 | **Regression test** | Nothing else is broken |
-| 11 | **Local checks** | `make test && make check` are run |
-| 12 | **Update docs** | README, docs/README.md, ADRs are updated |
-| 13 | **PR + merge** | Feature branch → PR → CI green → merge |
-| 14 | **Release** | Version is bumped, tag and changelog are created (TBD) |
+| # | Phase | Step | Output |
+|---|-------|------|--------|
+| 1 | **Define** | Value discussion | Why does this feature matter? What problem is solved? |
+| 2 | | Options analysis | What are the possible approaches? Pros/cons of each |
+| 3 | | Decision + ADR | One option is picked, rationale is documented in `docs/adr-xxx-*.md` |
+| 4 | | Design | Mermaid diagrams are added to docs (sequence, class, flowchart) |
+| 5 | | Acceptance criteria | What must be true for this feature to be considered done |
+| 6 | **Build** | Implement | Minimal code is written to make tests pass |
+| 7 | | Unit test | Individual components are verified |
+| 8 | **Test** | Integration test | Components are verified to work together |
+| 9 | | E2E test | The full user flow is verified |
+| 10 | **Audit** | Regression test | Nothing else is broken |
+| 11 | | Local checks | `make test && make check` are run |
+| 12 | | Update docs | README, docs/README.md, ADRs are updated |
+| 13 | **Release** | PR + merge | Feature branch → PR → CI green → merge |
+| 14 | | Release | Version is bumped, tag and changelog are created (TBD) |
 
 ## Rationale
 - **Left side first**: thinking before coding prevents wasted effort
