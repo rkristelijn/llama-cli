@@ -28,6 +28,13 @@ install:
 	chmod +x .git/hooks/pre-commit
 	@echo "Git hooks installed."
 
+todo:
+	@echo "==> TODO.md"
+	@grep -n "\- \[ \]" TODO.md 2>/dev/null || true
+	@echo ""
+	@echo "==> Code TODOs"
+	@grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
+
 clean:
 	rm -rf $(BUILD_DIR)
 

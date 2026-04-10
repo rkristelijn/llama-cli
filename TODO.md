@@ -1,5 +1,10 @@
 # TODO
 
+## Refactoring
+- [ ] Extract JSON parsing from main.cpp into json.h/cpp
+- [ ] Extract Ollama client from main.cpp into ollama.h/cpp
+- [ ] Main should only wire config, client, and I/O
+
 ## Features
 - [ ] Streaming responses (phase 2)
 - [ ] Interactive prompt input
