@@ -50,6 +50,20 @@ todo:
 index:
 	sh scripts/build-index.sh
 
+# Generate test coverage report
+coverage:
+	cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage"
+	cmake --build $(BUILD_DIR)
+	./$(BUILD_DIR)/test_config
+	./$(BUILD_DIR)/test_json
+	./$(BUILD_DIR)/test_repl
+	@echo ""
+	@echo "==> Coverage report"
+	@gcov -n $(BUILD_DIR)/CMakeFiles/test_config.dir/src/config.cpp.o \
+	         $(BUILD_DIR)/CMakeFiles/test_json.dir/src/json.cpp.o \
+	         $(BUILD_DIR)/CMakeFiles/test_repl.dir/src/repl.cpp.o 2>&1 \
+	  | grep -A1 "^File.*llama-cli/src\|^File.*llama-cli/include"
+
 clean:
 	rm -rf $(BUILD_DIR)
 

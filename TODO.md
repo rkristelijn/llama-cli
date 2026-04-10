@@ -6,7 +6,9 @@
 - [x] Main should only wire config, client, and I/O
 
 ## Features
-- [ ] Interactive prompt + REPL (#3, in progress)
+- [x] Interactive prompt + REPL with conversation memory (#3, partial)
+- [x] Sync mode — one-shot from CLI (#3, partial)
+- [ ] Async mode — fire-and-forget (#3, remaining)
 - [ ] Streaming responses (#4)
 - [ ] Stdin pipe support (ADR-007)
 - [ ] File read as context (#5)
