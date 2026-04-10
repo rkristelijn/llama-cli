@@ -1,15 +1,8 @@
 # ADR-001: HTTP Library — cpp-httplib
 
-## Status
-Accepted
+*Status*: Accepted · *Date*: 2026-04-10 · *Context*: C++ has no native HTTP support, so an external library is required.
 
-## Date
-2026-04-10
-
-## Context
-Llama CLI needs to communicate with a llama.cpp server over HTTP. C++ has no native HTTP support, so an external library is required.
-
-### Options Considered
+## Options Considered
 | Library | Pros | Cons |
 |---------|------|------|
 | **libcurl** | Mature, widely available | Verbose C API, system dependency |

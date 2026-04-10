@@ -1,13 +1,6 @@
 # ADR-002: Quality Checks & CI Pipeline
 
-## Status
-Accepted
-
-## Date
-2026-04-10
-
-## Context
-This is a public repo meant to demonstrate structure and discipline — a "code-flex" of maintainability. The codebase must stay manageable, secure, and flexible as it grows.
+*Status*: Accepted · *Date*: 2026-04-10 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
 
 ## Decision
 The following automated quality gates are enforced on every PR:

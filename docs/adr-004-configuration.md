@@ -1,13 +1,6 @@
 # ADR-004: Configuration Strategy
 
-## Status
-Accepted
-
-## Date
-2026-04-10
-
-## Context
-The application had hardcoded values for host, port, model, and timeout. This is an anti-pattern: it prevents others from using different setups without recompiling, and makes testing harder.
+*Status*: Accepted · *Date*: 2026-04-10 · *Context*: The application had hardcoded values for host, port, model, and timeout. This is an anti-pattern that prevents different setups without recompiling and makes testing harder.
 
 ## Options Considered
 

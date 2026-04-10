@@ -1,15 +1,6 @@
 # ADR-003: Development Workflow
 
-## Status
-Accepted
-
-## Date
-2026-04-10
-
-## Context
-A structured way of working is needed to ensure quality from idea to release. Features should be well-thought-out before code is written, and thoroughly tested before merging.
-
-This workflow combines proven practices: define before build (V-model), tests before code (TDD), document decisions (ADRs), and no waste (Lean).
+*Status*: Accepted · *Date*: 2026-04-10 · *Context*: A structured way of working is needed to ensure quality from idea to release. This workflow combines proven practices: define before build (V-model), tests before code (TDD), document decisions (ADRs), and no waste (Lean).
 
 ## Decision
 The following workflow is followed for every feature:
