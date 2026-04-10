@@ -15,3 +15,4 @@ Summary of all decisions made in this project.
 | [009](adr-009-code-formatting.md) | Code formatting | clang-format (Google/K&R), auto-fix in pre-commit | 2026-04-10 |
 | [010](adr-010-documentation-indexing.md) | Documentation indexing | Frontmatter + INDEX.md, dogfooded | 2026-04-10 |
 | [011](adr-011-self-contained-setup.md) | Self-contained setup | make setup, portable macOS/Linux | 2026-04-10 |
+| [012](adr-012-interactive-repl.md) | Interactive REPL | std::getline, injectable I/O, upgradeable | 2026-04-10 |
