@@ -17,3 +17,4 @@ Summary of all decisions made in this project.
 | [011](adr-011-self-contained-setup.md) | Self-contained setup | make setup, portable macOS/Linux | 2026-04-10 |
 | [012](adr-012-interactive-repl.md) | Interactive REPL | std::getline, injectable I/O, upgradeable | 2026-04-10 |
 | [013](adr-013-file-reading.md) | File reading & commands | /read, stdin pipe, slash commands | 2026-04-10 |
+| [014](adr-014-tool-annotations.md) | LLM tool annotations | XML tags in response, user confirmation | 2026-04-10 |

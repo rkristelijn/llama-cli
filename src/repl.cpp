@@ -1,9 +1,13 @@
 // repl.cpp — Interactive REPL loop with conversation memory and commands
-// Supports slash commands (/read, /help, /clear) and regular prompts.
+// Supports slash commands, tool annotations, and regular prompts.
 // Exits on "exit", "quit", or EOF.
+// See ADR-012 (REPL), ADR-013 (commands), ADR-014 (annotations).
 
 #include "repl.h"
 
+#include <fstream>
+
+#include "annotation.h"
 #include "command.h"
 
 int run_repl(ChatFn chat, const std::string& system_prompt, std::istream& in, std::ostream& out) {
@@ -11,21 +15,26 @@ int run_repl(ChatFn chat, const std::string& system_prompt, std::istream& in, st
   std::string line;
   std::vector<Message> history;
 
-  // Add system prompt as first message if provided
+  // Initialize conversation with system prompt (ADR-012)
   if (!system_prompt.empty()) {
     history.push_back({"system", system_prompt});
   }
 
+  // Main REPL loop: read input, process, respond
   while (true) {
+    // Show prompt indicator only in interactive terminal
     if (&in == &std::cin) out << "> " << std::flush;
 
+    // EOF (Ctrl+D) or stream end exits cleanly
     if (!std::getline(in, line)) break;
     if (line.empty()) continue;
 
+    // Parse input: exit, slash command, or regular prompt
     auto input = parse_input(line);
 
     if (input.type == InputType::Exit) break;
 
+    // Handle slash commands (ADR-013)
     if (input.type == InputType::Command) {
       if (input.command == "read") {
         cmd_read(input.arg, history, out);
@@ -44,10 +53,45 @@ int run_repl(ChatFn chat, const std::string& system_prompt, std::istream& in, st
       continue;
     }
 
-    // Regular prompt
+    // Send prompt with full conversation history to LLM
     history.push_back({"user", line});
     std::string response = chat(history);
-    out << response << "\n";
+
+    // Check for tool annotations in response (ADR-014)
+    auto actions = parse_write_annotations(response);
+    if (!actions.empty()) {
+      // Show response with annotations replaced by summaries
+      out << strip_annotations(response) << "\n";
+
+      // Process each proposed write with user confirmation
+      for (const auto& action : actions) {
+        out << "Write to " << action.path << "? [y/n/s] " << std::flush;
+        std::string answer;
+        if (!std::getline(in, answer)) break;
+        // Show content before confirming if requested
+        if (answer == "s" || answer == "show") {
+          out << action.content << "\n";
+          out << "Write to " << action.path << "? [y/n] " << std::flush;
+          if (!std::getline(in, answer)) break;
+        }
+        // Write file on confirmation
+        if (answer == "y" || answer == "yes") {
+          std::ofstream file(action.path);
+          if (file.is_open()) {
+            file << action.content << "\n";
+            out << "[wrote " << action.path << "]\n";
+          } else {
+            out << "Error: could not write to " << action.path << "\n";
+          }
+        } else {
+          out << "[skipped]\n";
+        }
+      }
+    } else {
+      out << response << "\n";
+    }
+
+    // Store response in history for conversation memory
     history.push_back({"assistant", response});
     count++;
   }
