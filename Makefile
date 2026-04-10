@@ -40,6 +40,10 @@ todo:
 	@echo "==> Code TODOs"
 	@grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
 
+# Generate INDEX.md from all project files
+index:
+	sh scripts/build-index.sh
+
 clean:
 	rm -rf $(BUILD_DIR)
 

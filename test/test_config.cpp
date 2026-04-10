@@ -3,150 +3,146 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
-#include "config.h"
+
 #include <cstdlib>
+
+#include "config.h"
 
 // Helper to clean all OLLAMA_ env vars
 static void clean_env() {
-    unsetenv("OLLAMA_HOST");
-    unsetenv("OLLAMA_PORT");
-    unsetenv("OLLAMA_MODEL");
-    unsetenv("OLLAMA_TIMEOUT");
+  unsetenv("OLLAMA_HOST");
+  unsetenv("OLLAMA_PORT");
+  unsetenv("OLLAMA_MODEL");
+  unsetenv("OLLAMA_TIMEOUT");
 }
 
 SCENARIO("config defaults") {
-    GIVEN("no configuration is provided") {
-        Config c;
-        THEN("defaults are used") {
-            CHECK(c.host == "localhost");
-            CHECK(c.port == "11434");
-            CHECK(c.model == "gemma4:e4b");
-            CHECK(c.timeout == 120);
-            CHECK(c.mode == Mode::Interactive);
-            CHECK(c.prompt.empty());
-        }
+  GIVEN("no configuration is provided") {
+    Config c;
+    THEN("defaults are used") {
+      CHECK(c.host == "localhost");
+      CHECK(c.port == "11434");
+      CHECK(c.model == "gemma4:e4b");
+      CHECK(c.timeout == 120);
+      CHECK(c.mode == Mode::Interactive);
+      CHECK(c.prompt.empty());
     }
+  }
 }
 
 SCENARIO("config from environment variables") {
-    GIVEN("all OLLAMA_ env vars are set") {
-        clean_env();
-        setenv("OLLAMA_HOST", "192.168.1.10", 1);
-        setenv("OLLAMA_PORT", "9999", 1);
-        setenv("OLLAMA_MODEL", "gemma4:26b", 1);
-        setenv("OLLAMA_TIMEOUT", "60", 1);
+  GIVEN("all OLLAMA_ env vars are set") {
+    clean_env();
+    setenv("OLLAMA_HOST", "192.168.1.10", 1);
+    setenv("OLLAMA_PORT", "9999", 1);
+    setenv("OLLAMA_MODEL", "gemma4:26b", 1);
+    setenv("OLLAMA_TIMEOUT", "60", 1);
 
-        WHEN("config is loaded from env") {
-            Config c = load_env();
-            THEN("env vars override defaults") {
-                CHECK(c.host == "192.168.1.10");
-                CHECK(c.port == "9999");
-                CHECK(c.model == "gemma4:26b");
-                CHECK(c.timeout == 60);
-            }
-        }
-        clean_env();
+    WHEN("config is loaded from env") {
+      Config c = load_env();
+      THEN("env vars override defaults") {
+        CHECK(c.host == "192.168.1.10");
+        CHECK(c.port == "9999");
+        CHECK(c.model == "gemma4:26b");
+        CHECK(c.timeout == 60);
+      }
     }
+    clean_env();
+  }
 
-    GIVEN("no OLLAMA_ env vars are set") {
-        clean_env();
-        WHEN("config is loaded from env") {
-            Config c = load_env();
-            THEN("defaults are kept") {
-                CHECK(c.host == "localhost");
-                CHECK(c.port == "11434");
-            }
-        }
+  GIVEN("no OLLAMA_ env vars are set") {
+    clean_env();
+    WHEN("config is loaded from env") {
+      Config c = load_env();
+      THEN("defaults are kept") {
+        CHECK(c.host == "localhost");
+        CHECK(c.port == "11434");
+      }
     }
+  }
 }
 
 SCENARIO("config from CLI arguments") {
-    GIVEN("long flags are provided") {
-        const char *argv[] = {"llama-cli", "--host=10.0.0.1", "--model=gemma4:26b", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(3, argv);
-            THEN("flags override defaults") {
-                CHECK(c.host == "10.0.0.1");
-                CHECK(c.model == "gemma4:26b");
-                CHECK(c.port == "11434");
-            }
-        }
+  GIVEN("long flags are provided") {
+    const char* argv[] = {"llama-cli", "--host=10.0.0.1", "--model=gemma4:26b", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN("flags override defaults") {
+        CHECK(c.host == "10.0.0.1");
+        CHECK(c.model == "gemma4:26b");
+        CHECK(c.port == "11434");
+      }
     }
+  }
 
-    GIVEN("short flags are provided") {
-        const char *argv[] = {"llama-cli", "-h", "10.0.0.1", "-m", "gemma4:26b", "-p", "9999", "-t", "60", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(9, argv);
-            THEN("short flags override defaults") {
-                CHECK(c.host == "10.0.0.1");
-                CHECK(c.model == "gemma4:26b");
-                CHECK(c.port == "9999");
-                CHECK(c.timeout == 60);
-            }
-        }
+  GIVEN("short flags are provided") {
+    const char* argv[] = {"llama-cli", "-h", "10.0.0.1", "-m", "gemma4:26b", "-p", "9999", "-t", "60", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(9, argv);
+      THEN("short flags override defaults") {
+        CHECK(c.host == "10.0.0.1");
+        CHECK(c.model == "gemma4:26b");
+        CHECK(c.port == "9999");
+        CHECK(c.timeout == 60);
+      }
     }
+  }
 
-    GIVEN("a positional argument is provided") {
-        const char *argv[] = {"llama-cli", "explain this error", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(2, argv);
-            THEN("it becomes the prompt in sync mode") {
-                CHECK(c.prompt == "explain this error");
-                CHECK(c.mode == Mode::Sync);
-            }
-        }
+  GIVEN("a positional argument is provided") {
+    const char* argv[] = {"llama-cli", "explain this error", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(2, argv);
+      THEN("it becomes the prompt in sync mode") {
+        CHECK(c.prompt == "explain this error");
+        CHECK(c.mode == Mode::Sync);
+      }
     }
+  }
 
-    GIVEN("no arguments are provided") {
-        const char *argv[] = {"llama-cli", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(1, argv);
-            THEN("interactive mode is selected") {
-                CHECK(c.prompt.empty());
-                CHECK(c.mode == Mode::Interactive);
-            }
-        }
+  GIVEN("no arguments are provided") {
+    const char* argv[] = {"llama-cli", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(1, argv);
+      THEN("interactive mode is selected") {
+        CHECK(c.prompt.empty());
+        CHECK(c.mode == Mode::Interactive);
+      }
     }
+  }
 
-    GIVEN("options and a positional prompt are combined") {
-        const char *argv[] = {"llama-cli", "--model=gemma4:26b", "review this code", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(3, argv);
-            THEN("options and prompt are both parsed") {
-                CHECK(c.model == "gemma4:26b");
-                CHECK(c.prompt == "review this code");
-                CHECK(c.mode == Mode::Sync);
-            }
-        }
+  GIVEN("options and a positional prompt are combined") {
+    const char* argv[] = {"llama-cli", "--model=gemma4:26b", "review this code", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN("options and prompt are both parsed") {
+        CHECK(c.model == "gemma4:26b");
+        CHECK(c.prompt == "review this code");
+        CHECK(c.mode == Mode::Sync);
+      }
     }
+  }
 
-    GIVEN("unknown flags are provided") {
-        const char *argv[] = {"llama-cli", "--unknown=value", nullptr};
-        WHEN("config is loaded from CLI") {
-            Config c = load_cli(2, argv);
-            THEN("they are ignored") {
-                CHECK(c.host == "localhost");
-            }
-        }
+  GIVEN("unknown flags are provided") {
+    const char* argv[] = {"llama-cli", "--unknown=value", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(2, argv);
+      THEN("they are ignored") { CHECK(c.host == "localhost"); }
     }
+  }
 }
 
 SCENARIO("config precedence chain") {
-    GIVEN("env vars and CLI args both set host") {
-        clean_env();
-        setenv("OLLAMA_HOST", "192.168.1.10", 1);
-        setenv("OLLAMA_MODEL", "gemma4:26b", 1);
+  GIVEN("env vars and CLI args both set host") {
+    clean_env();
+    setenv("OLLAMA_HOST", "192.168.1.10", 1);
+    setenv("OLLAMA_MODEL", "gemma4:26b", 1);
 
-        const char *argv[] = {"llama-cli", "--host=localhost", nullptr};
-        WHEN("full config is loaded") {
-            Config c = load_config(2, argv);
-            THEN("CLI wins over env for host") {
-                CHECK(c.host == "localhost");
-            }
-            THEN("env wins over default for model") {
-                CHECK(c.model == "gemma4:26b");
-            }
-        }
-        clean_env();
+    const char* argv[] = {"llama-cli", "--host=localhost", nullptr};
+    WHEN("full config is loaded") {
+      Config c = load_config(2, argv);
+      THEN("CLI wins over env for host") { CHECK(c.host == "localhost"); }
+      THEN("env wins over default for model") { CHECK(c.model == "gemma4:26b"); }
     }
+    clean_env();
+  }
 }
