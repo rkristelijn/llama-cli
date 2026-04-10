@@ -12,6 +12,7 @@
 - [ ] Run command and receive output (phase 4)
 
 ## Quality
+- [ ] Adopt test framework (Catch2/GoogleTest/doctest) for BDD-style tests (ADR needed)
 - [ ] Evaluate remaining 12-factor principles (logging, port binding, etc.)
 - [ ] Define release process (ADR)
 - [ ] Add integration tests
