@@ -9,14 +9,14 @@ all:
 run: all
 	./$(BUILD_DIR)/llama-cli
 
-test:
+test: all
 	cmake --build $(BUILD_DIR) --target test_config
 	./$(BUILD_DIR)/test_config
 	sh test/test_comment_ratio.sh
 
 check: all
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 -I include/ src/
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
