@@ -19,7 +19,7 @@ Config load_env(const Config &defaults) {
 
 // Load config from CLI arguments, overriding base config
 // Expects --key=value format
-Config load_cli(int argc, char *argv[], const Config &base) {
+Config load_cli(int argc, const char * const argv[], const Config &base) {
     Config c = base;
     const std::string prefix_host = "--host=";
     const std::string prefix_port = "--port=";
@@ -37,7 +37,7 @@ Config load_cli(int argc, char *argv[], const Config &base) {
 }
 
 // Full config resolution: defaults -> env -> cli
-Config load_config(int argc, char *argv[]) {
+Config load_config(int argc, const char * const argv[]) {
     Config c = load_env();
     return load_cli(argc, argv, c);
 }
