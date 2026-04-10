@@ -5,33 +5,47 @@
 ## Decision
 The following workflow is followed for every feature:
 
+### Level 1 — Overview
+
 ```mermaid
 graph LR
-    subgraph "Left side — Define"
-        A[1. Value discussion] --> B[2. Options analysis]
-        B --> C[3. Decision + ADR]
-        C --> D[4. Design + diagrams]
-        D --> E[5. Write tests]
-    end
+    Define --> Build --> Verify --> Release
+```
 
-    subgraph "Bottom — Build"
-        E --> F[6. Implement]
-    end
+### Level 2 — Define
 
-    subgraph "Right side — Verify"
-        F --> G[7. Unit test]
-        G --> H[8. Integration test]
-        H --> I[9. E2E test]
-        I --> J[10. Regression test]
-    end
+```mermaid
+graph LR
+    A[Value discussion] --> B[Options analysis]
+    B --> C[Decision + ADR]
+    C --> D[Design + diagrams]
+    D --> E[Write tests]
+```
 
-    subgraph "Release"
-        J --> K[11. Local checks]
-        K --> L[12. Update docs]
-        L --> M[13. Refactor if needed]
-        M --> N[14. PR + merge]
-        N --> O[15. Release]
-    end
+### Level 2 — Build
+
+```mermaid
+graph LR
+    E[Write tests] --> F[Implement minimal code]
+```
+
+### Level 2 — Verify
+
+```mermaid
+graph LR
+    F[Unit test] --> G[Integration test]
+    G --> H[E2E test]
+    H --> I[Regression test]
+```
+
+### Level 2 — Release
+
+```mermaid
+graph LR
+    J[Local checks] --> K[Update docs]
+    K --> L[Refactor if needed]
+    L --> M[PR + merge]
+    M --> N[Release]
 ```
 
 ### Phases
