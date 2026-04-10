@@ -1,6 +1,12 @@
 # Llama CLI
 
-A C++ TUI for your local llama with file interaction.
+A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
+
+## Why
+
+- **Private**: everything runs locally, no data leaves your machine
+- **Fast**: no API latency, no rate limits, no subscriptions
+- **Integrated**: read files, execute commands, and get AI-powered answers in one place
 
 ## Quick start
 
@@ -20,29 +26,14 @@ make run
 | Model | `--model` | `OLLAMA_MODEL` | `gemma4:e4b` |
 | Timeout | `--timeout` | `OLLAMA_TIMEOUT` | `120` |
 
-CLI args override env vars, env vars override defaults.
-
-## Development
-
-```bash
-make           # build
-make run       # build and run
-make test      # unit tests + comment ratio
-make check     # cppcheck + semgrep + gitleaks
-make install   # install git hooks
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and [docs/](docs/README.md) for architecture decisions.
-
 ## Roadmap
 
-1. ~~Connect to Ollama~~ ✓
-2. Ask question and receive answer (streaming)
-3. Ability to upload file
-4. Ability to run a command and receive the output
+- [x] Connect to Ollama
+- [x] Configurable host, port, model, timeout
+- [ ] Interactive chat with streaming responses
+- [ ] Attach files as context
+- [ ] Run commands and use output as context
 
-## Requirements
+## Contributing
 
-- C++17
-- SOLID patterns
-- TDD
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and [docs/](docs/README.md) for architecture decisions.
