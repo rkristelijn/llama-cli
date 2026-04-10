@@ -10,6 +10,7 @@
 - [ ] Interactive prompt input
 - [ ] File upload as context (phase 3)
 - [ ] Run command and receive output (phase 4)
+- [ ] Multi-host support: distribute load across machines (e.g. Raspberry Pi → Mac Studio)
 
 ## Quality
 - [ ] Adopt test framework (Catch2/GoogleTest/doctest) for BDD-style tests (ADR needed)
