@@ -15,7 +15,8 @@
 ## Quality
 - [ ] Adopt test framework (Catch2/GoogleTest/doctest) for BDD-style tests (ADR needed)
 - [ ] Add linter (clang-tidy) for code style enforcement
-- [ ] Add complexity monitoring (lizard or pmccabe — lightweight local SonarQube alternative)
+- [ ] Add complexity monitoring (pmccabe — lightweight local SonarQube alternative)
+- [ ] Add config validation (port range, timeout > 0, non-empty host/model)
 - [ ] Add integration test for ollama.cpp (requires mock or running Ollama)
 - [ ] Add E2E test for main
 - [ ] Evaluate remaining 12-factor principles (logging, port binding, etc.)

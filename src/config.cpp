@@ -1,9 +1,9 @@
 // config.cpp — Configuration loading implementation
 // Precedence: CLI args > env vars > defaults
+// Supports --long=value, --long value, -x value, and positional args
 
 #include "config.h"
 #include <cstdlib>
-#include <cstring>
 #include <string>
 
 // Load config from environment variables, overriding defaults
@@ -18,20 +18,32 @@ Config load_env(const Config &defaults) {
 }
 
 // Load config from CLI arguments, overriding base config
-// Expects --key=value format
 Config load_cli(int argc, const char * const argv[], const Config &base) {
     Config c = base;
-    const std::string prefix_host = "--host=";
-    const std::string prefix_port = "--port=";
-    const std::string prefix_model = "--model=";
-    const std::string prefix_timeout = "--timeout=";
 
     for (int i = 1; i < argc; i++) {
         std::string arg(argv[i]);
-        if (arg.rfind(prefix_host, 0) == 0)         c.host = arg.substr(prefix_host.size());
-        else if (arg.rfind(prefix_port, 0) == 0)    c.port = arg.substr(prefix_port.size());
-        else if (arg.rfind(prefix_model, 0) == 0)   c.model = arg.substr(prefix_model.size());
-        else if (arg.rfind(prefix_timeout, 0) == 0)  c.timeout = std::stoi(arg.substr(prefix_timeout.size()));
+
+        // Long options: --key=value
+        if (arg.rfind("--host=", 0) == 0)       { c.host = arg.substr(7); continue; }
+        if (arg.rfind("--port=", 0) == 0)       { c.port = arg.substr(7); continue; }
+        if (arg.rfind("--model=", 0) == 0)      { c.model = arg.substr(8); continue; }
+        if (arg.rfind("--timeout=", 0) == 0)    { c.timeout = std::stoi(arg.substr(10)); continue; }
+
+        // Short options: -x value (next arg)
+        if (i + 1 < argc) {
+            if (arg == "-h") { c.host = argv[++i]; continue; }
+            if (arg == "-p") { c.port = argv[++i]; continue; }
+            if (arg == "-m") { c.model = argv[++i]; continue; }
+            if (arg == "-t") { c.timeout = std::stoi(argv[++i]); continue; }
+        }
+
+        // Positional arg = prompt (first non-option argument)
+        // Triggers sync mode per ADR-005
+        if (arg[0] != '-' && c.prompt.empty()) {
+            c.prompt = arg;
+            c.mode = Mode::Sync;
+        }
     }
     return c;
 }
