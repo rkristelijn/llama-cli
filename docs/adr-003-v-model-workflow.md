@@ -36,16 +36,15 @@ graph LR
     F[Unit test] --> G[Integration test]
     G --> H[E2E test]
     H --> I[Regression test]
+    I --> J[Local checks]
+    J --> K[Update docs]
 ```
 
 ### Level 2 — Release
 
 ```mermaid
 graph LR
-    J[Local checks] --> K[Update docs]
-    K --> L[Refactor if needed]
-    L --> M[PR + merge]
-    M --> N[Release]
+    L[PR + merge] --> M[Release]
 ```
 
 ### Phases
@@ -64,9 +63,8 @@ graph LR
 | 10 | **Regression test** | Nothing else is broken |
 | 11 | **Local checks** | `make test && make check` are run |
 | 12 | **Update docs** | README, docs/README.md, ADRs are updated |
-| 13 | **Refactor** | Code is cleaned up if needed, tests are re-run |
-| 14 | **PR + merge** | Feature branch → PR → CI green → merge |
-| 15 | **Release** | Version is bumped, tag and changelog are created (TBD) |
+| 13 | **PR + merge** | Feature branch → PR → CI green → merge |
+| 14 | **Release** | Version is bumped, tag and changelog are created (TBD) |
 
 ## Rationale
 - **Left side first**: thinking before coding prevents wasted effort
