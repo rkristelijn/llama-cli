@@ -15,6 +15,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-011-self-contained-setup.md`](docs/adr/adr-011-self-contained-setup.md) — ADR-011: Self-Contained Setup
 - [`docs/adr/adr-012-interactive-repl.md`](docs/adr/adr-012-interactive-repl.md) — ADR-012: Interactive REPL
 - [`docs/adr/adr-013-file-reading.md`](docs/adr/adr-013-file-reading.md) — ADR-013: File Reading & REPL Commands
+- [`docs/adr/adr-014-tool-annotations.md`](docs/adr/adr-014-tool-annotations.md) — ADR-014: LLM Tool Annotations
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -39,4 +40,4 @@ Auto-generated overview of all files in this repo.
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_36 files indexed._
+_37 files indexed._
