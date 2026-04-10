@@ -1,15 +1,8 @@
 # ADR-001: HTTP Library — cpp-httplib
 
-## Status
-Accepted
+*Status*: Accepted · *Date*: 2026-04-10 · *Context*: C++ has no native HTTP support, so an external library is required.
 
-## Date
-2026-04-10
-
-## Context
-Llama CLI needs to communicate with a llama.cpp server over HTTP. C++ has no native HTTP support, so an external library is required.
-
-### Options Considered
+## Options Considered
 | Library | Pros | Cons |
 |---------|------|------|
 | **libcurl** | Mature, widely available | Verbose C API, system dependency |
@@ -17,16 +10,16 @@ Llama CLI needs to communicate with a llama.cpp server over HTTP. C++ has no nat
 | **cpr** | Modern C++ API | Heavy setup, wraps libcurl |
 
 ## Decision
-We chose **cpp-httplib** (header-only) fetched via CMake FetchContent.
+**cpp-httplib** (header-only) was chosen, fetched via CMake FetchContent.
 
 ## Rationale
-- No external package manager needed — CMake downloads it automatically
-- Zero install steps for new developers (`make` just works)
-- Simple API that fits our use case (HTTP requests to a local llama server)
-- Supports HTTPS via OpenSSL if needed later
-- Header-only means no linking complexity
+- No external package manager is needed — CMake downloads it automatically
+- Zero install steps are required for new developers (`make` just works)
+- The API is simple and fits the use case (HTTP requests to a local llama server)
+- HTTPS is supported via OpenSSL if needed later
+- Being header-only means no linking complexity
 
 ## Consequences
-- HTTP functionality is limited to what cpp-httplib supports (sufficient for our needs)
+- HTTP functionality is limited to what cpp-httplib supports (sufficient for the current needs)
 - First build takes slightly longer due to FetchContent download
-- Pinned to version `v0.18.7` for reproducibility
+- The version is pinned to `v0.18.7` for reproducibility

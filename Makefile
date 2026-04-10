@@ -9,12 +9,14 @@ all:
 run: all
 	./$(BUILD_DIR)/llama-cli
 
-test:
+test: all
+	cmake --build $(BUILD_DIR) --target test_config
+	./$(BUILD_DIR)/test_config
 	sh test/test_comment_ratio.sh
 
 check: all
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 -I include/ src/
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
@@ -25,6 +27,13 @@ install:
 	cp hooks/pre-commit .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 	@echo "Git hooks installed."
+
+todo:
+	@echo "==> TODO.md"
+	@grep -n "\- \[ \]" TODO.md 2>/dev/null || true
+	@echo ""
+	@echo "==> Code TODOs"
+	@grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
 
 clean:
 	rm -rf $(BUILD_DIR)
