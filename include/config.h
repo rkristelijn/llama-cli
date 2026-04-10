@@ -1,11 +1,15 @@
 // config.h — Application configuration
 // Loads settings from defaults, environment variables, and CLI arguments.
-// Precedence: CLI args > env vars > defaults
+// Precedence: CLI args > env vars > defaults (ADR-004)
+// CLI interface follows POSIX conventions (ADR-007)
 
 #ifndef CONFIG_H
 #define CONFIG_H
 
 #include <string>
+
+// Execution mode (ADR-005)
+enum class Mode { Interactive, Sync };
 
 // Application configuration
 struct Config {
@@ -13,6 +17,8 @@ struct Config {
     std::string port = "11434";
     std::string model = "gemma4:e4b";
     int timeout = 120;
+    Mode mode = Mode::Interactive;
+    std::string prompt;
 };
 
 // Load config from environment variables, overriding defaults

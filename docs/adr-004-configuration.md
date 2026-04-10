@@ -21,12 +21,12 @@ Environment variables are used as the base configuration, with CLI arguments as 
 
 ### Configuration
 
-| Setting | CLI arg | Env var | Default |
-|---------|---------|---------|---------|
-| Host | `--host` | `OLLAMA_HOST` | `localhost` |
-| Port | `--port` | `OLLAMA_PORT` | `11434` |
-| Model | `--model` | `OLLAMA_MODEL` | `gemma4:e4b` |
-| Timeout | `--timeout` | `OLLAMA_TIMEOUT` | `120` |
+| Setting | CLI arg | Short | Env var | Default |
+|---------|---------|-------|---------|---------|
+| Host | `--host` | `-h` | `OLLAMA_HOST` | `localhost` |
+| Port | `--port` | `-p` | `OLLAMA_PORT` | `11434` |
+| Model | `--model` | `-m` | `OLLAMA_MODEL` | `gemma4:e4b` |
+| Timeout | `--timeout` | `-t` | `OLLAMA_TIMEOUT` | `120` |
 
 ### Examples
 

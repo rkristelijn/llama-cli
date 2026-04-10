@@ -80,6 +80,53 @@ static void test_cli_overrides() {
     std::cout << "PASS: test_cli_overrides\n";
 }
 
+// Test: short flags override base config
+static void test_short_flags() {
+    const char *argv[] = {"llama-cli", "-h", "10.0.0.1", "-m", "gemma4:26b", "-p", "9999", "-t", "60", nullptr};
+
+    Config c = load_cli(9, argv);
+    assert(c.host == "10.0.0.1");
+    assert(c.model == "gemma4:26b");
+    assert(c.port == "9999");
+    assert(c.timeout == 60);
+
+    std::cout << "PASS: test_short_flags\n";
+}
+
+// Test: positional arg becomes prompt
+static void test_positional_prompt() {
+    const char *argv[] = {"llama-cli", "explain this error", nullptr};
+
+    Config c = load_cli(2, argv);
+    assert(c.prompt == "explain this error");
+    assert(c.mode == Mode::Sync);
+
+    std::cout << "PASS: test_positional_prompt\n";
+}
+
+// Test: no args means interactive mode
+static void test_interactive_mode() {
+    const char *argv[] = {"llama-cli", nullptr};
+
+    Config c = load_cli(1, argv);
+    assert(c.prompt.empty());
+    assert(c.mode == Mode::Interactive);
+
+    std::cout << "PASS: test_interactive_mode\n";
+}
+
+// Test: options + positional arg
+static void test_options_with_prompt() {
+    const char *argv[] = {"llama-cli", "--model=gemma4:26b", "review this code", nullptr};
+
+    Config c = load_cli(3, argv);
+    assert(c.model == "gemma4:26b");
+    assert(c.prompt == "review this code");
+    assert(c.mode == Mode::Sync);
+
+    std::cout << "PASS: test_options_with_prompt\n";
+}
+
 // Test: CLI args override env vars (full chain)
 static void test_cli_overrides_env() {
     clean_env();
@@ -113,6 +160,10 @@ int main() {
     test_env_overrides_defaults();
     test_env_keeps_defaults();
     test_cli_overrides();
+    test_short_flags();
+    test_positional_prompt();
+    test_interactive_mode();
+    test_options_with_prompt();
     test_cli_overrides_env();
     test_unknown_args_ignored();
 
