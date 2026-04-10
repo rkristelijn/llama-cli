@@ -24,9 +24,10 @@ struct Config {
       "Keep responses concise and relevant. "
       "The user can load files with /read <file>. "
       "Files appear as [file: path] followed by their contents. "
-      "When asked to create or modify a file, wrap content in "
-      "<write file=\"path\">content</write>. "
-      "The user will confirm before any file is written.";
+      "When asked to create or modify a file, ALWAYS use "
+      "<write file=\"path\">content</write> immediately. "
+      "Do NOT ask for confirmation — the client handles that. "
+      "Just include the <write> tag directly in your response.";
 };
 
 // Load config from environment variables, overriding defaults
