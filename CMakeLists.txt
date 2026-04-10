@@ -13,6 +13,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-add_executable(llama-cli src/main.cpp)
+# Main binary
+add_executable(llama-cli src/main.cpp src/config.cpp)
 target_include_directories(llama-cli PRIVATE include)
 target_link_libraries(llama-cli PRIVATE httplib::httplib)
+
+# Config unit tests
+add_executable(test_config test/test_config.cpp src/config.cpp)
+target_include_directories(test_config PRIVATE include)

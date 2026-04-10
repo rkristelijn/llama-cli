@@ -1,27 +1,28 @@
 // llama-cli — A TUI for your llama with file interaction
 // Connects to a local Ollama instance and sends prompts to a language model.
 // See docs/ollama-setup.md for setup instructions.
+// See docs/adr-004-configuration.md for config precedence.
 
+#include "config.h"
 #include <httplib.h>  // HTTP client (cpp-httplib via FetchContent)
 #include <iostream>
 #include <string>
 
-// Ollama API endpoint
-// Default: http://localhost:11434
-// Docs: https://github.com/ollama/ollama/blob/main/docs/api.md
-int main() {
-    httplib::Client cli("http://localhost:11434");
-    cli.set_read_timeout(120);  // LLM responses can be slow
+int main(int argc, char *argv[]) {
+    // Load config: defaults -> env vars -> CLI args
+    // See ADR-004 for precedence chain
+    Config cfg = load_config(argc, argv);
+    std::string url = "http://" + cfg.host + ":" + cfg.port;
+
+    httplib::Client cli(url);
+    cli.set_read_timeout(cfg.timeout);
 
     // POST /api/generate with stream:false waits for the full response.
     // TODO: implement streaming for real-time token output
-    std::string body = R"({
-        "model": "gemma4:e4b",
-        "prompt": "What is the Ultimate Question of Life, the Universe, and Everything, if the answer is 42?",
-        "stream": false
-    })";
+    std::string body = R"({"model": ")" + cfg.model +
+        R"(", "prompt": "What is the Ultimate Question of Life, the Universe, and Everything, if the answer is 42?", "stream": false})";
 
-    std::cout << "Asking gemma4:e4b...\n\n";
+    std::cout << "Connecting to " << url << " with model " << cfg.model << "...\n\n";
 
     auto res = cli.Post("/api/generate", body, "application/json");
     if (res) {
@@ -45,7 +46,7 @@ int main() {
             std::cout << output << "\n";
         }
     } else {
-        std::cerr << "Error: could not connect to Ollama on port 11434\n";
+        std::cerr << "Error: could not connect to Ollama at " << url << "\n";
     }
     return 0;
 }

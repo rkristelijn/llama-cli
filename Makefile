@@ -10,6 +10,8 @@ run: all
 	./$(BUILD_DIR)/llama-cli
 
 test:
+	cmake --build $(BUILD_DIR) --target test_config
+	./$(BUILD_DIR)/test_config
 	sh test/test_comment_ratio.sh
 
 check: all
