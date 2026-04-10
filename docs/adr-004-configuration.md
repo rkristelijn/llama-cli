@@ -7,7 +7,7 @@ Accepted
 2026-04-10
 
 ## Context
-The application has hardcoded values for host, port, model, and timeout. This is an anti-pattern: it prevents others from using different setups without recompiling, and makes testing harder.
+The application had hardcoded values for host, port, model, and timeout. This is an anti-pattern: it prevents others from using different setups without recompiling, and makes testing harder.
 
 ## Options Considered
 
@@ -19,7 +19,7 @@ The application has hardcoded values for host, port, model, and timeout. This is
 | **Env vars + CLI args** | Flexible, layered | Slightly more code |
 
 ## Decision
-Use environment variables as defaults, with CLI arguments as overrides.
+Environment variables are used as the base configuration, with CLI arguments as overrides.
 
 ### Precedence (highest wins)
 1. CLI arguments (`--host`, `--model`, etc.)
@@ -73,13 +73,13 @@ sequenceDiagram
 
 ## Rationale
 - Env vars align with Ollama's own `OLLAMA_HOST` convention
-- Follows [12-factor app](https://12factor.net/config) factor III: store config in the environment
+- [12-factor app](https://12factor.net/config) factor III is followed: config is stored in the environment
 - CLI args are a pragmatic addition — 12-factor targets web services, but for CLI tools `--host=x` is more natural than `OLLAMA_HOST=x`
-- Built-in defaults mean it works out of the box with a standard Ollama install
+- Built-in defaults ensure it works out of the box with a standard Ollama install
 - Defaults must live somewhere — the anti-pattern was not having a way to override them, not their existence (SOLID: Open/Closed principle)
-- No config file dependency — keeps the project lean
+- No config file dependency is introduced — the project stays lean
 
 ## Consequences
-- Need to parse `argv` (no external library — use `getopt` or manual parsing)
-- Need to read env vars (`std::getenv`)
-- Prompt remains hardcoded for now — will become interactive input (phase 2)
+- `argv` is parsed manually (no external library — `getopt` or manual parsing is used)
+- Env vars are read via `std::getenv`
+- The prompt remains hardcoded for now — it will become interactive input (phase 2)
