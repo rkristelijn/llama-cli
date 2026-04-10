@@ -19,7 +19,7 @@ graph LR
     A[Value discussion] --> B[Options analysis]
     B --> C[Decision + ADR]
     C --> D[Design + diagrams]
-    D --> E[Write tests]
+    D --> E[Acceptance criteria]
 ```
 
 ### Level 2 — Build
@@ -56,7 +56,7 @@ graph LR
 | 2 | **Options analysis** | What are the possible approaches? Pros/cons of each |
 | 3 | **Decision + ADR** | One option is picked, rationale is documented in `docs/adr-xxx-*.md` |
 | 4 | **Design** | Mermaid diagrams are added to docs (sequence, class, flowchart) |
-| 5 | **Write tests** | TDD — tests are written first, based on the design |
+| 5 | **Acceptance criteria** | What must be true for this feature to be considered done |
 | 6 | **Implement** | Minimal code is written to make tests pass |
 | 7 | **Unit test** | Individual components are verified |
 | 8 | **Integration test** | Components are verified to work together |
