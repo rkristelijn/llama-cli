@@ -14,3 +14,4 @@ Summary of all decisions made in this project.
 | [008](adr-008-test-framework.md) | Test framework | doctest, GWT style, function pointer mocking | 2026-04-10 |
 | [009](adr-009-code-formatting.md) | Code formatting | clang-format (Google/K&R), auto-fix in pre-commit | 2026-04-10 |
 | [010](adr-010-documentation-indexing.md) | Documentation indexing | Frontmatter + INDEX.md, dogfooded | 2026-04-10 |
+| [011](adr-011-self-contained-setup.md) | Self-contained setup | make setup, portable macOS/Linux | 2026-04-10 |

@@ -12,6 +12,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-008-test-framework.md`](docs/adr/adr-008-test-framework.md) — ADR-008: Test Framework
 - [`docs/adr/adr-009-code-formatting.md`](docs/adr/adr-009-code-formatting.md) — ADR-009: Code Formatting
 - [`docs/adr/adr-010-documentation-indexing.md`](docs/adr/adr-010-documentation-indexing.md) — Frontmatter + INDEX.md strategy for searchable documentation
+- [`docs/adr/adr-011-self-contained-setup.md`](docs/adr/adr-011-self-contained-setup.md) — ADR-011: Self-Contained Setup
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/README.md`](docs/README.md) — Documentation
@@ -19,6 +20,7 @@ Auto-generated overview of all files in this repo.
 - [`include/json.h`](include/json.h) — // json.h — Minimal JSON helpers
 - [`include/ollama.h`](include/ollama.h) — // ollama.h — Ollama API client
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
+- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
 - [`src/config.cpp`](src/config.cpp) — // config.cpp — Configuration loading implementation
 - [`src/json.cpp`](src/json.cpp) — // json.cpp — Minimal JSON string extraction
 - [`src/main.cpp`](src/main.cpp) — // llama-cli — A local AI assistant in your terminal
@@ -27,4 +29,4 @@ Auto-generated overview of all files in this repo.
 - [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 
-_24 files indexed._
+_26 files indexed._

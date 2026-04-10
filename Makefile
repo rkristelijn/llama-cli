@@ -28,6 +28,10 @@ check: all test
 	@echo ""
 	@echo "All checks passed."
 
+# Install dependencies and git hooks
+setup:
+	sh scripts/setup.sh
+
 install:
 	cp hooks/pre-commit .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
