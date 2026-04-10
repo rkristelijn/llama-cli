@@ -13,9 +13,11 @@ test: all
 	cmake --build $(BUILD_DIR) --target test_config
 	cmake --build $(BUILD_DIR) --target test_json
 	cmake --build $(BUILD_DIR) --target test_repl
+	cmake --build $(BUILD_DIR) --target test_command
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
+	./$(BUILD_DIR)/test_command
 	sh test/test_comment_ratio.sh
 
 check: all test

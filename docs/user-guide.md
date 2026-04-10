@@ -28,6 +28,24 @@ Berlin.
 
 The model remembers the conversation. Type `exit`, `quit`, or Ctrl+D to stop.
 
+### REPL commands
+
+```
+/read <file>   Load a file into the conversation context
+/clear         Clear conversation history
+/help          Show available commands
+```
+
+Example with file reading:
+
+```bash
+./build/llama-cli
+> /read src/main.cpp
+[loaded src/main.cpp — 31 lines]
+> what does this code do?
+This is the entry point for llama-cli...
+```
+
 ### Sync mode — one-shot from command line
 
 ```bash
@@ -60,6 +78,7 @@ All settings can be set via CLI flags, environment variables, or left as default
 | Port | `--port` | `-p` | `OLLAMA_PORT` | `11434` |
 | Model | `--model` | `-m` | `OLLAMA_MODEL` | `gemma4:e4b` |
 | Timeout | `--timeout` | `-t` | `OLLAMA_TIMEOUT` | `120` |
+| System prompt | — | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 CLI flags override env vars, env vars override defaults.
 

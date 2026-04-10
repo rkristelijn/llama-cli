@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "llama-cli — connected to " << cfg.host << ":" << cfg.port << " (" << cfg.model << ")\n";
     std::cerr << "Type your prompt. 'exit' or Ctrl+D to quit.\n\n";
     auto generate = [&cfg](const std::vector<Message>& msgs) { return ollama_chat(cfg, msgs); };
-    run_repl(generate);
+    run_repl(generate, cfg.system_prompt);
   }
   return 0;
 }
