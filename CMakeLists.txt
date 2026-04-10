@@ -19,7 +19,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(httplib doctest)
 
 # Shared source files (excluding main)
-set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp)
+set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp)
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
@@ -30,6 +30,11 @@ target_link_libraries(llama-cli PRIVATE httplib::httplib)
 add_executable(test_config test/test_config.cpp src/config.cpp)
 target_include_directories(test_config PRIVATE include)
 target_link_libraries(test_config PRIVATE doctest::doctest)
+
+# REPL unit tests
+add_executable(test_repl test/test_repl.cpp src/repl.cpp)
+target_include_directories(test_repl PRIVATE include)
+target_link_libraries(test_repl PRIVATE doctest::doctest)
 
 # JSON unit tests
 add_executable(test_json test/test_json.cpp src/json.cpp)

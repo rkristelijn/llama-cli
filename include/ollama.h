@@ -5,11 +5,21 @@
 #define OLLAMA_H
 
 #include <string>
+#include <vector>
 
 #include "config.h"
 
-// Send a prompt to Ollama and return the response text.
-// Returns empty string on connection failure.
+// A single message in a conversation
+struct Message {
+  std::string role;  // "user" or "assistant"
+  std::string content;
+};
+
+// Send a one-shot prompt (no history). Uses /api/generate.
 std::string ollama_generate(const Config& cfg, const std::string& prompt);
+
+// Send a conversation to Ollama. Uses /api/chat.
+// Returns the assistant's response text.
+std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages);
 
 #endif
