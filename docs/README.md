@@ -15,3 +15,4 @@ Llama CLI is a C++ TUI that connects to a local [Ollama](https://ollama.com) ins
 - [ADR-005: Execution Modes](adr-005-execution-modes.md) — interactive, sync, async
 - [ADR-006: Branching Strategy](adr-006-branching-strategy.md) — GitHub Flow, tag at milestones
 - [ADR-007: CLI Interface](adr-007-cli-interface.md) — POSIX conventions, unix pipe support
+- [ADR-008: Test Framework](adr-008-test-framework.md) — doctest, function pointer mocking

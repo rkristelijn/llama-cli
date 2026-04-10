@@ -1,5 +1,15 @@
 # Contributing
 
+## Code style
+
+This codebase is kept accessible for C++ newcomers:
+
+- Write simple C++ — no template magic, no operator overloading, no unnecessary abstractions
+- Comments explain *why*, not *what*
+- Test names read as documentation: `TEST_CASE("config: env vars override defaults")`
+- Prefer `std::string` over `const char*`, `std::vector` over raw arrays
+- If a beginner can't understand it in 30 seconds, simplify it
+
 ## Workflow
 
 - Always work on a feature branch, never commit directly to `main`

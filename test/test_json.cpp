@@ -1,45 +1,46 @@
 // test_json.cpp — Unit tests for JSON extraction
+// Uses Given/When/Then style per ADR-008
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include "json.h"
-#include <cassert>
-#include <iostream>
 
-static void test_extract_simple() {
-    std::string json = R"({"response":"hello world"})";
-    assert(json_extract_string(json, "response") == "hello world");
-    std::cout << "PASS: test_extract_simple\n";
-}
+SCENARIO("json string extraction") {
+    GIVEN("a simple JSON object") {
+        std::string json = R"({"response":"hello world"})";
+        WHEN("a known key is extracted") {
+            THEN("the value is returned") {
+                CHECK(json_extract_string(json, "response") == "hello world");
+            }
+        }
+        WHEN("a missing key is extracted") {
+            THEN("empty string is returned") {
+                CHECK(json_extract_string(json, "missing") == "");
+            }
+        }
+    }
 
-static void test_extract_escaped_newline() {
-    std::string json = R"({"response":"line1\nline2"})";
-    assert(json_extract_string(json, "response") == "line1\nline2");
-    std::cout << "PASS: test_extract_escaped_newline\n";
-}
+    GIVEN("a JSON string with escaped characters") {
+        WHEN("it contains a newline") {
+            std::string json = R"({"response":"line1\nline2"})";
+            THEN("the newline is unescaped") {
+                CHECK(json_extract_string(json, "response") == "line1\nline2");
+            }
+        }
+        WHEN("it contains escaped quotes") {
+            std::string json = R"({"response":"say \"hello\""})";
+            THEN("the quotes are unescaped") {
+                CHECK(json_extract_string(json, "response") == "say \"hello\"");
+            }
+        }
+    }
 
-static void test_extract_escaped_quote() {
-    std::string json = R"({"response":"say \"hello\""})";
-    assert(json_extract_string(json, "response") == "say \"hello\"");
-    std::cout << "PASS: test_extract_escaped_quote\n";
-}
-
-static void test_extract_missing_key() {
-    std::string json = R"({"response":"hello"})";
-    assert(json_extract_string(json, "missing") == "");
-    std::cout << "PASS: test_extract_missing_key\n";
-}
-
-static void test_extract_from_larger_json() {
-    std::string json = R"({"model":"gemma4","response":"the answer","done":true})";
-    assert(json_extract_string(json, "response") == "the answer");
-    std::cout << "PASS: test_extract_from_larger_json\n";
-}
-
-int main() {
-    test_extract_simple();
-    test_extract_escaped_newline();
-    test_extract_escaped_quote();
-    test_extract_missing_key();
-    test_extract_from_larger_json();
-    std::cout << "\nAll JSON tests passed.\n";
-    return 0;
+    GIVEN("a larger JSON object with multiple keys") {
+        std::string json = R"({"model":"gemma4","response":"the answer","done":true})";
+        WHEN("response is extracted") {
+            THEN("only the response value is returned") {
+                CHECK(json_extract_string(json, "response") == "the answer");
+            }
+        }
+    }
 }

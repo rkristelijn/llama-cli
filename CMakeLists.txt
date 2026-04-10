@@ -11,7 +11,12 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
     GIT_TAG v0.18.7
 )
-FetchContent_MakeAvailable(httplib)
+FetchContent_Declare(
+    doctest
+    GIT_REPOSITORY https://github.com/doctest/doctest.git
+    GIT_TAG v2.4.12
+)
+FetchContent_MakeAvailable(httplib doctest)
 
 # Shared source files (excluding main)
 set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp)
@@ -24,7 +29,9 @@ target_link_libraries(llama-cli PRIVATE httplib::httplib)
 # Config unit tests
 add_executable(test_config test/test_config.cpp src/config.cpp)
 target_include_directories(test_config PRIVATE include)
+target_link_libraries(test_config PRIVATE doctest::doctest)
 
 # JSON unit tests
 add_executable(test_json test/test_json.cpp src/json.cpp)
 target_include_directories(test_json PRIVATE include)
+target_link_libraries(test_json PRIVATE doctest::doctest)
