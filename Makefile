@@ -14,7 +14,7 @@ test:
 
 check: all
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --error-exitcode=1 src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 src/
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
