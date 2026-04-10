@@ -17,7 +17,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("one prompt is processed") { CHECK(count == 1); }
       THEN("the response is printed") { CHECK(out.str().find("echo: hello") != std::string::npos); }
     }
@@ -28,7 +28,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("no prompts are processed") { CHECK(count == 0); }
     }
   }
@@ -38,7 +38,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("loop exits") { CHECK(count == 0); }
     }
   }
@@ -48,7 +48,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("empty lines are skipped") { CHECK(count == 1); }
     }
   }
@@ -58,7 +58,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("all prompts are processed") { CHECK(count == 3); }
       THEN("all responses are printed") {
         CHECK(out.str().find("echo: first") != std::string::npos);
@@ -83,7 +83,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      run_repl(history_chat, in, out);
+      run_repl(history_chat, "", in, out);
       THEN("history grows with each exchange") { CHECK(call_count == 2); }
     }
   }
@@ -93,7 +93,7 @@ SCENARIO("REPL loop") {
     std::ostringstream out;
 
     WHEN("the REPL runs") {
-      int count = run_repl(echo_chat, in, out);
+      int count = run_repl(echo_chat, "", in, out);
       THEN("it exits cleanly") { CHECK(count == 1); }
     }
   }

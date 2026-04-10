@@ -15,6 +15,7 @@ Config load_env(const Config& defaults) {
   if ((val = std::getenv("OLLAMA_PORT"))) c.port = val;
   if ((val = std::getenv("OLLAMA_MODEL"))) c.model = val;
   if ((val = std::getenv("OLLAMA_TIMEOUT"))) c.timeout = std::stoi(val);
+  if ((val = std::getenv("OLLAMA_SYSTEM_PROMPT"))) c.system_prompt = val;
   return c;
 }
 

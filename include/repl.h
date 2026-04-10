@@ -16,7 +16,9 @@
 using ChatFn = std::function<std::string(const std::vector<Message>&)>;
 
 // Run the REPL loop with conversation memory.
+// system_prompt is added as first message if non-empty.
 // Returns number of prompts processed.
-int run_repl(ChatFn chat, std::istream& in = std::cin, std::ostream& out = std::cout);
+int run_repl(ChatFn chat, const std::string& system_prompt = "", std::istream& in = std::cin,
+             std::ostream& out = std::cout);
 
 #endif

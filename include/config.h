@@ -19,6 +19,11 @@ struct Config {
   int timeout = 120;
   Mode mode = Mode::Interactive;
   std::string prompt;
+  std::string system_prompt =
+      "You are llama-cli, a local AI assistant running in a terminal. "
+      "Keep responses concise and relevant. "
+      "The user can load files with /read <file>. "
+      "Files appear as [file: path] followed by their contents.";
 };
 
 // Load config from environment variables, overriding defaults

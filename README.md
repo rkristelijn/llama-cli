@@ -30,8 +30,10 @@ make run
 
 - [x] Connect to Ollama
 - [x] Configurable host, port, model, timeout
-- [ ] Interactive chat with streaming responses
-- [ ] Attach files as context
+- [x] Interactive chat with conversation memory
+- [x] Read files as context (`/read`)
+- [ ] Streaming responses
+- [ ] Write files from response
 - [ ] Run commands and use output as context
 
 ## Contributing
