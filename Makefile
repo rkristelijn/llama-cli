@@ -11,16 +11,21 @@ run: all
 
 test: all
 	cmake --build $(BUILD_DIR) --target test_config
+	cmake --build $(BUILD_DIR) --target test_json
 	./$(BUILD_DIR)/test_config
+	./$(BUILD_DIR)/test_json
 	sh test/test_comment_ratio.sh
 
-check: all
+check: all test
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 -I include/ src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --error-exitcode=1 -I include/ src/
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
 	gitleaks detect --source .
+	@echo "==> open items"
+	@$(MAKE) -s todo
+	@echo ""
 	@echo "All checks passed."
 
 install:

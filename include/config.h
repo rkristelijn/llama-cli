@@ -19,9 +19,9 @@ struct Config {
 Config load_env(const Config &defaults = Config{});
 
 // Load config from CLI arguments, overriding base config
-Config load_cli(int argc, char *argv[], const Config &base = Config{});
+Config load_cli(int argc, const char * const argv[], const Config &base = Config{});
 
 // Full config resolution: defaults -> env -> cli
-Config load_config(int argc, char *argv[]);
+Config load_config(int argc, const char * const argv[]);
 
 #endif

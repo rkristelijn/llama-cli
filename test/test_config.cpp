@@ -68,10 +68,7 @@ static void test_env_keeps_defaults() {
 
 // Test: CLI args override base config
 static void test_cli_overrides() {
-    char arg0[] = "llama-cli";
-    char arg1[] = "--host=10.0.0.1";
-    char arg2[] = "--model=gemma4:26b";
-    char *argv[] = {arg0, arg1, arg2, nullptr};
+    const char *argv[] = {"llama-cli", "--host=10.0.0.1", "--model=gemma4:26b", nullptr};
 
     Config c = load_cli(3, argv);
     assert(c.host == "10.0.0.1");
@@ -89,9 +86,7 @@ static void test_cli_overrides_env() {
     set_env("OLLAMA_HOST", "192.168.1.10");
     set_env("OLLAMA_MODEL", "gemma4:26b");
 
-    char arg0[] = "llama-cli";
-    char arg1[] = "--host=localhost";
-    char *argv[] = {arg0, arg1, nullptr};
+    const char *argv[] = {"llama-cli", "--host=localhost", nullptr};
 
     Config c = load_config(2, argv);
     // CLI wins over env for host
@@ -105,9 +100,7 @@ static void test_cli_overrides_env() {
 
 // Test: unknown CLI args are ignored
 static void test_unknown_args_ignored() {
-    char arg0[] = "llama-cli";
-    char arg1[] = "--unknown=value";
-    char *argv[] = {arg0, arg1, nullptr};
+    const char *argv[] = {"llama-cli", "--unknown=value", nullptr};
 
     Config c = load_cli(2, argv);
     assert(c.host == "localhost");
