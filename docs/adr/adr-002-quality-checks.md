@@ -14,7 +14,7 @@ The following automated quality gates are enforced on every PR:
 | **semgrep** | SAST security scanning | Detects insecure patterns and common vulnerabilities |
 | **gitleaks** | Secret detection | Prevents accidental credential leaks in a public repo |
 | **clang-format** | Consistent code formatting (Google style) | Auto-formats in pre-commit, verified in CI |
-| **cloc (20% comment ratio)** | Documentation enforcement | Ensures code is self-documenting and readable |
+| **cloc (≥ 20% comment ratio)** | Documentation enforcement | Ensures code is self-documenting and readable |
 | **ASan + UBSan** | Runtime memory/UB error detection | Catches bugs no static analyzer can find (leaks, overflows, UB) |
 | **-Werror** | Warnings as errors | Prevents compiler warnings from accumulating |
 | **ccache** | Build cache | Speeds up rebuilds by caching compilation results |
@@ -50,4 +50,21 @@ The following automated quality gates are enforced on every PR:
 - Contributors need: `clang-tidy`, `clang-format`, `cppcheck`, `pmccabe`, `doxygen`, `cloc`, `gitleaks`, `semgrep`, `ccache`
 - Sanitizers are opt-in locally (`-DENABLE_SANITIZERS=ON`) but always-on in CI
 - The comment ratio threshold (20%) may need adjustment as the codebase grows
+
+### Comment ratio strategy
+
+The 20% minimum is enforced by `cloc` via `test/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
+
+```cpp
+/**
+ * @file config.cpp
+ * @brief Configuration loading: defaults → env vars → CLI args.
+ * @see docs/adr/adr-004-configuration.md
+ */
+```
+
+This serves three purposes:
+1. Keeps comment ratio comfortably above 20% without padding
+2. Links every file to its design rationale (ADR)
+3. Makes `doxygen` output navigable with cross-references
 - A VERSION bump is required for every PR — no exceptions

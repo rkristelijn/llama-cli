@@ -35,7 +35,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(httplib doctest)
 
 # Shared source files (excluding main)
-set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp src/command.cpp src/annotation.cpp)
+set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
@@ -48,7 +48,7 @@ target_include_directories(test_config PRIVATE include)
 target_link_libraries(test_config PRIVATE doctest::doctest)
 
 # REPL unit tests
-add_executable(test_repl test/test_repl.cpp src/repl.cpp src/command.cpp src/annotation.cpp)
+add_executable(test_repl test/test_repl.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
 target_include_directories(test_repl PRIVATE include)
 target_link_libraries(test_repl PRIVATE doctest::doctest)
 
@@ -66,3 +66,8 @@ target_link_libraries(test_annotation PRIVATE doctest::doctest)
 add_executable(test_json test/test_json.cpp src/json.cpp)
 target_include_directories(test_json PRIVATE include)
 target_link_libraries(test_json PRIVATE doctest::doctest)
+
+# Exec unit tests
+add_executable(test_exec test/test_exec.cpp src/exec.cpp)
+target_include_directories(test_exec PRIVATE include)
+target_link_libraries(test_exec PRIVATE doctest::doctest)

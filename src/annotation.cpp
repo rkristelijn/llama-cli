@@ -1,11 +1,14 @@
-// annotation.cpp — Parse LLM tool annotations from response text
-// Simple state machine: find <write file="...">, extract content until </write>
+/**
+ * @file annotation.cpp
+ * @brief Parse LLM tool annotations (XML tags) from response text.
+ * @see docs/adr/adr-014-tool-annotations.md
+ */
 
 #include "annotation.h"
 
-// Find the next <write file="path">content</write> starting at pos
-// Extracts path and content, trims leading/trailing newlines from content
-// Returns npos if not found, updates pos to after the closing tag
+/** Find the next <write file="path">content</write> starting at pos
+ * Extracts path and content, trims leading/trailing newlines from content
+ * Returns npos if not found, updates pos to after the closing tag */
 static size_t find_write_block(const std::string& text, size_t& pos, std::string& path, std::string& content) {
   const std::string open_tag = "<write file=\"";
   const std::string close_tag = "</write>";
@@ -45,9 +48,9 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
   return start;
 }
 
-// Find all <write file="path">content</write> in text
-// Iterates through text finding write blocks via find_write_block
-// Returns empty vector if no valid annotations found
+/** Find all <write file="path">content</write> in text
+ * Iterates through text finding write blocks via find_write_block helper
+ * Returns empty vector if no valid annotations found */
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   std::vector<WriteAction> actions;
   size_t pos = 0;
@@ -58,9 +61,9 @@ std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   return actions;
 }
 
-// Replace annotations with [proposed: write path] summaries
-// Leaves non-annotation text intact for display to user
-// Iterates until no more annotations are found
+/** Replace annotations with [proposed: write path] summaries
+ * Leaves non-annotation text intact for display to user
+ * Iterates until no more annotations are found */
 std::string strip_annotations(const std::string& text) {
   std::string result = text;
   const std::string open_prefix = "<write file=\"";

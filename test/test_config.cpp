@@ -14,6 +14,8 @@ static void clean_env() {
   unsetenv("OLLAMA_PORT");
   unsetenv("OLLAMA_MODEL");
   unsetenv("OLLAMA_TIMEOUT");
+  unsetenv("LLAMA_EXEC_TIMEOUT");
+  unsetenv("LLAMA_MAX_OUTPUT");
 }
 
 SCENARIO("config defaults") {
@@ -24,6 +26,8 @@ SCENARIO("config defaults") {
       CHECK(c.port == "11434");
       CHECK(c.model == "gemma4:e4b");
       CHECK(c.timeout == 120);
+      CHECK(c.exec_timeout == 30);
+      CHECK(c.max_output == 10000);
       CHECK(c.mode == Mode::Interactive);
       CHECK(c.prompt.empty());
     }
@@ -128,6 +132,31 @@ SCENARIO("config from CLI arguments") {
       Config c = load_cli(2, argv);
       THEN("they are ignored") { CHECK(c.host == "localhost"); }
     }
+  }
+
+  GIVEN("exec-timeout and max-output flags are provided") {
+    const char* argv[] = {"llama-cli", "--exec-timeout=10", "--max-output=5000", nullptr};
+    WHEN("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN("they are parsed") {
+        CHECK(c.exec_timeout == 10);
+        CHECK(c.max_output == 5000);
+      }
+    }
+  }
+
+  GIVEN("exec settings via env vars") {
+    clean_env();
+    setenv("LLAMA_EXEC_TIMEOUT", "15", 1);
+    setenv("LLAMA_MAX_OUTPUT", "2000", 1);
+    WHEN("config is loaded from env") {
+      Config c = load_env();
+      THEN("env vars are used") {
+        CHECK(c.exec_timeout == 15);
+        CHECK(c.max_output == 2000);
+      }
+    }
+    clean_env();
   }
 }
 

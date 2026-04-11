@@ -10,7 +10,7 @@
 #include "ollama.h"
 
 // Result of parsing a line of input
-enum class InputType { Prompt, Command, Exit };
+enum class InputType { Prompt, Command, Exit, Exec, ExecContext };
 
 /// Result of parsing a line of user input
 struct ParsedInput {

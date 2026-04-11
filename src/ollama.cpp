@@ -1,5 +1,9 @@
-// ollama.cpp — Ollama API client implementation
-// Uses cpp-httplib for HTTP and json.h for response parsing.
+/**
+ * @file ollama.cpp
+ * @brief Ollama API client using cpp-httplib.
+ * @see docs/adr/adr-001-http-library.md
+ * @see docs/adr/adr-004-configuration.md
+ */
 
 #include "ollama.h"
 
@@ -19,8 +23,8 @@ static httplib::Client make_client(const Config& cfg) {
   return cli;
 }
 
-// One-shot prompt via /api/generate (no conversation history)
-// Returns the response text, or empty string on connection error
+/** One-shot prompt via /api/generate (no conversation history)
+ * Returns the response text, or empty string on connection error */
 std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto cli = make_client(cfg);
   std::string body = R"({"model": ")" + cfg.model + R"(", "prompt": ")" + prompt + R"(", "stream": false})";
@@ -58,8 +62,8 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
   return json;
 }
 
-// Conversation via /api/chat (with message history)
-// Returns the assistant's response text, or empty string on error
+/** Conversation via /api/chat (with message history)
+ * Returns the assistant's response text, or empty string on error */
 std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages) {
   auto cli = make_client(cfg);
   std::string body =
