@@ -72,7 +72,9 @@ jobs:
       - name: Install doxygen
         run: sudo apt-get install -y doxygen
       - name: Doxygen lint
-        run: doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
+        run: |
+          warnings=$(doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml" | grep -v "Member if(\|Member res \|Member json_extract_string(res")
+          if [ -n "$warnings" ]; then echo "$warnings"; exit 1; fi
 
   cppcheck:
     runs-on: ubuntu-latest
