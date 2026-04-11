@@ -25,10 +25,6 @@ Auto-generated overview of all files in this repo.
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
-- [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
-- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
-- [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
-- [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
@@ -58,4 +54,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_55 files indexed._
+_51 files indexed._
