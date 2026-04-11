@@ -32,18 +32,14 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/doctest/doctest.git
     GIT_TAG v2.4.12
 )
+# cpp-linenoise: header-only, download only (its CMakeLists.txt needs CMake < 3.5)
 FetchContent_Declare(
     cpp_linenoise
     GIT_REPOSITORY https://github.com/yhirose/cpp-linenoise.git
     GIT_TAG master
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
 )
 FetchContent_MakeAvailable(httplib doctest)
-FetchContent_GetProperties(cpp_linenoise)
-if(NOT cpp_linenoise_POPULATED)
-  FetchContent_Populate(cpp_linenoise)
-endif()
+FetchContent_Populate(cpp_linenoise)
 
 # Shared source files (excluding main)
 set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
