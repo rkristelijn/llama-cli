@@ -46,6 +46,7 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
 }
 
 // Find all <write file="path">content</write> in text
+// Iterates through text finding write blocks via find_write_block
 // Returns empty vector if no valid annotations found
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   std::vector<WriteAction> actions;
@@ -58,7 +59,8 @@ std::vector<WriteAction> parse_write_annotations(const std::string& text) {
 }
 
 // Replace annotations with [proposed: write path] summaries
-// Leaves non-annotation text intact
+// Leaves non-annotation text intact for display to user
+// Iterates until no more annotations are found
 std::string strip_annotations(const std::string& text) {
   std::string result = text;
   const std::string open_prefix = "<write file=\"";

@@ -40,9 +40,9 @@ Config load_env(const Config& defaults) {
 
 /// CLI option definition: maps long/short flags to a config string field
 struct OptDef {
-  const char* long_prefix;      ///< Long option prefix, e.g. "--host="
-  const char* short_flag;       ///< Short option flag, e.g. "-h"
-  std::string Config::* field;  ///< Pointer-to-member for the target field (nullptr for int fields)
+  const char* long_prefix;      ///< e.g. "--host="
+  const char* short_flag;       ///< e.g. "-h"
+  std::string Config::* field;  ///< target field (nullptr for int)
 };
 
 // Table of string CLI options (timeout handled separately as int)
@@ -62,8 +62,9 @@ static std::string match_long(const std::string& arg, const char* prefix) {
   return "";
 }
 
-// Try to match a single arg against all option definitions
-// Returns true if matched, sets val and advances i for short opts
+// Try to match arg against all option definitions
+// Iterates the opts table, tries long form first, then short form
+// Returns true if matched, sets the config field via pointer-to-member
 static bool match_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : opts) {
     std::string val = match_long(arg, opt.long_prefix);
