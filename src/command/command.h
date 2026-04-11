@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "ollama.h"
+#include "ollama/ollama.h"
 
 // Result of parsing a line of input
 enum class InputType { Prompt, Command, Exit, Exec, ExecContext };

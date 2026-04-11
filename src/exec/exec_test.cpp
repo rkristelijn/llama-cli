@@ -1,9 +1,9 @@
 // test_exec.cpp — Unit tests for command execution
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include "exec/exec.h"
 
-#include "exec.h"
+#include <doctest/doctest.h>
 
 SCENARIO("command execution") {
   GIVEN("a simple command") {

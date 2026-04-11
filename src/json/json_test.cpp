@@ -2,9 +2,9 @@
 // Uses Given/When/Then style per ADR-008
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include "json/json.h"
 
-#include "json.h"
+#include <doctest/doctest.h>
 
 SCENARIO("json string extraction") {
   GIVEN("a simple JSON object") {

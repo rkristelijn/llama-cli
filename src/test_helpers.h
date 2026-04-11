@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "config.h"
-#include "repl.h"
+#include "config/config.h"
+#include "repl/repl.h"
 
 /** Smart mock: echoes last user message, tracks calls and history */
 struct MockLLM {

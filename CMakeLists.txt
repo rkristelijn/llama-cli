@@ -41,63 +41,67 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(httplib doctest)
 FetchContent_Populate(cpp_linenoise)
 
-# Shared source files (excluding main)
-set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
+# Shared source files (excluding main and tests)
+set(LIB_SOURCES
+  src/config/config.cpp
+  src/json/json.cpp
+  src/ollama/ollama.cpp
+  src/repl/repl.cpp
+  src/command/command.cpp
+  src/annotation/annotation.cpp
+  src/exec/exec.cpp
+)
+set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR})
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
-target_include_directories(llama-cli PRIVATE include ${cpp_linenoise_SOURCE_DIR})
+target_include_directories(llama-cli PRIVATE ${SRC_INCLUDE})
 target_link_libraries(llama-cli PRIVATE httplib::httplib)
 
-# Config unit tests
-add_executable(test_config test/test_config.cpp src/config.cpp)
-target_include_directories(test_config PRIVATE include)
+# Unit tests
+add_executable(test_config src/config/config_test.cpp src/config/config.cpp)
+target_include_directories(test_config PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_config PRIVATE doctest::doctest)
 
-# REPL unit tests
-add_executable(test_repl test/test_repl.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
-target_include_directories(test_repl PRIVATE include ${cpp_linenoise_SOURCE_DIR})
-target_link_libraries(test_repl PRIVATE doctest::doctest)
-
-# Command unit tests
-add_executable(test_command test/test_command.cpp src/command.cpp)
-target_include_directories(test_command PRIVATE include)
-target_link_libraries(test_command PRIVATE doctest::doctest)
-
-# Annotation unit tests
-add_executable(test_annotation test/test_annotation.cpp src/annotation.cpp)
-target_include_directories(test_annotation PRIVATE include)
-target_link_libraries(test_annotation PRIVATE doctest::doctest)
-
-# JSON unit tests
-add_executable(test_json test/test_json.cpp src/json.cpp)
-target_include_directories(test_json PRIVATE include)
+add_executable(test_json src/json/json_test.cpp src/json/json.cpp)
+target_include_directories(test_json PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_json PRIVATE doctest::doctest)
 
-# Exec unit tests
-add_executable(test_exec test/test_exec.cpp src/exec.cpp)
-target_include_directories(test_exec PRIVATE include)
+add_executable(test_command src/command/command_test.cpp src/command/command.cpp)
+target_include_directories(test_command PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_command PRIVATE doctest::doctest)
+
+add_executable(test_annotation src/annotation/annotation_test.cpp src/annotation/annotation.cpp)
+target_include_directories(test_annotation PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_annotation PRIVATE doctest::doctest)
+
+add_executable(test_exec src/exec/exec_test.cpp src/exec/exec.cpp)
+target_include_directories(test_exec PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_exec PRIVATE doctest::doctest)
 
-# Integration tests (split by feature)
-set(INTEGRATION_LIBS src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp)
 
-add_executable(test_conversation test/test_conversation_it.cpp ${INTEGRATION_LIBS})
-target_include_directories(test_conversation PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
+target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_repl PRIVATE doctest::doctest)
+
+# Integration tests
+add_executable(test_conversation src/repl/conversation_it.cpp ${REPL_LIBS})
+target_include_directories(test_conversation PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_conversation PRIVATE doctest::doctest)
 
-add_executable(test_commands test/test_commands_it.cpp ${INTEGRATION_LIBS})
-target_include_directories(test_commands PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+add_executable(test_commands src/command/commands_it.cpp ${REPL_LIBS})
+target_include_directories(test_commands PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_commands PRIVATE doctest::doctest)
 
-add_executable(test_options test/test_options_it.cpp ${INTEGRATION_LIBS})
-target_include_directories(test_options PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+add_executable(test_options src/repl/options_it.cpp ${REPL_LIBS})
+target_include_directories(test_options PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_options PRIVATE doctest::doctest)
 
-add_executable(test_annotations test/test_annotations_it.cpp ${INTEGRATION_LIBS})
-target_include_directories(test_annotations PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+add_executable(test_annotations src/annotation/annotations_it.cpp ${REPL_LIBS})
+target_include_directories(test_annotations PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_annotations PRIVATE doctest::doctest)
 
-add_executable(test_markdown test/test_markdown_it.cpp ${INTEGRATION_LIBS})
-target_include_directories(test_markdown PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+add_executable(test_markdown src/tui/markdown_it.cpp ${REPL_LIBS})
+target_include_directories(test_markdown PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_markdown PRIVATE doctest::doctest)

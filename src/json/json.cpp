@@ -4,7 +4,7 @@
  * @see docs/adr/adr-001-http-library.md
  */
 
-#include "json.h"
+#include "json/json.h"
 
 /** Decode a single JSON escape sequence starting at backslash position
  * Supports \n, \", \\, and \uXXXX (ASCII range only)

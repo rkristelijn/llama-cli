@@ -4,13 +4,14 @@
 // /set toggles, /version
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "repl/repl.h"
+
 #include <doctest/doctest.h>
 
 #include <fstream>
 #include <sstream>
 
-#include "config.h"
-#include "repl.h"
+#include "config/config.h"
 
 // Mock chat: returns last user message prefixed with "echo: "
 static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }

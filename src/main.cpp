@@ -8,10 +8,10 @@
 #include <iostream>
 #include <string>
 
-#include "config.h"
-#include "ollama.h"
-#include "repl.h"
-#include "tui.h"
+#include "config/config.h"
+#include "ollama/ollama.h"
+#include "repl/repl.h"
+#include "tui/tui.h"
 
 /** Entry point: loads config, dispatches to sync or interactive mode. */
 int main(int argc, char* argv[]) {

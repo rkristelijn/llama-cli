@@ -5,7 +5,7 @@
  * @see docs/adr/adr-015-command-execution.md
  */
 
-#include "config.h"
+#include "config/config.h"
 
 #include <cstdlib>
 #include <string>

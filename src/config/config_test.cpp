@@ -2,11 +2,11 @@
 // Uses Given/When/Then style per ADR-008
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "config/config.h"
+
 #include <doctest/doctest.h>
 
 #include <cstdlib>
-
-#include "config.h"
 
 // Helper to clean all OLLAMA_ env vars
 static void clean_env() {
