@@ -1,6 +1,9 @@
-// config.cpp — Configuration loading implementation
-// Precedence: CLI args > env vars > defaults
-// Supports --long=value, --long value, -x value, and positional args
+/**
+ * @file config.cpp
+ * @brief Configuration loading: defaults → env vars → CLI args.
+ * @see docs/adr/adr-004-configuration.md
+ * @see docs/adr/adr-015-command-execution.md
+ */
 
 #include "config.h"
 
@@ -32,6 +35,12 @@ Config load_env(const Config& defaults) {
   if (env_get("OLLAMA_TIMEOUT", val)) {
     c.timeout = std::stoi(val);
   }
+  if (env_get("LLAMA_EXEC_TIMEOUT", val)) {
+    c.exec_timeout = std::stoi(val);
+  }
+  if (env_get("LLAMA_MAX_OUTPUT", val)) {
+    c.max_output = std::stoi(val);
+  }
   if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
     c.system_prompt = val;
   }
@@ -53,12 +62,28 @@ struct OptDef {
   ConfigField field;
 };
 
-// Table of string CLI options (timeout handled separately as int)
+// Table of string CLI options
 static const OptDef opts[] = {
     {"--host=", "-h", &Config::host},
     {"--port=", "-p", &Config::port},
     {"--model=", "-m", &Config::model},
-    {"--timeout=", "-t", nullptr},
+};
+
+/** CLI int option definition: maps long/short flag to a config int field. */
+struct IntOptDef {
+  /** Long option prefix, e.g. "--timeout=" */
+  const char* long_prefix;
+  /** Short option flag, e.g. "-t" (nullptr if none) */
+  const char* short_flag;
+  /** Pointer-to-member for the target Config int field */
+  int Config::* field;
+};
+
+// Table of int CLI options
+static const IntOptDef int_opts[] = {
+    {"--timeout=", "-t", &Config::timeout},
+    {"--exec-timeout=", nullptr, &Config::exec_timeout},
+    {"--max-output=", nullptr, &Config::max_output},
 };
 
 // Try to match arg against a long option prefix, return value if matched
@@ -70,26 +95,40 @@ static std::string match_long(const std::string& arg, const char* prefix) {
   return "";
 }
 
-// Try to match arg against all option definitions
-// Iterates the opts table, tries long form first, then short form
-// Returns true if matched, sets the config field via pointer-to-member
-static bool match_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+// Try to match arg against string option definitions
+static bool match_string_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : opts) {
     std::string val = match_long(arg, opt.long_prefix);
     if (val.empty() && arg == opt.short_flag && i + 1 < argc) {
       val = argv[++i];
     }
-    if (val.empty()) {
-      continue;
-    }
-    if (opt.field) {
+    if (!val.empty()) {
       c.*opt.field = val;
-    } else {
-      c.timeout = std::stoi(val);
+      return true;
     }
-    return true;
   }
   return false;
+}
+
+// Try to match arg against int option definitions
+static bool match_int_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+  for (const auto& opt : int_opts) {
+    std::string val = match_long(arg, opt.long_prefix);
+    if (val.empty() && opt.short_flag && arg == opt.short_flag && i + 1 < argc) {
+      val = argv[++i];
+    }
+    if (!val.empty()) {
+      c.*opt.field = std::stoi(val);
+      return true;
+    }
+  }
+  return false;
+}
+
+// Try to match arg against all option definitions
+// Returns true if matched, sets the config field via pointer-to-member
+static bool match_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+  return match_string_opts(arg, i, argc, argv, c) || match_int_opts(arg, i, argc, argv, c);
 }
 
 // Load config from CLI arguments, overriding base config

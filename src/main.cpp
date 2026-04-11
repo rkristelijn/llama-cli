@@ -1,7 +1,9 @@
-// llama-cli — A local AI assistant in your terminal
-// See docs/adr-005-execution-modes.md for execution modes.
-// See docs/adr-007-cli-interface.md for CLI interface design.
-// See docs/adr-012-interactive-repl.md for REPL design.
+/**
+ * @file main.cpp
+ * @brief Entry point: loads config, dispatches to sync or interactive mode.
+ * @see docs/adr/adr-005-execution-modes.md
+ * @see docs/adr/adr-007-cli-interface.md
+ */
 
 #include <iostream>
 #include <string>
@@ -26,7 +28,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "llama-cli — connected to " << cfg.host << ":" << cfg.port << " (" << cfg.model << ")\n";
     std::cerr << "Type your prompt. 'exit' or Ctrl+D to quit.\n\n";
     auto generate = [&cfg](const std::vector<Message>& msgs) { return ollama_chat(cfg, msgs); };
-    run_repl(generate, cfg.system_prompt);
+    run_repl(generate, cfg);
   }
   return 0;
 }

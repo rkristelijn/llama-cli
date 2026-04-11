@@ -1,5 +1,8 @@
-// annotation.cpp — Parse LLM tool annotations from response text
-// Simple state machine: find <write file="...">, extract content until </write>
+/**
+ * @file annotation.cpp
+ * @brief Parse LLM tool annotations (XML tags) from response text.
+ * @see docs/adr/adr-014-tool-annotations.md
+ */
 
 #include "annotation.h"
 
@@ -46,7 +49,7 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
 }
 
 // Find all <write file="path">content</write> in text
-// Iterates through text finding write blocks via find_write_block
+// Iterates through text finding write blocks via find_write_block helper
 // Returns empty vector if no valid annotations found
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   std::vector<WriteAction> actions;

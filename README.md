@@ -14,7 +14,26 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 brew install ollama
 brew services start ollama
 ollama pull gemma4:e4b
+make setup
 make run
+```
+
+## Usage
+
+```bash
+> hello                          # chat with the LLM
+> !ls src/                       # run command, output to terminal
+> !!cat src/main.cpp             # run command, output as LLM context
+> what does this code do?        # LLM can now see the file
+> /help                          # show available commands
+> exit                           # quit
+```
+
+The LLM can also propose commands and file writes:
+```
+> fix the bug in main.cpp
+[proposed: write src/main.cpp]
+Write to src/main.cpp? [y/n/s]
 ```
 
 ## Configuration
@@ -25,16 +44,18 @@ make run
 | Port | `--port` | `OLLAMA_PORT` | `11434` |
 | Model | `--model` | `OLLAMA_MODEL` | `gemma4:e4b` |
 | Timeout | `--timeout` | `OLLAMA_TIMEOUT` | `120` |
+| Exec timeout | `--exec-timeout` | `LLAMA_EXEC_TIMEOUT` | `30` |
+| Max output | `--max-output` | `LLAMA_MAX_OUTPUT` | `10000` |
 
 ## Roadmap
 
 - [x] Connect to Ollama
 - [x] Configurable host, port, model, timeout
 - [x] Interactive chat with conversation memory
-- [x] Read files as context (`/read`)
+- [x] Write files from response (`<write>`)
+- [x] Run commands (`!`, `!!`, `<exec>`)
 - [ ] Streaming responses
-- [ ] Write files from response
-- [ ] Run commands and use output as context
+- [ ] Stdin pipe support
 
 ## Contributing
 

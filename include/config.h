@@ -17,17 +17,19 @@ struct Config {
   std::string port = "11434";        ///< Ollama server port
   std::string model = "gemma4:e4b";  ///< LLM model name
   int timeout = 120;                 ///< HTTP request timeout in seconds
+  int exec_timeout = 30;             ///< Max seconds for command execution
+  int max_output = 10000;            ///< Max chars of command output for LLM context
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "
-      "The user can load files with /read <file>. "
-      "Files appear as [file: path] followed by their contents. "
       "When asked to create or modify a file, ALWAYS use "
       "<write file=\"path\">content</write> immediately. "
+      "When you need to run a command, use <exec>command</exec>. "
+      "The user will confirm before execution. Output is fed back to you. "
       "Do NOT ask for confirmation — the client handles that. "
-      "Just include the <write> tag directly in your response.";
+      "Just include the tags directly in your response.";
 };
 
 // Load config from environment variables, overriding defaults

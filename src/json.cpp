@@ -1,5 +1,8 @@
-// json.cpp — Minimal JSON string extraction
-// Handles escaped characters (\n, \", \\, \uXXXX) in JSON string values.
+/**
+ * @file json.cpp
+ * @brief Minimal JSON string extraction for Ollama API responses.
+ * @see docs/adr/adr-001-http-library.md
+ */
 
 #include "json.h"
 

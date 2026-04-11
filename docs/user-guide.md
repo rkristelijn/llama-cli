@@ -28,22 +28,37 @@ Berlin.
 
 The model remembers the conversation. Type `exit`, `quit`, or Ctrl+D to stop.
 
+### Run commands
+
+```bash
+> !ls src/                    # run command, output to terminal
+> !!cat src/main.cpp          # run command, add output as LLM context
+> what does this code do?     # LLM can now see the file
+```
+
+- `!command` — run and show output (not sent to LLM)
+- `!!command` — run, show output, and add to LLM context
+- The LLM can propose commands with `<exec>command</exec>` — you confirm with y/n
+
+### File writes
+
+The LLM can propose file writes:
+```
+> fix the bug in main.cpp
+[proposed: write src/main.cpp]
+Write to src/main.cpp? [y/n/s]
+```
+
+- `y` — write the file
+- `n` — skip
+- `s` — show content first, then decide
+
 ### REPL commands
 
 ```
-/read <file>   Load a file into the conversation context
 /clear         Clear conversation history
 /help          Show available commands
-```
-
-Example with file reading:
-
-```bash
-./build/llama-cli
-> /read src/main.cpp
-[loaded src/main.cpp — 31 lines]
-> what does this code do?
-This is the entry point for llama-cli...
+exit, quit     Exit the REPL
 ```
 
 ### Sync mode — one-shot from command line
@@ -52,25 +67,13 @@ This is the entry point for llama-cli...
 ./build/llama-cli "explain what a Makefile does"
 ```
 
-Response goes to stdout, status to stderr. This means it's pipeable:
+Response goes to stdout, status to stderr. Pipeable:
 
 ```bash
-# Save response to file
 ./build/llama-cli "generate a .gitignore for C++" > .gitignore
-
-# Chain with other tools
-./build/llama-cli "list 5 common HTTP status codes" | grep 404
-```
-
-### Remote Ollama — use another machine
-
-```bash
-./build/llama-cli --host=192.168.1.100 "hello from my laptop"
 ```
 
 ### Configuration
-
-All settings can be set via CLI flags, environment variables, or left as defaults:
 
 | Setting | Flag | Short | Env var | Default |
 |---------|------|-------|---------|---------|
@@ -78,18 +81,11 @@ All settings can be set via CLI flags, environment variables, or left as default
 | Port | `--port` | `-p` | `OLLAMA_PORT` | `11434` |
 | Model | `--model` | `-m` | `OLLAMA_MODEL` | `gemma4:e4b` |
 | Timeout | `--timeout` | `-t` | `OLLAMA_TIMEOUT` | `120` |
+| Exec timeout | `--exec-timeout` | — | `LLAMA_EXEC_TIMEOUT` | `30` |
+| Max output | `--max-output` | — | `LLAMA_MAX_OUTPUT` | `10000` |
 | System prompt | — | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 CLI flags override env vars, env vars override defaults.
-
-```bash
-# Use a different model
-./build/llama-cli -m gemma4:26b "explain quantum computing"
-
-# Set default model via env
-export OLLAMA_MODEL=gemma4:26b
-./build/llama-cli "explain quantum computing"
-```
 
 ## Prerequisites
 

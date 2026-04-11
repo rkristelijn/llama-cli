@@ -1,5 +1,9 @@
-// ollama.cpp — Ollama API client implementation
-// Uses cpp-httplib for HTTP and json.h for response parsing.
+/**
+ * @file ollama.cpp
+ * @brief Ollama API client using cpp-httplib.
+ * @see docs/adr/adr-001-http-library.md
+ * @see docs/adr/adr-004-configuration.md
+ */
 
 #include "ollama.h"
 

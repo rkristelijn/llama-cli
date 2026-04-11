@@ -52,6 +52,22 @@ SCENARIO("parsing user input") {
     THEN("it is parsed as a prompt") { CHECK(result.type == InputType::Prompt); }
   }
 
+  GIVEN("a !command") {
+    auto result = parse_input("!ls -la");
+    THEN("it is parsed as Exec") {
+      CHECK(result.type == InputType::Exec);
+      CHECK(result.arg == "ls -la");
+    }
+  }
+
+  GIVEN("a !!command") {
+    auto result = parse_input("!!make test");
+    THEN("it is parsed as ExecContext") {
+      CHECK(result.type == InputType::ExecContext);
+      CHECK(result.arg == "make test");
+    }
+  }
+
   GIVEN("a /read command with path containing spaces") {
     auto result = parse_input("/read my file.cpp");
     THEN("the full path is captured") { CHECK(result.arg == "my file.cpp"); }

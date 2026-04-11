@@ -1,7 +1,9 @@
-// repl.cpp — Interactive REPL loop with conversation memory and commands
-// Supports slash commands, tool annotations, and regular prompts.
-// Exits on "exit", "quit", or EOF.
-// See ADR-012 (REPL), ADR-013 (commands), ADR-014 (annotations).
+/**
+ * @file repl.cpp
+ * @brief Interactive REPL loop with conversation memory and commands.
+ * @see docs/adr/adr-012-interactive-repl.md
+ * @see docs/adr/adr-014-tool-annotations.md
+ */
 
 #include "repl.h"
 
@@ -9,17 +11,28 @@
 
 #include "annotation.h"
 #include "command.h"
+#include "exec.h"
 
-// Handle a slash command, return true if handled
+/// REPL session state — groups related data to reduce parameter passing
+struct ReplState {
+  ChatFn& chat;                   ///< Chat function for LLM interaction
+  const Config& cfg;              ///< Configuration (timeouts, etc.)
+  std::vector<Message>& history;  ///< Conversation history
+  std::istream& in;               ///< Input stream
+  std::ostream& out;              ///< Output stream
+  int count = 0;                  ///< Number of prompts processed
+};
+
+// Handle a slash command (/help, /clear, /unknown)
+// Returns true always — commands don't exit the loop
 static bool handle_command(const ParsedInput& input, std::vector<Message>& history, std::ostream& out) {
-  if (input.command == "read") {
-    cmd_read(input.arg, history, out);
-  } else if (input.command == "clear") {
+  if (input.command == "clear") {
     history.clear();
     out << "[history cleared]\n";
   } else if (input.command == "help") {
     out << "Commands:\n";
-    out << "  /read <file>  Load file into context\n";
+    out << "  !command      Run command, output to terminal\n";
+    out << "  !!command     Run command, output as LLM context\n";
     out << "  /clear        Clear conversation history\n";
     out << "  /help         Show this help\n";
     out << "  exit, quit    Exit the REPL\n";
@@ -29,8 +42,9 @@ static bool handle_command(const ParsedInput& input, std::vector<Message>& histo
   return true;
 }
 
-// Prompt user for confirmation, return true if confirmed
-// Supports "s"/"show" to preview content first
+// Prompt user for write confirmation (ADR-014)
+// Supports "s"/"show" to preview content before deciding
+// Returns true if user confirms with y/yes
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out) {
   out << "Write to " << action.path << "? [y/n/s] " << std::flush;
   std::string answer;
@@ -48,7 +62,8 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 }
 
 // Process a single write action with user confirmation
-// Writes file on "y"/"yes", skips otherwise
+// Writes file on "y"/"yes", prints [skipped] otherwise
+// Reports errors if file cannot be opened for writing
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out) {
   if (confirm_write(action, in, out)) {
     std::ofstream file(action.path);
@@ -63,18 +78,95 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
   }
 }
 
-// Handle LLM response: check for annotations, display, process writes
-// If annotations found, show stripped response and prompt for each write
-static void handle_response(const std::string& response, std::istream& in, std::ostream& out) {
-  auto actions = parse_write_annotations(response);
-  if (actions.empty()) {
-    out << response << "\n";
-    return;
+// Find all <exec>command</exec> annotations in text
+// Iterates through text finding exec blocks between open/close tags
+// Returns vector of command strings to be confirmed and executed
+static std::vector<std::string> parse_exec_annotations(const std::string& text) {
+  std::vector<std::string> cmds;
+  const std::string open = "<exec>";
+  const std::string close = "</exec>";
+  size_t pos = 0;
+  while (pos < text.size()) {
+    auto start = text.find(open, pos);
+    if (start == std::string::npos) {
+      break;
+    }
+    auto end = text.find(close, start + open.size());
+    if (end == std::string::npos) {
+      break;
+    }
+    cmds.push_back(text.substr(start + open.size(), end - start - open.size()));
+    pos = end + close.size();
   }
-  out << strip_annotations(response) << "\n";
-  for (const auto& action : actions) {
-    process_write(action, in, out);
+  return cmds;
+}
+
+// Strip <exec> annotations from text, replacing with readable summary
+// Used to display clean response text to the user
+static std::string strip_exec_annotations(const std::string& text) {
+  std::string result = text;
+  const std::string open = "<exec>";
+  const std::string close = "</exec>";
+  while (true) {
+    auto start = result.find(open);
+    if (start == std::string::npos) {
+      break;
+    }
+    auto end = result.find(close, start);
+    if (end == std::string::npos) {
+      break;
+    }
+    std::string cmd = result.substr(start + open.size(), end - start - open.size());
+    result.replace(start, end + close.size() - start, "[proposed: exec " + cmd + "]");
   }
+  return result;
+}
+
+// Confirm and execute an LLM-proposed command (ADR-015)
+// Prompts user with y/n, executes on confirmation
+// Returns output if confirmed, empty string if declined
+static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out) {
+  out << "Run: " << cmd << "? [y/n] " << std::flush;
+  std::string answer;
+  if (!std::getline(in, answer)) {
+    return "";
+  }
+  if (answer != "y" && answer != "yes") {
+    out << "[skipped]\n";
+    return "";
+  }
+  auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
+  out << r.output;
+  return r.output;
+}
+
+// Handle LLM response: check for write and exec annotations
+// If no annotations, just print. Otherwise strip tags and process each.
+// Returns true if exec output was added to history (needs LLM follow-up)
+static bool handle_response(const std::string& response, ReplState& s) {
+  auto writes = parse_write_annotations(response);
+  auto execs = parse_exec_annotations(response);
+
+  if (writes.empty() && execs.empty()) {
+    s.out << response << "\n";
+    return false;
+  }
+
+  // Strip all annotations and display clean text
+  s.out << strip_exec_annotations(strip_annotations(response)) << "\n";
+
+  for (const auto& action : writes) {
+    process_write(action, s.in, s.out);
+  }
+  bool has_exec_output = false;
+  for (const auto& cmd : execs) {
+    std::string output = confirm_exec(cmd, s.cfg, s.in, s.out);
+    if (!output.empty()) {
+      s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
+      has_exec_output = true;
+    }
+  }
+  return has_exec_output;
 }
 
 // Read one line of input, showing prompt for interactive terminals
@@ -86,17 +178,21 @@ static bool read_line(std::istream& in, std::ostream& out, std::string& line) {
   return static_cast<bool>(std::getline(in, line));
 }
 
-/// REPL session state — groups related data to reduce parameter passing
-struct ReplState {
-  ChatFn& chat;                   ///< Chat function for LLM interaction
-  std::vector<Message>& history;  ///< Conversation history
-  std::istream& in;               ///< Input stream
-  std::ostream& out;              ///< Output stream
-  int count = 0;                  ///< Number of prompts processed
-};
+// Execute a command and optionally add output to history
+// Used by ! (add_to_history=false) and !! (add_to_history=true)
+static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
+  auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
+  s.out << r.output;
+  if (r.exit_code != 0 && !r.timed_out) {
+    s.out << "[exit code: " << r.exit_code << "]\n";
+  }
+  if (add_to_history) {
+    s.history.push_back({"user", "[command: " + cmd + "]\n" + r.output});
+  }
+}
 
-// Dispatch a single REPL input: command, prompt, or exit
-// Returns false if the loop should exit
+// Dispatch a single REPL input: command, exec, prompt, or exit
+// Returns false if the loop should exit, true to continue
 static bool dispatch(const std::string& line, ReplState& s) {
   auto input = parse_input(line);
   if (input.type == InputType::Exit) {
@@ -106,28 +202,41 @@ static bool dispatch(const std::string& line, ReplState& s) {
     handle_command(input, s.history, s.out);
     return true;
   }
+  if (input.type == InputType::Exec) {
+    run_exec(input.arg, false, s);
+    return true;
+  }
+  if (input.type == InputType::ExecContext) {
+    run_exec(input.arg, true, s);
+    return true;
+  }
+
   // Send prompt to LLM and handle response
   s.history.push_back({"user", line});
   std::string response = s.chat(s.history);
-  handle_response(response, s.in, s.out);
   s.history.push_back({"assistant", response});
+  bool needs_followup = handle_response(response, s);
   s.count++;
+
+  // If exec output was added, send follow-up so LLM can react
+  if (needs_followup) {
+    std::string followup = s.chat(s.history);
+    s.out << followup << "\n";
+    s.history.push_back({"assistant", followup});
+  }
   return true;
 }
 
 // Main REPL loop: read → parse → dispatch → respond
-// Returns number of LLM prompts processed
-int run_repl(ChatFn chat, const std::string& system_prompt, std::istream& in, std::ostream& out) {
+// Returns number of LLM prompts processed (excludes ! and !! commands)
+int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
   std::string line;
   std::vector<Message> history;
-
-  if (!system_prompt.empty()) {
-    history.push_back({"system", system_prompt});
+  if (!cfg.system_prompt.empty()) {
+    history.push_back({"system", cfg.system_prompt});
   }
+  ReplState state = {chat, cfg, history, in, out, 0};
 
-  ReplState state = {chat, history, in, out, 0};
-
-  // Read-eval-print loop until EOF or exit command
   while (read_line(in, out, line)) {
     if (line.empty()) {
       continue;
