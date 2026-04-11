@@ -112,19 +112,20 @@ llama-cli/
 ├── src/                  # Source code
 │   ├── main.cpp          # Entry point, mode detection
 │   ├── config.cpp        # Configuration loading
-│   ├── json.cpp          # JSON parsing
-│   ├── ollama.cpp        # Ollama API client
-│   ├── repl.cpp          # Interactive REPL loop
-│   ├── command.cpp       # Input parsing
-│   ├── annotation.cpp    # Write annotation parsing
-│   └── exec.cpp          # Shell command execution
-├── include/              # Header files
-├── test/                 # Unit tests (doctest)
+│   ├── config/           # config.h, config.cpp, config_test.cpp
+│   ├── json/             # json.h, json.cpp, json_test.cpp
+│   ├── ollama/           # ollama.h, ollama.cpp
+│   ├── repl/             # repl.h, repl.cpp, repl_test.cpp, *_it.cpp
+│   ├── command/          # command.h, command.cpp, *_test.cpp, *_it.cpp
+│   ├── annotation/       # annotation.h, annotation.cpp, *_test.cpp, *_it.cpp
+│   ├── exec/             # exec.h, exec.cpp, exec_test.cpp
+│   ├── tui/              # tui.h (header-only), markdown_it.cpp
+│   ├── main.cpp          # Entry point
+│   └── test_helpers.h    # Shared test utilities
 ├── docs/                 # Documentation
 │   ├── adr/              # Architecture Decision Records
 │   ├── user-guide.md     # How to use
 │   └── architecture.md   # This file
-├── scripts/              # Setup and tooling scripts
-├── hooks/                # Git hooks
+├── .config/              # Tool configs, scripts, hooks
 └── .github/workflows/    # CI pipeline
 ```

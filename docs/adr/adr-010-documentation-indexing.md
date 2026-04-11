@@ -39,5 +39,5 @@ A generated file in the repo root listing all documents with their path and summ
 
 ## Consequences
 - All documentation files should have frontmatter
-- A `scripts/build-index.sh` script is needed (future)
+- A `.config/build-index.sh` script is needed (future)
 - `INDEX.md` should be in `.gitignore` if generated, or committed if curated
