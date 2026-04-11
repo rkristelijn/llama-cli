@@ -45,6 +45,28 @@ The following automated quality gates are enforced on every PR:
 - **Fast**: ccache speeds up rebuilds; -Werror prevents warning debt from accumulating
 - **Flexible**: all checks run both locally (`make test`, `make check`) and in CI — same results everywhere
 - **Discipline**: the workflow is enforced by pre-commit hooks and branch protection, not willpower
+- **Fast CI**: path-based filtering skips code checks on docs-only PRs (dorny/paths-filter)
+
+## CI Pipeline
+
+### Path-based filtering
+CI uses `dorny/paths-filter` to detect what changed. Code jobs only run when `src/`, `include/`, `test/`, `CMakeLists.txt`, or `Makefile` are modified. Version-bump and gitleaks always run.
+
+### Local equivalents
+| Command | When | What | Speed |
+|---------|------|------|-------|
+| `make quick` | During dev | incremental build + tests + comment ratio | ~5s |
+| `make prepush` | Before push | smart: full check if code changed, index-only if docs | ~5s–60s |
+| `make check` | Full audit | all 15 quality gates | ~60s |
+
+### Monitoring CI from terminal
+```bash
+gh run list --limit 5                    # recent runs
+gh run view <id>                         # run details
+gh run view <id> --log-failed            # failure logs
+gh run watch                             # live follow
+gh pr checks                             # checks for current PR
+```
 
 ## Consequences
 - Contributors need: `clang-tidy`, `clang-format`, `cppcheck`, `pmccabe`, `doxygen`, `cloc`, `gitleaks`, `semgrep`, `ccache`
