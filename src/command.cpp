@@ -9,7 +9,9 @@
 
 ParsedInput parse_input(const std::string& line) {
   // Exit keywords
-  if (line == "exit" || line == "quit" || line == "/exit" || line == "/quit") return {InputType::Exit, "", ""};
+  if (line == "exit" || line == "quit" || line == "/exit" || line == "/quit") {
+    return {InputType::Exit, "", ""};
+  }
 
   // Slash commands: /command [arg]
   // Split on first space to separate command from argument

@@ -9,10 +9,10 @@
 
 #include "config.h"
 
-// A single message in a conversation
+/// A single message in a conversation
 struct Message {
-  std::string role;  // "user" or "assistant"
-  std::string content;
+  std::string role;     ///< Message role: "system", "user", or "assistant"
+  std::string content;  ///< Message text content
 };
 
 // Send a one-shot prompt (no history). Uses /api/generate.

@@ -7,9 +7,10 @@
 #include <string>
 #include <vector>
 
+/// A proposed file write extracted from LLM response
 struct WriteAction {
-  std::string path;
-  std::string content;
+  std::string path;     ///< Target file path
+  std::string content;  ///< File content to write
 };
 
 // Extract all <write> annotations from response text

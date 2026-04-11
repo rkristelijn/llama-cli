@@ -47,6 +47,33 @@ jobs:
       - name: Check formatting
         run: find src include test -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run --Werror
 
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-tidy
+        run: sudo apt-get install -y clang-tidy
+      - name: Run clang-tidy
+        run: clang-tidy src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" && exit 1 || true
+
+  pmccabe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pmccabe
+        run: sudo apt-get install -y pmccabe
+      - name: Check complexity
+        run: pmccabe src/*.cpp | awk '$1 > 10 {print; found=1} END {if (found) exit 1}'
+
+  doxygen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install doxygen
+        run: sudo apt-get install -y doxygen
+      - name: Doxygen lint
+        run: doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
+
   cppcheck:
     runs-on: ubuntu-latest
     steps:
@@ -55,6 +82,49 @@ jobs:
         run: sudo apt-get install -y cppcheck
       - name: Run cppcheck
         run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 -I include/ src/
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with sanitizers
+        run: |
+          cmake -B build -DENABLE_SANITIZERS=ON
+          cmake --build build
+      - name: Run tests under ASan/UBSan
+        run: |
+          ./build/test_config
+          ./build/test_json
+          ./build/test_repl
+          ./build/test_command
+          ./build/test_annotation
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get install -y lcov
+      - name: Build with coverage
+        run: |
+          cmake -B build -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+          cmake --build build
+      - name: Run tests
+        run: |
+          ./build/test_config
+          ./build/test_json
+          ./build/test_repl
+          ./build/test_command
+          ./build/test_annotation
+      - name: Generate coverage report
+        run: |
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch
+          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.info
+          fail_ci_if_error: false
 
   semgrep:
     runs-on: ubuntu-latest

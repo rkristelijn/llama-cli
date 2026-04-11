@@ -22,9 +22,13 @@ echo "==> Checking dependencies..."
 # Build tools
 has cmake        || { echo "Installing cmake...";        $PKG cmake; }
 has clang-format || { echo "Installing clang-format...";  $PKG clang-format; }
+has ccache       || { echo "Installing ccache...";        $PKG ccache; }
 
 # Quality tools
 has cppcheck     || { echo "Installing cppcheck...";     $PKG cppcheck; }
+has clang-tidy   || { echo "Installing clang-tidy...";   if has brew; then $PKG llvm; else $PKG clang-tidy; fi; }
+has pmccabe      || { echo "Installing pmccabe...";       $PKG pmccabe; }
+has doxygen      || { echo "Installing doxygen...";       $PKG doxygen; }
 has semgrep      || { echo "Installing semgrep...";       $PKG semgrep; }
 has gitleaks     || { echo "Installing gitleaks...";      $PKG gitleaks; }
 has cloc         || { echo "Installing cloc...";          $PKG cloc; }

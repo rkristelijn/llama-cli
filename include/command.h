@@ -12,10 +12,11 @@
 // Result of parsing a line of input
 enum class InputType { Prompt, Command, Exit };
 
+/// Result of parsing a line of user input
 struct ParsedInput {
-  InputType type;
-  std::string command;  // e.g. "read"
-  std::string arg;      // e.g. "main.cpp"
+  InputType type;       ///< What kind of input was parsed
+  std::string command;  ///< Command name, e.g. "read" (empty for prompts)
+  std::string arg;      ///< Command argument, e.g. "main.cpp" (empty if none)
 };
 
 // Parse a line of user input into a command or prompt

@@ -35,16 +35,19 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
 static std::string build_messages_json(const std::vector<Message>& messages) {
   std::string json = "[";
   for (size_t i = 0; i < messages.size(); i++) {
-    if (i > 0) json += ",";
+    if (i > 0) {
+      json += ",";
+    }
     // Escape quotes in content
     std::string escaped;
     for (char c : messages[i].content) {
-      if (c == '"')
+      if (c == '"') {
         escaped += "\\\"";
-      else if (c == '\n')
+      } else if (c == '\n') {
         escaped += "\\n";
-      else
+      } else {
         escaped += c;
+      }
     }
     json += R"({"role":")" + messages[i].role + R"(","content":")" + escaped + R"("})";
   }
