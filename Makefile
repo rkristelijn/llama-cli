@@ -97,12 +97,26 @@ quick: all
 	@./$(BUILD_DIR)/test_integration
 	@sh test/test_comment_ratio.sh
 
+# Smart pre-push: only check what changed since main
+prepush:
+	@changed=$$(git diff --name-only origin/main...HEAD); \
+	if echo "$$changed" | grep -qE '\.(cpp|h)$$'; then \
+		echo "==> code changed: running full checks"; \
+		$(MAKE) check; \
+	else \
+		echo "==> docs only: skipping code checks"; \
+		$(MAKE) index; \
+		git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }; \
+		echo "All checks passed."; \
+	fi
+
 help:
 	@echo "Usage:"
 	@echo "  make           build the project"
 	@echo "  make run       build and run"
 	@echo "  make quick     incremental build + tests (fast)"
 	@echo "  make test      full build + tests"
+	@echo "  make prepush   smart check (only what changed vs main)"
 	@echo "  make check     run all quality checks"
 	@echo "  make install   install git hooks"
 	@echo "  make clean     remove build artifacts"
