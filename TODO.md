@@ -9,6 +9,9 @@
 - [ ] Reduce duplicate strings — e.g. connection message in main.cpp appears twice
 - [ ] Replace magic literals with named constants (exit codes, tag strings, thresholds)
 - [ ] Scan for duplicate code across source files and consolidate
+- [ ] Move non-core config files (Doxyfile, .clang-format, .clang-tidy) to `.config/`
+- [ ] Feature module layout: group .h, .cpp, test per feature in subdirectories
+- [ ] Feature module decomposition: split monolithic files into focused modules
 
 ## Features
 - [x] Interactive prompt + REPL with conversation memory (#3, partial)
@@ -35,7 +38,13 @@
 - [ ] Add `make prepush` target (doxygen + format + clang-tidy, no semgrep/gitleaks/coverage)
 - [ ] Add config validation (port range, timeout > 0, non-empty host/model)
 - [ ] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
-- [ ] Add integration test for ollama.cpp (requires mock or running Ollama)
+- [ ] Integration test: mock LLM server, test all features end-to-end
 - [ ] Add E2E test for main
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] Define release process (#11)
+
+## Release & Distribution
+- [ ] Prepare repo for first release (tag, changelog, version bump)
+- [ ] Publish to Homebrew (brew tap or core formula)
+- [ ] Publish to apt (PPA or .deb package)
+- [ ] Write user documentation (install, usage, config, examples)

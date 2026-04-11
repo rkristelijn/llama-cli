@@ -25,6 +25,9 @@ make run
 > !ls src/                       # run command, output to terminal
 > !!cat src/main.cpp             # run command, output as LLM context
 > what does this code do?        # LLM can now see the file
+> /set                           # show runtime options
+> /set bofh                      # toggle BOFH spinner mode
+> /version                       # show version info
 > /help                          # show available commands
 > exit                           # quit
 ```
@@ -46,6 +49,9 @@ Write to src/main.cpp? [y/n/s]
 | Timeout | `--timeout` | `OLLAMA_TIMEOUT` | `120` |
 | Exec timeout | `--exec-timeout` | `LLAMA_EXEC_TIMEOUT` | `30` |
 | Max output | `--max-output` | `LLAMA_MAX_OUTPUT` | `10000` |
+| No color | `--no-color` | `NO_COLOR` | auto-detect TTY |
+| BOFH mode | `--why-so-serious` | — | `false` |
+| System prompt | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 ## Roadmap
 
@@ -54,6 +60,10 @@ Write to src/main.cpp? [y/n/s]
 - [x] Interactive chat with conversation memory
 - [x] Write files from response (`<write>`)
 - [x] Run commands (`!`, `!!`, `<exec>`)
+- [x] TUI: ANSI colors, markdown rendering, spinner
+- [x] Arrow key history (linenoise)
+- [x] Runtime options (`/set markdown`, `/set color`, `/set bofh`)
+- [x] Ctrl+C interrupt during LLM calls
 - [ ] Streaming responses
 - [ ] Stdin pipe support
 

@@ -7,11 +7,25 @@
 
 #include "repl.h"
 
+#include <csignal>
 #include <fstream>
 
 #include "annotation.h"
 #include "command.h"
 #include "exec.h"
+#include "tui.h"
+
+#ifdef LINENOISE_HPP
+// already included
+#else
+#include "linenoise.hpp"
+#endif
+
+/// Global flag set by SIGINT handler to interrupt LLM calls
+static volatile sig_atomic_t g_interrupted = 0;
+
+/** SIGINT handler — sets flag so spinner/chat can check and abort */
+static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
@@ -21,23 +35,96 @@ struct ReplState {
   std::istream& in;               ///< Input stream
   std::ostream& out;              ///< Output stream
   int count = 0;                  ///< Number of prompts processed
+  bool color = false;             ///< Whether to use ANSI colors (TTY detect)
+  bool interactive = false;       ///< Whether running on a real TTY (for spinner)
+  bool markdown = true;           ///< Whether to render markdown in LLM output
+  bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
-// Handle a slash command (/help, /clear, /unknown)
+/** Get version string from VERSION file + git dirty status.
+ * Returns "unknown" if VERSION file is missing.
+ * Appends "-dirty" if there are uncommitted changes. */
+static std::string get_version() {
+  std::string ver = "unknown";
+  std::ifstream vf("VERSION");
+  if (vf.is_open()) {
+    std::getline(vf, ver);
+  }
+  // Check if working tree is dirty
+  if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
+    ver += "-dirty";
+  }
+  return ver;
+}
+
+/** Show current options state — lists all toggleable runtime settings.
+ * Called by /set without arguments, similar to `env` or `set` in bash. */
+static void show_options(ReplState& s) {
+  s.out << "Options (toggle with /set <option>):\n";
+  s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
+  s.out << "  color     " << (s.color ? "on" : "off") << "\n";
+  s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
+}
+
+/** Toggle a named option, return true if recognized.
+ * Uses a lookup table to map option names to ReplState bool fields. */
+static bool toggle_option(const std::string& name, ReplState& s) {
+  using BoolField = bool ReplState::*;
+  struct OptEntry {
+    const char* name;
+    BoolField field;
+  };
+  static const OptEntry opts[] = {
+      {"markdown", &ReplState::markdown},
+      {"color", &ReplState::color},
+      {"bofh", &ReplState::bofh},
+  };
+  for (const auto& opt : opts) {
+    if (name == opt.name) {
+      s.*(opt.field) = !(s.*(opt.field));
+      s.out << "[" << name << " " << (s.*(opt.field) ? "on" : "off") << "]\n";
+      return true;
+    }
+  }
+  return false;
+}
+
+// Handle /set command: show options or toggle one.
+// Without args: show all options. With args: toggle named option.
+static void handle_set(const std::string& arg, ReplState& s) {
+  if (arg.empty()) {
+    show_options(s);
+    return;
+  }
+  auto space = arg.find(' ');
+  std::string opt = (space != std::string::npos) ? arg.substr(0, space) : arg;
+  if (!toggle_option(opt, s)) {
+    s.out << "Unknown option: " << arg << ". Type /set to see available options.\n";
+  }
+}
+
+// Handle a slash command (/help, /clear, /set, /version, /unknown)
 // Returns true always — commands don't exit the loop
-static bool handle_command(const ParsedInput& input, std::vector<Message>& history, std::ostream& out) {
+static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
-    history.clear();
-    out << "[history cleared]\n";
+    s.history.clear();
+    s.out << "[history cleared]\n";
+  } else if (input.command == "set" || input.command == "options") {
+    handle_set(input.arg, s);
+  } else if (input.command == "version") {
+    s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
-    out << "Commands:\n";
-    out << "  !command      Run command, output to terminal\n";
-    out << "  !!command     Run command, output as LLM context\n";
-    out << "  /clear        Clear conversation history\n";
-    out << "  /help         Show this help\n";
-    out << "  exit, quit    Exit the REPL\n";
+    s.out << "Commands:\n";
+    s.out << "  !command      Run command, output to terminal\n";
+    s.out << "  !!command     Run command, output as LLM context\n";
+    s.out << "  /clear        Clear conversation history\n";
+    s.out << "  /set          Show options\n";
+    s.out << "  /set <opt>    Toggle option (markdown, color, bofh)\n";
+    s.out << "  /version      Show version info\n";
+    s.out << "  /help         Show this help\n";
+    s.out << "  exit, quit    Exit the REPL\n";
   } else {
-    out << "Unknown command: /" << input.command << ". Type /help for options.\n";
+    s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
   }
   return true;
 }
@@ -64,14 +151,15 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 /** Process a single write action with user confirmation
  * Writes file on "y"/"yes", prints [skipped] otherwise
  * Reports errors if file cannot be opened for writing */
-static void process_write(const WriteAction& action, std::istream& in, std::ostream& out) {
+static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+  tui::write_proposal(out, color, action.path);
   if (confirm_write(action, in, out)) {
     std::ofstream file(action.path);
     if (file.is_open()) {
       file << action.content << "\n";
       out << "[wrote " << action.path << "]\n";
     } else {
-      out << "Error: could not write to " << action.path << "\n";
+      tui::error(out, color, "Error: could not write to " + action.path);
     }
   } else {
     out << "[skipped]\n";
@@ -148,15 +236,15 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto execs = parse_exec_annotations(response);
 
   if (writes.empty() && execs.empty()) {
-    s.out << response << "\n";
+    s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
     return false;
   }
 
   // Strip all annotations and display clean text
-  s.out << strip_exec_annotations(strip_annotations(response)) << "\n";
+  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown) << "\n";
 
   for (const auto& action : writes) {
-    process_write(action, s.in, s.out);
+    process_write(action, s.in, s.out, s.color);
   }
   bool has_exec_output = false;
   for (const auto& cmd : execs) {
@@ -169,11 +257,17 @@ static bool handle_response(const std::string& response, ReplState& s) {
   return has_exec_output;
 }
 
-// Read one line of input, showing prompt for interactive terminals
+// Read one line of input using linenoise (interactive) or getline (tests)
 // Returns false on EOF (signals loop exit)
-static bool read_line(std::istream& in, std::ostream& out, std::string& line) {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
   if (&in == &std::cin) {
-    out << "> " << std::flush;
+    std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
+    auto quit = linenoise::Readline(prompt_str.c_str(), line);
+    if (quit) {
+      return false;
+    }
+    linenoise::AddHistory(line.c_str());
+    return true;
   }
   return static_cast<bool>(std::getline(in, line));
 }
@@ -182,12 +276,74 @@ static bool read_line(std::istream& in, std::ostream& out, std::string& line) {
 // Used by ! (add_to_history=false) and !! (add_to_history=true)
 static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
   auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
-  s.out << r.output;
+  tui::cmd_output(s.out, s.color, r.output);
   if (r.exit_code != 0 && !r.timed_out) {
-    s.out << "[exit code: " << r.exit_code << "]\n";
+    tui::error(s.out, s.color, "[exit code: " + std::to_string(r.exit_code) + "]");
   }
   if (add_to_history) {
     s.history.push_back({"user", "[command: " + cmd + "]\n" + r.output});
+  }
+}
+
+/** Run chat on a thread, interruptible by Ctrl+C.
+ * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
+ * so the user gets their prompt back immediately.
+ * The abandoned thread will finish in the background.
+ * Returns empty string if interrupted, response text otherwise. */
+static std::string interruptible_chat(ReplState& s) {
+  std::string result;
+  std::atomic<bool> done{false};
+  std::thread t([&] {
+    result = s.chat(s.history);
+    done = true;
+  });
+  while (!done && !g_interrupted) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  if (done) {
+    t.join();
+    return result;
+  }
+  t.detach();
+  return "";
+}
+
+/** Call LLM with spinner, interruptible by Ctrl+C.
+ * Installs SIGINT handler, starts spinner, calls chat on a thread.
+ * Returns response text, or empty string if interrupted. */
+static std::string chat_with_spinner(ReplState& s) {
+  g_interrupted = 0;
+  auto prev = std::signal(SIGINT, sigint_handler);
+  Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+  std::string result = interruptible_chat(s);
+  std::signal(SIGINT, prev);
+  return result;
+}
+
+// Send a prompt to the LLM and handle the response.
+// Manages spinner, SIGINT, history, annotations, and follow-up calls.
+static void send_prompt(const std::string& line, ReplState& s) {
+  s.history.push_back({"user", line});
+  std::string response = chat_with_spinner(s);
+  if (g_interrupted) {
+    s.out << "\n[interrupted]\n";
+    s.history.pop_back();
+    g_interrupted = 0;
+    return;
+  }
+  s.history.push_back({"assistant", response});
+  bool needs_followup = handle_response(response, s);
+  s.count++;
+
+  if (needs_followup) {
+    std::string followup = chat_with_spinner(s);
+    if (!g_interrupted) {
+      s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
+      s.history.push_back({"assistant", followup});
+    } else {
+      s.out << "\n[interrupted]\n";
+      g_interrupted = 0;
+    }
   }
 }
 
@@ -199,7 +355,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
     return false;
   }
   if (input.type == InputType::Command) {
-    handle_command(input, s.history, s.out);
+    handle_command(input, s);
     return true;
   }
   if (input.type == InputType::Exec) {
@@ -210,20 +366,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
     run_exec(input.arg, true, s);
     return true;
   }
-
-  // Send prompt to LLM and handle response
-  s.history.push_back({"user", line});
-  std::string response = s.chat(s.history);
-  s.history.push_back({"assistant", response});
-  bool needs_followup = handle_response(response, s);
-  s.count++;
-
-  // If exec output was added, send follow-up so LLM can react
-  if (needs_followup) {
-    std::string followup = s.chat(s.history);
-    s.out << followup << "\n";
-    s.history.push_back({"assistant", followup});
-  }
+  send_prompt(line, s);
   return true;
 }
 
@@ -235,9 +378,10 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
-  ReplState state = {chat, cfg, history, in, out, 0};
+  bool is_tty = tui::use_color(cfg.no_color);
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
 
-  while (read_line(in, out, line)) {
+  while (read_line(in, out, line, state.color)) {
     if (line.empty()) {
       continue;
     }

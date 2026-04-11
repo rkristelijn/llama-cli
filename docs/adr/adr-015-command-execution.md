@@ -1,6 +1,6 @@
 # ADR-015: Command Execution
 
-*Status*: Proposed · *Date*: 2026-04-11 · *Context*: Users need to run shell commands from within the REPL — both directly and via LLM suggestions. This completes the roadmap item "Run commands and use output as context".
+*Status*: Accepted · *Date*: 2026-04-11 · *Context*: Users need to run shell commands from within the REPL — both directly and via LLM suggestions. This completes the roadmap item "Run commands and use output as context".
 
 ## Decision
 
@@ -63,9 +63,9 @@ LLM: "All 5 test suites pass. The coverage is..."
 - User-initiated commands (`!`, `!!`) execute immediately (user typed it)
 - Output is truncated at 10,000 chars when added to LLM context (prevent token overflow)
 
-### Deprecation of `/read`
+### File reading
 
-`/read` is removed. Use `!!cat <file>` instead — it does the same thing (reads file, adds to LLM context) but is more general. `/load` is not added as alias; the `!!` pattern replaces all context-loading use cases.
+`!!cat <file>` replaces the earlier `/read` concept — it reads a file and adds the content to LLM context. The `!!` pattern is more general and works with any command.
 
 ### Configuration
 
@@ -104,5 +104,5 @@ New settings in Config (following ADR-004 precedence: CLI > env > defaults):
 
 - `popen()` introduces a system call — must handle errors and timeouts
 - Large command output could flood LLM context — truncation needed
-- `/read` becomes an alias, not the primary way to load files
+- `!!cat <file>` is the standard way to load files into LLM context
 - System prompt must be updated to teach the LLM about `<exec>`

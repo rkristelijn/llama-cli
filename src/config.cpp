@@ -44,6 +44,9 @@ Config load_env(const Config& defaults) {
   if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
     c.system_prompt = val;
   }
+  if (std::getenv("NO_COLOR")) {
+    c.no_color = true;
+  }
   return c;
 }
 
@@ -142,6 +145,14 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
   for (int i = 1; i < argc; i++) {
     std::string arg(argv[i]);
     if (match_opts(arg, i, argc, argv, c)) {
+      continue;
+    }
+    if (arg == "--no-color") {
+      c.no_color = true;
+      continue;
+    }
+    if (arg == "--why-so-serious") {
+      c.bofh = true;
       continue;
     }
 

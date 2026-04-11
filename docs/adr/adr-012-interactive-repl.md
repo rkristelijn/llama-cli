@@ -1,9 +1,9 @@
 # ADR-012: Interactive REPL
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: Interactive mode needs a read-eval-print loop. The REPL must be testable, support graceful exit, and be upgradeable to line editing later.
+*Status*: Accepted · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: Interactive mode needs a read-eval-print loop. The REPL must be testable, support graceful exit, and be upgradeable to line editing later.
 
 ## Decision
-The REPL is implemented with `std::getline` and injectable I/O streams.
+The REPL uses `cpp-linenoise` for interactive input (arrow keys, history) and falls back to `std::getline` for non-interactive streams (tests).
 
 ### Input handling
 | Input | Behavior |
@@ -11,8 +11,9 @@ The REPL is implemented with `std::getline` and injectable I/O streams.
 | Text + Enter | Sent to Ollama, response printed |
 | Empty line | Skipped |
 | `exit` or `quit` | Clean exit |
-| Ctrl+C | Process killed by OS (standard unix behavior) |
+| Ctrl+C | Interrupts LLM call, returns to prompt |
 | EOF (Ctrl+D) | Clean exit |
+| Arrow up/down | Navigate command history |
 
 ### Testability
 The generate function and I/O streams are injected, allowing tests to use string streams and mock responses without HTTP calls (ADR-008).
@@ -21,11 +22,12 @@ The generate function and I/O streams are injected, allowing tests to use string
 `std::getline` is used initially — no arrow keys, no history. This can be upgraded to `linenoise` or `readline` later without changing the REPL logic, since input comes through `std::istream`.
 
 ## Rationale
-- `std::getline` has zero dependencies and is sufficient for an MVP
-- Injectable I/O makes the REPL fully unit-testable
-- Ctrl+C as process kill is standard unix behavior — no signal handler needed until state (e.g. chat history) must be saved
-- Line editing libraries can be added later as a drop-in upgrade
+- `cpp-linenoise` is header-only, BSD licensed, same author as cpp-httplib
+- Interactive mode uses `linenoise::Readline` with arrow key history
+- Tests still use `std::getline` via injectable `std::istream` — no linenoise dependency in tests
+- SIGINT handler installed during LLM calls: chat runs on a detachable thread, Ctrl+C returns to prompt immediately
 
 ## Consequences
-- No arrow key navigation or command history in the initial version
-- No graceful Ctrl+C handling — acceptable until chat history is persisted
+- Arrow key navigation and command history work out of the box
+- Ctrl+C gracefully interrupts LLM calls (abandoned HTTP thread finishes in background)
+- Tests remain fast and deterministic (no terminal interaction)

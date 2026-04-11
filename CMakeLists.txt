@@ -32,14 +32,21 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/doctest/doctest.git
     GIT_TAG v2.4.12
 )
+# cpp-linenoise: header-only, download only (its CMakeLists.txt needs CMake < 3.5)
+FetchContent_Declare(
+    cpp_linenoise
+    GIT_REPOSITORY https://github.com/yhirose/cpp-linenoise.git
+    GIT_TAG master
+)
 FetchContent_MakeAvailable(httplib doctest)
+FetchContent_Populate(cpp_linenoise)
 
 # Shared source files (excluding main)
 set(LIB_SOURCES src/config.cpp src/json.cpp src/ollama.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
-target_include_directories(llama-cli PRIVATE include)
+target_include_directories(llama-cli PRIVATE include ${cpp_linenoise_SOURCE_DIR})
 target_link_libraries(llama-cli PRIVATE httplib::httplib)
 
 # Config unit tests
@@ -49,7 +56,7 @@ target_link_libraries(test_config PRIVATE doctest::doctest)
 
 # REPL unit tests
 add_executable(test_repl test/test_repl.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
-target_include_directories(test_repl PRIVATE include)
+target_include_directories(test_repl PRIVATE include ${cpp_linenoise_SOURCE_DIR})
 target_link_libraries(test_repl PRIVATE doctest::doctest)
 
 # Command unit tests
