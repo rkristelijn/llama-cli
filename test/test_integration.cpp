@@ -373,3 +373,145 @@ SCENARIO("Quit exits the REPL") {
     THEN("no LLM calls") { CHECK(llm.calls == 0); }
   }
 }
+
+// --- Feature: Markdown rendering ---
+
+SCENARIO("Markdown rendering on vs off") {
+  GIVEN("the LLM responds with markdown") {
+    auto md_chat = [](const std::vector<Message>&) {
+      return "# Title\n**bold** and *italic*\n- item one\n- item two\n```\ncode block\n```";
+    };
+
+    WHEN("markdown is on (default)") {
+      std::istringstream in("render\nexit\n");
+      std::ostringstream out;
+      Config cfg = test_cfg();
+      cfg.no_color = true;  // no ANSI but markdown still processes
+      run_repl(md_chat, cfg, in, out);
+
+      THEN("output contains the response") {
+        CHECK(out.str().find("Title") != std::string::npos);
+        CHECK(out.str().find("bold") != std::string::npos);
+        CHECK(out.str().find("item") != std::string::npos);
+      }
+    }
+
+    WHEN("markdown is off via /set") {
+      std::istringstream in("/set markdown\nrender\nexit\n");
+      std::ostringstream out;
+      run_repl(md_chat, test_cfg(), in, out);
+
+      THEN("raw markdown is preserved") {
+        CHECK(out.str().find("# Title") != std::string::npos);
+        CHECK(out.str().find("**bold**") != std::string::npos);
+      }
+    }
+  }
+}
+
+// --- Feature: BOFH mode config ---
+
+SCENARIO("BOFH mode via --why-so-serious") {
+  GIVEN("config with bofh enabled") {
+    Config cfg = test_cfg();
+    cfg.bofh = true;
+
+    WHEN("the REPL starts and user checks /set") {
+      MockLLM llm;
+      auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+      std::istringstream in("/set\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, cfg, in, out);
+
+      THEN("bofh shows as on") { CHECK(out.str().find("bofh      on") != std::string::npos); }
+    }
+  }
+}
+
+// --- Feature: --no-color config ---
+
+SCENARIO("No-color config flag") {
+  GIVEN("config with no_color enabled") {
+    Config cfg = test_cfg();
+    cfg.no_color = true;
+
+    WHEN("the REPL starts and user checks /set") {
+      MockLLM llm;
+      auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+      std::istringstream in("/set\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, cfg, in, out);
+
+      THEN("color shows as off") { CHECK(out.str().find("color     off") != std::string::npos); }
+    }
+  }
+}
+
+// --- Unit: render_markdown ---
+
+#include "tui.h"
+
+SCENARIO("Markdown renderer") {
+  GIVEN("color is enabled") {
+    WHEN("rendering a heading") {
+      auto result = tui::render_markdown("# Hello", true);
+      THEN("heading text is present without #") {
+        CHECK(result.find("Hello") != std::string::npos);
+        CHECK(result.find("# ") == std::string::npos);
+      }
+    }
+
+    WHEN("rendering bold") {
+      auto result = tui::render_markdown("**bold**", true);
+      THEN("bold text is present without **") {
+        CHECK(result.find("bold") != std::string::npos);
+        CHECK(result.find("**") == std::string::npos);
+      }
+    }
+
+    WHEN("rendering italic") {
+      auto result = tui::render_markdown("*italic*", true);
+      THEN("italic text is present without *") {
+        CHECK(result.find("italic") != std::string::npos);
+        CHECK(result.find("*italic*") == std::string::npos);
+      }
+    }
+
+    WHEN("rendering inline code") {
+      auto result = tui::render_markdown("`code`", true);
+      THEN("code text is present without backticks") {
+        CHECK(result.find("code") != std::string::npos);
+        CHECK(result.find("`code`") == std::string::npos);
+      }
+    }
+
+    WHEN("rendering a bullet list") {
+      auto result = tui::render_markdown("- item one\n- item two", true);
+      THEN("bullets are converted") {
+        CHECK(result.find("•") != std::string::npos);
+        CHECK(result.find("item one") != std::string::npos);
+        CHECK(result.find("item two") != std::string::npos);
+      }
+    }
+
+    WHEN("rendering a numbered list") {
+      auto result = tui::render_markdown("1. first\n2. second", true);
+      THEN("numbers are preserved") {
+        CHECK(result.find("1.") != std::string::npos);
+        CHECK(result.find("first") != std::string::npos);
+      }
+    }
+
+    WHEN("rendering a code block") {
+      auto result = tui::render_markdown("```\nint x = 1;\n```", true);
+      THEN("code content is present") { CHECK(result.find("int x = 1;") != std::string::npos); }
+    }
+  }
+
+  GIVEN("color is disabled") {
+    WHEN("rendering markdown") {
+      auto result = tui::render_markdown("# Hello\n**bold**", false);
+      THEN("text is returned unchanged") { CHECK(result == "# Hello\n**bold**"); }
+    }
+  }
+}
