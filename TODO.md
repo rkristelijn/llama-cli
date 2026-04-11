@@ -33,6 +33,7 @@
 - [x] Coverage enforcement ≥ 80% per file
 - [x] Sanitizers (ASan + UBSan) in CI
 - [ ] Add config validation (port range, timeout > 0, non-empty host/model)
+- [ ] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
 - [ ] Add integration test for ollama.cpp (requires mock or running Ollama)
 - [ ] Add E2E test for main
 - [ ] Evaluate remaining 12-factor principles (#10)

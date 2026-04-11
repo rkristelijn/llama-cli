@@ -11,7 +11,7 @@
 #include <fstream>
 #include <sstream>
 
-// Check if line is an exit keyword (exit, quit, /exit, /quit)
+/** Check if line is an exit keyword (exit, quit, /exit, /quit) */
 static bool is_exit(const std::string& line) {
   return line == "exit" || line == "quit" || line == "/exit" || line == "/quit";
 }
@@ -25,8 +25,8 @@ static ParsedInput parse_slash(const std::string& line) {
   return {InputType::Command, cmd, arg};
 }
 
-// Parse a line of user input into a typed result
-// Detects !! (exec+context), ! (exec), exit, slash commands, prompts
+/** Parse a line of user input into a typed result
+ * Detects !! (exec+context), ! (exec), exit, slash commands, prompts */
 ParsedInput parse_input(const std::string& line) {
   if (is_exit(line)) {
     return {InputType::Exit, "", ""};
@@ -43,9 +43,9 @@ ParsedInput parse_input(const std::string& line) {
   return {InputType::Prompt, "", line};
 }
 
-// Execute /read: load file contents into conversation history
-// Adds file as a user message so the LLM has it as context
-// Returns true on success, false if file cannot be opened
+/** Execute /read: load file contents into conversation history
+ * Adds file as a user message so the LLM has it as context
+ * Returns true on success, false if file cannot be opened */
 bool cmd_read(const std::string& path, std::vector<Message>& history, std::ostream& out) {
   std::ifstream file(path);
   if (!file.is_open()) {

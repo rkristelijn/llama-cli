@@ -12,9 +12,9 @@
 #include <ctime>
 #include <string>
 
-// Append buffer to output, truncating at max_chars if needed
-// Resizes output and appends a truncation marker when limit is hit
-// Returns true if output was truncated
+/** Append buffer to output, truncating at max_chars if needed
+ * Resizes output and appends a truncation marker when limit is hit
+ * Returns true if output was truncated */
 static bool append_output(std::string& output, const char* buf, int max_chars) {
   output += buf;
   if (static_cast<int>(output.size()) > max_chars) {
@@ -25,9 +25,9 @@ static bool append_output(std::string& output, const char* buf, int max_chars) {
   return false;
 }
 
-// Execute a shell command, capturing stdout and stderr
-// Merges stderr into stdout via 2>&1 redirect
-// Enforces wall-clock timeout and truncates output at max_chars
+/** Execute a shell command, capturing stdout and stderr
+ * Merges stderr into stdout via 2>&1 redirect
+ * Enforces wall-clock timeout and truncates output at max_chars */
 ExecResult cmd_exec(const std::string& command, int timeout_secs, int max_chars) {
   ExecResult result = {"", -1, false};
   // Merge stderr into stdout so we capture all output

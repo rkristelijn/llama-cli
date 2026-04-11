@@ -12,6 +12,7 @@
 #include "ollama.h"
 #include "repl.h"
 
+/** Entry point: loads config, dispatches to sync or interactive mode. */
 int main(int argc, char* argv[]) {
   // Load config: defaults -> env vars -> CLI args (ADR-004)
   Config cfg = load_config(argc, const_cast<const char* const*>(argv));

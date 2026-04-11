@@ -42,9 +42,9 @@ static bool handle_command(const ParsedInput& input, std::vector<Message>& histo
   return true;
 }
 
-// Prompt user for write confirmation (ADR-014)
-// Supports "s"/"show" to preview content before deciding
-// Returns true if user confirms with y/yes
+/** Prompt user for write confirmation (ADR-014)
+ * Supports "s"/"show" to preview content before deciding
+ * Returns true if user confirms with y/yes */
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out) {
   out << "Write to " << action.path << "? [y/n/s] " << std::flush;
   std::string answer;
@@ -61,9 +61,9 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
   return answer == "y" || answer == "yes";
 }
 
-// Process a single write action with user confirmation
-// Writes file on "y"/"yes", prints [skipped] otherwise
-// Reports errors if file cannot be opened for writing
+/** Process a single write action with user confirmation
+ * Writes file on "y"/"yes", prints [skipped] otherwise
+ * Reports errors if file cannot be opened for writing */
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out) {
   if (confirm_write(action, in, out)) {
     std::ofstream file(action.path);
@@ -78,9 +78,9 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
   }
 }
 
-// Find all <exec>command</exec> annotations in text
-// Iterates through text finding exec blocks between open/close tags
-// Returns vector of command strings to be confirmed and executed
+/** Find all <exec>command</exec> annotations in text
+ * Iterates through text finding exec blocks between open/close tags
+ * Returns vector of command strings to be confirmed and executed */
 static std::vector<std::string> parse_exec_annotations(const std::string& text) {
   std::vector<std::string> cmds;
   const std::string open = "<exec>";
@@ -122,9 +122,9 @@ static std::string strip_exec_annotations(const std::string& text) {
   return result;
 }
 
-// Confirm and execute an LLM-proposed command (ADR-015)
-// Prompts user with y/n, executes on confirmation
-// Returns output if confirmed, empty string if declined
+/** Confirm and execute an LLM-proposed command (ADR-015)
+ * Prompts user with y/n, executes on confirmation
+ * Returns output if confirmed, empty string if declined */
 static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out) {
   out << "Run: " << cmd << "? [y/n] " << std::flush;
   std::string answer;
@@ -140,9 +140,9 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
   return r.output;
 }
 
-// Handle LLM response: check for write and exec annotations
-// If no annotations, just print. Otherwise strip tags and process each.
-// Returns true if exec output was added to history (needs LLM follow-up)
+/** Handle LLM response: check for write and exec annotations
+ * If no annotations, just print. Otherwise strip tags and process each.
+ * Returns true if exec output was added to history (needs LLM follow-up) */
 static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);
   auto execs = parse_exec_annotations(response);
@@ -227,8 +227,8 @@ static bool dispatch(const std::string& line, ReplState& s) {
   return true;
 }
 
-// Main REPL loop: read → parse → dispatch → respond
-// Returns number of LLM prompts processed (excludes ! and !! commands)
+/** Main REPL loop: read → parse → dispatch → respond
+ * Returns number of LLM prompts processed (excludes ! and !! commands) */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
   std::string line;
   std::vector<Message> history;
