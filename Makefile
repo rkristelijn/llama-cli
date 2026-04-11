@@ -62,8 +62,8 @@ setup:
 	sh scripts/setup.sh
 
 install:
-	cp hooks/pre-commit .git/hooks/pre-commit
-	chmod +x .git/hooks/pre-commit
+	cp scripts/pre-commit .git/scripts/pre-commit
+	chmod +x .git/scripts/pre-commit
 	@echo "Git hooks installed."
 
 todo:
