@@ -17,12 +17,22 @@ test: all
 	cmake --build $(BUILD_DIR) --target test_command
 	cmake --build $(BUILD_DIR) --target test_annotation
 	cmake --build $(BUILD_DIR) --target test_exec
+	cmake --build $(BUILD_DIR) --target test_conversation
+	cmake --build $(BUILD_DIR) --target test_commands
+	cmake --build $(BUILD_DIR) --target test_options
+	cmake --build $(BUILD_DIR) --target test_annotations
+	cmake --build $(BUILD_DIR) --target test_markdown
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
 	./$(BUILD_DIR)/test_command
 	./$(BUILD_DIR)/test_annotation
 	./$(BUILD_DIR)/test_exec
+	./$(BUILD_DIR)/test_conversation
+	./$(BUILD_DIR)/test_commands
+	./$(BUILD_DIR)/test_options
+	./$(BUILD_DIR)/test_annotations
+	./$(BUILD_DIR)/test_markdown
 	sh test/test_comment_ratio.sh
 
 check: all test
@@ -92,7 +102,25 @@ quick: all
 	@./$(BUILD_DIR)/test_command
 	@./$(BUILD_DIR)/test_annotation
 	@./$(BUILD_DIR)/test_exec
+	@./$(BUILD_DIR)/test_conversation
+	./$(BUILD_DIR)/test_commands
+	./$(BUILD_DIR)/test_options
+	./$(BUILD_DIR)/test_annotations
+	./$(BUILD_DIR)/test_markdown
 	@sh test/test_comment_ratio.sh
+
+# Smart pre-push: only check what changed since main
+prepush:
+	@changed=$$(git diff --name-only origin/main...HEAD); \
+	if echo "$$changed" | grep -qE '\.(cpp|h)$$'; then \
+		echo "==> code changed: running full checks"; \
+		$(MAKE) check; \
+	else \
+		echo "==> docs only: skipping code checks"; \
+		$(MAKE) index; \
+		git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }; \
+		echo "All checks passed."; \
+	fi
 
 help:
 	@echo "Usage:"
@@ -100,6 +128,7 @@ help:
 	@echo "  make run       build and run"
 	@echo "  make quick     incremental build + tests (fast)"
 	@echo "  make test      full build + tests"
+	@echo "  make prepush   smart check (only what changed vs main)"
 	@echo "  make check     run all quality checks"
 	@echo "  make install   install git hooks"
 	@echo "  make clean     remove build artifacts"

@@ -78,3 +78,26 @@ target_link_libraries(test_json PRIVATE doctest::doctest)
 add_executable(test_exec test/test_exec.cpp src/exec.cpp)
 target_include_directories(test_exec PRIVATE include)
 target_link_libraries(test_exec PRIVATE doctest::doctest)
+
+# Integration tests (split by feature)
+set(INTEGRATION_LIBS src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
+
+add_executable(test_conversation test/test_conversation_it.cpp ${INTEGRATION_LIBS})
+target_include_directories(test_conversation PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_conversation PRIVATE doctest::doctest)
+
+add_executable(test_commands test/test_commands_it.cpp ${INTEGRATION_LIBS})
+target_include_directories(test_commands PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_commands PRIVATE doctest::doctest)
+
+add_executable(test_options test/test_options_it.cpp ${INTEGRATION_LIBS})
+target_include_directories(test_options PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_options PRIVATE doctest::doctest)
+
+add_executable(test_annotations test/test_annotations_it.cpp ${INTEGRATION_LIBS})
+target_include_directories(test_annotations PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_annotations PRIVATE doctest::doctest)
+
+add_executable(test_markdown test/test_markdown_it.cpp ${INTEGRATION_LIBS})
+target_include_directories(test_markdown PRIVATE include test ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_markdown PRIVATE doctest::doctest)

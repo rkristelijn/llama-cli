@@ -27,6 +27,7 @@
 - [ ] Streaming responses (#4)
 - [ ] Async mode — fire-and-forget (#3, remaining)
 - [ ] Stdin pipe support (ADR-007)
+- [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] Multi-host load distribution (#12)
 
 ## Quality
