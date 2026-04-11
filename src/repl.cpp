@@ -36,6 +36,7 @@ struct ReplState {
   std::ostream& out;              ///< Output stream
   int count = 0;                  ///< Number of prompts processed
   bool color = false;             ///< Whether to use ANSI colors (TTY detect)
+  bool interactive = false;       ///< Whether running on a real TTY (for spinner)
   bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
@@ -316,7 +317,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
   {
     g_interrupted = 0;
     auto prev = std::signal(SIGINT, sigint_handler);
-    Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
+    Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
     response = interruptible_chat(s);
     std::signal(SIGINT, prev);  // restore previous handler
   }
@@ -337,7 +338,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
     {
       g_interrupted = 0;
       auto prev = std::signal(SIGINT, sigint_handler);
-      Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
+      Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
       followup = interruptible_chat(s);
       std::signal(SIGINT, prev);
     }
@@ -360,7 +361,8 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
-  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color), true, cfg.bofh};
+  bool is_tty = tui::use_color(cfg.no_color);
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {
