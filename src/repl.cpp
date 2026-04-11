@@ -69,9 +69,10 @@ static void show_options(ReplState& s) {
 /** Toggle a named option, return true if recognized.
  * Uses a lookup table to map option names to ReplState bool fields. */
 static bool toggle_option(const std::string& name, ReplState& s) {
+  using BoolField = bool ReplState::*;
   struct OptEntry {
     const char* name;
-    bool ReplState::* field;
+    BoolField field;
   };
   static const OptEntry opts[] = {
       {"markdown", &ReplState::markdown},
