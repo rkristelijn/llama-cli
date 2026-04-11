@@ -13,6 +13,11 @@
 - [x] Feature module layout: group .h, .cpp, test per feature in subdirectories
 - [ ] Feature module decomposition: split monolithic files into focused modules
 
+## Pre-release blockers
+- [ ] Show diff preview before overwriting existing files (#50)
+- [ ] /model command: list available models, switch model at runtime (#48)
+- [ ] Improve system prompt: LLM repeats command output instead of analyzing it (#27)
+
 ## Features
 - [x] Interactive prompt + REPL with conversation memory (#3, partial)
 - [x] Sync mode — one-shot from CLI (#3, partial)
