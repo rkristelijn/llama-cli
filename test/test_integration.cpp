@@ -112,6 +112,51 @@ SCENARIO("Runtime options persist across prompts") {
 
 // --- Feature: Version and help ---
 
+SCENARIO("Set shows all options") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("/set\nexit\n");
+  std::ostringstream out;
+
+  WHEN("the user runs /set") {
+    run_repl(chat, test_cfg(), in, out);
+    THEN("all options are listed") {
+      CHECK(out.str().find("markdown") != std::string::npos);
+      CHECK(out.str().find("color") != std::string::npos);
+      CHECK(out.str().find("bofh") != std::string::npos);
+    }
+  }
+}
+
+SCENARIO("Set toggles color and bofh") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("/set color\n/set bofh\n/set\nexit\n");
+  std::ostringstream out;
+
+  WHEN("the user toggles color and bofh then checks") {
+    run_repl(chat, test_cfg(), in, out);
+    THEN("toggles are confirmed") {
+      CHECK(out.str().find("[color on]") != std::string::npos);
+      CHECK(out.str().find("[bofh on]") != std::string::npos);
+    }
+  }
+}
+
+SCENARIO("Set unknown option shows error") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("/set foobar\nexit\n");
+  std::ostringstream out;
+
+  WHEN("the user runs /set foobar") {
+    run_repl(chat, test_cfg(), in, out);
+    THEN("error is shown") { CHECK(out.str().find("Unknown option") != std::string::npos); }
+  }
+}
+
+// --- Feature: Version and help ---
+
 SCENARIO("Version and help commands") {
   MockLLM llm;
   auto chat = [&](const std::vector<Message>& m) { return llm(m); };
@@ -271,5 +316,60 @@ SCENARIO("Shell command with ! and !!") {
       }
       CHECK(found);
     }
+  }
+}
+
+// --- Feature: Write with show ---
+
+SCENARIO("Write annotation with show then confirm") {
+  const std::string test_path = "/tmp/llama-integration-show.txt";
+  std::remove(test_path.c_str());
+
+  GIVEN("the LLM responds with a write annotation") {
+    auto write_chat = [](const std::vector<Message>&) {
+      return "Here: <write file=\"/tmp/llama-integration-show.txt\">show content</write>";
+    };
+
+    WHEN("the user types s then y") {
+      std::istringstream in("write it\ns\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+
+      THEN("content is previewed") { CHECK(out.str().find("show content") != std::string::npos); }
+      THEN("file is written") {
+        std::ifstream f(test_path);
+        CHECK(f.is_open());
+      }
+    }
+  }
+  std::remove(test_path.c_str());
+}
+
+// --- Feature: Empty lines ---
+
+SCENARIO("Empty lines are skipped") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("\n\n\nhello\n\nexit\n");
+  std::ostringstream out;
+
+  WHEN("the user sends empty lines between prompts") {
+    run_repl(chat, test_cfg(), in, out);
+    THEN("only one LLM call is made") { CHECK(llm.calls == 1); }
+  }
+}
+
+// --- Feature: Quit ---
+
+SCENARIO("Quit exits the REPL") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("quit\n");
+  std::ostringstream out;
+
+  WHEN("the user types quit") {
+    int count = run_repl(chat, test_cfg(), in, out);
+    THEN("REPL exits with 0 prompts") { CHECK(count == 0); }
+    THEN("no LLM calls") { CHECK(llm.calls == 0); }
   }
 }
