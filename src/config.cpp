@@ -7,61 +7,100 @@
 #include <cstdlib>
 #include <string>
 
+// Read an environment variable into a string, return true if set
+static bool env_get(const char* name, std::string& out) {
+  const char* val = std::getenv(name);
+  if (val) {
+    out = val;
+  }
+  return val != nullptr;
+}
+
 // Load config from environment variables, overriding defaults
 Config load_env(const Config& defaults) {
   Config c = defaults;
-  const char* val;
-  if ((val = std::getenv("OLLAMA_HOST"))) c.host = val;
-  if ((val = std::getenv("OLLAMA_PORT"))) c.port = val;
-  if ((val = std::getenv("OLLAMA_MODEL"))) c.model = val;
-  if ((val = std::getenv("OLLAMA_TIMEOUT"))) c.timeout = std::stoi(val);
-  if ((val = std::getenv("OLLAMA_SYSTEM_PROMPT"))) c.system_prompt = val;
+  std::string val;
+  if (env_get("OLLAMA_HOST", val)) {
+    c.host = val;
+  }
+  if (env_get("OLLAMA_PORT", val)) {
+    c.port = val;
+  }
+  if (env_get("OLLAMA_MODEL", val)) {
+    c.model = val;
+  }
+  if (env_get("OLLAMA_TIMEOUT", val)) {
+    c.timeout = std::stoi(val);
+  }
+  if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
+    c.system_prompt = val;
+  }
   return c;
 }
 
+// Pointer-to-member type for Config string fields
+using ConfigField = std::string Config::*;
+
+/**
+ * CLI option definition: maps long/short flags to a config field.
+ */
+struct OptDef {
+  /** Long option prefix, e.g. "--host=" */
+  const char* long_prefix;
+  /** Short option flag, e.g. "-h" */
+  const char* short_flag;
+  /** Pointer-to-member for the target Config string field (nullptr for int) */
+  ConfigField field;
+};
+
+// Table of string CLI options (timeout handled separately as int)
+static const OptDef opts[] = {
+    {"--host=", "-h", &Config::host},
+    {"--port=", "-p", &Config::port},
+    {"--model=", "-m", &Config::model},
+    {"--timeout=", "-t", nullptr},
+};
+
+// Try to match arg against a long option prefix, return value if matched
+static std::string match_long(const std::string& arg, const char* prefix) {
+  std::string p(prefix);
+  if (arg.rfind(p, 0) == 0) {
+    return arg.substr(p.size());
+  }
+  return "";
+}
+
+// Try to match arg against all option definitions
+// Iterates the opts table, tries long form first, then short form
+// Returns true if matched, sets the config field via pointer-to-member
+static bool match_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+  for (const auto& opt : opts) {
+    std::string val = match_long(arg, opt.long_prefix);
+    if (val.empty() && arg == opt.short_flag && i + 1 < argc) {
+      val = argv[++i];
+    }
+    if (val.empty()) {
+      continue;
+    }
+    if (opt.field) {
+      c.*opt.field = val;
+    } else {
+      c.timeout = std::stoi(val);
+    }
+    return true;
+  }
+  return false;
+}
+
 // Load config from CLI arguments, overriding base config
+// Parses long (--key=value), short (-x value), and positional args
 Config load_cli(int argc, const char* const argv[], const Config& base) {
   Config c = base;
 
   for (int i = 1; i < argc; i++) {
     std::string arg(argv[i]);
-
-    // Long options: --key=value
-    if (arg.rfind("--host=", 0) == 0) {
-      c.host = arg.substr(7);
+    if (match_opts(arg, i, argc, argv, c)) {
       continue;
-    }
-    if (arg.rfind("--port=", 0) == 0) {
-      c.port = arg.substr(7);
-      continue;
-    }
-    if (arg.rfind("--model=", 0) == 0) {
-      c.model = arg.substr(8);
-      continue;
-    }
-    if (arg.rfind("--timeout=", 0) == 0) {
-      c.timeout = std::stoi(arg.substr(10));
-      continue;
-    }
-
-    // Short options: -x value (next arg)
-    if (i + 1 < argc) {
-      if (arg == "-h") {
-        c.host = argv[++i];
-        continue;
-      }
-      if (arg == "-p") {
-        c.port = argv[++i];
-        continue;
-      }
-      if (arg == "-m") {
-        c.model = argv[++i];
-        continue;
-      }
-      if (arg == "-t") {
-        c.timeout = std::stoi(argv[++i]);
-        continue;
-      }
     }
 
     // Positional arg = prompt (first non-option argument)

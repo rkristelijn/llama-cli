@@ -11,15 +11,15 @@
 // Execution mode (ADR-005)
 enum class Mode { Interactive, Sync };
 
-// Application configuration
+/// Application configuration
 struct Config {
-  std::string host = "localhost";
-  std::string port = "11434";
-  std::string model = "gemma4:e4b";
-  int timeout = 120;
-  Mode mode = Mode::Interactive;
-  std::string prompt;
-  std::string system_prompt =
+  std::string host = "localhost";    ///< Ollama server hostname
+  std::string port = "11434";        ///< Ollama server port
+  std::string model = "gemma4:e4b";  ///< LLM model name
+  int timeout = 120;                 ///< HTTP request timeout in seconds
+  Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
+  std::string prompt;                ///< One-shot prompt for sync mode
+  std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "
       "The user can load files with /read <file>. "
