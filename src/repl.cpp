@@ -14,6 +14,12 @@
 #include "exec.h"
 #include "tui.h"
 
+#ifdef LINENOISE_HPP
+// already included
+#else
+#include "linenoise.hpp"
+#endif
+
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
   ChatFn& chat;                   ///< Chat function for LLM interaction
@@ -193,11 +199,15 @@ static bool handle_response(const std::string& response, ReplState& s) {
   return has_exec_output;
 }
 
-// Read one line of input, showing prompt for interactive terminals
+// Read one line of input using linenoise (interactive) or getline (tests)
 // Returns false on EOF (signals loop exit)
-static bool read_line(std::istream& in, std::ostream& out, std::string& line, bool color) {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
   if (&in == &std::cin) {
-    tui::prompt(out, color);
+    std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
+    auto quit = linenoise::Readline(prompt_str.c_str(), line);
+    if (quit) return false;
+    linenoise::AddHistory(line.c_str());
+    return true;
   }
   return static_cast<bool>(std::getline(in, line));
 }
