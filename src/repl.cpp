@@ -216,14 +216,22 @@ static bool dispatch(const std::string& line, ReplState& s) {
 
   // Send prompt to LLM and handle response
   s.history.push_back({"user", line});
-  std::string response = s.chat(s.history);
+  std::string response;
+  {
+    Spinner spin(s.out, s.color);
+    response = s.chat(s.history);
+  }
   s.history.push_back({"assistant", response});
   bool needs_followup = handle_response(response, s);
   s.count++;
 
   // If exec output was added, send follow-up so LLM can react
   if (needs_followup) {
-    std::string followup = s.chat(s.history);
+    std::string followup;
+    {
+      Spinner spin(s.out, s.color);
+      followup = s.chat(s.history);
+    }
     s.out << followup << "\n";
     s.history.push_back({"assistant", followup});
   }

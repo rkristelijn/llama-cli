@@ -8,9 +8,12 @@
 
 #include <unistd.h>
 
+#include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <thread>
 
 namespace tui {
 
@@ -40,5 +43,37 @@ inline void write_proposal(std::ostream& out, bool color, const std::string& pat
 }
 
 }  // namespace tui
+
+/** RAII spinner — shows animation while LLM is processing, stops on destruction.
+ * Only active when color is enabled (implies interactive TTY).
+ * Construct before a blocking call, destructor cleans up automatically. */
+class Spinner {
+ public:
+  /** Start spinner on out stream. No-op if active=false (non-interactive). */
+  explicit Spinner(std::ostream& out, bool active) : out_(out), running_(active) {
+    if (running_) thread_ = std::thread([this] { run(); });
+  }
+  ~Spinner() {
+    running_ = false;
+    if (thread_.joinable()) thread_.join();
+    out_ << "\r\033[K" << std::flush;
+  }
+  Spinner(const Spinner&) = delete;
+  Spinner& operator=(const Spinner&) = delete;
+
+ private:
+  void run() {
+    const char* frames[] = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+    int i = 0;
+    while (running_) {
+      out_ << "\r\033[2m" << frames[i % 10] << " thinking...\033[0m" << std::flush;
+      i++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(80));
+    }
+  }
+  std::ostream& out_;
+  std::atomic<bool> running_;
+  std::thread thread_;
+};
 
 #endif
