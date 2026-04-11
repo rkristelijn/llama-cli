@@ -38,11 +38,19 @@ Config load_env(const Config& defaults) {
   return c;
 }
 
-/// CLI option definition: maps long/short flags to a config string field
+// Pointer-to-member type for Config string fields
+using ConfigField = std::string Config::*;
+
+/**
+ * CLI option definition: maps long/short flags to a config field.
+ */
 struct OptDef {
-  const char* long_prefix;      ///< e.g. "--host="
-  const char* short_flag;       ///< e.g. "-h"
-  std::string Config::* field;  ///< target field (nullptr for int)
+  /** Long option prefix, e.g. "--host=" */
+  const char* long_prefix;
+  /** Short option flag, e.g. "-h" */
+  const char* short_flag;
+  /** Pointer-to-member for the target Config string field (nullptr for int) */
+  ConfigField field;
 };
 
 // Table of string CLI options (timeout handled separately as int)
