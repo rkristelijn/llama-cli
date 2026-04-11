@@ -45,15 +45,48 @@ static std::string get_version() {
   return ver;
 }
 
-// Handle a slash command (/help, /clear, /raw, /version, /unknown)
+/** Show current options state — lists all toggleable runtime settings */
+static void show_options(ReplState& s) {
+  s.out << "Options (toggle with /set <option>):\n";
+  s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
+  s.out << "  color     " << (s.color ? "on" : "off") << "\n";
+  s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
+}
+
+/** Toggle a named option, return true if recognized.
+ * Supports: markdown, color, bofh */
+static bool toggle_option(const std::string& name, ReplState& s) {
+  if (name == "markdown") {
+    s.markdown = !s.markdown;
+  } else if (name == "color") {
+    s.color = !s.color;
+  } else if (name == "bofh") {
+    s.bofh = !s.bofh;
+  } else {
+    return false;
+  }
+  s.out << "[" << name << " "
+        << (name == "markdown" ? (s.markdown ? "on" : "off")
+            : name == "color"  ? (s.color ? "on" : "off")
+                               : (s.bofh ? "on" : "off"))
+        << "]\n";
+  return true;
+}
+
+// Handle a slash command (/help, /clear, /options, /set, /version, /unknown)
 // Returns true always — commands don't exit the loop
 static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
     s.history.clear();
     s.out << "[history cleared]\n";
-  } else if (input.command == "raw") {
-    s.markdown = !s.markdown;
-    s.out << "[markdown " << (s.markdown ? "on" : "off") << "]\n";
+  } else if (input.command == "options") {
+    show_options(s);
+  } else if (input.command == "set" && !input.arg.empty()) {
+    if (!toggle_option(input.arg, s)) {
+      s.out << "Unknown option: " << input.arg << ". Type /options to see available options.\n";
+    }
+  } else if (input.command == "set") {
+    s.out << "Usage: /set <option>. Type /options to see available options.\n";
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
@@ -61,7 +94,8 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.out << "  !command      Run command, output to terminal\n";
     s.out << "  !!command     Run command, output as LLM context\n";
     s.out << "  /clear        Clear conversation history\n";
-    s.out << "  /raw          Toggle markdown rendering on/off\n";
+    s.out << "  /options      Show current options\n";
+    s.out << "  /set <opt>    Toggle option (markdown, color, bofh)\n";
     s.out << "  /version      Show version info\n";
     s.out << "  /help         Show this help\n";
     s.out << "  exit, quit    Exit the REPL\n";
