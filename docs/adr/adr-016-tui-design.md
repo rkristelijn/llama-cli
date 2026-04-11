@@ -31,7 +31,7 @@ We need a consistent visual language that:
 | Prompt marker | bold green | `\033[1;32m` | `> ` |
 
 ### Implementation
-- Single header `include/tui.h` with inline functions
+- Single header `src/tui/tui.h` with inline functions
 - Auto-detect TTY: color only when `isatty(STDOUT_FILENO)` is true
 - `--no-color` CLI flag and `NO_COLOR` env var override (per https://no-color.org)
 - Every styled print resets with `\033[0m` after output

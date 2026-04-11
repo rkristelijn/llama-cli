@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "test_helpers.h"
-#include "tui.h"
+#include "tui/tui.h"
 
 SCENARIO("Markdown rendering on vs off in REPL") {
   GIVEN("the LLM responds with markdown") {

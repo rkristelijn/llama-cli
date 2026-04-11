@@ -5,15 +5,15 @@
  * @see docs/adr/adr-014-tool-annotations.md
  */
 
-#include "repl.h"
+#include "repl/repl.h"
 
 #include <csignal>
 #include <fstream>
 
-#include "annotation.h"
-#include "command.h"
-#include "exec.h"
-#include "tui.h"
+#include "annotation/annotation.h"
+#include "command/command.h"
+#include "exec/exec.h"
+#include "tui/tui.h"
 
 #ifdef LINENOISE_HPP
 // already included

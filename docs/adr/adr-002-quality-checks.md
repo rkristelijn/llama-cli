@@ -50,7 +50,7 @@ The following automated quality gates are enforced on every PR:
 ## CI Pipeline
 
 ### Path-based filtering
-CI uses `dorny/paths-filter` to detect what changed. Code jobs only run when `src/`, `include/`, `test/`, `CMakeLists.txt`, or `Makefile` are modified. Version-bump and gitleaks always run.
+CI uses `dorny/paths-filter` to detect what changed. Code jobs only run when `src/`, `CMakeLists.txt`, or `Makefile` are modified. Version-bump and gitleaks always run.
 
 ### Local equivalents
 | Command | When | What | Speed |
@@ -75,7 +75,7 @@ gh pr checks                             # checks for current PR
 
 ### Comment ratio strategy
 
-The 20% minimum is enforced by `cloc` via `test/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
+The 20% minimum is enforced by `cloc` via `.config/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
 
 ```cpp
 /**

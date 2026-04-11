@@ -4,7 +4,7 @@
  * @see docs/adr/adr-015-command-execution.md
  */
 
-#include "exec.h"
+#include "exec/exec.h"
 
 #include <sys/wait.h>
 

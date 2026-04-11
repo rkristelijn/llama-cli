@@ -1,12 +1,12 @@
 // test_command.cpp — Unit tests for REPL command parsing and execution
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "command/command.h"
+
 #include <doctest/doctest.h>
 
 #include <fstream>
 #include <sstream>
-
-#include "command.h"
 
 SCENARIO("parsing user input") {
   GIVEN("a regular prompt") {

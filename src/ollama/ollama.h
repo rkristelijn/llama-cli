@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "config.h"
+#include "config/config.h"
 
 /// A single message in a conversation
 struct Message {

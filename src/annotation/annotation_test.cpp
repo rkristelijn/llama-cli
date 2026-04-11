@@ -1,9 +1,9 @@
 // test_annotation.cpp — Unit tests for LLM annotation parsing
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include "annotation/annotation.h"
 
-#include "annotation.h"
+#include <doctest/doctest.h>
 
 SCENARIO("parsing write annotations") {
   GIVEN("a response with a single write annotation") {

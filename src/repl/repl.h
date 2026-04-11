@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "config.h"
-#include "ollama.h"
+#include "config/config.h"
+#include "ollama/ollama.h"
 
 // Injectable function type for chat with history
 using ChatFn = std::function<std::string(const std::vector<Message>&)>;

@@ -5,15 +5,15 @@
  * @see docs/adr/adr-004-configuration.md
  */
 
-#include "ollama.h"
+#include "ollama/ollama.h"
 
 #include <httplib.h>
 
 #include <iostream>
 #include <string>
 
-#include "json.h"
-#include "tui.h"
+#include "json/json.h"
+#include "tui/tui.h"
 
 // Build an HTTP client for the configured Ollama instance
 // Constructs URL from host:port config and sets read timeout

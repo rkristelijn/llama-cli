@@ -76,7 +76,7 @@ jobs:
       - name: Install clang-format
         run: sudo apt-get install -y clang-format
       - name: Check formatting
-        run: find src include test -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run --Werror
+        run: find src include test -name '*.cpp' -o -name '*.h' | xargs clang-format --style=file:.config/.clang-format --dry-run --Werror
 
   clang-tidy:
     needs: changes
@@ -115,7 +115,7 @@ jobs:
           tar xzf doxygen-1.16.1.linux.bin.tar.gz
           sudo cp doxygen-1.16.1/bin/doxygen /usr/local/bin/doxygen
       - name: Doxygen lint
-        run: doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml" && exit 1 || true
+        run: doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml" && exit 1 || true
 
   cppcheck:
     needs: changes

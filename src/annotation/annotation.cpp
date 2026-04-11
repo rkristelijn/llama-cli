@@ -4,7 +4,7 @@
  * @see docs/adr/adr-014-tool-annotations.md
  */
 
-#include "annotation.h"
+#include "annotation/annotation.h"
 
 /** Find the next <write file="path">content</write> starting at pos
  * Extracts path and content, trims leading/trailing newlines from content

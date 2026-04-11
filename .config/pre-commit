@@ -10,7 +10,7 @@ fi
 # Auto-format staged C++ files
 staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|h)$')
 if [ -n "$staged" ]; then
-    echo "$staged" | xargs clang-format -i
+    echo "$staged" | xargs clang-format --style=file:.config/.clang-format -i
     echo "$staged" | xargs git add
 fi
 

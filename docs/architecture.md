@@ -25,14 +25,14 @@ graph TB
 | Module | Files | Responsibility |
 |--------|-------|----------------|
 | **main** | `src/main.cpp` | Wires config, client, and I/O. Detects execution mode. |
-| **config** | `include/config.h`, `src/config.cpp` | Loads settings from defaults → env vars → CLI args |
-| **ollama** | `include/ollama.h`, `src/ollama.cpp` | HTTP client for Ollama API (`/api/generate`, `/api/chat`) |
-| **json** | `include/json.h`, `src/json.cpp` | Minimal JSON string extraction without external deps |
-| **repl** | `include/repl.h`, `src/repl.cpp` | Interactive loop with conversation memory, spinner, markdown |
-| **command** | `include/command.h`, `src/command.cpp` | Input parsing: !, !!, /slash, exit, prompts |
-| **annotation** | `include/annotation.h`, `src/annotation.cpp` | Parse `<write>` annotations from LLM responses |
-| **exec** | `include/exec.h`, `src/exec.cpp` | Shell command execution with timeout and output capture |
-| **tui** | `include/tui.h` | ANSI colors, markdown rendering, spinner (header-only) |
+| **config** | `src/config/config.h`, `src/config/config.cpp` | Loads settings from defaults → env vars → CLI args |
+| **ollama** | `src/ollama/ollama.h`, `src/ollama/ollama.cpp` | HTTP client for Ollama API (`/api/generate`, `/api/chat`) |
+| **json** | `src/json/json.h`, `src/json/json.cpp` | Minimal JSON string extraction without external deps |
+| **repl** | `src/repl/repl.h`, `src/repl/repl.cpp` | Interactive loop with conversation memory, spinner, markdown |
+| **command** | `src/command/command.h`, `src/command/command.cpp` | Input parsing: !, !!, /slash, exit, prompts |
+| **annotation** | `src/annotation/annotation.h`, `src/annotation/annotation.cpp` | Parse `<write>` annotations from LLM responses |
+| **exec** | `src/exec/exec.h`, `src/exec/exec.cpp` | Shell command execution with timeout and output capture |
+| **tui** | `src/tui/tui.h` | ANSI colors, markdown rendering, spinner (header-only) |
 
 ## Request flow
 
@@ -112,19 +112,20 @@ llama-cli/
 ├── src/                  # Source code
 │   ├── main.cpp          # Entry point, mode detection
 │   ├── config.cpp        # Configuration loading
-│   ├── json.cpp          # JSON parsing
-│   ├── ollama.cpp        # Ollama API client
-│   ├── repl.cpp          # Interactive REPL loop
-│   ├── command.cpp       # Input parsing
-│   ├── annotation.cpp    # Write annotation parsing
-│   └── exec.cpp          # Shell command execution
-├── include/              # Header files
-├── test/                 # Unit tests (doctest)
+│   ├── config/           # config.h, config.cpp, config_test.cpp
+│   ├── json/             # json.h, json.cpp, json_test.cpp
+│   ├── ollama/           # ollama.h, ollama.cpp
+│   ├── repl/             # repl.h, repl.cpp, repl_test.cpp, *_it.cpp
+│   ├── command/          # command.h, command.cpp, *_test.cpp, *_it.cpp
+│   ├── annotation/       # annotation.h, annotation.cpp, *_test.cpp, *_it.cpp
+│   ├── exec/             # exec.h, exec.cpp, exec_test.cpp
+│   ├── tui/              # tui.h (header-only), markdown_it.cpp
+│   ├── main.cpp          # Entry point
+│   └── test_helpers.h    # Shared test utilities
 ├── docs/                 # Documentation
 │   ├── adr/              # Architecture Decision Records
 │   ├── user-guide.md     # How to use
 │   └── architecture.md   # This file
-├── scripts/              # Setup and tooling scripts
-├── hooks/                # Git hooks
+├── .config/              # Tool configs, scripts, hooks
 └── .github/workflows/    # CI pipeline
 ```

@@ -33,21 +33,21 @@ test: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	sh test/test_comment_ratio.sh
+	sh .config/test_comment_ratio.sh
 
 check: all test
 	@echo "==> clang-tidy"
-	@$(CLANG_TIDY) src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" | grep -v "linenoise" && exit 1 || true
+	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
-	@pmccabe src/*.cpp | awk '$$1 > 10 {print; found=1} END {if (found) exit 1}'
+	@pmccabe src/*/*.cpp | awk '$$1 > 10 {print; found=1} END {if (found) exit 1}'
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --error-exitcode=1 -I include/ src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
-	@doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
+	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
 	@echo "==> index freshness"
-	@sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
+	@sh .config/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
 	@echo "==> coverage (>= 80%)"
-	@sh test/test_coverage.sh
+	@sh .config/test_coverage.sh
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
@@ -59,11 +59,11 @@ check: all test
 
 # Install dependencies and git hooks
 setup:
-	sh scripts/setup.sh
+	sh .config/setup.sh
 
 install:
-	cp hooks/pre-commit .git/hooks/pre-commit
-	chmod +x .git/hooks/pre-commit
+	cp .config/pre-commit .git/.config/pre-commit
+	chmod +x .git/.config/pre-commit
 	@echo "Git hooks installed."
 
 todo:
@@ -75,7 +75,7 @@ todo:
 
 # Generate INDEX.md from all project files
 index:
-	sh scripts/build-index.sh
+	sh .config/build-index.sh
 
 # Generate test coverage report
 coverage:
@@ -107,7 +107,7 @@ quick: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	@sh test/test_comment_ratio.sh
+	@sh .config/test_comment_ratio.sh
 
 # Smart pre-push: only check what changed since main
 prepush:

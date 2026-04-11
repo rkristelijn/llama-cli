@@ -19,42 +19,39 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-015-command-execution.md`](docs/adr/adr-015-command-execution.md) — ADR-015: Command Execution
 - [`docs/adr/adr-016-tui-design.md`](docs/adr/adr-016-tui-design.md) — ADR-016: TUI Design
 - [`docs/adr/adr-017-integration-tests.md`](docs/adr/adr-017-integration-tests.md) — ADR-017: Integration Tests
+- [`docs/adr/adr-018-module-layout.md`](docs/adr/adr-018-module-layout.md) — ADR-018: Feature Module Layout
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
-- [`include/annotation.h`](include/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
-- [`include/command.h`](include/command.h) — // command.h — REPL slash command parser
-- [`include/config.h`](include/config.h) — // config.h — Application configuration
-- [`include/exec.h`](include/exec.h) — // exec.h — Shell command execution with timeout and output capture
-- [`include/json.h`](include/json.h) — // json.h — Minimal JSON helpers
-- [`include/ollama.h`](include/ollama.h) — // ollama.h — Ollama API client
-- [`include/repl.h`](include/repl.h) — // repl.h — Interactive REPL loop
-- [`include/tui.h`](include/tui.h) — /**
-- [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
-- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
-- [`src/annotation.cpp`](src/annotation.cpp) — /**
-- [`src/command.cpp`](src/command.cpp) — /**
-- [`src/config.cpp`](src/config.cpp) — /**
-- [`src/exec.cpp`](src/exec.cpp) — /**
-- [`src/json.cpp`](src/json.cpp) — /**
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
+- [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
+- [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/command/command.cpp`](src/command/command.cpp) — /**
+- [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
+- [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/config/config.cpp`](src/config/config.cpp) — /**
+- [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
+- [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
+- [`src/json/json.cpp`](src/json/json.cpp) — /**
+- [`src/json/json.h`](src/json/json.h) — // json.h — Minimal JSON helpers
 - [`src/main.cpp`](src/main.cpp) — /**
-- [`src/ollama.cpp`](src/ollama.cpp) — /**
-- [`src/repl.cpp`](src/repl.cpp) — /**
-- [`test/test_annotation.cpp`](test/test_annotation.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
-- [`test/test_annotations_it.cpp`](test/test_annotations_it.cpp) — /**
-- [`test/test_command.cpp`](test/test_command.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
-- [`test/test_commands_it.cpp`](test/test_commands_it.cpp) — /**
-- [`test/test_comment_ratio.sh`](test/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
-- [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
-- [`test/test_conversation_it.cpp`](test/test_conversation_it.cpp) — /**
-- [`test/test_coverage.sh`](test/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
-- [`test/test_exec.cpp`](test/test_exec.cpp) — // test_exec.cpp — Unit tests for command execution
-- [`test/test_helpers.h`](test/test_helpers.h) — /**
-- [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
-- [`test/test_markdown_it.cpp`](test/test_markdown_it.cpp) — /**
-- [`test/test_options_it.cpp`](test/test_options_it.cpp) — /**
-- [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
+- [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
+- [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
+- [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
+- [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
+- [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
+- [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
+- [`src/test_helpers.h`](src/test_helpers.h) — /**
+- [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
+- [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_54 files indexed._
+_51 files indexed._

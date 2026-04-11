@@ -32,6 +32,6 @@ make check    # verify
 - Git hooks are installed automatically so quality gates are enforced from the first commit
 
 ## Consequences
-- `scripts/setup.sh` must be maintained when new tools are added
+- `.config/setup.sh` must be maintained when new tools are added
 - Only macOS (brew) and Linux (apt) are supported
 - Windows is not supported (WSL can be used)

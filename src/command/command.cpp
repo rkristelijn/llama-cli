@@ -5,7 +5,7 @@
  * @see docs/adr/adr-015-command-execution.md
  */
 
-#include "command.h"
+#include "command/command.h"
 
 #include <algorithm>
 #include <fstream>
