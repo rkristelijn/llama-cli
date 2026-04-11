@@ -22,7 +22,8 @@ struct ReplState {
   std::istream& in;               ///< Input stream
   std::ostream& out;              ///< Output stream
   int count = 0;                  ///< Number of prompts processed
-  bool color = false;             ///< Whether to use ANSI colors
+  bool color = false;             ///< Whether to use ANSI colors (TTY detect)
+  bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
@@ -45,8 +46,8 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.history.clear();
     s.out << "[history cleared]\n";
   } else if (input.command == "raw") {
-    s.color = !s.color;
-    s.out << "[markdown " << (s.color ? "on" : "off") << "]\n";
+    s.markdown = !s.markdown;
+    s.out << "[markdown " << (s.markdown ? "on" : "off") << "]\n";
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
@@ -171,12 +172,12 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto execs = parse_exec_annotations(response);
 
   if (writes.empty() && execs.empty()) {
-    s.out << tui::render_markdown(response, s.color) << "\n";
+    s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
     return false;
   }
 
   // Strip all annotations and display clean text
-  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color) << "\n";
+  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown) << "\n";
 
   for (const auto& action : writes) {
     process_write(action, s.in, s.out, s.color);
@@ -252,7 +253,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
       Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
       followup = s.chat(s.history);
     }
-    s.out << tui::render_markdown(followup, s.color) << "\n";
+    s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
     s.history.push_back({"assistant", followup});
   }
   return true;
@@ -266,7 +267,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
-  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color), cfg.bofh};
+  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color), true, cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {
