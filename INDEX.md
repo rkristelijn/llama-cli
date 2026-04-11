@@ -18,6 +18,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-014-tool-annotations.md`](docs/adr/adr-014-tool-annotations.md) — ADR-014: LLM Tool Annotations
 - [`docs/adr/adr-015-command-execution.md`](docs/adr/adr-015-command-execution.md) — ADR-015: Command Execution
 - [`docs/adr/adr-016-tui-design.md`](docs/adr/adr-016-tui-design.md) — ADR-016: TUI Design
+- [`docs/adr/adr-017-integration-tests.md`](docs/adr/adr-017-integration-tests.md) — ADR-017: Integration Tests
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -47,7 +48,8 @@ Auto-generated overview of all files in this repo.
 - [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
 - [`test/test_coverage.sh`](test/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`test/test_exec.cpp`](test/test_exec.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`test/test_integration.cpp`](test/test_integration.cpp) — /**
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_47 files indexed._
+_49 files indexed._

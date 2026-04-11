@@ -78,3 +78,8 @@ target_link_libraries(test_json PRIVATE doctest::doctest)
 add_executable(test_exec test/test_exec.cpp src/exec.cpp)
 target_include_directories(test_exec PRIVATE include)
 target_link_libraries(test_exec PRIVATE doctest::doctest)
+
+# Integration tests
+add_executable(test_integration test/test_integration.cpp src/repl.cpp src/command.cpp src/annotation.cpp src/exec.cpp)
+target_include_directories(test_integration PRIVATE include ${cpp_linenoise_SOURCE_DIR})
+target_link_libraries(test_integration PRIVATE doctest::doctest)

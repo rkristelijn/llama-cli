@@ -17,12 +17,14 @@ test: all
 	cmake --build $(BUILD_DIR) --target test_command
 	cmake --build $(BUILD_DIR) --target test_annotation
 	cmake --build $(BUILD_DIR) --target test_exec
+	cmake --build $(BUILD_DIR) --target test_integration
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
 	./$(BUILD_DIR)/test_command
 	./$(BUILD_DIR)/test_annotation
 	./$(BUILD_DIR)/test_exec
+	./$(BUILD_DIR)/test_integration
 	sh test/test_comment_ratio.sh
 
 check: all test
@@ -92,6 +94,7 @@ quick: all
 	@./$(BUILD_DIR)/test_command
 	@./$(BUILD_DIR)/test_annotation
 	@./$(BUILD_DIR)/test_exec
+	@./$(BUILD_DIR)/test_integration
 	@sh test/test_comment_ratio.sh
 
 help:

@@ -20,3 +20,4 @@ Summary of all decisions made in this project.
 | [014](adr-014-tool-annotations.md) | LLM tool annotations | XML tags in response, user confirmation | 2026-04-10 |
 | [015](adr-015-command-execution.md) | Command execution | `!cmd`, `!!cmd` (context), `<exec>` (LLM) | 2026-04-11 |
 | [016](adr-016-tui-design.md) | TUI design | ANSI 16-color, TTY detect, `tui::` namespace | 2026-04-11 |
+| [017](adr-017-integration-tests.md) | Integration tests | Gherkin specs + doctest, mock ChatFn | 2026-04-11 |
