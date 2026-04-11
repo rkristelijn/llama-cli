@@ -29,6 +29,7 @@
 - [ ] Stdin pipe support (ADR-007)
 - [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] /model command: list available models, switch model at runtime (#48)
+- [ ] /nick command: custom prompt label for multi-session use (#49)
 - [ ] Multi-host load distribution (#12)
 
 ## Documentation (junior dev review)
