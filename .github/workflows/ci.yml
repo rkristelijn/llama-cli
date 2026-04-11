@@ -6,6 +6,30 @@ on:
   pull_request:
 
 jobs:
+  # Detect what changed to skip unnecessary jobs
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'include/**'
+              - 'test/**'
+              - 'CMakeLists.txt'
+              - 'Makefile'
+            docs:
+              - 'docs/**'
+              - 'README.md'
+              - 'INDEX.md'
+              - 'CONTRIBUTING.md'
+
   version-bump:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
@@ -24,6 +48,8 @@ jobs:
           echo "PASS: VERSION was updated"
 
   build:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +57,8 @@ jobs:
         run: make
 
   test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +68,8 @@ jobs:
         run: make test
 
   format:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +79,8 @@ jobs:
         run: find src include test -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run --Werror
 
   clang-tidy:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +90,8 @@ jobs:
         run: clang-tidy src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" && exit 1 || true
 
   pmccabe:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,6 +101,8 @@ jobs:
         run: pmccabe src/*.cpp | awk '$1 > 10 {print; found=1} END {if (found) exit 1}'
 
   doxygen:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,6 +118,8 @@ jobs:
         run: doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml" && exit 1 || true
 
   cppcheck:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +129,8 @@ jobs:
         run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I include/ src/
 
   sanitizers:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -107,6 +147,8 @@ jobs:
           ./build/test_annotation
 
   coverage:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -144,6 +186,8 @@ jobs:
           echo "PASS: all files >= 80%"
 
   semgrep:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
