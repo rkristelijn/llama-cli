@@ -27,6 +27,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
+- [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
+- [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
@@ -55,7 +57,5 @@ Auto-generated overview of all files in this repo.
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
-- [`test/test_comment_ratio.sh`](test/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
-- [`test/test_coverage.sh`](test/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 
 _55 files indexed._

@@ -33,7 +33,7 @@ test: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	sh test/test_comment_ratio.sh
+	sh scripts/test_comment_ratio.sh
 
 check: all test
 	@echo "==> clang-tidy"
@@ -47,7 +47,7 @@ check: all test
 	@echo "==> index freshness"
 	@sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
 	@echo "==> coverage (>= 80%)"
-	@sh test/test_coverage.sh
+	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
@@ -107,7 +107,7 @@ quick: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	@sh test/test_comment_ratio.sh
+	@sh scripts/test_comment_ratio.sh
 
 # Smart pre-push: only check what changed since main
 prepush:
