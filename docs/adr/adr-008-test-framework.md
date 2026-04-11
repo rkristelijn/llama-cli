@@ -64,3 +64,8 @@ SCENARIO("loading config") {
 - All existing `assert()` tests are migrated to doctest `CHECK()`/`REQUIRE()`
 - `ollama_generate` signature may need to become injectable (function pointer or template)
 - doctest is fetched via CMake FetchContent, same as cpp-httplib
+
+### File naming convention
+- `*_test.cpp` — unit test (one module in isolation)
+- `*_it.cpp` — integration test (feature flow end-to-end)
+- `test_helpers.h` — shared mocks and utilities

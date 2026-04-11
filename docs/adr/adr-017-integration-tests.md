@@ -20,9 +20,15 @@ Unit tests cover individual functions, but we lack tests that verify complete us
 ### Test structure
 ```
 test/
-  integration.feature       # Gherkin spec (human-readable)
-  test_integration.cpp      # doctest implementation matching the spec
+  test_config.cpp            # unit test (_test convention)
+  test_conversation_it.cpp   # integration test (_it convention)
+  test_helpers.h             # shared MockLLM + test_cfg
 ```
+
+### Naming convention
+- `*_test.cpp` — unit test: tests one module in isolation
+- `*_it.cpp` — integration test: tests a feature flow end-to-end
+- Prepares for feature module decomposition where each module contains its own `_test.cpp` and `_it.cpp`
 
 ### What is tested
 - Full conversation flow with history
