@@ -125,6 +125,16 @@ jobs:
         with:
           files: coverage.info
           fail_ci_if_error: false
+      - name: Check coverage threshold (>= 80%)
+        run: |
+          for src in config json repl command annotation; do
+            gcda="build/CMakeFiles/test_${src}.dir/src/${src}.cpp.gcda"
+            [ ! -f "$gcda" ] && continue
+            pct=$(gcov -n "$gcda" 2>&1 | grep -A1 "src/${src}.cpp" | grep "Lines" | head -1 | grep -o '[0-9]*\.[0-9]*' | head -1 | cut -d. -f1)
+            echo "src/${src}.cpp: ${pct}%"
+            if [ "$pct" -lt 80 ]; then echo "FAIL: src/${src}.cpp below 80%"; exit 1; fi
+          done
+          echo "PASS: all files >= 80%"
 
   semgrep:
     runs-on: ubuntu-latest
