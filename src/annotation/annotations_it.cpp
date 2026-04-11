@@ -98,3 +98,38 @@ SCENARIO("Exec annotation with confirm and skip") {
     }
   }
 }
+
+SCENARIO("Write annotation shows diff for existing files") {
+  const std::string path = "/tmp/llama-int-diff.txt";
+  // Create existing file
+  { std::ofstream f(path); f << "old content\n"; }
+
+  GIVEN("the LLM proposes overwriting an existing file") {
+    auto write_chat = [&](const std::vector<Message>&) {
+      return "Here: <write file=\"" + path + "\">new content</write>";
+    };
+
+    WHEN("the user types d then y") {
+      std::istringstream in("write it\nd\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+
+      THEN("diff is shown with - and +") {
+        CHECK(out.str().find("- old content") != std::string::npos);
+        CHECK(out.str().find("+ new content") != std::string::npos);
+      }
+      THEN("file is written") {
+        std::ifstream f(path);
+        std::string content;
+        std::getline(f, content);
+        CHECK(content == "new content");
+      }
+      THEN("backup exists") {
+        std::ifstream bak(path + ".bak");
+        CHECK(bak.is_open());
+      }
+    }
+  }
+  std::remove(path.c_str());
+  std::remove((path + ".bak").c_str());
+}

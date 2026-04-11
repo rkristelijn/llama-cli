@@ -129,31 +129,82 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   return true;
 }
 
-/** Prompt user for write confirmation (ADR-014)
- * Supports "s"/"show" to preview content before deciding
- * Returns true if user confirms with y/yes */
-static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out) {
-  out << "Write to " << action.path << "? [y/n/s] " << std::flush;
-  std::string answer;
-  if (!std::getline(in, answer)) {
-    return false;
+/** Read file contents, return empty string if file doesn't exist */
+static std::string read_file(const std::string& path) {
+  std::ifstream f(path);
+  if (!f.is_open()) {
+    return "";
   }
-  if (answer == "s" || answer == "show") {
-    out << action.content << "\n";
-    out << "Write to " << action.path << "? [y/n] " << std::flush;
-    if (!std::getline(in, answer)) {
-      return false;
-    }
-  }
-  return answer == "y" || answer == "yes";
+  return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
-/** Process a single write action with user confirmation
- * Writes file on "y"/"yes", prints [skipped] otherwise
- * Reports errors if file cannot be opened for writing */
+/** Show a simple line-by-line diff between old and new content.
+ * Lines that match show with "  " prefix.
+ * Removed lines show with red "- " prefix, added with green "+ ". */
+static void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
+  std::istringstream old_s(old_text);
+  std::istringstream new_s(new_text);
+  std::string old_line;
+  std::string new_line;
+  bool has_old = true;
+  bool has_new = true;
+  while (has_old || has_new) {
+    has_old = static_cast<bool>(std::getline(old_s, old_line));
+    has_new = static_cast<bool>(std::getline(new_s, new_line));
+    if (has_old && has_new && old_line == new_line) {
+      out << "  " << old_line << "\n";
+    } else {
+      if (has_old) {
+        out << (color ? "\033[1;31m- " : "- ") << old_line << (color ? "\033[0m" : "") << "\n";
+      }
+      if (has_new) {
+        out << (color ? "\033[1;32m+ " : "+ ") << new_line << (color ? "\033[0m" : "") << "\n";
+      }
+    }
+  }
+}
+
+/** Prompt user for write confirmation (ADR-014)
+ * For existing files: shows [y/n/s/d] with diff option
+ * For new files: shows [y/n/s]
+ * Returns true if user confirms with y/yes */
+static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+  std::string existing = read_file(action.path);
+  bool file_exists = !existing.empty();
+  std::string opts = file_exists ? "[y/n/s/d]" : "[y/n/s]";
+
+  out << "Write to " << action.path << "? " << opts << " " << std::flush;
+  std::string answer;
+  while (std::getline(in, answer)) {
+    if (answer == "y" || answer == "yes") {
+      return true;
+    }
+    if (answer == "n" || answer == "no") {
+      return false;
+    }
+    if (answer == "s" || answer == "show") {
+      out << action.content << "\n";
+    } else if ((answer == "d" || answer == "diff") && file_exists) {
+      show_diff(existing, action.content, out, color);
+    }
+    out << "Write to " << action.path << "? " << opts << " " << std::flush;
+  }
+  return false;
+}
+
+/** Process a single write action with user confirmation.
+ * Creates .bak backup before overwriting existing files. */
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
   tui::write_proposal(out, color, action.path);
-  if (confirm_write(action, in, out)) {
+  if (confirm_write(action, in, out, color)) {
+    // Backup existing file before overwriting
+    std::string existing = read_file(action.path);
+    if (!existing.empty()) {
+      std::ofstream bak(action.path + ".bak");
+      if (bak.is_open()) {
+        bak << existing;
+      }
+    }
     std::ofstream file(action.path);
     if (file.is_open()) {
       file << action.content << "\n";
