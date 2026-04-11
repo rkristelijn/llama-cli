@@ -37,13 +37,13 @@ test: all
 
 check: all test
 	@echo "==> clang-tidy"
-	@$(CLANG_TIDY) src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise" && exit 1 || true
+	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
 	@pmccabe src/*/*.cpp | awk '$$1 > 10 {print; found=1} END {if (found) exit 1}'
 	@echo "==> cppcheck"
 	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
-	@doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
+	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
 	@echo "==> index freshness"
 	@sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
 	@echo "==> coverage (>= 80%)"
