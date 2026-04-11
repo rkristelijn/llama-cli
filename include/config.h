@@ -20,6 +20,7 @@ struct Config {
   int exec_timeout = 30;             ///< Max seconds for command execution
   int max_output = 10000;            ///< Max chars of command output for LLM context
   bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
+  bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::string system_prompt =        ///< System prompt for conversation context

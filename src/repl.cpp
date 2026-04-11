@@ -23,6 +23,7 @@ struct ReplState {
   std::ostream& out;              ///< Output stream
   int count = 0;                  ///< Number of prompts processed
   bool color = false;             ///< Whether to use ANSI colors
+  bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
 // Handle a slash command (/help, /clear, /unknown)
@@ -151,12 +152,12 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto execs = parse_exec_annotations(response);
 
   if (writes.empty() && execs.empty()) {
-    s.out << response << "\n";
+    s.out << tui::render_markdown(response, s.color) << "\n";
     return false;
   }
 
   // Strip all annotations and display clean text
-  s.out << strip_exec_annotations(strip_annotations(response)) << "\n";
+  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color) << "\n";
 
   for (const auto& action : writes) {
     process_write(action, s.in, s.out, s.color);
@@ -218,7 +219,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
   s.history.push_back({"user", line});
   std::string response;
   {
-    Spinner spin(s.out, s.color);
+    Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
     response = s.chat(s.history);
   }
   s.history.push_back({"assistant", response});
@@ -229,10 +230,10 @@ static bool dispatch(const std::string& line, ReplState& s) {
   if (needs_followup) {
     std::string followup;
     {
-      Spinner spin(s.out, s.color);
+      Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
       followup = s.chat(s.history);
     }
-    s.out << followup << "\n";
+    s.out << tui::render_markdown(followup, s.color) << "\n";
     s.history.push_back({"assistant", followup});
   }
   return true;
@@ -246,7 +247,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
-  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color)};
+  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color), cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {

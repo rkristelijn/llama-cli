@@ -151,6 +151,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       c.no_color = true;
       continue;
     }
+    if (arg == "--why-so-serious") {
+      c.bofh = true;
+      continue;
+    }
 
     // Positional arg = prompt (first non-option argument)
     // Triggers sync mode per ADR-005
