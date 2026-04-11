@@ -47,7 +47,9 @@ struct ReplState {
 static std::string get_version() {
   std::string ver = "unknown";
   std::ifstream vf("VERSION");
-  if (vf.is_open()) std::getline(vf, ver);
+  if (vf.is_open()) {
+    std::getline(vf, ver);
+  }
   // Check if working tree is dirty
   if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
     ver += "-dirty";
@@ -65,40 +67,49 @@ static void show_options(ReplState& s) {
 }
 
 /** Toggle a named option, return true if recognized.
- * Supports: markdown, color, bofh */
+ * Uses a lookup table to map option names to ReplState bool fields. */
 static bool toggle_option(const std::string& name, ReplState& s) {
-  if (name == "markdown") {
-    s.markdown = !s.markdown;
-  } else if (name == "color") {
-    s.color = !s.color;
-  } else if (name == "bofh") {
-    s.bofh = !s.bofh;
-  } else {
-    return false;
+  struct OptEntry {
+    const char* name;
+    bool ReplState::* field;
+  };
+  static const OptEntry opts[] = {
+      {"markdown", &ReplState::markdown},
+      {"color", &ReplState::color},
+      {"bofh", &ReplState::bofh},
+  };
+  for (const auto& opt : opts) {
+    if (name == opt.name) {
+      s.*(opt.field) = !(s.*(opt.field));
+      s.out << "[" << name << " " << (s.*(opt.field) ? "on" : "off") << "]\n";
+      return true;
+    }
   }
-  s.out << "[" << name << " "
-        << (name == "markdown" ? (s.markdown ? "on" : "off")
-            : name == "color"  ? (s.color ? "on" : "off")
-                               : (s.bofh ? "on" : "off"))
-        << "]\n";
-  return true;
+  return false;
 }
 
-// Handle a slash command (/help, /clear, /options, /set, /version, /unknown)
+// Handle /set command: show options or toggle one.
+// Without args: show all options. With args: toggle named option.
+static void handle_set(const std::string& arg, ReplState& s) {
+  if (arg.empty()) {
+    show_options(s);
+    return;
+  }
+  auto space = arg.find(' ');
+  std::string opt = (space != std::string::npos) ? arg.substr(0, space) : arg;
+  if (!toggle_option(opt, s)) {
+    s.out << "Unknown option: " << arg << ". Type /set to see available options.\n";
+  }
+}
+
+// Handle a slash command (/help, /clear, /set, /version, /unknown)
 // Returns true always — commands don't exit the loop
 static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
     s.history.clear();
     s.out << "[history cleared]\n";
-  } else if (input.command == "set" && !input.arg.empty()) {
-    // Extract just the option name (ignore extra args like "on"/"off")
-    auto space = input.arg.find(' ');
-    std::string opt = (space != std::string::npos) ? input.arg.substr(0, space) : input.arg;
-    if (!toggle_option(opt, s)) {
-      s.out << "Unknown option: " << input.arg << ". Type /set to see available options.\n";
-    }
   } else if (input.command == "set" || input.command == "options") {
-    show_options(s);
+    handle_set(input.arg, s);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
@@ -251,7 +262,9 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
   if (&in == &std::cin) {
     std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
     auto quit = linenoise::Readline(prompt_str.c_str(), line);
-    if (quit) return false;
+    if (quit) {
+      return false;
+    }
     linenoise::AddHistory(line.c_str());
     return true;
   }
@@ -294,6 +307,45 @@ static std::string interruptible_chat(ReplState& s) {
   return "";
 }
 
+/** Call LLM with spinner, interruptible by Ctrl+C.
+ * Installs SIGINT handler, starts spinner, calls chat on a thread.
+ * Returns response text, or empty string if interrupted. */
+static std::string chat_with_spinner(ReplState& s) {
+  g_interrupted = 0;
+  auto prev = std::signal(SIGINT, sigint_handler);
+  Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+  std::string result = interruptible_chat(s);
+  std::signal(SIGINT, prev);
+  return result;
+}
+
+// Send a prompt to the LLM and handle the response.
+// Manages spinner, SIGINT, history, annotations, and follow-up calls.
+static void send_prompt(const std::string& line, ReplState& s) {
+  s.history.push_back({"user", line});
+  std::string response = chat_with_spinner(s);
+  if (g_interrupted) {
+    s.out << "\n[interrupted]\n";
+    s.history.pop_back();
+    g_interrupted = 0;
+    return;
+  }
+  s.history.push_back({"assistant", response});
+  bool needs_followup = handle_response(response, s);
+  s.count++;
+
+  if (needs_followup) {
+    std::string followup = chat_with_spinner(s);
+    if (!g_interrupted) {
+      s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
+      s.history.push_back({"assistant", followup});
+    } else {
+      s.out << "\n[interrupted]\n";
+      g_interrupted = 0;
+    }
+  }
+}
+
 // Dispatch a single REPL input: command, exec, prompt, or exit
 // Returns false if the loop should exit, true to continue
 static bool dispatch(const std::string& line, ReplState& s) {
@@ -313,47 +365,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
     run_exec(input.arg, true, s);
     return true;
   }
-
-  // Send prompt to LLM and handle response
-  // SIGINT handler installed so Ctrl+C aborts the blocking HTTP call
-  s.history.push_back({"user", line});
-  std::string response;
-  {
-    g_interrupted = 0;
-    auto prev = std::signal(SIGINT, sigint_handler);
-    Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
-    response = interruptible_chat(s);
-    std::signal(SIGINT, prev);  // restore previous handler
-  }
-  // If user pressed Ctrl+C, discard the unanswered prompt
-  if (g_interrupted) {
-    s.out << "\n[interrupted]\n";
-    s.history.pop_back();  // remove the unanswered user message
-    g_interrupted = 0;
-    return true;
-  }
-  s.history.push_back({"assistant", response});
-  bool needs_followup = handle_response(response, s);
-  s.count++;
-
-  // If exec output was added, send follow-up so LLM can react
-  if (needs_followup) {
-    std::string followup;
-    {
-      g_interrupted = 0;
-      auto prev = std::signal(SIGINT, sigint_handler);
-      Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
-      followup = interruptible_chat(s);
-      std::signal(SIGINT, prev);
-    }
-    if (!g_interrupted) {
-      s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
-      s.history.push_back({"assistant", followup});
-    } else {
-      s.out << "\n[interrupted]\n";
-      g_interrupted = 0;
-    }
-  }
+  send_prompt(line, s);
   return true;
 }
 

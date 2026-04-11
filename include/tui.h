@@ -20,8 +20,12 @@ namespace tui {
 
 /** Check if color output is enabled (TTY + no NO_COLOR + no --no-color) */
 inline bool use_color(bool no_color_flag = false) {
-  if (no_color_flag) return false;
-  if (std::getenv("NO_COLOR")) return false;
+  if (no_color_flag) {
+    return false;
+  }
+  if (std::getenv("NO_COLOR")) {
+    return false;
+  }
   return isatty(STDOUT_FILENO) != 0;
 }
 
@@ -61,7 +65,9 @@ inline bool try_bold(const std::string& line, size_t& i, std::string& out) {
   return true;
 }
 
-/** Try to match *italic* at position i (not adjacent to **). Returns true if matched. */
+/** Try to match *italic* at position i (not adjacent to **).
+ * Checks that the star is not part of a ** pair.
+ * Returns true if matched, false if no match found. */
 inline bool try_italic(const std::string& line, size_t& i, std::string& out) {
   if (line[i] != '*' || (i > 0 && line[i - 1] == '*')) {
     return false;
@@ -78,7 +84,9 @@ inline bool try_italic(const std::string& line, size_t& i, std::string& out) {
   return true;
 }
 
-/** Try to match `code` at position i (not ```). Returns true if matched. */
+/** Try to match `code` at position i (not ```).
+ * Skips triple-backtick code fences.
+ * Returns true if matched, false if no match found. */
 inline bool try_code(const std::string& line, size_t& i, std::string& out) {
   if (line[i] != '`' || (i + 1 < line.size() && line[i + 1] == '`')) {
     return false;
@@ -116,36 +124,64 @@ inline std::string render_inline(const std::string& line, bool color) {
   return out;
 }
 
-/** Render a single markdown line (not inside a code block) to ANSI */
-inline std::string render_line(const std::string& line, bool color) {
-  // # Heading → bold + underline
-  if (!line.empty() && line[0] == '#') {
-    size_t lvl = line.find_first_not_of('#');
-    if (lvl != std::string::npos && line[lvl] == ' ') {
-      return "\033[1;4m" + line.substr(lvl + 1) + "\033[0m\n";
-    }
+/** Try to render a heading line (# ## ###).
+ * Strips the # prefix and renders bold+underline.
+ * Returns empty if not a heading. */
+inline std::string try_heading(const std::string& line) {
+  if (line.empty() || line[0] != '#') {
+    return "";
   }
-  // - item or * item → bullet point
+  size_t lvl = line.find_first_not_of('#');
+  if (lvl == std::string::npos || line[lvl] != ' ') {
+    return "";
+  }
+  return "\033[1;4m" + line.substr(lvl + 1) + "\033[0m\n";
+}
+
+/** Try to render a list item (- or * or 1.). Returns empty if not a list. */
+inline std::string try_list(const std::string& line, bool color) {
+  // Unordered: - item or * item
   if (line.size() >= 2 && (line[0] == '-' || line[0] == '*') && line[1] == ' ') {
     return "  • " + render_inline(line.substr(2), color) + "\n";
   }
-  // 1. item → numbered list with inline rendering
+  // Ordered: 1. item
   if (!line.empty() && line[0] >= '1' && line[0] <= '9') {
     auto dot = line.find(". ");
     if (dot != std::string::npos && dot <= 3) {
       return "  " + line.substr(0, dot + 2) + render_inline(line.substr(dot + 2), color) + "\n";
     }
   }
+  return "";
+}
+
+/** Render a single markdown line (not inside a code block) to ANSI */
+inline std::string render_line(const std::string& line, bool color) {
+  std::string result = try_heading(line);
+  if (!result.empty()) {
+    return result;
+  }
+  result = try_list(line, color);
+  if (!result.empty()) {
+    return result;
+  }
   return render_inline(line, color) + "\n";
+}
+
+/** Render a line inside or at the boundary of a code block.
+ * Returns the ANSI-colored line, toggles in_code_block on ``` fences. */
+inline std::string render_code_block_line(const std::string& line, bool& in_code_block) {
+  if (line.rfind("```", 0) == 0) {
+    in_code_block = !in_code_block;
+    return "\033[36m" + line + "\033[0m\n";
+  }
+  return "\033[36m" + line + "\033[0m\n";
 }
 
 /** Render a full markdown text block to ANSI.
  * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, - lists, 1. lists.
  * Pluggable: replace this function to use a different renderer. */
-inline std::string render_markdown(const std::string& text, bool color) {
-  if (!color) {
-    return text;
-  }
+/** Split text into lines and render each one */
+inline std::string render_lines(const std::string& text, bool color) {
   std::string result;
   bool in_code_block = false;
   size_t pos = 0;
@@ -153,20 +189,22 @@ inline std::string render_markdown(const std::string& text, bool color) {
     auto nl = text.find('\n', pos);
     std::string line = (nl == std::string::npos) ? text.substr(pos) : text.substr(pos, nl - pos);
     pos = (nl == std::string::npos) ? text.size() : nl + 1;
-
-    // ``` toggle code block — render in cyan
-    if (line.rfind("```", 0) == 0) {
-      in_code_block = !in_code_block;
-      result += "\033[36m" + line + "\033[0m\n";
-      continue;
+    if (line.rfind("```", 0) == 0 || in_code_block) {
+      result += render_code_block_line(line, in_code_block);
+    } else {
+      result += render_line(line, color);
     }
-    // Inside code block — all lines in cyan
-    if (in_code_block) {
-      result += "\033[36m" + line + "\033[0m\n";
-      continue;
-    }
-    result += render_line(line, color);
   }
+  return result;
+}
+
+/** Render a full markdown text block to ANSI.
+ * Pluggable: replace this function to use a different renderer. */
+inline std::string render_markdown(const std::string& text, bool color) {
+  if (!color) {
+    return text;
+  }
+  std::string result = render_lines(text, color);
   if (!result.empty() && result.back() == '\n' && !text.empty() && text.back() != '\n') {
     result.pop_back();
   }
@@ -201,11 +239,15 @@ class Spinner {
   /** Start spinner with custom messages. No-op if active=false. */
   Spinner(std::ostream& out, bool active, std::vector<const char*> msgs = tui::default_messages())
       : out_(out), running_(active), msgs_(std::move(msgs)) {
-    if (running_) thread_ = std::thread([this] { run(); });
+    if (running_) {
+      thread_ = std::thread([this] { run(); });
+    }
   }
   ~Spinner() {
     running_ = false;
-    if (thread_.joinable()) thread_.join();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
     out_ << "\r\033[K" << std::flush;
   }
   Spinner(const Spinner&) = delete;
@@ -219,7 +261,9 @@ class Spinner {
     while (running_) {
       out_ << "\r\033[2m" << frames[i % 10] << " " << msgs_[msg_idx % msgs_.size()] << "\033[0m\033[K" << std::flush;
       i++;
-      if (i % 30 == 0) msg_idx++;
+      if (i % 30 == 0) {
+        msg_idx++;
+      }
       std::this_thread::sleep_for(std::chrono::milliseconds(80));
     }
   }
