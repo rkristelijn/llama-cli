@@ -86,17 +86,15 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
     s.history.clear();
     s.out << "[history cleared]\n";
-  } else if (input.command == "options") {
-    show_options(s);
   } else if (input.command == "set" && !input.arg.empty()) {
     // Extract just the option name (ignore extra args like "on"/"off")
     auto space = input.arg.find(' ');
     std::string opt = (space != std::string::npos) ? input.arg.substr(0, space) : input.arg;
     if (!toggle_option(opt, s)) {
-      s.out << "Unknown option: " << input.arg << ". Type /options to see available options.\n";
+      s.out << "Unknown option: " << input.arg << ". Type /set to see available options.\n";
     }
-  } else if (input.command == "set") {
-    s.out << "Usage: /set <option>. Type /options to see available options.\n";
+  } else if (input.command == "set" || input.command == "options") {
+    show_options(s);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
@@ -104,7 +102,7 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.out << "  !command      Run command, output to terminal\n";
     s.out << "  !!command     Run command, output as LLM context\n";
     s.out << "  /clear        Clear conversation history\n";
-    s.out << "  /options      Show current options\n";
+    s.out << "  /set          Show options\n";
     s.out << "  /set <opt>    Toggle option (markdown, color, bofh)\n";
     s.out << "  /version      Show version info\n";
     s.out << "  /help         Show this help\n";
