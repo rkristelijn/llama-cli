@@ -85,14 +85,24 @@ CMake uses glob or explicit lists per module:
 - Test binaries: each `*_test.cpp` and `*_it.cpp` is a separate target
 - Include path: `src/` so modules include as `#include "config/config.h"`
 
-### Config files
-Non-core config files move to project root (they're already there) or `.config/`:
+### Config and tooling
+All non-core files (tool configs, scripts, hooks) live in `.config/`:
 ```
 .config/
-  Doxyfile
-  .clang-format
-  .clang-tidy
+  .clang-format           # code formatting rules
+  .clang-tidy             # static analysis rules
+  Doxyfile                # documentation generation
+  setup.sh                # install dev dependencies
+  build-index.sh          # regenerate INDEX.md
+  pre-commit              # git hook: block main, auto-format
+  test_comment_ratio.sh   # enforce ≥20% comment ratio
+  test_coverage.sh        # enforce ≥80% coverage per file
 ```
+
+Tools reference configs via explicit paths (no symlinks):
+- `clang-format --style=file:.config/.clang-format`
+- `clang-tidy --config-file=.config/.clang-tidy`
+- `doxygen .config/Doxyfile`
 
 ## Alternatives considered
 
