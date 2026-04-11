@@ -30,6 +30,12 @@
 - [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] Multi-host load distribution (#12)
 
+## Documentation (junior dev review)
+- [ ] Getting-started guide with golden path flow diagram (#44)
+- [ ] Document state management within a REPL session (#45)
+- [ ] Centralize configuration priority ladder (#46)
+- [ ] Clarify LLM interaction model — suggesting vs executing (#47)
+
 ## Quality
 - [x] Adopt test framework — doctest with GWT style (#9)
 - [x] Add linter — clang-format (Google/K&R) with auto-fix
