@@ -25,14 +25,14 @@ graph TB
 | Module | Files | Responsibility |
 |--------|-------|----------------|
 | **main** | `src/main.cpp` | Wires config, client, and I/O. Detects execution mode. |
-| **config** | `include/config.h`, `src/config.cpp` | Loads settings from defaults → env vars → CLI args |
-| **ollama** | `include/ollama.h`, `src/ollama.cpp` | HTTP client for Ollama API (`/api/generate`, `/api/chat`) |
-| **json** | `include/json.h`, `src/json.cpp` | Minimal JSON string extraction without external deps |
-| **repl** | `include/repl.h`, `src/repl.cpp` | Interactive loop with conversation memory, spinner, markdown |
-| **command** | `include/command.h`, `src/command.cpp` | Input parsing: !, !!, /slash, exit, prompts |
-| **annotation** | `include/annotation.h`, `src/annotation.cpp` | Parse `<write>` annotations from LLM responses |
-| **exec** | `include/exec.h`, `src/exec.cpp` | Shell command execution with timeout and output capture |
-| **tui** | `include/tui.h` | ANSI colors, markdown rendering, spinner (header-only) |
+| **config** | `src/config/config.h`, `src/config/config.cpp` | Loads settings from defaults → env vars → CLI args |
+| **ollama** | `src/ollama/ollama.h`, `src/ollama/ollama.cpp` | HTTP client for Ollama API (`/api/generate`, `/api/chat`) |
+| **json** | `src/json/json.h`, `src/json/json.cpp` | Minimal JSON string extraction without external deps |
+| **repl** | `src/repl/repl.h`, `src/repl/repl.cpp` | Interactive loop with conversation memory, spinner, markdown |
+| **command** | `src/command/command.h`, `src/command/command.cpp` | Input parsing: !, !!, /slash, exit, prompts |
+| **annotation** | `src/annotation/annotation.h`, `src/annotation/annotation.cpp` | Parse `<write>` annotations from LLM responses |
+| **exec** | `src/exec/exec.h`, `src/exec/exec.cpp` | Shell command execution with timeout and output capture |
+| **tui** | `src/tui/tui.h` | ANSI colors, markdown rendering, spinner (header-only) |
 
 ## Request flow
 

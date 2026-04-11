@@ -9,8 +9,8 @@
 - [ ] Reduce duplicate strings — e.g. connection message in main.cpp appears twice
 - [ ] Replace magic literals with named constants (exit codes, tag strings, thresholds)
 - [ ] Scan for duplicate code across source files and consolidate
-- [ ] Move non-core config files (Doxyfile, .clang-format, .clang-tidy) to `.config/`
-- [ ] Feature module layout: group .h, .cpp, test per feature in subdirectories
+- [x] Move non-core config files (Doxyfile, .clang-format, .clang-tidy) to `.config/`
+- [x] Feature module layout: group .h, .cpp, test per feature in subdirectories
 - [ ] Feature module decomposition: split monolithic files into focused modules
 
 ## Features
@@ -19,11 +19,11 @@
 - [x] File read as context — replaced by `!!cat <file>`
 - [x] File write from response — `<write file="path">content</write>`
 - [x] Run command and receive output — `!`, `!!`, `<exec>`
-- [ ] LLM system prompt: instruct to analyze command output, not repeat it
-- [ ] TUI design ADR: colors, bold, layout, prompt style, consistent look & feel
-- [ ] Markdown rendering in terminal (headings, bold, code blocks, lists)
+- [x] LLM system prompt: instruct to analyze command output, not repeat it
+- [x] TUI design ADR: colors, bold, layout, prompt style, consistent look & feel
+- [x] Markdown rendering in terminal (headings, bold, code blocks, lists)
 - [ ] Mermaid diagram rendering (integrate mermaid-tui)
-- [ ] Loading spinner/indicator while waiting for LLM response
+- [x] Loading spinner/indicator while waiting for LLM response
 - [ ] Streaming responses (#4)
 - [ ] Async mode — fire-and-forget (#3, remaining)
 - [ ] Stdin pipe support (ADR-007)
@@ -44,10 +44,10 @@
 - [x] Add complexity monitoring — clang-tidy + pmccabe
 - [x] Coverage enforcement ≥ 80% per file
 - [x] Sanitizers (ASan + UBSan) in CI
-- [ ] Add `make prepush` target (doxygen + format + clang-tidy, no semgrep/gitleaks/coverage)
+- [x] Add `make prepush` target (doxygen + format + clang-tidy, no semgrep/gitleaks/coverage)
 - [ ] Add config validation (port range, timeout > 0, non-empty host/model)
 - [ ] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
-- [ ] Integration test: mock LLM server, test all features end-to-end
+- [x] Integration test: mock LLM server, test all features end-to-end
 - [ ] Add E2E test for main
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] Define release process (#11)
