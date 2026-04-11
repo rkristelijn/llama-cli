@@ -16,6 +16,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-012-interactive-repl.md`](docs/adr/adr-012-interactive-repl.md) — ADR-012: Interactive REPL
 - [`docs/adr/adr-013-file-reading.md`](docs/adr/adr-013-file-reading.md) — ADR-013: File Reading & REPL Commands
 - [`docs/adr/adr-014-tool-annotations.md`](docs/adr/adr-014-tool-annotations.md) — ADR-014: LLM Tool Annotations
+- [`docs/adr/adr-015-command-execution.md`](docs/adr/adr-015-command-execution.md) — ADR-015: Command Execution
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -24,23 +25,27 @@ Auto-generated overview of all files in this repo.
 - [`include/annotation.h`](include/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`include/command.h`](include/command.h) — // command.h — REPL slash command parser
 - [`include/config.h`](include/config.h) — // config.h — Application configuration
+- [`include/exec.h`](include/exec.h) — // exec.h — Shell command execution with timeout and output capture
 - [`include/json.h`](include/json.h) — // json.h — Minimal JSON helpers
 - [`include/ollama.h`](include/ollama.h) — // ollama.h — Ollama API client
 - [`include/repl.h`](include/repl.h) — // repl.h — Interactive REPL loop
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
-- [`src/annotation.cpp`](src/annotation.cpp) — // annotation.cpp — Parse LLM tool annotations from response text
-- [`src/command.cpp`](src/command.cpp) — // command.cpp — REPL slash command parser and execution
-- [`src/config.cpp`](src/config.cpp) — // config.cpp — Configuration loading implementation
-- [`src/json.cpp`](src/json.cpp) — // json.cpp — Minimal JSON string extraction
-- [`src/main.cpp`](src/main.cpp) — // llama-cli — A local AI assistant in your terminal
-- [`src/ollama.cpp`](src/ollama.cpp) — // ollama.cpp — Ollama API client implementation
-- [`src/repl.cpp`](src/repl.cpp) — // repl.cpp — Interactive REPL loop with conversation memory and commands
+- [`src/annotation.cpp`](src/annotation.cpp) — /**
+- [`src/command.cpp`](src/command.cpp) — /**
+- [`src/config.cpp`](src/config.cpp) — /**
+- [`src/exec.cpp`](src/exec.cpp) — /**
+- [`src/json.cpp`](src/json.cpp) — /**
+- [`src/main.cpp`](src/main.cpp) — /**
+- [`src/ollama.cpp`](src/ollama.cpp) — /**
+- [`src/repl.cpp`](src/repl.cpp) — /**
 - [`test/test_annotation.cpp`](test/test_annotation.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`test/test_command.cpp`](test/test_command.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`test/test_comment_ratio.sh`](test/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
+- [`test/test_coverage.sh`](test/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
+- [`test/test_exec.cpp`](test/test_exec.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_40 files indexed._
+_45 files indexed._
