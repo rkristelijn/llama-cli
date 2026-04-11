@@ -267,6 +267,28 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
   }
 }
 
+/** Run chat on a thread, interruptible by Ctrl+C.
+ * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
+ * so the user gets their prompt back immediately.
+ * The abandoned thread will finish in the background. */
+static std::string interruptible_chat(ReplState& s) {
+  std::string result;
+  std::atomic<bool> done{false};
+  std::thread t([&] {
+    result = s.chat(s.history);
+    done = true;
+  });
+  while (!done && !g_interrupted) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  if (done) {
+    t.join();
+    return result;
+  }
+  t.detach();
+  return "";
+}
+
 // Dispatch a single REPL input: command, exec, prompt, or exit
 // Returns false if the loop should exit, true to continue
 static bool dispatch(const std::string& line, ReplState& s) {
@@ -292,11 +314,10 @@ static bool dispatch(const std::string& line, ReplState& s) {
   s.history.push_back({"user", line});
   std::string response;
   {
-    // Install SIGINT handler so Ctrl+C aborts the LLM call
     g_interrupted = 0;
     auto prev = std::signal(SIGINT, sigint_handler);
     Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
-    response = s.chat(s.history);
+    response = interruptible_chat(s);
     std::signal(SIGINT, prev);  // restore previous handler
   }
   // If user pressed Ctrl+C, discard the unanswered prompt
@@ -317,7 +338,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
       g_interrupted = 0;
       auto prev = std::signal(SIGINT, sigint_handler);
       Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
-      followup = s.chat(s.history);
+      followup = interruptible_chat(s);
       std::signal(SIGINT, prev);
     }
     if (!g_interrupted) {
