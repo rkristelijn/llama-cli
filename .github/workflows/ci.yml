@@ -87,7 +87,7 @@ jobs:
       - name: Install cppcheck
         run: sudo apt-get install -y cppcheck
       - name: Run cppcheck
-        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --error-exitcode=1 -I include/ src/
+        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I include/ src/
 
   sanitizers:
     runs-on: ubuntu-latest

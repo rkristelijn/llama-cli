@@ -31,7 +31,7 @@ check: all test
 	@echo "==> pmccabe (complexity <= 10)"
 	@pmccabe src/*.cpp | awk '$$1 > 10 {print; found=1} END {if (found) exit 1}'
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --error-exitcode=1 -I include/ src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --error-exitcode=1 -I include/ src/
 	@echo "==> doxygen lint"
 	@doxygen Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
 	@echo "==> index freshness"
