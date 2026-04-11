@@ -45,51 +45,107 @@ inline void write_proposal(std::ostream& out, bool color, const std::string& pat
 
 // --- Markdown rendering ---
 
+/** Try to match **bold** at position i, append ANSI and advance i.
+ * Looks for matching closing ** delimiter.
+ * Returns true if matched, false if no match found. */
+inline bool try_bold(const std::string& line, size_t& i, std::string& out) {
+  if (i + 1 >= line.size() || line[i] != '*' || line[i + 1] != '*') {
+    return false;
+  }
+  auto end = line.find("**", i + 2);
+  if (end == std::string::npos) {
+    return false;
+  }
+  out += "\033[1m" + line.substr(i + 2, end - i - 2) + "\033[0m";
+  i = end + 2;
+  return true;
+}
+
+/** Try to match *italic* at position i (not adjacent to **). Returns true if matched. */
+inline bool try_italic(const std::string& line, size_t& i, std::string& out) {
+  if (line[i] != '*' || (i > 0 && line[i - 1] == '*')) {
+    return false;
+  }
+  if (i + 1 >= line.size() || line[i + 1] == '*') {
+    return false;
+  }
+  auto end = line.find('*', i + 1);
+  if (end == std::string::npos || (end + 1 < line.size() && line[end + 1] == '*')) {
+    return false;
+  }
+  out += "\033[3m" + line.substr(i + 1, end - i - 1) + "\033[0m";
+  i = end + 1;
+  return true;
+}
+
+/** Try to match `code` at position i (not ```). Returns true if matched. */
+inline bool try_code(const std::string& line, size_t& i, std::string& out) {
+  if (line[i] != '`' || (i + 1 < line.size() && line[i + 1] == '`')) {
+    return false;
+  }
+  auto end = line.find('`', i + 1);
+  if (end == std::string::npos) {
+    return false;
+  }
+  out += "\033[36m" + line.substr(i + 1, end - i - 1) + "\033[0m";
+  i = end + 1;
+  return true;
+}
+
 /** Render inline markdown: **bold**, *italic*, `code`.
  * Walks the string char-by-char, matching paired delimiters.
  * Returns the original string unchanged when color is disabled. */
 inline std::string render_inline(const std::string& line, bool color) {
-  if (!color) return line;
+  if (!color) {
+    return line;
+  }
   std::string out;
   size_t i = 0;
   while (i < line.size()) {
-    // **bold** → ANSI bold
-    if (i + 1 < line.size() && line[i] == '*' && line[i + 1] == '*') {
-      auto end = line.find("**", i + 2);
-      if (end != std::string::npos) {
-        out += "\033[1m" + line.substr(i + 2, end - i - 2) + "\033[0m";
-        i = end + 2;
-        continue;
-      }
+    if (try_bold(line, i, out)) {
+      continue;
     }
-    // *italic* → ANSI italic (not adjacent to **)
-    if (line[i] == '*' && (i == 0 || line[i - 1] != '*') && i + 1 < line.size() && line[i + 1] != '*') {
-      auto end = line.find('*', i + 1);
-      if (end != std::string::npos && (end + 1 >= line.size() || line[end + 1] != '*')) {
-        out += "\033[3m" + line.substr(i + 1, end - i - 1) + "\033[0m";
-        i = end + 1;
-        continue;
-      }
+    if (try_italic(line, i, out)) {
+      continue;
     }
-    // `code` → ANSI cyan (not ```)
-    if (line[i] == '`' && (i + 1 >= line.size() || line[i + 1] != '`')) {
-      auto end = line.find('`', i + 1);
-      if (end != std::string::npos) {
-        out += "\033[36m" + line.substr(i + 1, end - i - 1) + "\033[0m";
-        i = end + 1;
-        continue;
-      }
+    if (try_code(line, i, out)) {
+      continue;
     }
     out += line[i++];
   }
   return out;
 }
 
+/** Render a single markdown line (not inside a code block) to ANSI */
+inline std::string render_line(const std::string& line, bool color) {
+  // # Heading → bold + underline
+  if (!line.empty() && line[0] == '#') {
+    size_t lvl = line.find_first_not_of('#');
+    if (lvl != std::string::npos && line[lvl] == ' ') {
+      return "\033[1;4m" + line.substr(lvl + 1) + "\033[0m\n";
+    }
+  }
+  // - item or * item → bullet point
+  if (line.size() >= 2 && (line[0] == '-' || line[0] == '*') && line[1] == ' ') {
+    return "  • " + render_inline(line.substr(2), color) + "\n";
+  }
+  // 1. item → numbered list with inline rendering
+  if (!line.empty() && line[0] >= '1' && line[0] <= '9') {
+    auto dot = line.find(". ");
+    if (dot != std::string::npos && dot <= 3) {
+      return "  " + line.substr(0, dot + 2) + render_inline(line.substr(dot + 2), color) + "\n";
+    }
+  }
+  return render_inline(line, color) + "\n";
+}
+
 /** Render a full markdown text block to ANSI.
  * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, - lists, 1. lists.
  * Pluggable: replace this function to use a different renderer. */
 inline std::string render_markdown(const std::string& text, bool color) {
-  if (!color) return text;
+  if (!color) {
+    return text;
+  }
   std::string result;
   bool in_code_block = false;
   size_t pos = 0;
@@ -109,28 +165,7 @@ inline std::string render_markdown(const std::string& text, bool color) {
       result += "\033[36m" + line + "\033[0m\n";
       continue;
     }
-    // # Heading → bold + underline
-    if (!line.empty() && line[0] == '#') {
-      size_t lvl = line.find_first_not_of('#');
-      if (lvl != std::string::npos && line[lvl] == ' ') {
-        result += "\033[1;4m" + line.substr(lvl + 1) + "\033[0m\n";
-        continue;
-      }
-    }
-    // - item or * item → bullet point
-    if (line.size() >= 2 && (line[0] == '-' || line[0] == '*') && line[1] == ' ') {
-      result += "  • " + render_inline(line.substr(2), color) + "\n";
-      continue;
-    }
-    // 1. item → numbered list with inline rendering
-    if (!line.empty() && line[0] >= '1' && line[0] <= '9') {
-      auto dot = line.find(". ");
-      if (dot != std::string::npos && dot <= 3) {
-        result += "  " + line.substr(0, dot + 2) + render_inline(line.substr(dot + 2), color) + "\n";
-        continue;
-      }
-    }
-    result += render_inline(line, color) + "\n";
+    result += render_line(line, color);
   }
   if (!result.empty() && result.back() == '\n' && !text.empty() && text.back() != '\n') {
     result.pop_back();
@@ -140,7 +175,7 @@ inline std::string render_markdown(const std::string& text, bool color) {
 
 // --- Spinner ---
 
-/** Default spinner messages */
+/** Default spinner messages — shown while waiting for LLM response */
 inline std::vector<const char*> default_messages() { return {"thinking...", "processing...", "analyzing..."}; }
 
 /** BOFH spinner messages — activate with --why-so-serious */

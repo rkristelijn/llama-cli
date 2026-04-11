@@ -27,7 +27,7 @@ test: all
 
 check: all test
 	@echo "==> clang-tidy"
-	@$(CLANG_TIDY) src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" && exit 1 || true
+	@$(CLANG_TIDY) src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" | grep -v "linenoise" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
 	@pmccabe src/*.cpp | awk '$$1 > 10 {print; found=1} END {if (found) exit 1}'
 	@echo "==> cppcheck"

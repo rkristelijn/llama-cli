@@ -41,7 +41,9 @@ struct ReplState {
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
-/** Get version string from VERSION file + git dirty status */
+/** Get version string from VERSION file + git dirty status.
+ * Returns "unknown" if VERSION file is missing.
+ * Appends "-dirty" if there are uncommitted changes. */
 static std::string get_version() {
   std::string ver = "unknown";
   std::ifstream vf("VERSION");
@@ -53,7 +55,8 @@ static std::string get_version() {
   return ver;
 }
 
-/** Show current options state — lists all toggleable runtime settings */
+/** Show current options state — lists all toggleable runtime settings.
+ * Called by /set without arguments, similar to `env` or `set` in bash. */
 static void show_options(ReplState& s) {
   s.out << "Options (toggle with /set <option>):\n";
   s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
@@ -271,7 +274,8 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 /** Run chat on a thread, interruptible by Ctrl+C.
  * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
  * so the user gets their prompt back immediately.
- * The abandoned thread will finish in the background. */
+ * The abandoned thread will finish in the background.
+ * Returns empty string if interrupted, response text otherwise. */
 static std::string interruptible_chat(ReplState& s) {
   std::string result;
   std::atomic<bool> done{false};

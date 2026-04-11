@@ -1,5 +1,7 @@
 // test_repl.cpp — Unit tests for REPL loop
 // Uses injectable chat function and string streams for I/O
+// Tests: basic flow, history, commands, write y/n/s, exec !/!!/<exec>,
+// /set toggles, /version
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -248,6 +250,68 @@ SCENARIO("REPL command execution") {
     WHEN("the REPL runs") {
       run_repl(exec_chat, test_cfg(), in, out);
       THEN("skipped message is shown") { CHECK(out.str().find("[skipped]") != std::string::npos); }
+    }
+  }
+}
+
+SCENARIO("REPL /set command") {
+  GIVEN("user types /set without args") {
+    std::istringstream in("/set\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("options are shown") {
+        CHECK(out.str().find("markdown") != std::string::npos);
+        CHECK(out.str().find("color") != std::string::npos);
+        CHECK(out.str().find("bofh") != std::string::npos);
+      }
+    }
+  }
+
+  GIVEN("user toggles markdown off") {
+    std::istringstream in("/set markdown\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("toggle is confirmed") { CHECK(out.str().find("[markdown off]") != std::string::npos); }
+    }
+  }
+
+  GIVEN("user toggles bofh on") {
+    std::istringstream in("/set bofh\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("toggle is confirmed") { CHECK(out.str().find("[bofh on]") != std::string::npos); }
+    }
+  }
+
+  GIVEN("user types /set with unknown option") {
+    std::istringstream in("/set foobar\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("error is shown") { CHECK(out.str().find("Unknown option") != std::string::npos); }
+    }
+  }
+
+  GIVEN("user types /set markdown off (extra arg ignored)") {
+    std::istringstream in("/set markdown off\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("toggle works") { CHECK(out.str().find("[markdown off]") != std::string::npos); }
+    }
+  }
+}
+
+SCENARIO("REPL /version command") {
+  GIVEN("user types /version") {
+    std::istringstream in("/version\nexit\n");
+    std::ostringstream out;
+    WHEN("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN("version is shown") { CHECK(out.str().find("llama-cli") != std::string::npos); }
     }
   }
 }
