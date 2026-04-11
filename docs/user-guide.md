@@ -83,6 +83,7 @@ Response goes to stdout, status to stderr. Pipeable:
 | Timeout | `--timeout` | `-t` | `OLLAMA_TIMEOUT` | `120` |
 | Exec timeout | `--exec-timeout` | — | `LLAMA_EXEC_TIMEOUT` | `30` |
 | Max output | `--max-output` | — | `LLAMA_MAX_OUTPUT` | `10000` |
+| No color | `--no-color` | — | `NO_COLOR` | auto-detect TTY |
 | System prompt | — | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 CLI flags override env vars, env vars override defaults.

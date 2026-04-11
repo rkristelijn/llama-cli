@@ -46,6 +46,7 @@ Write to src/main.cpp? [y/n/s]
 | Timeout | `--timeout` | `OLLAMA_TIMEOUT` | `120` |
 | Exec timeout | `--exec-timeout` | `LLAMA_EXEC_TIMEOUT` | `30` |
 | Max output | `--max-output` | `LLAMA_MAX_OUTPUT` | `10000` |
+| No color | `--no-color` | `NO_COLOR` | auto-detect TTY |
 
 ## Roadmap
 

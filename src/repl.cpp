@@ -12,6 +12,7 @@
 #include "annotation.h"
 #include "command.h"
 #include "exec.h"
+#include "tui.h"
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
@@ -21,6 +22,7 @@ struct ReplState {
   std::istream& in;               ///< Input stream
   std::ostream& out;              ///< Output stream
   int count = 0;                  ///< Number of prompts processed
+  bool color = false;             ///< Whether to use ANSI colors
 };
 
 // Handle a slash command (/help, /clear, /unknown)
@@ -64,14 +66,15 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 /** Process a single write action with user confirmation
  * Writes file on "y"/"yes", prints [skipped] otherwise
  * Reports errors if file cannot be opened for writing */
-static void process_write(const WriteAction& action, std::istream& in, std::ostream& out) {
+static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+  tui::write_proposal(out, color, action.path);
   if (confirm_write(action, in, out)) {
     std::ofstream file(action.path);
     if (file.is_open()) {
       file << action.content << "\n";
       out << "[wrote " << action.path << "]\n";
     } else {
-      out << "Error: could not write to " << action.path << "\n";
+      tui::error(out, color, "Error: could not write to " + action.path);
     }
   } else {
     out << "[skipped]\n";
@@ -156,7 +159,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
   s.out << strip_exec_annotations(strip_annotations(response)) << "\n";
 
   for (const auto& action : writes) {
-    process_write(action, s.in, s.out);
+    process_write(action, s.in, s.out, s.color);
   }
   bool has_exec_output = false;
   for (const auto& cmd : execs) {
@@ -171,9 +174,9 @@ static bool handle_response(const std::string& response, ReplState& s) {
 
 // Read one line of input, showing prompt for interactive terminals
 // Returns false on EOF (signals loop exit)
-static bool read_line(std::istream& in, std::ostream& out, std::string& line) {
+static bool read_line(std::istream& in, std::ostream& out, std::string& line, bool color) {
   if (&in == &std::cin) {
-    out << "> " << std::flush;
+    tui::prompt(out, color);
   }
   return static_cast<bool>(std::getline(in, line));
 }
@@ -182,9 +185,9 @@ static bool read_line(std::istream& in, std::ostream& out, std::string& line) {
 // Used by ! (add_to_history=false) and !! (add_to_history=true)
 static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
   auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
-  s.out << r.output;
+  tui::cmd_output(s.out, s.color, r.output);
   if (r.exit_code != 0 && !r.timed_out) {
-    s.out << "[exit code: " << r.exit_code << "]\n";
+    tui::error(s.out, s.color, "[exit code: " + std::to_string(r.exit_code) + "]");
   }
   if (add_to_history) {
     s.history.push_back({"user", "[command: " + cmd + "]\n" + r.output});
@@ -235,9 +238,9 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
-  ReplState state = {chat, cfg, history, in, out, 0};
+  ReplState state = {chat, cfg, history, in, out, 0, tui::use_color(cfg.no_color)};
 
-  while (read_line(in, out, line)) {
+  while (read_line(in, out, line, state.color)) {
     if (line.empty()) {
       continue;
     }

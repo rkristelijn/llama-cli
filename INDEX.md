@@ -17,6 +17,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-013-file-reading.md`](docs/adr/adr-013-file-reading.md) — ADR-013: File Reading & REPL Commands
 - [`docs/adr/adr-014-tool-annotations.md`](docs/adr/adr-014-tool-annotations.md) — ADR-014: LLM Tool Annotations
 - [`docs/adr/adr-015-command-execution.md`](docs/adr/adr-015-command-execution.md) — ADR-015: Command Execution
+- [`docs/adr/adr-016-tui-design.md`](docs/adr/adr-016-tui-design.md) — ADR-016: TUI Design
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -29,6 +30,7 @@ Auto-generated overview of all files in this repo.
 - [`include/json.h`](include/json.h) — // json.h — Minimal JSON helpers
 - [`include/ollama.h`](include/ollama.h) — // ollama.h — Ollama API client
 - [`include/repl.h`](include/repl.h) — // repl.h — Interactive REPL loop
+- [`include/tui.h`](include/tui.h) — /**
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
 - [`src/annotation.cpp`](src/annotation.cpp) — /**
@@ -48,4 +50,4 @@ Auto-generated overview of all files in this repo.
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_45 files indexed._
+_47 files indexed._

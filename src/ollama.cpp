@@ -13,6 +13,7 @@
 #include <string>
 
 #include "json.h"
+#include "tui.h"
 
 // Build an HTTP client for the configured Ollama instance
 // Constructs URL from host:port config and sets read timeout
@@ -31,7 +32,8 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
 
   auto res = cli.Post("/api/generate", body, "application/json");
   if (!res) {
-    std::cerr << "Error: could not connect to Ollama at " << cfg.host << ":" << cfg.port << "\n";
+    tui::error(std::cerr, tui::use_color(cfg.no_color),
+               "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     return "";
   }
   return json_extract_string(res->body, "response");
@@ -71,7 +73,8 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
 
   auto res = cli.Post("/api/chat", body, "application/json");
   if (!res) {
-    std::cerr << "Error: could not connect to Ollama at " << cfg.host << ":" << cfg.port << "\n";
+    tui::error(std::cerr, tui::use_color(cfg.no_color),
+               "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     return "";
   }
   return json_extract_string(res->body, "content");
