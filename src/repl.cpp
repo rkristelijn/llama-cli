@@ -7,6 +7,7 @@
 
 #include "repl.h"
 
+#include <csignal>
 #include <fstream>
 
 #include "annotation.h"
@@ -19,6 +20,12 @@
 #else
 #include "linenoise.hpp"
 #endif
+
+/// Global flag set by SIGINT handler to interrupt LLM calls
+static volatile sig_atomic_t g_interrupted = 0;
+
+/** SIGINT handler — sets flag so spinner/chat can check and abort */
+static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
@@ -82,7 +89,10 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   } else if (input.command == "options") {
     show_options(s);
   } else if (input.command == "set" && !input.arg.empty()) {
-    if (!toggle_option(input.arg, s)) {
+    // Extract just the option name (ignore extra args like "on"/"off")
+    auto space = input.arg.find(' ');
+    std::string opt = (space != std::string::npos) ? input.arg.substr(0, space) : input.arg;
+    if (!toggle_option(opt, s)) {
       s.out << "Unknown option: " << input.arg << ". Type /options to see available options.\n";
     }
   } else if (input.command == "set") {
@@ -280,11 +290,23 @@ static bool dispatch(const std::string& line, ReplState& s) {
   }
 
   // Send prompt to LLM and handle response
+  // SIGINT handler installed so Ctrl+C aborts the blocking HTTP call
   s.history.push_back({"user", line});
   std::string response;
   {
+    // Install SIGINT handler so Ctrl+C aborts the LLM call
+    g_interrupted = 0;
+    auto prev = std::signal(SIGINT, sigint_handler);
     Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
     response = s.chat(s.history);
+    std::signal(SIGINT, prev);  // restore previous handler
+  }
+  // If user pressed Ctrl+C, discard the unanswered prompt
+  if (g_interrupted) {
+    s.out << "\n[interrupted]\n";
+    s.history.pop_back();  // remove the unanswered user message
+    g_interrupted = 0;
+    return true;
   }
   s.history.push_back({"assistant", response});
   bool needs_followup = handle_response(response, s);
@@ -294,11 +316,19 @@ static bool dispatch(const std::string& line, ReplState& s) {
   if (needs_followup) {
     std::string followup;
     {
+      g_interrupted = 0;
+      auto prev = std::signal(SIGINT, sigint_handler);
       Spinner spin(s.out, s.color, s.bofh ? tui::bofh_messages() : tui::default_messages());
       followup = s.chat(s.history);
+      std::signal(SIGINT, prev);
     }
-    s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
-    s.history.push_back({"assistant", followup});
+    if (!g_interrupted) {
+      s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
+      s.history.push_back({"assistant", followup});
+    } else {
+      s.out << "\n[interrupted]\n";
+      g_interrupted = 0;
+    }
   }
   return true;
 }
