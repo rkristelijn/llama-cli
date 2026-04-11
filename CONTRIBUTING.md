@@ -21,8 +21,9 @@ This codebase is kept accessible for C++ newcomers:
 Run the full check suite locally before pushing:
 
 ```bash
-make test    # comment ratio check
-make check   # cppcheck + semgrep + gitleaks
+make quick   # incremental build + tests + comment ratio (fast, for dev)
+make test    # full build + all 6 test suites + comment ratio
+make check   # everything: clang-tidy, pmccabe, cppcheck, doxygen, index freshness, coverage, semgrep, gitleaks
 ```
 
 CI runs the same checks automatically on every pull request.

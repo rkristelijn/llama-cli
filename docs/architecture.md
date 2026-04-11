@@ -28,7 +28,11 @@ graph TB
 | **config** | `include/config.h`, `src/config.cpp` | Loads settings from defaults → env vars → CLI args |
 | **ollama** | `include/ollama.h`, `src/ollama.cpp` | HTTP client for Ollama API (`/api/generate`, `/api/chat`) |
 | **json** | `include/json.h`, `src/json.cpp` | Minimal JSON string extraction without external deps |
-| **repl** | `include/repl.h`, `src/repl.cpp` | Interactive loop with conversation memory |
+| **repl** | `include/repl.h`, `src/repl.cpp` | Interactive loop with conversation memory, spinner, markdown |
+| **command** | `include/command.h`, `src/command.cpp` | Input parsing: !, !!, /slash, exit, prompts |
+| **annotation** | `include/annotation.h`, `src/annotation.cpp` | Parse `<write>` annotations from LLM responses |
+| **exec** | `include/exec.h`, `src/exec.cpp` | Shell command execution with timeout and output capture |
+| **tui** | `include/tui.h` | ANSI colors, markdown rendering, spinner (header-only) |
 
 ## Request flow
 
@@ -85,6 +89,9 @@ All modules are tested independently using doctest (Given/When/Then style):
 | `test_config` | Config loading + precedence | Direct function calls with mock argv/env |
 | `test_json` | JSON extraction | String in, string out |
 | `test_repl` | REPL loop behavior | Injected ChatFn + string streams for I/O |
+| `test_command` | Input parsing | All input types: !, !!, /slash, exit, prompts |
+| `test_annotation` | Write annotation parsing | Single/multi/no/malformed annotations |
+| `test_exec` | Command execution | Basic, failing, stderr, truncation, timeout |
 
 The REPL and Ollama client are decoupled via `ChatFn` — a `std::function` that can be replaced with a mock in tests. No HTTP calls are made during testing.
 
@@ -94,6 +101,7 @@ The REPL and Ollama client are decoupled via `ChatFn` — a `std::function` that
 |------------|---------|-----|---------|
 | [cpp-httplib](https://github.com/yhirose/cpp-httplib) | v0.18.7 | CMake FetchContent | HTTP client |
 | [doctest](https://github.com/doctest/doctest) | v2.4.12 | CMake FetchContent | Test framework |
+| [cpp-linenoise](https://github.com/yhirose/cpp-linenoise) | master | CMake FetchContent | Arrow key history, readline |
 
 Both are downloaded automatically at build time. No manual installation needed.
 
@@ -106,7 +114,10 @@ llama-cli/
 │   ├── config.cpp        # Configuration loading
 │   ├── json.cpp          # JSON parsing
 │   ├── ollama.cpp        # Ollama API client
-│   └── repl.cpp          # Interactive REPL loop
+│   ├── repl.cpp          # Interactive REPL loop
+│   ├── command.cpp       # Input parsing
+│   ├── annotation.cpp    # Write annotation parsing
+│   └── exec.cpp          # Shell command execution
 ├── include/              # Header files
 ├── test/                 # Unit tests (doctest)
 ├── docs/                 # Documentation

@@ -49,9 +49,15 @@ namespace tui {
 }
 ```
 
-### Future (not in this PR)
-- Markdown rendering (headings, bold, code blocks, lists)
-- Loading spinner while waiting for LLM
+### Also implemented in this PR
+- Markdown rendering: headings (bold+underline), **bold**, *italic*, `code` (cyan), ```code blocks``` (cyan), bullet/numbered lists
+- Loading spinner (RAII, only on TTY) with BOFH mode (`--why-so-serious`)
+- Arrow key history via cpp-linenoise
+- `/set` command: toggle markdown, color, bofh at runtime
+- `/version` command with git dirty detection
+- Ctrl+C interrupt: SIGINT handler + detachable chat thread
+
+### Future
 - Mermaid diagram rendering (integrate mermaid-tui)
 
 ## Alternatives considered

@@ -56,9 +56,13 @@ Write to src/main.cpp? [y/n/s]
 ### REPL commands
 
 ```
+/set           Show runtime options
+/set <opt>     Toggle option (markdown, color, bofh)
+/version       Show version info
 /clear         Clear conversation history
 /help          Show available commands
 exit, quit     Exit the REPL
+Ctrl+C         Interrupt LLM call
 ```
 
 ### Sync mode — one-shot from command line
@@ -84,6 +88,7 @@ Response goes to stdout, status to stderr. Pipeable:
 | Exec timeout | `--exec-timeout` | — | `LLAMA_EXEC_TIMEOUT` | `30` |
 | Max output | `--max-output` | — | `LLAMA_MAX_OUTPUT` | `10000` |
 | No color | `--no-color` | — | `NO_COLOR` | auto-detect TTY |
+| BOFH mode | `--why-so-serious` | — | — | `false` |
 | System prompt | — | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 CLI flags override env vars, env vars override defaults.
