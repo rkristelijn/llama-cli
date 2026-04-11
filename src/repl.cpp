@@ -26,21 +26,40 @@ struct ReplState {
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
-// Handle a slash command (/help, /clear, /unknown)
+/** Get version string from VERSION file + git dirty status */
+static std::string get_version() {
+  std::string ver = "unknown";
+  std::ifstream vf("VERSION");
+  if (vf.is_open()) std::getline(vf, ver);
+  // Check if working tree is dirty
+  if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
+    ver += "-dirty";
+  }
+  return ver;
+}
+
+// Handle a slash command (/help, /clear, /raw, /version, /unknown)
 // Returns true always — commands don't exit the loop
-static bool handle_command(const ParsedInput& input, std::vector<Message>& history, std::ostream& out) {
+static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
-    history.clear();
-    out << "[history cleared]\n";
+    s.history.clear();
+    s.out << "[history cleared]\n";
+  } else if (input.command == "raw") {
+    s.color = !s.color;
+    s.out << "[markdown " << (s.color ? "on" : "off") << "]\n";
+  } else if (input.command == "version") {
+    s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
-    out << "Commands:\n";
-    out << "  !command      Run command, output to terminal\n";
-    out << "  !!command     Run command, output as LLM context\n";
-    out << "  /clear        Clear conversation history\n";
-    out << "  /help         Show this help\n";
-    out << "  exit, quit    Exit the REPL\n";
+    s.out << "Commands:\n";
+    s.out << "  !command      Run command, output to terminal\n";
+    s.out << "  !!command     Run command, output as LLM context\n";
+    s.out << "  /clear        Clear conversation history\n";
+    s.out << "  /raw          Toggle markdown rendering on/off\n";
+    s.out << "  /version      Show version info\n";
+    s.out << "  /help         Show this help\n";
+    s.out << "  exit, quit    Exit the REPL\n";
   } else {
-    out << "Unknown command: /" << input.command << ". Type /help for options.\n";
+    s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
   }
   return true;
 }
@@ -203,7 +222,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
     return false;
   }
   if (input.type == InputType::Command) {
-    handle_command(input, s.history, s.out);
+    handle_command(input, s);
     return true;
   }
   if (input.type == InputType::Exec) {
