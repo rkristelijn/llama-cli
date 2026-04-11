@@ -17,14 +17,22 @@ test: all
 	cmake --build $(BUILD_DIR) --target test_command
 	cmake --build $(BUILD_DIR) --target test_annotation
 	cmake --build $(BUILD_DIR) --target test_exec
-	cmake --build $(BUILD_DIR) --target test_integration
+	cmake --build $(BUILD_DIR) --target test_conversation
+	cmake --build $(BUILD_DIR) --target test_commands
+	cmake --build $(BUILD_DIR) --target test_options
+	cmake --build $(BUILD_DIR) --target test_annotations
+	cmake --build $(BUILD_DIR) --target test_markdown
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
 	./$(BUILD_DIR)/test_command
 	./$(BUILD_DIR)/test_annotation
 	./$(BUILD_DIR)/test_exec
-	./$(BUILD_DIR)/test_integration
+	./$(BUILD_DIR)/test_conversation
+	./$(BUILD_DIR)/test_commands
+	./$(BUILD_DIR)/test_options
+	./$(BUILD_DIR)/test_annotations
+	./$(BUILD_DIR)/test_markdown
 	sh test/test_comment_ratio.sh
 
 check: all test
@@ -94,7 +102,11 @@ quick: all
 	@./$(BUILD_DIR)/test_command
 	@./$(BUILD_DIR)/test_annotation
 	@./$(BUILD_DIR)/test_exec
-	@./$(BUILD_DIR)/test_integration
+	@./$(BUILD_DIR)/test_conversation
+	./$(BUILD_DIR)/test_commands
+	./$(BUILD_DIR)/test_options
+	./$(BUILD_DIR)/test_annotations
+	./$(BUILD_DIR)/test_markdown
 	@sh test/test_comment_ratio.sh
 
 # Smart pre-push: only check what changed since main

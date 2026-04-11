@@ -43,13 +43,18 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama.cpp`](src/ollama.cpp) — /**
 - [`src/repl.cpp`](src/repl.cpp) — /**
 - [`test/test_annotation.cpp`](test/test_annotation.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`test/test_annotations.cpp`](test/test_annotations.cpp) — /**
 - [`test/test_command.cpp`](test/test_command.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`test/test_commands.cpp`](test/test_commands.cpp) — /**
 - [`test/test_comment_ratio.sh`](test/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`test/test_config.cpp`](test/test_config.cpp) — // test_config.cpp — Unit tests for config loading
+- [`test/test_conversation.cpp`](test/test_conversation.cpp) — /**
 - [`test/test_coverage.sh`](test/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`test/test_exec.cpp`](test/test_exec.cpp) — // test_exec.cpp — Unit tests for command execution
-- [`test/test_integration.cpp`](test/test_integration.cpp) — /**
+- [`test/test_helpers.h`](test/test_helpers.h) — /**
 - [`test/test_json.cpp`](test/test_json.cpp) — // test_json.cpp — Unit tests for JSON extraction
+- [`test/test_markdown.cpp`](test/test_markdown.cpp) — /**
+- [`test/test_options.cpp`](test/test_options.cpp) — /**
 - [`test/test_repl.cpp`](test/test_repl.cpp) — // test_repl.cpp — Unit tests for REPL loop
 
-_49 files indexed._
+_54 files indexed._
