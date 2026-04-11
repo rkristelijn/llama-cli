@@ -1,7 +1,7 @@
 /**
  * @file test_integration.cpp
  * @brief Integration tests — full REPL session flows.
- * @see test/integration.feature for Gherkin specs
+ * @see test/features/ for Gherkin specs
  * @see docs/adr/adr-017-integration-tests.md
  */
 
