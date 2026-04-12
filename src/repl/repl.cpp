@@ -163,6 +163,17 @@ static std::string read_file(const std::string& path) {
   return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
+/** Emit one diff line with optional ANSI color.
+ * prefix is "- " (red) or "+ " (green); reset is applied after the line when color is on. */
+static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix,
+                           const std::string& line, bool color) {
+  if (color) {
+    out << ansi << prefix << line << "\033[0m\n";
+  } else {
+    out << prefix << line << "\n";
+  }
+}
+
 /**
  * @brief Print a simple line-by-line diff between two text blobs.
  *
@@ -192,10 +203,10 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
       out << "  " << old_line << "\n";
     } else {
       if (has_old) {
-        out << (color ? "\033[1;31m- " : "- ") << old_line << (color ? "\033[0m" : "") << "\n";
+        emit_diff_line(out, "\033[1;31m", "- ", old_line, color);
       }
       if (has_new) {
-        out << (color ? "\033[1;32m+ " : "+ ") << new_line << (color ? "\033[0m" : "") << "\n";
+        emit_diff_line(out, "\033[1;32m", "+ ", new_line, color);
       }
     }
   }
