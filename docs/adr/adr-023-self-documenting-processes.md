@@ -122,6 +122,14 @@ done
 **Value**: medium — catches the most common structural gaps without false positives.
 **Verdict**: add to `make check`. Skip the fragile checks (exit 1 without tips, subjective test names).
 
+### Future: LLM-assisted quality check
+
+The structural checks above catch *missing* documentation. Checking whether existing comments are *meaningful* requires understanding context — that's where a local LLM fits naturally.
+
+Approach: pipe each function without its comment to `ollama run gemma4:e4b` and ask "does this comment add value or just restate the code?" Zero external dependencies, runs offline, fits the existing privacy model of this repo.
+
+Not implemented yet — noted here as a natural next step once the structural checks are in place.
+
 ## Consequences
 
 - Every new script must have a header comment
