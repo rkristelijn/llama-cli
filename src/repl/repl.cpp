@@ -131,7 +131,7 @@ static void handle_set(const std::string& arg, ReplState& s) {
  * @param input Parsed slash command; `input.command` is the command name and
  *              `input.arg` contains any following argument text.
  * @param s REPL state used for I/O and session data (may be modified).
- * @return true Always returns `true` to indicate the REPL should continue. 
+ * @return true Always returns `true` to indicate the REPL should continue.
  */
 static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
@@ -165,8 +165,8 @@ static std::string read_file(const std::string& path) {
 
 /** Emit one diff line with optional ANSI color.
  * prefix is "- " (red) or "+ " (green); reset is applied after the line when color is on. */
-static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix,
-                           const std::string& line, bool color) {
+static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix, const std::string& line,
+                           bool color) {
   if (color) {
     out << ansi << prefix << line << "\033[0m\n";
   } else {

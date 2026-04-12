@@ -7,11 +7,11 @@
 #include "annotation/annotation.h"
 
 /**
- * @brief Locates the next <write file="...">...</write> block in the input text starting at pos.
+ * @brief Locates the next `<write file="...">...</write>` block in the input text starting at pos.
  *
  * Extracts the file path from the opening tag and the enclosed content, trimming at most one
  * leading newline and at most one trailing newline from the content. On success, updates pos
- * to the index immediately after the closing </write> tag and returns the start index of the block.
+ * to the index immediately after the closing `</write>` tag and returns the start index of the block.
  *
  * @param text Input string to search.
  * @param[in,out] pos Search start index; updated to the character after the closing tag on success.
@@ -59,10 +59,11 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
 }
 
 /**
- * @brief Extracts all <write file="path">content</write> annotations from the input text.
+ * @brief Extracts all `<write file="path">content</write>` annotations from the input text.
  *
  * @param text Input string to scan for write-file annotation blocks.
- * @return std::vector<WriteAction> Vector of WriteAction objects containing the `path` and `content` for each found annotation; empty if none are found.
+ * @return std::vector<WriteAction> Vector of WriteAction objects containing the `path` and `content` for each found
+ * annotation; empty if none are found.
  */
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   std::vector<WriteAction> actions;
