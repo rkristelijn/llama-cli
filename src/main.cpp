@@ -14,7 +14,15 @@
 #include "repl/repl.h"
 #include "tui/tui.h"
 
-/** Entry point: loads config, dispatches to sync or interactive mode. */
+/**
+ * @brief Program entry point that loads configuration and runs either a one-shot sync request or an interactive REPL.
+ *
+ * If the `--help` argument is present, prints the CLI help and exits immediately. Otherwise the function
+ * loads configuration (defaults → environment → CLI), determines UI color, and dispatches to either
+ * sync mode (produce a single response) or interactive mode (REPL).
+ *
+ * @return int Exit code: `0` on normal completion.
+ */
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
