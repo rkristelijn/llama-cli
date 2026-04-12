@@ -13,18 +13,17 @@ enum class Mode { Interactive, Sync };
 
 /// Application configuration
 struct Config {
-  std::string host = "localhost";   ///< Ollama server hostname
-  std::string port = "11434";       ///< Ollama server port
-  std::string model = "gemma4:e4b"; ///< LLM model name
-  int timeout = 120;                ///< HTTP request timeout in seconds
-  int exec_timeout = 30;            ///< Max seconds for command execution
-  int max_output = 10000; ///< Max chars of command output for LLM context
-  bool no_color = false;  ///< Disable colored output (--no-color, NO_COLOR)
-  bool bofh =
-      false; ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
-  Mode mode = Mode::Interactive; ///< Execution mode (interactive or sync)
-  std::string prompt;            ///< One-shot prompt for sync mode
-  std::string system_prompt =    ///< System prompt for conversation context
+  std::string host = "localhost";    ///< Ollama server hostname
+  std::string port = "11434";        ///< Ollama server port
+  std::string model = "gemma4:e4b";  ///< LLM model name
+  int timeout = 120;                 ///< HTTP request timeout in seconds
+  int exec_timeout = 30;             ///< Max seconds for command execution
+  int max_output = 10000;            ///< Max chars of command output for LLM context
+  bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
+  bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
+  Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
+  std::string prompt;                ///< One-shot prompt for sync mode
+  std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "
       "You can run shell commands with <exec>command</exec> — use this "
@@ -45,13 +44,12 @@ struct Config {
 };
 
 // Load config from environment variables, overriding defaults
-Config load_env(const Config &defaults = Config{});
+Config load_env(const Config& defaults = Config{});
 
 // Load config from CLI arguments, overriding base config
-Config load_cli(int argc, const char *const argv[],
-                const Config &base = Config{});
+Config load_cli(int argc, const char* const argv[], const Config& base = Config{});
 
 // Full config resolution: defaults -> env -> cli
-Config load_config(int argc, const char *const argv[]);
+Config load_config(int argc, const char* const argv[]);
 
 #endif

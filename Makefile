@@ -94,11 +94,11 @@ index:
 
 # Apply clang-format to all source files
 format:
-	clang-format -i src/*/*.cpp src/*/*.h src/*.h
+	find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
 
 # Dry-run clang-format check (non-zero exit if violations)
 format-check:
-	clang-format --dry-run -Werror src/*/*.cpp src/*/*.h src/*.h
+	find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
 
 # Show comment ratio per production file (excludes _test/_it)
 comment-ratio:
