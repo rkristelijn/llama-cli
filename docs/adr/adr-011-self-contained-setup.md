@@ -21,8 +21,9 @@ A `make setup` target is provided that detects the platform (macOS/Linux) and in
 ```bash
 git clone https://github.com/rkristelijn/llama-cli
 cd llama-cli
-make setup    # installs everything + git hooks
-make check    # verify
+make setup         # installs everything + git hooks
+sudo make install  # build and install to /usr/local/bin
+llama-cli --help   # verify
 ```
 
 ## Rationale

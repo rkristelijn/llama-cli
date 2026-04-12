@@ -9,16 +9,27 @@ tags: [user-guide, usage, configuration, examples]
 ```bash
 git clone https://github.com/rkristelijn/llama-cli
 cd llama-cli
-make setup    # installs all dependencies + git hooks
-make          # build
+make setup         # installs all dependencies + git hooks
+sudo make install  # build and install to /usr/local/bin
+llama-cli --help   # verify
 ```
+
+To use a different model or host:
+```bash
+llama-cli --model=llama3.2
+llama-cli --host=192.168.1.10 --model=mistral
+OLLAMA_MODEL=llama3.2 llama-cli
+```
+
+To list available models: `ollama list`  
+To pull a new model: `ollama pull llama3.2`
 
 ## Usage
 
 ### Interactive mode — chat with memory
 
 ```bash
-./build/llama-cli
+llama-cli
 > what is the capital of France?
 Paris.
 > and of Germany?
@@ -71,13 +82,13 @@ Ctrl+C         Interrupt LLM call
 ### Sync mode — one-shot from command line
 
 ```bash
-./build/llama-cli "explain what a Makefile does"
+llama-cli "explain what a Makefile does"
 ```
 
 Response goes to stdout, status to stderr. Pipeable:
 
 ```bash
-./build/llama-cli "generate a .gitignore for C++" > .gitignore
+llama-cli "generate a .gitignore for C++" > .gitignore
 ```
 
 ### Configuration

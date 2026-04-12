@@ -11,7 +11,10 @@ all: check-deps
 	cmake --build $(BUILD_DIR)
 
 run: all
-	./$(BUILD_DIR)/llama-cli
+	./$(BUILD_DIR)/llama-cli $(ARGS)
+
+start: all
+	./$(BUILD_DIR)/llama-cli $(ARGS)
 
 test: all
 	cmake --build $(BUILD_DIR) --target test_config
@@ -64,7 +67,11 @@ check: all test
 setup:
 	sh scripts/setup.sh
 
-install:
+install: all
+	cp $(BUILD_DIR)/llama-cli /usr/local/bin/llama-cli
+	@echo "Installed to /usr/local/bin/llama-cli"
+
+hooks:
 	cp .config/pre-commit .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 	@echo "Git hooks installed."
@@ -155,12 +162,14 @@ prepush:
 help:
 	@echo "Usage:"
 	@echo "  make                build the project"
-	@echo "  make run            build and run"
+	@echo "  make run            build and run (alias: make start)"
+	@echo "  make start          build and start REPL (ARGS=... for extra args)"
 	@echo "  make quick          incremental build + tests (fast)"
 	@echo "  make test           full build + tests"
 	@echo "  make prepush        smart check (only what changed vs main)"
 	@echo "  make check          run all quality checks"
-	@echo "  make install        install git hooks"
+	@echo "  make install        build and install to /usr/local/bin"
+	@echo "  make hooks          install git hooks"
 	@echo "  make clean          remove build artifacts"
 	@echo "  make index          regenerate INDEX.md"
 	@echo "  make format         apply clang-format to all source files"
