@@ -9,6 +9,7 @@
 
 #include <csignal>
 #include <fstream>
+#include <sstream>
 
 #include "annotation/annotation.h"
 #include "command/command.h"
@@ -29,16 +30,16 @@ static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
-  ChatFn& chat;                   ///< Chat function for LLM interaction
-  const Config& cfg;              ///< Configuration (timeouts, etc.)
-  std::vector<Message>& history;  ///< Conversation history
-  std::istream& in;               ///< Input stream
-  std::ostream& out;              ///< Output stream
-  int count = 0;                  ///< Number of prompts processed
-  bool color = false;             ///< Whether to use ANSI colors (TTY detect)
-  bool interactive = false;       ///< Whether running on a real TTY (for spinner)
-  bool markdown = true;           ///< Whether to render markdown in LLM output
-  bool bofh = false;              ///< BOFH mode: sarcastic spinner
+  ChatFn &chat;                  ///< Chat function for LLM interaction
+  const Config &cfg;             ///< Configuration (timeouts, etc.)
+  std::vector<Message> &history; ///< Conversation history
+  std::istream &in;              ///< Input stream
+  std::ostream &out;             ///< Output stream
+  int count = 0;                 ///< Number of prompts processed
+  bool color = false;            ///< Whether to use ANSI colors (TTY detect)
+  bool interactive = false; ///< Whether running on a real TTY (for spinner)
+  bool markdown = true;     ///< Whether to render markdown in LLM output
+  bool bofh = false;        ///< BOFH mode: sarcastic spinner
 };
 
 /** Get version string from VERSION file + git dirty status.
@@ -59,7 +60,7 @@ static std::string get_version() {
 
 /** Show current options state — lists all toggleable runtime settings.
  * Called by /set without arguments, similar to `env` or `set` in bash. */
-static void show_options(ReplState& s) {
+static void show_options(ReplState &s) {
   s.out << "Options (toggle with /set <option>):\n";
   s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
   s.out << "  color     " << (s.color ? "on" : "off") << "\n";
@@ -68,10 +69,10 @@ static void show_options(ReplState& s) {
 
 /** Toggle a named option, return true if recognized.
  * Uses a lookup table to map option names to ReplState bool fields. */
-static bool toggle_option(const std::string& name, ReplState& s) {
+static bool toggle_option(const std::string &name, ReplState &s) {
   using BoolField = bool ReplState::*;
   struct OptEntry {
-    const char* name;
+    const char *name;
     BoolField field;
   };
   static const OptEntry opts[] = {
@@ -79,7 +80,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
   };
-  for (const auto& opt : opts) {
+  for (const auto &opt : opts) {
     if (name == opt.name) {
       s.*(opt.field) = !(s.*(opt.field));
       s.out << "[" << name << " " << (s.*(opt.field) ? "on" : "off") << "]\n";
@@ -91,7 +92,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
 
 // Handle /set command: show options or toggle one.
 // Without args: show all options. With args: toggle named option.
-static void handle_set(const std::string& arg, ReplState& s) {
+static void handle_set(const std::string &arg, ReplState &s) {
   if (arg.empty()) {
     show_options(s);
     return;
@@ -99,13 +100,14 @@ static void handle_set(const std::string& arg, ReplState& s) {
   auto space = arg.find(' ');
   std::string opt = (space != std::string::npos) ? arg.substr(0, space) : arg;
   if (!toggle_option(opt, s)) {
-    s.out << "Unknown option: " << arg << ". Type /set to see available options.\n";
+    s.out << "Unknown option: " << arg
+          << ". Type /set to see available options.\n";
   }
 }
 
 // Handle a slash command (/help, /clear, /set, /version, /unknown)
 // Returns true always — commands don't exit the loop
-static bool handle_command(const ParsedInput& input, ReplState& s) {
+static bool handle_command(const ParsedInput &input, ReplState &s) {
   if (input.command == "clear") {
     s.history.clear();
     s.out << "[history cleared]\n";
@@ -124,24 +126,27 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.out << "  /help         Show this help\n";
     s.out << "  exit, quit    Exit the REPL\n";
   } else {
-    s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
+    s.out << "Unknown command: /" << input.command
+          << ". Type /help for options.\n";
   }
   return true;
 }
 
 /** Read file contents, return empty string if file doesn't exist */
-static std::string read_file(const std::string& path) {
+static std::string read_file(const std::string &path) {
   std::ifstream f(path);
   if (!f.is_open()) {
     return "";
   }
-  return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+  return std::string((std::istreambuf_iterator<char>(f)),
+                     std::istreambuf_iterator<char>());
 }
 
 /** Show a simple line-by-line diff between old and new content.
  * Lines that match show with "  " prefix.
  * Removed lines show with red "- " prefix, added with green "+ ". */
-static void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
+static void show_diff(const std::string &old_text, const std::string &new_text,
+                      std::ostream &out, bool color) {
   std::istringstream old_s(old_text);
   std::istringstream new_s(new_text);
   std::string old_line;
@@ -155,10 +160,12 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
       out << "  " << old_line << "\n";
     } else {
       if (has_old) {
-        out << (color ? "\033[1;31m- " : "- ") << old_line << (color ? "\033[0m" : "") << "\n";
+        out << (color ? "\033[1;31m- " : "- ") << old_line
+            << (color ? "\033[0m" : "") << "\n";
       }
       if (has_new) {
-        out << (color ? "\033[1;32m+ " : "+ ") << new_line << (color ? "\033[0m" : "") << "\n";
+        out << (color ? "\033[1;32m+ " : "+ ") << new_line
+            << (color ? "\033[0m" : "") << "\n";
       }
     }
   }
@@ -168,7 +175,8 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  * For existing files: shows [y/n/s/d] with diff option
  * For new files: shows [y/n/s]
  * Returns true if user confirms with y/yes */
-static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+static bool confirm_write(const WriteAction &action, std::istream &in,
+                          std::ostream &out, bool color) {
   std::string existing = read_file(action.path);
   bool file_exists = !existing.empty();
   std::string opts = file_exists ? "[y/n/s/d]" : "[y/n/s]";
@@ -194,7 +202,8 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 
 /** Process a single write action with user confirmation.
  * Creates .bak backup before overwriting existing files. */
-static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+static void process_write(const WriteAction &action, std::istream &in,
+                          std::ostream &out, bool color) {
   tui::write_proposal(out, color, action.path);
   if (confirm_write(action, in, out, color)) {
     // Backup existing file before overwriting
@@ -220,7 +229,8 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
 /** Find all <exec>command</exec> annotations in text
  * Iterates through text finding exec blocks between open/close tags
  * Returns vector of command strings to be confirmed and executed */
-static std::vector<std::string> parse_exec_annotations(const std::string& text) {
+static std::vector<std::string>
+parse_exec_annotations(const std::string &text) {
   std::vector<std::string> cmds;
   const std::string open = "<exec>";
   const std::string close = "</exec>";
@@ -242,7 +252,7 @@ static std::vector<std::string> parse_exec_annotations(const std::string& text) 
 
 // Strip <exec> annotations from text, replacing with readable summary
 // Used to display clean response text to the user
-static std::string strip_exec_annotations(const std::string& text) {
+static std::string strip_exec_annotations(const std::string &text) {
   std::string result = text;
   const std::string open = "<exec>";
   const std::string close = "</exec>";
@@ -255,8 +265,10 @@ static std::string strip_exec_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, "[proposed: exec " + cmd + "]");
+    std::string cmd =
+        result.substr(start + open.size(), end - start - open.size());
+    result.replace(start, end + close.size() - start,
+                   "[proposed: exec " + cmd + "]");
   }
   return result;
 }
@@ -264,7 +276,8 @@ static std::string strip_exec_annotations(const std::string& text) {
 /** Confirm and execute an LLM-proposed command (ADR-015)
  * Prompts user with y/n, executes on confirmation
  * Returns output if confirmed, empty string if declined */
-static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out) {
+static std::string confirm_exec(const std::string &cmd, const Config &cfg,
+                                std::istream &in, std::ostream &out) {
   out << "Run: " << cmd << "? [y/n] " << std::flush;
   std::string answer;
   if (!std::getline(in, answer)) {
@@ -282,7 +295,7 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
 /** Handle LLM response: check for write and exec annotations
  * If no annotations, just print. Otherwise strip tags and process each.
  * Returns true if exec output was added to history (needs LLM follow-up) */
-static bool handle_response(const std::string& response, ReplState& s) {
+static bool handle_response(const std::string &response, ReplState &s) {
   auto writes = parse_write_annotations(response);
   auto execs = parse_exec_annotations(response);
 
@@ -292,13 +305,16 @@ static bool handle_response(const std::string& response, ReplState& s) {
   }
 
   // Strip all annotations and display clean text
-  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown) << "\n";
+  s.out << tui::render_markdown(
+               strip_exec_annotations(strip_annotations(response)),
+               s.color && s.markdown)
+        << "\n";
 
-  for (const auto& action : writes) {
+  for (const auto &action : writes) {
     process_write(action, s.in, s.out, s.color);
   }
   bool has_exec_output = false;
-  for (const auto& cmd : execs) {
+  for (const auto &cmd : execs) {
     std::string output = confirm_exec(cmd, s.cfg, s.in, s.out);
     if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
@@ -310,7 +326,8 @@ static bool handle_response(const std::string& response, ReplState& s) {
 
 // Read one line of input using linenoise (interactive) or getline (tests)
 // Returns false on EOF (signals loop exit)
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
+static bool read_line(std::istream &in, std::ostream & /*out*/,
+                      std::string &line, bool color) {
   if (&in == &std::cin) {
     std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
     auto quit = linenoise::Readline(prompt_str.c_str(), line);
@@ -325,11 +342,13 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
 
 // Execute a command and optionally add output to history
 // Used by ! (add_to_history=false) and !! (add_to_history=true)
-static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
+static void run_exec(const std::string &cmd, bool add_to_history,
+                     ReplState &s) {
   auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
   tui::cmd_output(s.out, s.color, r.output);
   if (r.exit_code != 0 && !r.timed_out) {
-    tui::error(s.out, s.color, "[exit code: " + std::to_string(r.exit_code) + "]");
+    tui::error(s.out, s.color,
+               "[exit code: " + std::to_string(r.exit_code) + "]");
   }
   if (add_to_history) {
     s.history.push_back({"user", "[command: " + cmd + "]\n" + r.output});
@@ -341,7 +360,7 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
  * so the user gets their prompt back immediately.
  * The abandoned thread will finish in the background.
  * Returns empty string if interrupted, response text otherwise. */
-static std::string interruptible_chat(ReplState& s) {
+static std::string interruptible_chat(ReplState &s) {
   std::string result;
   std::atomic<bool> done{false};
   std::thread t([&] {
@@ -362,10 +381,11 @@ static std::string interruptible_chat(ReplState& s) {
 /** Call LLM with spinner, interruptible by Ctrl+C.
  * Installs SIGINT handler, starts spinner, calls chat on a thread.
  * Returns response text, or empty string if interrupted. */
-static std::string chat_with_spinner(ReplState& s) {
+static std::string chat_with_spinner(ReplState &s) {
   g_interrupted = 0;
   auto prev = std::signal(SIGINT, sigint_handler);
-  Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+  Spinner spin(s.out, s.interactive,
+               s.bofh ? tui::bofh_messages() : tui::default_messages());
   std::string result = interruptible_chat(s);
   std::signal(SIGINT, prev);
   return result;
@@ -373,7 +393,7 @@ static std::string chat_with_spinner(ReplState& s) {
 
 // Send a prompt to the LLM and handle the response.
 // Manages spinner, SIGINT, history, annotations, and follow-up calls.
-static void send_prompt(const std::string& line, ReplState& s) {
+static void send_prompt(const std::string &line, ReplState &s) {
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
@@ -400,7 +420,7 @@ static void send_prompt(const std::string& line, ReplState& s) {
 
 // Dispatch a single REPL input: command, exec, prompt, or exit
 // Returns false if the loop should exit, true to continue
-static bool dispatch(const std::string& line, ReplState& s) {
+static bool dispatch(const std::string &line, ReplState &s) {
   auto input = parse_input(line);
   if (input.type == InputType::Exit) {
     return false;
@@ -423,14 +443,16 @@ static bool dispatch(const std::string& line, ReplState& s) {
 
 /** Main REPL loop: read → parse → dispatch → respond
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
-int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
+int run_repl(ChatFn chat, const Config &cfg, std::istream &in,
+             std::ostream &out) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
   bool is_tty = tui::use_color(cfg.no_color);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
+  ReplState state = {chat, cfg,    history, in,   out,
+                     0,    is_tty, is_tty,  true, cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {

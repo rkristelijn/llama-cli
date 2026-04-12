@@ -15,7 +15,7 @@ SCENARIO("Write annotation with confirm and skip") {
   std::remove(path.c_str());
 
   GIVEN("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message> &) {
       return "Here: <write file=\"" + path + "\">integration test</write>";
     };
 
@@ -41,7 +41,9 @@ SCENARIO("Write annotation with confirm and skip") {
         std::ifstream f(path);
         CHECK_FALSE(f.is_open());
       }
-      THEN("[skipped] is shown") { CHECK(out.str().find("[skipped]") != std::string::npos); }
+      THEN("[skipped] is shown") {
+        CHECK(out.str().find("[skipped]") != std::string::npos);
+      }
     }
   }
   std::remove(path.c_str());
@@ -52,14 +54,16 @@ SCENARIO("Write annotation with show then confirm") {
   std::remove(path.c_str());
 
   GIVEN("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message> &) {
       return "Here: <write file=\"" + path + "\">show content</write>";
     };
     WHEN("the user types s then y") {
       std::istringstream in("write it\ns\ny\nexit\n");
       std::ostringstream out;
       run_repl(write_chat, test_cfg(), in, out);
-      THEN("content is previewed") { CHECK(out.str().find("show content") != std::string::npos); }
+      THEN("content is previewed") {
+        CHECK(out.str().find("show content") != std::string::npos);
+      }
       THEN("file is written") {
         std::ifstream f(path);
         CHECK(f.is_open());
@@ -72,7 +76,7 @@ SCENARIO("Write annotation with show then confirm") {
 SCENARIO("Exec annotation with confirm and skip") {
   GIVEN("the LLM responds with an exec annotation") {
     int call_count = 0;
-    auto exec_chat = [&](const std::vector<Message>& /*msgs*/) -> std::string {
+    auto exec_chat = [&](const std::vector<Message> & /*msgs*/) -> std::string {
       call_count++;
       if (call_count == 1) {
         return "Let me check: <exec>echo integration123</exec>";
@@ -84,7 +88,9 @@ SCENARIO("Exec annotation with confirm and skip") {
       std::istringstream in("do it\ny\nexit\n");
       std::ostringstream out;
       run_repl(exec_chat, test_cfg(), in, out);
-      THEN("command output is shown") { CHECK(out.str().find("integration123") != std::string::npos); }
+      THEN("command output is shown") {
+        CHECK(out.str().find("integration123") != std::string::npos);
+      }
       THEN("LLM gets a follow-up") { CHECK(call_count == 2); }
     }
 
@@ -93,7 +99,9 @@ SCENARIO("Exec annotation with confirm and skip") {
       std::istringstream in("do it\nn\nexit\n");
       std::ostringstream out;
       run_repl(exec_chat, test_cfg(), in, out);
-      THEN("[skipped] is shown") { CHECK(out.str().find("[skipped]") != std::string::npos); }
+      THEN("[skipped] is shown") {
+        CHECK(out.str().find("[skipped]") != std::string::npos);
+      }
       THEN("no follow-up call") { CHECK(call_count == 1); }
     }
   }
@@ -102,10 +110,13 @@ SCENARIO("Exec annotation with confirm and skip") {
 SCENARIO("Write annotation shows diff for existing files") {
   const std::string path = "/tmp/llama-int-diff.txt";
   // Create existing file
-  { std::ofstream f(path); f << "old content\n"; }
+  {
+    std::ofstream f(path);
+    f << "old content\n";
+  }
 
   GIVEN("the LLM proposes overwriting an existing file") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message> &) {
       return "Here: <write file=\"" + path + "\">new content</write>";
     };
 

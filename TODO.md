@@ -35,6 +35,7 @@
 - [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] /model command: list available models, switch model at runtime (#48)
 - [ ] /nick command: custom prompt label for multi-session use (#49)
+- [ ] Clipboard integration: paste from clipboard as context, copy LLM response to clipboard
 - [ ] Multi-host load distribution (#12)
 
 ## Documentation (junior dev review)
