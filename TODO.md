@@ -35,6 +35,7 @@
 - [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] /model command: list available models, switch model at runtime (#48)
 - [ ] /nick command: custom prompt label for multi-session use (#49)
+- [ ] Clipboard integration: paste from clipboard as context, copy LLM response to clipboard
 - [ ] Multi-host load distribution (#12)
 
 ## Documentation (junior dev review)
@@ -56,6 +57,10 @@
 - [ ] Add E2E test for main
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] Define release process (#11)
+- [ ] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
+- [ ] Fix pmccabe "too many }'s" in `src/json/json_test.cpp` (lines 29, 44)
+- [ ] Reduce complexity of `show_diff` and `confirm_write` in `src/repl/repl.cpp` (currently > 10)
+- [ ] Align local `make check` pmccabe threshold (15) with CI (10) and include test files
 
 ## Release & Distribution
 - [ ] Prepare repo for first release (tag, changelog, version bump)

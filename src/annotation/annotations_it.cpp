@@ -1,5 +1,5 @@
 /**
- * @file test_annotations.cpp
+ * @file annotations_it.cpp
  * @brief Integration tests: write y/n/s, exec y/n
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -89,12 +89,51 @@ SCENARIO("Exec annotation with confirm and skip") {
     }
 
     WHEN("the user declines with n") {
-      call_count = 0;
+      call_count = 0;  // reset shared counter between WHEN blocks
       std::istringstream in("do it\nn\nexit\n");
       std::ostringstream out;
       run_repl(exec_chat, test_cfg(), in, out);
       THEN("[skipped] is shown") { CHECK(out.str().find("[skipped]") != std::string::npos); }
+      // cppcheck-suppress knownConditionTrueFalse
       THEN("no follow-up call") { CHECK(call_count == 1); }
     }
   }
+}
+
+SCENARIO("Write annotation shows diff for existing files") {
+  const std::string path = "/tmp/llama-int-diff.txt";
+  // Create existing file
+  {
+    std::ofstream f(path);
+    f << "old content\n";
+  }
+
+  GIVEN("the LLM proposes overwriting an existing file") {
+    auto write_chat = [&](const std::vector<Message>&) {
+      return "Here: <write file=\"" + path + "\">new content</write>";
+    };
+
+    WHEN("the user types d then y") {
+      std::istringstream in("write it\nd\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+
+      THEN("diff is shown with - and +") {
+        CHECK(out.str().find("- old content") != std::string::npos);
+        CHECK(out.str().find("+ new content") != std::string::npos);
+      }
+      THEN("file is written") {
+        std::ifstream f(path);
+        std::string content;
+        std::getline(f, content);
+        CHECK(content == "new content");
+      }
+      THEN("backup exists") {
+        std::ifstream bak(path + ".bak");
+        CHECK(bak.is_open());
+      }
+    }
+  }
+  std::remove(path.c_str());
+  std::remove((path + ".bak").c_str());
 }

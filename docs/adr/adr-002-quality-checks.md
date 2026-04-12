@@ -75,7 +75,7 @@ gh pr checks                             # checks for current PR
 
 ### Comment ratio strategy
 
-The 20% minimum is enforced by `cloc` via `.config/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
+The 20% minimum is enforced by `cloc` via `scripts/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
 
 ```cpp
 /**

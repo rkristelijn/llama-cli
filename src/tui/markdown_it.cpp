@@ -1,5 +1,5 @@
 /**
- * @file test_markdown.cpp
+ * @file markdown_it.cpp
  * @brief Integration tests: markdown renderer, on/off toggle
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

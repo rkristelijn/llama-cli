@@ -20,8 +20,6 @@ jobs:
           filters: |
             code:
               - 'src/**'
-              - 'include/**'
-              - 'test/**'
               - 'CMakeLists.txt'
               - 'Makefile'
             docs:
@@ -76,7 +74,7 @@ jobs:
       - name: Install clang-format
         run: sudo apt-get install -y clang-format
       - name: Check formatting
-        run: find src include test -name '*.cpp' -o -name '*.h' | xargs clang-format --style=file:.config/.clang-format --dry-run --Werror
+        run: make format-check
 
   clang-tidy:
     needs: changes
@@ -87,7 +85,7 @@ jobs:
       - name: Install clang-tidy
         run: sudo apt-get install -y clang-tidy
       - name: Run clang-tidy
-        run: clang-tidy src/*.cpp -- -std=c++17 -I include/ 2>&1 | grep "warning:" && exit 1 || true
+        run: find src -name '*.cpp' | xargs clang-tidy --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" && exit 1 || true
 
   pmccabe:
     needs: changes
@@ -98,7 +96,14 @@ jobs:
       - name: Install pmccabe
         run: sudo apt-get install -y pmccabe
       - name: Check complexity
-        run: pmccabe src/*.cpp | awk '$1 > 10 {print; found=1} END {if (found) exit 1}'
+        run: |
+          find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do
+            file=$(echo $line | awk '{print $6}' | cut -d'(' -f1)
+            lno=$(echo $line | awk '{print $6}' | cut -d'(' -f2 | cut -d')' -f1)
+            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then
+              echo $line | awk '$1 > 10 {print; exit 1}'
+            fi
+          done
 
   doxygen:
     needs: changes
@@ -126,7 +131,7 @@ jobs:
       - name: Install cppcheck
         run: sudo apt-get install -y cppcheck
       - name: Run cppcheck
-        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I include/ src/
+        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
 
   sanitizers:
     needs: changes

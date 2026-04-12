@@ -13,10 +13,11 @@
 
 /** Smart mock: echoes last user message, tracks calls and history */
 struct MockLLM {
-  int calls = 0;
-  std::vector<Message> last_history;
-  std::string fixed_response;
+  int calls = 0;                      ///< Number of times chat was called
+  std::vector<Message> last_history;  ///< History of the last call
+  std::string fixed_response;         ///< Response to return if not empty
 
+  /** Mock chat function: echoes the last user message */
   std::string operator()(const std::vector<Message>& msgs) {
     calls++;
     last_history = msgs;

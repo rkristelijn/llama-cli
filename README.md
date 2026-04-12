@@ -15,7 +15,8 @@ brew install ollama
 brew services start ollama
 ollama pull gemma4:e4b
 make setup
-make run
+sudo make install   # installs llama-cli to /usr/local/bin
+llama-cli           # start chatting
 ```
 
 ## Usage

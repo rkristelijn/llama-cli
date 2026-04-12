@@ -38,8 +38,9 @@ has ollama       || { echo "Installing ollama...";        $PKG ollama; }
 
 echo "==> All dependencies installed."
 
-# Install git hooks
+# Install git hooks (without requiring make/cmake)
 echo "==> Installing git hooks..."
-make install
+cp .config/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 
 echo "==> Setup complete. Run 'make check' to verify."

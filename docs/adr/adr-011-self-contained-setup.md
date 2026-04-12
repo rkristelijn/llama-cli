@@ -21,8 +21,9 @@ A `make setup` target is provided that detects the platform (macOS/Linux) and in
 ```bash
 git clone https://github.com/rkristelijn/llama-cli
 cd llama-cli
-make setup    # installs everything + git hooks
-make check    # verify
+make setup         # installs everything + git hooks
+sudo make install  # build and install to /usr/local/bin
+llama-cli --help   # verify
 ```
 
 ## Rationale
@@ -32,6 +33,6 @@ make check    # verify
 - Git hooks are installed automatically so quality gates are enforced from the first commit
 
 ## Consequences
-- `.config/setup.sh` must be maintained when new tools are added
+- `scripts/setup.sh` must be maintained when new tools are added
 - Only macOS (brew) and Linux (apt) are supported
 - Windows is not supported (WSL can be used)

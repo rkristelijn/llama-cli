@@ -1,5 +1,5 @@
 /**
- * @file test_conversation.cpp
+ * @file conversation_it.cpp
  * @brief Integration tests: chat, history, clear, command chaining
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

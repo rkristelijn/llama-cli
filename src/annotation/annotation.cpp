@@ -6,9 +6,19 @@
 
 #include "annotation/annotation.h"
 
-/** Find the next <write file="path">content</write> starting at pos
- * Extracts path and content, trims leading/trailing newlines from content
- * Returns npos if not found, updates pos to after the closing tag */
+/**
+ * @brief Locates the next `<write file="...">...</write>` block in the input text starting at pos.
+ *
+ * Extracts the file path from the opening tag and the enclosed content, trimming at most one
+ * leading newline and at most one trailing newline from the content. On success, updates pos
+ * to the index immediately after the closing `</write>` tag and returns the start index of the block.
+ *
+ * @param text Input string to search.
+ * @param[in,out] pos Search start index; updated to the character after the closing tag on success.
+ * @param[out] path Set to the path value found in the opening tag.
+ * @param[out] content Set to the extracted content with one leading/trailing newline removed if present.
+ * @return size_t Start index of the located block, or std::string::npos if no complete block is found.
+ */
 static size_t find_write_block(const std::string& text, size_t& pos, std::string& path, std::string& content) {
   const std::string open_tag = "<write file=\"";
   const std::string close_tag = "</write>";
@@ -48,9 +58,13 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
   return start;
 }
 
-/** Find all <write file="path">content</write> in text
- * Iterates through text finding write blocks via find_write_block helper
- * Returns empty vector if no valid annotations found */
+/**
+ * @brief Extracts all `<write file="path">content</write>` annotations from the input text.
+ *
+ * @param text Input string to scan for write-file annotation blocks.
+ * @return std::vector<WriteAction> Vector of WriteAction objects containing the `path` and `content` for each found
+ * annotation; empty if none are found.
+ */
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
   std::vector<WriteAction> actions;
   size_t pos = 0;

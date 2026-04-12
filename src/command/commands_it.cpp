@@ -1,5 +1,5 @@
 /**
- * @file test_commands.cpp
+ * @file commands_it.cpp
  * @brief Integration tests: !, !!, /help, /version, unknown, empty, quit
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

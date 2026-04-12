@@ -126,6 +126,7 @@ llama-cli/
 │   ├── adr/              # Architecture Decision Records
 │   ├── user-guide.md     # How to use
 │   └── architecture.md   # This file
-├── .config/              # Tool configs, scripts, hooks
+├── .config/              # Tool configs and hooks (.clang-format, .clang-tidy, Doxyfile, pre-commit)
+├── scripts/              # Shell scripts (setup, build-index, test coverage, CI helpers)
 └── .github/workflows/    # CI pipeline
 ```

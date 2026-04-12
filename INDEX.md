@@ -20,11 +20,33 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-016-tui-design.md`](docs/adr/adr-016-tui-design.md) — ADR-016: TUI Design
 - [`docs/adr/adr-017-integration-tests.md`](docs/adr/adr-017-integration-tests.md) — ADR-017: Integration Tests
 - [`docs/adr/adr-018-module-layout.md`](docs/adr/adr-018-module-layout.md) — ADR-018: Feature Module Layout
+- [`docs/adr/adr-019-safe-file-writes.md`](docs/adr/adr-019-safe-file-writes.md) — ADR-019: Safe File Writes — Diff Preview and Backup
+- [`docs/adr/adr-020-provider-abstraction.md`](docs/adr/adr-020-provider-abstraction.md) — ADR-020: Provider Abstraction Layer
+- [`docs/adr/adr-021-gemini-provider.md`](docs/adr/adr-021-gemini-provider.md) — ADR-021: Gemini CLI Integration
+- [`docs/adr/adr-022-xref-integrity.md`](docs/adr/adr-022-xref-integrity.md) — ADR-022: Cross-Reference Integrity Checks
+- [`docs/adr/adr-023-self-documenting-processes.md`](docs/adr/adr-023-self-documenting-processes.md) — ADR-023: Self-Documenting Processes
+- [`docs/adr/adr-024-startup-precheck.md`](docs/adr/adr-024-startup-precheck.md) — ADR-024: Startup Precheck and Self-Remediation
+- [`docs/adr/adr-025-central-help-text.md`](docs/adr/adr-025-central-help-text.md) — ADR-025: Central Help Text
+- [`docs/adr/adr-026-version-pinning.md`](docs/adr/adr-026-version-pinning.md) — ADR-026: Tool Version Pinning
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
+- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
+- [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
+- [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
+- [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
+- [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
+- [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
+- [`scripts/download-issues.sh`](scripts/download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
+- [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
+- [`scripts/pipeline-status.sh`](scripts/pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
+- [`scripts/pr-status.sh`](scripts/pr-status.sh) — Show PR status and failed pipeline jobs with colors
+- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
+- [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
+- [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
@@ -39,6 +61,7 @@ Auto-generated overview of all files in this repo.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — // json.h — Minimal JSON helpers
@@ -54,4 +77,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_51 files indexed._
+_74 files indexed._

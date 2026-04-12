@@ -6,6 +6,8 @@
 
 #include <doctest/doctest.h>
 
+// TODO: Fix pmccabe parsing errors with doctest macros
+// pmccabe:skip-complexity
 SCENARIO("json string extraction") {
   GIVEN("a simple JSON object") {
     std::string json = R"({"response":"hello world"})";

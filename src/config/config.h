@@ -8,7 +8,20 @@
 
 #include <string>
 
-// Execution mode (ADR-005)
+/**
+ * Application configuration container for the CLI.
+ *
+ * Holds runtime settings for the Ollama server, chosen LLM model, timeouts,
+ * execution behavior, and user/system prompts. Fields are initialized with
+ * sensible defaults and are intended to be overridden by environment variables
+ * or command-line arguments.
+ *
+ * @note `max_output` caps the number of characters of command output included
+ *       in the LLM context.
+ * @note `exec_timeout` limits how many seconds a spawned shell command may run.
+ * @note `no_color` disables colored terminal output; `bofh` enables sarcastic
+ *       spinner messages. `mode` selects interactive vs. synchronous behavior.
+ */
 enum class Mode { Interactive, Sync };
 
 /// Application configuration
@@ -26,11 +39,20 @@ struct Config {
   std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "
-      "When asked to create or modify a file, ALWAYS use "
-      "<write file=\"path\">content</write> immediately. "
-      "When you need to run a command, use <exec>command</exec>. "
+      "You can run shell commands with <exec>command</exec> — use this "
+      "proactively "
+      "to explore files, find information, and verify your work. "
+      "When asked about files, use <exec>find . -name 'pattern'</exec> or "
+      "<exec>cat path</exec> to look. "
+      "When asked to create or modify a file, FIRST read it with <exec>cat "
+      "path</exec>, "
+      "then use <write file=\"path\">full content</write> with the changes "
+      "applied. "
+      "NEVER write a file without reading it first if it might already exist. "
       "The user will confirm before execution. Output is fed back to you. "
-      "Do NOT ask for confirmation — the client handles that. "
+      "When you receive command output, ANALYZE it — do not repeat it "
+      "verbatim. "
+      "Do NOT ask for confirmation or file paths — the client handles that. "
       "Just include the tags directly in your response.";
 };
 

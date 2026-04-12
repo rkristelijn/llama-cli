@@ -153,7 +153,8 @@ SCENARIO("REPL slash commands") {
 SCENARIO("REPL write annotations") {
   // Mock that returns a <write> annotation
   auto write_chat = [](const std::vector<Message>&) {
-    return "Here:\n<write file=\"/tmp/llama-repl-test.txt\">test content</write>\nDone.";
+    return "Here:\n<write file=\"/tmp/llama-repl-test.txt\">test "
+           "content</write>\nDone.";
   };
 
   GIVEN("LLM responds with a write annotation and user confirms") {

@@ -86,17 +86,21 @@ CMake uses glob or explicit lists per module:
 - Include path: `src/` so modules include as `#include "config/config.h"`
 
 ### Config and tooling
-All non-core files (tool configs, scripts, hooks) live in `.config/`:
+Tool configs live in `.config/`, scripts in `scripts/`:
 ```
 .config/
   .clang-format           # code formatting rules
   .clang-tidy             # static analysis rules
   Doxyfile                # documentation generation
+  pre-commit              # git hook: block main, auto-format
+
+scripts/
   setup.sh                # install dev dependencies
   build-index.sh          # regenerate INDEX.md
-  pre-commit              # git hook: block main, auto-format
   test_comment_ratio.sh   # enforce ≥20% comment ratio
   test_coverage.sh        # enforce ≥80% coverage per file
+  pipeline-status.sh      # check CI pipeline status
+  pr-status.sh            # show failed PR jobs
 ```
 
 Tools reference configs via explicit paths (no symlinks):
