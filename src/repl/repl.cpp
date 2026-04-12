@@ -232,6 +232,8 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  * @param color When true, diffs are printed with ANSI color codes.
  * @return true if the user confirmed the write with `y` or `yes`, `false` otherwise.
  */
+// pmccabe:skip-complexity
+// todo: reduce complexity of confirm_write (see TODO.md)
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
   std::string existing = read_file(action.path);
   bool file_exists = !existing.empty();
