@@ -23,6 +23,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-019-safe-file-writes.md`](docs/adr/adr-019-safe-file-writes.md) — ADR-019: Safe File Writes — Diff Preview and Backup
 - [`docs/adr/adr-020-provider-abstraction.md`](docs/adr/adr-020-provider-abstraction.md) — ADR-020: Provider Abstraction Layer
 - [`docs/adr/adr-021-gemini-provider.md`](docs/adr/adr-021-gemini-provider.md) — ADR-021: Gemini CLI Integration
+- [`docs/adr/adr-022-xref-integrity.md`](docs/adr/adr-022-xref-integrity.md) — ADR-022: Cross-Reference Integrity Checks
+- [`docs/adr/adr-023-self-documenting-processes.md`](docs/adr/adr-023-self-documenting-processes.md) — ADR-023: Self-Documenting Processes
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -69,4 +71,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_66 files indexed._
+_68 files indexed._
