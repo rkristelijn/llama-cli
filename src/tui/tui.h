@@ -183,8 +183,9 @@ inline std::string render_code_block_line(const std::string& line, bool& in_code
 }
 
 /** Render a full markdown text block to ANSI.
- * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, - lists, 1. lists.
- * Pluggable: replace this function to use a different renderer. */
+ * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, -
+ * lists, 1. lists. Pluggable: replace this function to use a different
+ * renderer. */
 /** Split text into lines and render each one */
 inline std::string render_lines(const std::string& text, bool color) {
   std::string result;
@@ -236,9 +237,9 @@ inline std::vector<const char*> bofh_messages() {
 
 }  // namespace tui
 
-/** RAII spinner — shows animation while LLM is processing, stops on destruction.
- * Only active when active=true (interactive TTY).
- * Construct before a blocking call, destructor cleans up automatically. */
+/** RAII spinner — shows animation while LLM is processing, stops on
+ * destruction. Only active when active=true (interactive TTY). Construct before
+ * a blocking call, destructor cleans up automatically. */
 class Spinner {
  public:
   /** Start spinner with custom messages. No-op if active=false. */

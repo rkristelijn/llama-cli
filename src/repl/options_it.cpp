@@ -1,5 +1,5 @@
 /**
- * @file test_options.cpp
+ * @file options_it.cpp
  * @brief Integration tests: /set, toggles, --no-color, --why-so-serious
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -29,8 +29,10 @@ SCENARIO("Set toggles color and bofh") {
   auto chat = [&](const std::vector<Message>& m) { return llm(m); };
   std::istringstream in("/set color\n/set bofh\n/set\nexit\n");
   std::ostringstream out;
+  Config cfg = test_cfg();
+  cfg.no_color = true;  // Force initial color off
   WHEN("the user toggles color and bofh then checks") {
-    run_repl(chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out);
     THEN("toggles are confirmed") {
       CHECK(out.str().find("[color on]") != std::string::npos);
       CHECK(out.str().find("[bofh on]") != std::string::npos);

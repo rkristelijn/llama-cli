@@ -380,7 +380,8 @@ static std::string chat_with_spinner(ReplState& s) {
 
 // Send a prompt to the LLM and handle the response.
 // Manages spinner, SIGINT, history, annotations, and follow-up calls.
-// A follow-up call is triggered when the LLM proposes an exec and user confirms.
+// A follow-up call is triggered when the LLM proposes an exec and user
+// confirms.
 static void send_prompt(const std::string& line, ReplState& s) {
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);

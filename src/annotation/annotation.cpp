@@ -48,7 +48,7 @@ static size_t find_write_block(const std::string& text, size_t& pos, std::string
   return start;
 }
 
-/** Find all <write file="path">content</write> in text
+/** Find all \<write file="path"\>content\</write\> in text
  * Iterates through text finding write blocks via find_write_block helper
  * Returns empty vector if no valid annotations found */
 std::vector<WriteAction> parse_write_annotations(const std::string& text) {
