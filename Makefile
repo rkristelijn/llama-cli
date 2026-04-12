@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all clean run test check install help quick
+.PHONY: all clean run test check install help quick index comment-ratio pipeline-status pr-status download-issues
 
 all:
 	cmake -B $(BUILD_DIR) -S .
@@ -77,6 +77,25 @@ todo:
 index:
 	sh scripts/build-index.sh
 
+# Show comment ratio per production file (excludes _test/_it)
+comment-ratio:
+	@cloc src/ --not-match-f='(_test|_it)\.cpp$$' --by-file --csv --quiet \
+	  | grep -v "^language\|^SUM\|^http" \
+	  | awk -F',' 'NF==5 && $$5>0 {ratio=int($$4/($$4+$$5)*100); printf "%d%%\t%s\n", ratio, $$2}' \
+	  | sort -n
+
+# Show latest pipeline status for current branch
+pipeline-status:
+	sh scripts/pipeline-status.sh
+
+# Show failed PR jobs for current branch
+pr-status:
+	sh scripts/pr-status.sh
+
+# Download GitHub issues to .cache/issues/
+download-issues:
+	sh scripts/download-issues.sh
+
 # Generate test coverage report
 coverage:
 	cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage"
@@ -124,11 +143,16 @@ prepush:
 
 help:
 	@echo "Usage:"
-	@echo "  make           build the project"
-	@echo "  make run       build and run"
-	@echo "  make quick     incremental build + tests (fast)"
-	@echo "  make test      full build + tests"
-	@echo "  make prepush   smart check (only what changed vs main)"
-	@echo "  make check     run all quality checks"
-	@echo "  make install   install git hooks"
-	@echo "  make clean     remove build artifacts"
+	@echo "  make                build the project"
+	@echo "  make run            build and run"
+	@echo "  make quick          incremental build + tests (fast)"
+	@echo "  make test           full build + tests"
+	@echo "  make prepush        smart check (only what changed vs main)"
+	@echo "  make check          run all quality checks"
+	@echo "  make install        install git hooks"
+	@echo "  make clean          remove build artifacts"
+	@echo "  make index          regenerate INDEX.md"
+	@echo "  make comment-ratio  show comment ratio per source file"
+	@echo "  make pipeline-status show latest CI pipeline status"
+	@echo "  make pr-status      show failed PR jobs"
+	@echo "  make download-issues download GitHub issues to .cache/issues/"
