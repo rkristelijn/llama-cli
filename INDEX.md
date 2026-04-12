@@ -25,6 +25,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-021-gemini-provider.md`](docs/adr/adr-021-gemini-provider.md) — ADR-021: Gemini CLI Integration
 - [`docs/adr/adr-022-xref-integrity.md`](docs/adr/adr-022-xref-integrity.md) — ADR-022: Cross-Reference Integrity Checks
 - [`docs/adr/adr-023-self-documenting-processes.md`](docs/adr/adr-023-self-documenting-processes.md) — ADR-023: Self-Documenting Processes
+- [`docs/adr/adr-024-startup-precheck.md`](docs/adr/adr-024-startup-precheck.md) — ADR-024: Startup Precheck and Self-Remediation
+- [`docs/adr/adr-025-central-help-text.md`](docs/adr/adr-025-central-help-text.md) — ADR-025: Central Help Text
+- [`docs/adr/adr-026-version-pinning.md`](docs/adr/adr-026-version-pinning.md) — ADR-026: Tool Version Pinning
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -56,6 +59,7 @@ Auto-generated overview of all files in this repo.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — // json.h — Minimal JSON helpers
@@ -71,4 +75,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_68 files indexed._
+_72 files indexed._

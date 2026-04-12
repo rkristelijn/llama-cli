@@ -18,7 +18,7 @@
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
-      std::cout << help::CLI;
+      std::cout << help::cli;
       return 0;
     }
   }

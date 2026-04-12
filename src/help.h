@@ -7,7 +7,8 @@
 
 namespace help {
 
-constexpr const char* CLI =
+/// CLI usage shown by --help
+constexpr const char* cli =
     "Usage: llama-cli [OPTIONS] [PROMPT]\n"
     "\n"
     "Options:\n"
@@ -33,7 +34,8 @@ constexpr const char* CLI =
     "To list available models: ollama list\n"
     "To pull a model:          ollama pull llama3.2\n";
 
-constexpr const char* REPL =
+/// REPL commands shown by /help
+constexpr const char* repl =
     "Commands:\n"
     "  !command      Run command, output to terminal\n"
     "  !!command     Run command, output as LLM context\n"

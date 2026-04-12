@@ -118,7 +118,7 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
-    s.out << help::REPL;
+    s.out << help::repl;
   } else {
     s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
   }

@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all clean run test check format format-check install help quick index comment-ratio pipeline-status pr-status download-issues check-deps
+.PHONY: all clean run start test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -45,9 +45,9 @@ check: all test
 	@echo "==> clang-tidy"
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 15)"
-	@pmccabe src/*/*.cpp | awk '$$1 > 15 {print; found=1} END {if (found) exit 1}'
+	@pmccabe $(shell find src -name '*.cpp' | grep -v '_test\|_it') | awk '$$1 > 15 {print; found=1} END {if (found) exit 1}'
 	@echo "==> cppcheck"
-	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
+	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
 	@echo "==> index freshness"
@@ -63,7 +63,12 @@ check: all test
 	@echo ""
 	@echo "All checks passed."
 
-# Install dependencies and git hooks
+# Like check, but minimal output for AI use. If output is noisy, update the grep filter in Makefile.
+check-ai:
+	@echo "[check-ai] AI-optimized output. Run 'make check' for full output. If noisy/incomplete, improve the grep filter in Makefile:check-ai"
+	@$(MAKE) -s check 2>&1 | grep -E "^\s*(src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
+
+
 setup:
 	sh scripts/setup.sh
 

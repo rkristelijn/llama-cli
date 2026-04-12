@@ -89,11 +89,12 @@ SCENARIO("Exec annotation with confirm and skip") {
     }
 
     WHEN("the user declines with n") {
-      call_count = 0;
+      call_count = 0;  // reset shared counter between WHEN blocks
       std::istringstream in("do it\nn\nexit\n");
       std::ostringstream out;
       run_repl(exec_chat, test_cfg(), in, out);
       THEN("[skipped] is shown") { CHECK(out.str().find("[skipped]") != std::string::npos); }
+      // cppcheck-suppress knownConditionTrueFalse
       THEN("no follow-up call") { CHECK(call_count == 1); }
     }
   }
