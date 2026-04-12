@@ -120,10 +120,19 @@ pipeline-status:
 # Show failed PR jobs for current branch
 pr-status:
 	sh scripts/pr-status.sh
-
 # Download GitHub issues to .cache/issues/
 download-issues:
 	sh scripts/download-issues.sh
+
+# Create a new GitHub issue
+create-issue:
+	@if [ -z "$(TITLE)" ] || [ -z "$(DESC)" ]; then \
+		echo "Usage: make create-issue TITLE=\"My title\" DESC=\"My description\""; \
+		exit 1; \
+	fi
+	sh scripts/gh-create-issue.sh "$(TITLE)" "$(DESC)"
+
+clean:
 
 # Generate test coverage report
 coverage:
@@ -188,3 +197,4 @@ help:
 	@echo "  make pipeline-status show latest CI pipeline status"
 	@echo "  make pr-status      show failed PR jobs"
 	@echo "  make download-issues download GitHub issues to .cache/issues/"
+	@echo "  make create-issue   create a new GitHub issue (TITLE=... DESC=...)"
