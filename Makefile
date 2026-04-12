@@ -1,9 +1,12 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all clean run test check format format-check install help quick index comment-ratio pipeline-status pr-status download-issues
+.PHONY: all clean run test check format format-check install help quick index comment-ratio pipeline-status pr-status download-issues check-deps
 
-all:
+check-deps:
+	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
+
+all: check-deps
 	cmake -B $(BUILD_DIR) -S .
 	cmake --build $(BUILD_DIR)
 
