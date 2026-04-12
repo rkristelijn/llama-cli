@@ -9,12 +9,20 @@
 #include <string>
 
 #include "config/config.h"
+#include "help.h"
 #include "ollama/ollama.h"
 #include "repl/repl.h"
 #include "tui/tui.h"
 
 /** Entry point: loads config, dispatches to sync or interactive mode. */
 int main(int argc, char* argv[]) {
+  for (int i = 1; i < argc; ++i) {
+    if (std::string(argv[i]) == "--help") {
+      std::cout << help::CLI;
+      return 0;
+    }
+  }
+
   // Load config: defaults -> env vars -> CLI args (ADR-004)
   Config cfg = load_config(argc, const_cast<const char* const*>(argv));
   bool color = tui::use_color(cfg.no_color);

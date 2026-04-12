@@ -14,6 +14,7 @@
 #include "annotation/annotation.h"
 #include "command/command.h"
 #include "exec/exec.h"
+#include "help.h"
 #include "tui/tui.h"
 
 #ifdef LINENOISE_HPP
@@ -117,15 +118,7 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {
-    s.out << "Commands:\n";
-    s.out << "  !command      Run command, output to terminal\n";
-    s.out << "  !!command     Run command, output as LLM context\n";
-    s.out << "  /clear        Clear conversation history\n";
-    s.out << "  /set          Show options\n";
-    s.out << "  /set <opt>    Toggle option (markdown, color, bofh)\n";
-    s.out << "  /version      Show version info\n";
-    s.out << "  /help         Show this help\n";
-    s.out << "  exit, quit    Exit the REPL\n";
+    s.out << help::REPL;
   } else {
     s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
   }
