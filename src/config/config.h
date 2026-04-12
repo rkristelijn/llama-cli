@@ -8,7 +8,20 @@
 
 #include <string>
 
-// Execution mode (ADR-005)
+/**
+ * Application configuration container for the CLI.
+ *
+ * Holds runtime settings for the Ollama server, chosen LLM model, timeouts,
+ * execution behavior, and user/system prompts. Fields are initialized with
+ * sensible defaults and are intended to be overridden by environment variables
+ * or command-line arguments.
+ *
+ * @note `max_output` caps the number of characters of command output included
+ *       in the LLM context.
+ * @note `exec_timeout` limits how many seconds a spawned shell command may run.
+ * @note `no_color` disables colored terminal output; `bofh` enables sarcastic
+ *       spinner messages. `mode` selects interactive vs. synchronous behavior.
+ */
 enum class Mode { Interactive, Sync };
 
 /// Application configuration

@@ -5,6 +5,19 @@
  */
 #pragma once
 
+/**
+ * CLI help text shown for `--help`.
+ *
+ * Contains usage, option descriptions including environment variable names and
+ * defaults, examples, and notes for listing and pulling models.
+ */
+
+/**
+ * REPL help text shown for `/help`.
+ *
+ * Lists available REPL commands with brief descriptions (command execution
+ * modes, conversation controls, option toggles, version, and exit commands).
+ */
 namespace help {
 
 /// CLI usage shown by --help

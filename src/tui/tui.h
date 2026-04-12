@@ -172,8 +172,16 @@ inline std::string render_line(const std::string& line, bool color) {
   return render_inline(line, color) + "\n";
 }
 
-/** Render a line inside or at the boundary of a code block.
- * Returns the ANSI-colored line, toggles in_code_block on ``` fences. */
+/**
+ * Render a single line that is either inside a code block or at a code-fence boundary.
+ *
+ * If `line` starts with a triple-backtick fence (```), toggles `in_code_block` to enter or
+ * exit a code block before returning the rendered output.
+ *
+ * @param line The input line to render.
+ * @param in_code_block Reference to the current code-block state; toggled when a fence is encountered.
+ * @returns The input line wrapped with cyan ANSI styling and terminated with a newline.
+ */
 inline std::string render_code_block_line(const std::string& line, bool& in_code_block) {
   if (line.rfind("```", 0) == 0) {
     in_code_block = !in_code_block;
@@ -186,7 +194,17 @@ inline std::string render_code_block_line(const std::string& line, bool& in_code
  * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, -
  * lists, 1. lists. Pluggable: replace this function to use a different
  * renderer. */
-/** Split text into lines and render each one */
+/**
+ * Render multiline Markdown-like text into an ANSI-styled string.
+ *
+ * Splits the input on newline boundaries and renders each line using block
+ * and inline renderers; lines that start or are inside a triple-backtick code
+ * fence are rendered as code block lines.
+ *
+ * @param text Input text that may contain multiple lines and Markdown-like constructs.
+ * @param color If `true`, apply ANSI styling to rendered output; if `false`, return content without styling.
+ * @returns The concatenated rendered output with per-line rendering and preserved line breaks.
+ */
 inline std::string render_lines(const std::string& text, bool color) {
   std::string result;
   bool in_code_block = false;
