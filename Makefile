@@ -119,7 +119,7 @@ pipeline-status:
 
 # Show failed PR jobs for current branch
 pr-status:
-	sh scripts/pr-status.sh
+	sh scripts/pr-status.sh $(ARGS)
 # Download GitHub issues to .cache/issues/
 download-issues:
 	sh scripts/download-issues.sh
