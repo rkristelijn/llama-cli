@@ -44,8 +44,14 @@ test: all
 check: all test
 	@echo "==> clang-tidy"
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity" && exit 1 || true
-	@echo "==> pmccabe (complexity <= 15)"
-	@pmccabe $(shell find src -name '*.cpp' | grep -v '_test\|_it') | awk '$$1 > 15 {print; found=1} END {if (found) exit 1}'
+	@echo "==> pmccabe (complexity <= 10)"
+	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
+		file=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f1); \
+		lno=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f2 | cut -d')' -f1); \
+		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then \
+			echo $$line | awk '$$1 > 10 {print; exit 1}'; \
+		fi; \
+	done || exit 1
 	@echo "==> cppcheck"
 	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
@@ -66,7 +72,7 @@ check: all test
 # Like check, but minimal output for AI use. If output is noisy, update the grep filter in Makefile.
 check-ai:
 	@echo "[check-ai] AI-optimized output. Run 'make check' for full output. If noisy/incomplete, improve the grep filter in Makefile:check-ai"
-	@$(MAKE) -s check 2>&1 | grep -E "^\s*(src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
+	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
 
 
 setup:

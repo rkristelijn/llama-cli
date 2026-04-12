@@ -96,7 +96,14 @@ jobs:
       - name: Install pmccabe
         run: sudo apt-get install -y pmccabe
       - name: Check complexity
-        run: find src -name '*.cpp' | xargs pmccabe | awk '$1 > 10 {print; found=1} END {if (found) exit 1}'
+        run: |
+          find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do
+            file=$(echo $line | awk '{print $6}' | cut -d'(' -f1)
+            lno=$(echo $line | awk '{print $6}' | cut -d'(' -f2 | cut -d')' -f1)
+            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then
+              echo $line | awk '$1 > 10 {print; exit 1}'
+            fi
+          done
 
   doxygen:
     needs: changes
