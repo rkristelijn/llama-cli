@@ -20,6 +20,16 @@ echo "Comment ratio: ${comments} comments / ${total} lines = ${ratio}% (minimum:
 
 if [ "$ratio" -lt "$THRESHOLD" ]; then
     echo "FAIL: comment ratio ${ratio}% is below the ${THRESHOLD}% threshold"
+    echo ""
+    echo "Why this matters: comments help junior devs and AI understand intent,"
+    echo "not just mechanics. Every file should have @file/@brief headers and"
+    echo "inline comments for non-trivial logic."
+    echo ""
+    echo "Tips:"
+    echo "  - Run 'make comment-ratio' to see which files are lowest"
+    echo "  - Add @brief/@param/@return to functions missing them"
+    echo "  - Add a one-line comment above non-obvious blocks"
+    echo "  - When asking AI to write code, include: 'keep comment ratio >= 20%'"
     exit 1
 fi
 
