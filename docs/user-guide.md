@@ -46,12 +46,15 @@ The LLM can propose file writes:
 ```
 > fix the bug in main.cpp
 [proposed: write src/main.cpp]
-Write to src/main.cpp? [y/n/s]
+Write to src/main.cpp? [y/n/s/d]
 ```
 
 - `y` — write the file
 - `n` — skip
-- `s` — show content first, then decide
+- `s` — show new content, then decide
+- `d` — show diff (existing files only, red=removed, green=added)
+
+Existing files are backed up to `.bak` before overwriting.
 
 ### REPL commands
 

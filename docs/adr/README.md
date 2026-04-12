@@ -22,3 +22,4 @@ Summary of all decisions made in this project.
 | [016](adr-016-tui-design.md) | TUI design | ANSI 16-color, TTY detect, `tui::` namespace | 2026-04-11 |
 | [017](adr-017-integration-tests.md) | Integration tests | Gherkin specs + doctest, mock ChatFn | 2026-04-11 |
 | [018](adr-018-module-layout.md) | Module layout | Feature folders, co-located tests, shared types | 2026-04-11 |
+| [019](adr-019-safe-file-writes.md) | Safe file writes | Diff preview, .bak backup before overwrite | 2026-04-11 |

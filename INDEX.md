@@ -21,11 +21,16 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-017-integration-tests.md`](docs/adr/adr-017-integration-tests.md) — ADR-017: Integration Tests
 - [`docs/adr/adr-018-module-layout.md`](docs/adr/adr-018-module-layout.md) — ADR-018: Feature Module Layout
 - [`docs/adr/adr-019-safe-file-writes.md`](docs/adr/adr-019-safe-file-writes.md) — ADR-019: Safe File Writes — Diff Preview and Backup
+- [`docs/adr/adr-020-provider-abstraction.md`](docs/adr/adr-020-provider-abstraction.md) — ADR-020: Provider Abstraction Layer
+- [`docs/adr/adr-021-gemini-provider.md`](docs/adr/adr-021-gemini-provider.md) — ADR-021: Gemini CLI Integration
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
+- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
-- [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Credits in AI
+- [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
+- [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
+- [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
@@ -64,4 +69,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_61 files indexed._
+_66 files indexed._

@@ -22,6 +22,7 @@ endif()
 add_compile_options(-Wall -Wextra -Werror)
 
 include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 FetchContent_Declare(
     httplib
     GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git

@@ -33,7 +33,7 @@ test: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	sh .config/test_comment_ratio.sh
+	sh scripts/test_comment_ratio.sh
 
 check: all test
 	@echo "==> clang-tidy"
@@ -45,9 +45,9 @@ check: all test
 	@echo "==> doxygen lint"
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
 	@echo "==> index freshness"
-	@sh .config/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
+	@sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
 	@echo "==> coverage (>= 80%)"
-	@sh .config/test_coverage.sh
+	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"
 	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
 	@echo "==> gitleaks"
@@ -59,11 +59,11 @@ check: all test
 
 # Install dependencies and git hooks
 setup:
-	sh .config/setup.sh
+	sh scripts/setup.sh
 
 install:
-	cp .config/pre-commit .git/.config/pre-commit
-	chmod +x .git/.config/pre-commit
+	cp .config/pre-commit .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
 	@echo "Git hooks installed."
 
 todo:
@@ -75,7 +75,7 @@ todo:
 
 # Generate INDEX.md from all project files
 index:
-	sh .config/build-index.sh
+	sh scripts/build-index.sh
 
 # Generate test coverage report
 coverage:
@@ -107,7 +107,7 @@ quick: all
 	./$(BUILD_DIR)/test_options
 	./$(BUILD_DIR)/test_annotations
 	./$(BUILD_DIR)/test_markdown
-	@sh .config/test_comment_ratio.sh
+	@sh scripts/test_comment_ratio.sh
 
 # Smart pre-push: only check what changed since main
 prepush:
