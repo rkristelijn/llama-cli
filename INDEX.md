@@ -28,25 +28,37 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-024-startup-precheck.md`](docs/adr/adr-024-startup-precheck.md) — ADR-024: Startup Precheck and Self-Remediation
 - [`docs/adr/adr-025-central-help-text.md`](docs/adr/adr-025-central-help-text.md) — ADR-025: Central Help Text
 - [`docs/adr/adr-026-version-pinning.md`](docs/adr/adr-026-version-pinning.md) — ADR-026: Tool Version Pinning
+- [`docs/adr/adr-027-event-logging.md`](docs/adr/adr-027-event-logging.md) — ADR-027: Event Logging & Replay
+- [`docs/adr/adr-028-execution-limits.md`](docs/adr/adr-028-execution-limits.md) — ADR-028: Execution Limits
+- [`docs/adr/adr-029-repl-e2e.md`](docs/adr/adr-029-repl-e2e.md) — REPL end to end testing
+- [`docs/adr/adr-030-stdin-sync.md`](docs/adr/adr-030-stdin-sync.md) — ADR-030: Stdin and File Input for Sync Mode
+- [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
+- [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
+- [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
+- [`scripts/create-pr.sh`](scripts/create-pr.sh) — Create a pull request for the current branch
 - [`scripts/download-issues.sh`](scripts/download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
+- [`scripts/fetch-coderabbit-feedback.sh`](scripts/fetch-coderabbit-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
 - [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
+- [`scripts/log-viewer.sh`](scripts/log-viewer.sh) — log-viewer.sh — Read and display event logs in human-readable format
 - [`scripts/pipeline-status.sh`](scripts/pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
 - [`scripts/pr-status.sh`](scripts/pr-status.sh) — Show PR status and failed pipeline jobs with colors
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
 - [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
+- [`scripts/test-files-integration.sh`](scripts/test-files-integration.sh) — Integration test: --files flag with benchmarking
+- [`scripts/test-index.sh`](scripts/test-index.sh) — Test llama-cli sync mode with repo indexing
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
@@ -55,6 +67,8 @@ Auto-generated overview of all files in this repo.
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
@@ -64,7 +78,9 @@ Auto-generated overview of all files in this repo.
 - [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
-- [`src/json/json.h`](src/json/json.h) — // json.h — Minimal JSON helpers
+- [`src/json/json.h`](src/json/json.h) — /**
+- [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
+- [`src/logging/logger.h`](src/logging/logger.h) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
@@ -74,7 +90,9 @@ Auto-generated overview of all files in this repo.
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
+- [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
+- [`src/trace/trace.h`](src/trace/trace.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_74 files indexed._
+_92 files indexed._

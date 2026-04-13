@@ -7,6 +7,8 @@
 
 #include "repl/repl.h"
 
+#include <unistd.h>
+
 #include <csignal>
 #include <fstream>
 #include <sstream>
@@ -15,6 +17,7 @@
 #include "command/command.h"
 #include "exec/exec.h"
 #include "help.h"
+#include "trace/trace.h"
 #include "tui/tui.h"
 
 #ifdef LINENOISE_HPP
@@ -41,6 +44,7 @@ struct ReplState {
   bool interactive = false;       ///< Whether running on a real TTY (for spinner)
   bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
+  bool trace = false;             ///< Whether trace output is enabled
 };
 
 /** Get version string from VERSION file + git dirty status.
@@ -66,6 +70,7 @@ static void show_options(ReplState& s) {
   s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
   s.out << "  color     " << (s.color ? "on" : "off") << "\n";
   s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
+  s.out << "  trace     " << (s.trace ? "on" : "off") << "\n";
 }
 
 /** Toggle a named option, return true if recognized.
@@ -80,6 +85,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"markdown", &ReplState::markdown},
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
+      {"trace", &ReplState::trace},
   };
   for (const auto& opt : opts) {
     if (name == opt.name) {
@@ -429,16 +435,18 @@ static bool handle_response(const std::string& response, ReplState& s) {
  * @return bool `false` on EOF or user-initiated quit, `true` if a line was successfully read.
  */
 static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
-  if (&in == &std::cin) {
-    std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
-    auto quit = linenoise::Readline(prompt_str.c_str(), line);
-    if (quit) {
-      return false;
-    }
-    linenoise::AddHistory(line.c_str());
-    return true;
+  // Use std::getline for non-stdin streams (tests, pipes)
+  if (&in != &std::cin) {
+    return static_cast<bool>(std::getline(in, line));
   }
-  return static_cast<bool>(std::getline(in, line));
+  // Interactive mode: use linenoise with colored prompt
+  std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
+  auto quit = linenoise::Readline(prompt_str.c_str(), line);
+  if (quit) {
+    return false;
+  }
+  linenoise::AddHistory(line.c_str());
+  return true;
 }
 
 // Execute a command and optionally add output to history.
@@ -518,6 +526,11 @@ static std::string chat_with_spinner(ReplState& s) {
  * @param s REPL state containing chat, configuration, I/O streams, and conversation history.
  */
 static void send_prompt(const std::string& line, ReplState& s) {
+  // Trace output for debugging loop behavior (ADR-028)
+  if (s.trace) {
+    stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
+  }
+
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
@@ -584,7 +597,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     history.push_back({"system", cfg.system_prompt});
   }
   bool is_tty = tui::use_color(cfg.no_color);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh, false};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {

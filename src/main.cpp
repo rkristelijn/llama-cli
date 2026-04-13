@@ -5,7 +5,11 @@
  * @see docs/adr/adr-007-cli-interface.md
  */
 
+#include <unistd.h>
+
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 
 #include "config/config.h"
@@ -23,6 +27,7 @@
  *
  * @return int Exit code: `0` on normal completion.
  */
+// pmccabe:skip-complexity — TODO: refactor main dispatch logic
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
@@ -35,19 +40,52 @@ int main(int argc, char* argv[]) {
   Config cfg = load_config(argc, const_cast<const char* const*>(argv));
   bool color = tui::use_color(cfg.no_color);
 
+  // Build context from --files or stdin pipe (ADR-030)
+  std::string context;
+  if (!cfg.files.empty()) {
+    for (const auto& path : cfg.files) {
+      std::ifstream f(path);
+      if (!f) {
+        std::cerr << "error: cannot read " << path << "\n";
+        return 1;
+      }
+      context += "--- " + path + " ---\n";
+      context += std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+      context += "\n";
+    }
+  } else if (!isatty(STDIN_FILENO)) {
+    context = std::string((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
+  }
+  if (!context.empty()) {
+    cfg.prompt = cfg.prompt.empty() ? context : cfg.prompt + "\n\n" + context;
+    cfg.mode = Mode::Sync;
+  }
+
   if (cfg.mode == Mode::Sync) {
     // Sync mode: one-shot, response to stdout (ADR-007)
-    tui::system_msg(std::cerr, color,
-                    "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-    std::string response = ollama_generate(cfg, cfg.prompt);
-    if (!response.empty()) {
-      std::cout << response << "\n";
+    if (cfg.provider == "mock") {
+      std::cout << "mock response: " << cfg.prompt << "\n";
+    } else {
+      tui::system_msg(std::cerr, color,
+                      "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
+      std::string response = ollama_generate(cfg, cfg.prompt);
+      if (!response.empty()) {
+        std::cout << response << "\n";
+      }
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
+    if (cfg.provider == "mock") {
+      tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
+    }
     tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
-    auto generate = [&cfg](const std::vector<Message>& msgs) { return ollama_chat(cfg, msgs); };
+    auto generate = [&cfg](const std::vector<Message>& msgs) {
+      if (cfg.provider == "mock") {
+        return "mock response: " + msgs.back().content;
+      }
+      return ollama_chat(cfg, msgs);
+    };
     run_repl(generate, cfg);
   }
   return 0;

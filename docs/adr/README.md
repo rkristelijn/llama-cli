@@ -23,3 +23,4 @@ Summary of all decisions made in this project.
 | [017](adr-017-integration-tests.md) | Integration tests | Gherkin specs + doctest, mock ChatFn | 2026-04-11 |
 | [018](adr-018-module-layout.md) | Module layout | Feature folders, co-located tests, shared types | 2026-04-11 |
 | [019](adr-019-safe-file-writes.md) | Safe file writes | Diff preview, .bak backup before overwrite | 2026-04-11 |
+| [030](adr-030-stdin-sync.md) | Stdin & file input for sync mode | `--files`, stdin pipe, completes ADR-007 | 2026-04-13 |

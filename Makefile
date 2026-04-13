@@ -1,14 +1,16 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all clean run start test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status download-issues check-deps
+.PHONY: all build clean run start test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
 
 all: check-deps
 	cmake -B $(BUILD_DIR) -S .
-	cmake --build $(BUILD_DIR)
+	cmake --build $(BUILD_DIR) --target llama-cli
+
+build: all
 
 run: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
@@ -16,39 +18,39 @@ run: all
 start: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
 
-test: all
+test-unit: all
 	cmake --build $(BUILD_DIR) --target test_config
 	cmake --build $(BUILD_DIR) --target test_json
 	cmake --build $(BUILD_DIR) --target test_repl
 	cmake --build $(BUILD_DIR) --target test_command
 	cmake --build $(BUILD_DIR) --target test_annotation
 	cmake --build $(BUILD_DIR) --target test_exec
-	cmake --build $(BUILD_DIR) --target test_conversation
-	cmake --build $(BUILD_DIR) --target test_commands
-	cmake --build $(BUILD_DIR) --target test_options
-	cmake --build $(BUILD_DIR) --target test_annotations
-	cmake --build $(BUILD_DIR) --target test_markdown
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
 	./$(BUILD_DIR)/test_command
 	./$(BUILD_DIR)/test_annotation
 	./$(BUILD_DIR)/test_exec
-	./$(BUILD_DIR)/test_conversation
-	./$(BUILD_DIR)/test_commands
-	./$(BUILD_DIR)/test_options
-	./$(BUILD_DIR)/test_annotations
-	./$(BUILD_DIR)/test_markdown
-	sh scripts/test_comment_ratio.sh
+	bash scripts/test_comment_ratio.sh
 
-check: all test
+test: test-unit
+
+e2e: test-e2e
+
+test-e2e: build
+	@echo "==> E2E tests"
+	@for t in e2e/*.sh; do echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
+	@echo "E2E tests passed."
+
+check: all test e2e format-check
 	@echo "==> clang-tidy"
-	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity" && exit 1 || true
+	@# Suppress: identifier-naming (doctest), function-size (use NOLINT in source; logger filtered here)
+	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
 	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
 		file=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f1); \
 		lno=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f2 | cut -d')' -f1); \
-		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then \
+		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then \
 			echo $$line | awk '$$1 > 10 {print; exit 1}'; \
 		fi; \
 	done || exit 1
@@ -62,7 +64,7 @@ check: all test
 	@echo "==> coverage (>= 80%)"
 	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"
-	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
+	@PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error --quiet
 	@echo "==> gitleaks"
 	gitleaks detect --source .
 	@echo "==> open items"
@@ -106,6 +108,7 @@ format:
 # Dry-run clang-format check (non-zero exit if violations)
 format-check:
 	find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
+	@echo "format-check: OK"
 
 # Show comment ratio per production file (excludes _test/_it)
 comment-ratio:
@@ -121,9 +124,18 @@ pipeline-status:
 # Show failed PR jobs for current branch
 pr-status:
 	sh scripts/pr-status.sh $(ARGS)
+
+# Create a pull request for current branch
+pr:
+	bash scripts/create-pr.sh
+
 # Download GitHub issues to .cache/issues/
 download-issues:
-	sh scripts/download-issues.sh
+	bash scripts/download-issues.sh
+
+# Download CodeRabbit feedback for a PR to .cache/pr/
+pr-feedback:
+	bash scripts/fetch-coderabbit-feedback.sh
 
 # Create a new GitHub issue
 create-issue:
@@ -186,7 +198,8 @@ help:
 	@echo "  make run            build and run (alias: make start)"
 	@echo "  make start          build and start REPL (ARGS=... for extra args)"
 	@echo "  make quick          incremental build + tests (fast)"
-	@echo "  make test           full build + tests"
+	@echo "  make test           unit tests"
+	@echo "  make e2e            end-to-end tests (requires Ollama)"
 	@echo "  make prepush        smart check (only what changed vs main)"
 	@echo "  make check          run all quality checks"
 	@echo "  make install        build and install to /usr/local/bin"

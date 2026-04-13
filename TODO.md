@@ -29,9 +29,8 @@
 - [x] Markdown rendering in terminal (headings, bold, code blocks, lists)
 - [ ] Mermaid diagram rendering (integrate mermaid-tui)
 - [x] Loading spinner/indicator while waiting for LLM response
-- [ ] Streaming responses (#4)
-- [ ] Async mode — fire-and-forget (#3, remaining)
-- [ ] Stdin pipe support (ADR-007)
+- [x] Stdin pipe support (ADR-007)
+- [x] --files flag support (ADR-030)
 - [ ] CRUD permission settings: auto-allow read ops (cat, ls), confirm write/rename, block delete — configurable per operation type
 - [ ] /model command: list available models, switch model at runtime (#48)
 - [ ] /nick command: custom prompt label for multi-session use (#49)
@@ -45,25 +44,35 @@
 - [ ] Clarify LLM interaction model — suggesting vs executing (#47)
 
 ## Quality
+- [ ] Pin all tool versions in `.config/versions.json` (doxygen [x], clang-format, clang-tidy, cppcheck, pmccabe, semgrep, gitleaks)
 - [x] Adopt test framework — doctest with GWT style (#9)
 - [x] Add linter — clang-format (Google/K&R) with auto-fix
 - [x] Add complexity monitoring — clang-tidy + pmccabe
 - [x] Coverage enforcement ≥ 80% per file
 - [x] Sanitizers (ASan + UBSan) in CI
 - [x] Add `make prepush` target (doxygen + format + clang-tidy, no semgrep/gitleaks/coverage)
-- [ ] Add config validation (port range, timeout > 0, non-empty host/model)
-- [ ] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
+- [x] Add config validation (port range, timeout > 0, non-empty host/model)
+- [x] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
 - [x] Integration test: mock LLM server, test all features end-to-end
-- [ ] Add E2E test for main
+- [ ] Add logging tests (Logger::log, path(), JSONL format validation)
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] Define release process (#11)
-- [ ] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
-- [ ] Fix pmccabe "too many }'s" in `src/json/json_test.cpp` (lines 29, 44)
+- [x] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
+- [x] Fix pmccabe "too many }'s" in `src/json/json_test.cpp` (lines 29, 44)
 - [ ] Reduce complexity of `show_diff` and `confirm_write` in `src/repl/repl.cpp` (currently > 10)
-- [ ] Align local `make check` pmccabe threshold (15) with CI (10) and include test files
+- [x] Align local `make check` pmccabe threshold (15) with CI (10) and include test files
+- [ ] Refactor `src/logging/logger.cpp:log()` — exceeds function-size threshold (ADR-027)
+- [ ] Split `src/config/config.cpp` — parse_files_flag extracted, but more modularization needed
 
 ## Release & Distribution
 - [ ] Prepare repo for first release (tag, changelog, version bump)
 - [ ] Publish to Homebrew (brew tap or core formula)
 - [ ] Publish to apt (PPA or .deb package)
 - [ ] Write user documentation (install, usage, config, examples)
+- [ ] make compile watch: https://stackoverflow.com/questions/931093/how-do-i-make-my-program-watch-for-file-modification-in-c
+- [ ] when executing !! the ai doesn't respond to question
+- [ ] discover whether it is possible to include autocompletion with tab when using paths, e.g. if it starts with ~, . or /
+- [ ] optimize and cleanup the make check, when succes it doesn't say always, some tools are just too chatty, there must be a golden ratio, enough to have overview and not too much to overflow
+
+
+

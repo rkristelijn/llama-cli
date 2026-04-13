@@ -67,3 +67,24 @@ std::string json_extract_string(const std::string& json, const std::string& key)
   }
   return result;
 }
+
+int json_extract_int(const std::string& json, const std::string& key) {
+  std::string needle = "\"" + key + "\":";
+  auto pos = json.find(needle);
+  if (pos == std::string::npos) {
+    return 0;
+  }
+  pos += needle.size();
+  // Skip whitespace after colon
+  while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n' || json[pos] == '\r')) {
+    pos++;
+  }
+  int result = 0;
+  for (size_t i = pos; i < json.size(); i++) {
+    if (json[i] < '0' || json[i] > '9') {
+      break;
+    }
+    result = result * 10 + (json[i] - '0');
+  }
+  return result;
+}

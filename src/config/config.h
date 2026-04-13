@@ -7,6 +7,7 @@
 #define CONFIG_H
 
 #include <string>
+#include <vector>
 
 /**
  * Application configuration container for the CLI.
@@ -26,6 +27,7 @@ enum class Mode { Interactive, Sync };
 
 /// Application configuration
 struct Config {
+  std::string provider = "ollama";   ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";    ///< Ollama server hostname
   std::string port = "11434";        ///< Ollama server port
   std::string model = "gemma4:e4b";  ///< LLM model name
@@ -36,6 +38,7 @@ struct Config {
   bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
+  std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
   std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "

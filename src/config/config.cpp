@@ -8,6 +8,8 @@
 #include "config/config.h"
 
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 #include <string>
 
 /** Read an environment variable into a string, return true if set */
@@ -19,10 +21,48 @@ static bool env_get(const char* name, std::string& out) {
   return val != nullptr;
 }
 
+/** Validate the configuration, print errors and exit on failure */
+static void validate_config(const Config& c) {
+  bool ok = true;
+  if (c.host.empty()) {
+    std::cerr << "Error: OLLAMA_HOST cannot be empty" << std::endl;
+    ok = false;
+  }
+  if (c.model.empty()) {
+    std::cerr << "Error: OLLAMA_MODEL cannot be empty" << std::endl;
+    ok = false;
+  }
+  if (c.timeout <= 0) {
+    std::cerr << "Error: timeout must be positive" << std::endl;
+    ok = false;
+  }
+  if (c.exec_timeout <= 0) {
+    std::cerr << "Error: exec_timeout must be positive" << std::endl;
+    ok = false;
+  }
+  try {
+    int p = std::stoi(c.port);
+    if (p < 0 || p > 65535) {
+      std::cerr << "Error: OLLAMA_PORT must be between 0 and 65535" << std::endl;
+      ok = false;
+    }
+  } catch (...) {
+    std::cerr << "Error: OLLAMA_PORT must be a valid number" << std::endl;
+    ok = false;
+  }
+
+  if (!ok) {
+    exit(1);
+  }
+}
+
 /** Load config from environment variables, overriding defaults */
 Config load_env(const Config& defaults) {
   Config c = defaults;
   std::string val;
+  if (env_get("LLAMA_PROVIDER", val)) {
+    c.provider = val;
+  }
   if (env_get("OLLAMA_HOST", val)) {
     c.host = val;
   }
@@ -67,6 +107,7 @@ struct OptDef {
 
 /** Table of string CLI options */
 static const OptDef opts[] = {
+    {"--provider=", nullptr, &Config::provider},
     {"--host=", "-h", &Config::host},
     {"--port=", "-p", &Config::port},
     {"--model=", "-m", &Config::model},
@@ -105,7 +146,7 @@ static std::string match_long(const std::string& arg, const char* prefix) {
 static bool match_string_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : opts) {
     std::string val = match_long(arg, opt.long_prefix);
-    if (val.empty() && arg == opt.short_flag && i + 1 < argc) {
+    if (val.empty() && opt.short_flag && arg == opt.short_flag && i + 1 < argc) {
       val = argv[++i];
     }
     if (!val.empty()) {
@@ -137,6 +178,42 @@ static bool match_opts(const std::string& arg, int& i, int argc, const char* con
   return match_string_opts(arg, i, argc, argv, c) || match_int_opts(arg, i, argc, argv, c);
 }
 
+/// Extract the value for --files from CLI args, or empty if not a --files arg
+static std::string get_files_value(const std::string& arg, int& i, int argc, const char* const argv[]) {
+  std::string val = match_long(arg, "--files=");
+  if (!val.empty()) {
+    return val;
+  }
+  if (arg == "--files" && i + 1 < argc) {
+    return std::string(argv[++i]);
+  }
+  return "";
+}
+
+/// Parse --files flag and populate config.files (ADR-030)
+static void parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+  std::string files_val = get_files_value(arg, i, argc, argv);
+  if (files_val.empty() && arg.rfind("--files", 0) == 0) {
+    // --files or --files= with no value
+    std::cerr << "Error: --files flag requires at least one file path." << std::endl;
+    std::exit(1);
+  }
+  if (files_val.empty()) {
+    return;  // not a --files arg at all
+  }
+
+  // Parse space-separated file paths
+  std::istringstream iss(files_val);
+  std::string path;
+  while (iss >> path) {
+    c.files.push_back(path);
+  }
+  // Activate sync mode when files are provided (ADR-005)
+  if (!c.files.empty()) {
+    c.mode = Mode::Sync;
+  }
+}
+
 /** Load config from CLI arguments, overriding base config
  * Parses long (--key=value), short (-x value), and positional args */
 Config load_cli(int argc, const char* const argv[], const Config& base) {
@@ -156,6 +233,12 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       continue;
     }
 
+    // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
+    parse_files_flag(arg, i, argc, argv, c);
+    if (!c.files.empty()) {
+      // Don't continue here — still allow positional prompt after --files
+    }
+
     // Positional arg = prompt (first non-option argument)
     // Triggers sync mode per ADR-005
     if (arg[0] != '-' && c.prompt.empty()) {
@@ -169,5 +252,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
 /** Full config resolution: defaults -> env -> cli */
 Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
-  return load_cli(argc, argv, c);
+  c = load_cli(argc, argv, c);
+  validate_config(c);
+  return c;
 }
