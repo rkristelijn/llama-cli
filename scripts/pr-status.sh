@@ -59,8 +59,8 @@ if [ -n "$FAILED_JOBS" ]; then
   printf "\n${RED}Failed jobs detail:${NC}\n"
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"
-    # Show log snippet for failures
-    gh run view "$RUN_ID" --log --job "$JOB_ID" 2>&1 | grep -iE "(error:|FAILED|failed)" | head -20
+    # Show log for the failed job, focusing on the actual step output
+    gh run view "$RUN_ID" --log --job "$JOB_ID" 2>&1 | tail -50
   done <<< "$FAILED_JOBS"
   exit 1
 fi
