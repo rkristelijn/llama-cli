@@ -68,4 +68,4 @@
 - [ ] Publish to Homebrew (brew tap or core formula)
 - [ ] Publish to apt (PPA or .deb package)
 - [ ] Write user documentation (install, usage, config, examples)
-- [ ] make compile watch: https://stackoverflow.com/questions/931093/how-do-i-make-my-program-watch-for-file-modification-in-c
+- [ ] make compile watch: https://stackoverflow.com/questions/931093/how-do-i-make-my-program-watch-for-file-modification-in-c- [ ] when executing !! the ai doesn't respond to question
