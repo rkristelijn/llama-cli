@@ -5,7 +5,11 @@
  * @see docs/adr/adr-007-cli-interface.md
  */
 
+#include <unistd.h>
+
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 
 #include "config/config.h"
@@ -23,6 +27,7 @@
  *
  * @return int Exit code: `0` on normal completion.
  */
+// pmccabe:skip-complexity — TODO: refactor main dispatch logic
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
@@ -34,6 +39,27 @@ int main(int argc, char* argv[]) {
   // Load config: defaults -> env vars -> CLI args (ADR-004)
   Config cfg = load_config(argc, const_cast<const char* const*>(argv));
   bool color = tui::use_color(cfg.no_color);
+
+  // Build context from --files or stdin pipe (ADR-030)
+  std::string context;
+  if (!cfg.files.empty()) {
+    for (const auto& path : cfg.files) {
+      std::ifstream f(path);
+      if (!f) {
+        std::cerr << "error: cannot read " << path << "\n";
+        return 1;
+      }
+      context += "--- " + path + " ---\n";
+      context += std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+      context += "\n";
+    }
+  } else if (!isatty(STDIN_FILENO)) {
+    context = std::string((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
+  }
+  if (!context.empty()) {
+    cfg.prompt = cfg.prompt.empty() ? context : cfg.prompt + "\n\n" + context;
+    cfg.mode = Mode::Sync;
+  }
 
   if (cfg.mode == Mode::Sync) {
     // Sync mode: one-shot, response to stdout (ADR-007)

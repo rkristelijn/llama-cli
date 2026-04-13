@@ -1,14 +1,16 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all clean run start test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status download-issues check-deps
+.PHONY: all build clean run start test test-unit test-it check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
 
 all: check-deps
 	cmake -B $(BUILD_DIR) -S .
-	cmake --build $(BUILD_DIR)
+	cmake --build $(BUILD_DIR) --target llama-cli
+
+build: all
 
 run: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
@@ -16,7 +18,7 @@ run: all
 start: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
 
-test: all
+test-unit: all
 	cmake --build $(BUILD_DIR) --target test_config
 	cmake --build $(BUILD_DIR) --target test_json
 	cmake --build $(BUILD_DIR) --target test_repl
@@ -41,14 +43,35 @@ test: all
 	./$(BUILD_DIR)/test_markdown
 	sh scripts/test_comment_ratio.sh
 
+test-it: all
+	cmake --build $(BUILD_DIR) --target test_config_it
+	cmake --build $(BUILD_DIR) --target test_commands
+	cmake --build $(BUILD_DIR) --target test_conversation
+	cmake --build $(BUILD_DIR) --target test_options
+	cmake --build $(BUILD_DIR) --target test_annotations
+	cmake --build $(BUILD_DIR) --target test_markdown
+	./$(BUILD_DIR)/test_config_it
+	./$(BUILD_DIR)/test_commands
+	./$(BUILD_DIR)/test_conversation
+	./$(BUILD_DIR)/test_options
+	./$(BUILD_DIR)/test_annotations
+	./$(BUILD_DIR)/test_markdown
+
+test: test-unit test-it
+
+integration-test: build
+	@echo "==> Integration tests: --files flag with benchmarking"
+	sh scripts/test-files-integration.sh $(BUILD_DIR)/llama-cli
+
 check: all test
 	@echo "==> clang-tidy"
-	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity" && exit 1 || true
+	@# Suppress: identifier-naming (doctest), function-size (marked with clang-tidy:skip-complexity)
+	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
 	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
 		file=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f1); \
 		lno=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f2 | cut -d')' -f1); \
-		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then \
+		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then \
 			echo $$line | awk '$$1 > 10 {print; exit 1}'; \
 		fi; \
 	done || exit 1

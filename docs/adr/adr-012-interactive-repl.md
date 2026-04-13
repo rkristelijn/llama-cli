@@ -19,7 +19,7 @@ The REPL uses `cpp-linenoise` for interactive input (arrow keys, history) and fa
 The generate function and I/O streams are injected, allowing tests to use string streams and mock responses without HTTP calls (ADR-008).
 
 ### Line editing
-`std::getline` is used initially — no arrow keys, no history. This can be upgraded to `linenoise` or `readline` later without changing the REPL logic, since input comes through `std::istream`.
+`std::getline` is used for non-`std::cin` streams (tests, pipes). Interactive mode uses `linenoise::Readline` with arrow key history. The stream identity check (`&in != &std::cin`) ensures linenoise is never invoked during tests.
 
 ## Rationale
 - `cpp-linenoise` is header-only, BSD licensed, same author as cpp-httplib
@@ -31,3 +31,4 @@ The generate function and I/O streams are injected, allowing tests to use string
 - Arrow key navigation and command history work out of the box
 - Ctrl+C gracefully interrupts LLM calls (abandoned HTTP thread finishes in background)
 - Tests remain fast and deterministic (no terminal interaction)
+- Stream identity check prevents linenoise from being invoked during unit tests

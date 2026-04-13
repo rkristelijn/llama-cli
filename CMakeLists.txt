@@ -51,8 +51,10 @@ set(LIB_SOURCES
   src/command/command.cpp
   src/annotation/annotation.cpp
   src/exec/exec.cpp
+  src/trace/trace.cpp
+  src/logging/logger.cpp
 )
-set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR})
+set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} src/trace src/logging)
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
@@ -80,7 +82,7 @@ add_executable(test_exec src/exec/exec_test.cpp src/exec/exec.cpp)
 target_include_directories(test_exec PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_exec PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/trace/trace.cpp src/logging/logger.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
@@ -98,6 +100,10 @@ target_link_libraries(test_commands PRIVATE doctest::doctest)
 add_executable(test_options src/repl/options_it.cpp ${REPL_LIBS})
 target_include_directories(test_options PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_options PRIVATE doctest::doctest)
+
+add_executable(test_config_it src/config/config_it.cpp src/config/config_test_helper.cpp)
+target_include_directories(test_config_it PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_config_it PRIVATE doctest::doctest)
 
 add_executable(test_annotations src/annotation/annotations_it.cpp ${REPL_LIBS})
 target_include_directories(test_annotations PRIVATE ${SRC_INCLUDE})

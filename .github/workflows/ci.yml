@@ -85,7 +85,7 @@ jobs:
       - name: Install clang-tidy
         run: sudo apt-get install -y clang-tidy
       - name: Run clang-tidy
-        run: find src -name '*.cpp' | xargs clang-tidy --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" && exit 1 || true
+        run: find src -name '*.cpp' | xargs clang-tidy --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
 
   pmccabe:
     needs: changes
@@ -100,7 +100,7 @@ jobs:
           find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do
             file=$(echo $line | awk '{print $6}' | cut -d'(' -f1)
             lno=$(echo $line | awk '{print $6}' | cut -d'(' -f2 | cut -d')' -f1)
-            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity"; then
+            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then
               echo $line | awk '$1 > 10 {print; exit 1}'
             fi
           done

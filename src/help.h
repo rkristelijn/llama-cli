@@ -35,6 +35,7 @@ constexpr const char* cli =
     "default: 120)\n"
     "  --no-color        Disable colored output  (env: NO_COLOR)\n"
     "  --why-so-serious  Enable BOFH spinner mode\n"
+    "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
     "  PROMPT            Run in sync mode (non-interactive)\n"
     "\n"
     "Examples:\n"
@@ -43,6 +44,8 @@ constexpr const char* cli =
     "  llama-cli --host=192.168.1.10    # remote Ollama server\n"
     "  OLLAMA_MODEL=mistral llama-cli   # via environment variable\n"
     "  llama-cli \"explain this error\"   # one-shot sync mode\n"
+    "  llama-cli --files doc.md \"summarize\"  # file as context\n"
+    "  cat log.txt | llama-cli \"explain\"     # stdin as context\n"
     "\n"
     "To list available models: ollama list\n"
     "To pull a model:          ollama pull llama3.2\n";

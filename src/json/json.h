@@ -1,13 +1,17 @@
-// json.h — Minimal JSON helpers
-// Extracts values from JSON strings without external dependencies.
+/**
+ * @file json.h
+ * @brief Minimal JSON string extraction for Ollama API responses.
+ */
 
 #ifndef JSON_H
 #define JSON_H
 
 #include <string>
 
-// Extract a string value for a given key from a JSON object.
-// Returns empty string if key is not found.
+/// Extract a JSON string value by key: "key":"value"
 std::string json_extract_string(const std::string& json, const std::string& key);
 
-#endif
+/// Extract a JSON integer value by key: "key":123
+int json_extract_int(const std::string& json, const std::string& key);
+
+#endif  // JSON_H

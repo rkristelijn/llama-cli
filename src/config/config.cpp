@@ -8,6 +8,7 @@
 #include "config/config.h"
 
 #include <cstdlib>
+#include <sstream>
 #include <string>
 
 /** Read an environment variable into a string, return true if set */
@@ -137,6 +138,24 @@ static bool match_opts(const std::string& arg, int& i, int argc, const char* con
   return match_string_opts(arg, i, argc, argv, c) || match_int_opts(arg, i, argc, argv, c);
 }
 
+/// Parse --files flag and populate config.files (ADR-030)
+static void parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+  std::string files_val = match_long(arg, "--files=");
+  if (!files_val.empty() || arg == "--files") {
+    if (files_val.empty() && i + 1 < argc) {
+      files_val = argv[++i];
+    }
+    if (!files_val.empty()) {
+      std::istringstream iss(files_val);
+      std::string path;
+      while (iss >> path) {
+        c.files.push_back(path);
+      }
+      c.mode = Mode::Sync;
+    }
+  }
+}
+
 /** Load config from CLI arguments, overriding base config
  * Parses long (--key=value), short (-x value), and positional args */
 Config load_cli(int argc, const char* const argv[], const Config& base) {
@@ -153,6 +172,12 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
     }
     if (arg == "--why-so-serious") {
       c.bofh = true;
+      continue;
+    }
+
+    // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
+    parse_files_flag(arg, i, argc, argv, c);
+    if (!c.files.empty()) {
       continue;
     }
 

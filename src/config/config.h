@@ -7,6 +7,7 @@
 #define CONFIG_H
 
 #include <string>
+#include <vector>
 
 /**
  * Application configuration container for the CLI.
@@ -36,6 +37,7 @@ struct Config {
   bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
+  std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
   std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. "
