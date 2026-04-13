@@ -36,6 +36,16 @@ TEST_SUITE("config --files flag (ADR-030)") {
     CHECK(c.mode == Mode::Sync);
   }
 
+  TEST_CASE("--files consumes multiple argv paths") {
+    const char* argv[] = {"prog", "--files", "/tmp/a.txt", "/tmp/b.txt", "prompt"};
+    Config c = load_cli(5, argv);
+    CHECK(c.files.size() == 2);
+    CHECK(c.files[0] == "/tmp/a.txt");
+    CHECK(c.files[1] == "/tmp/b.txt");
+    CHECK(c.prompt == "prompt");
+    CHECK(c.mode == Mode::Sync);
+  }
+
   TEST_CASE("no prompt after files") {
     const char* argv[] = {"prog", "--files=/tmp/test.txt"};
     Config c = load_cli(2, argv);
