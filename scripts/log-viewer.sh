@@ -49,8 +49,12 @@ fi
 
 # Format a single JSON line to human-readable
 format_line() {
-    local line="$1"
-    local ts agent action duration tokens
+    line="$1"
+    ts=""
+    agent=""
+    action=""
+    duration=""
+    tokens=""
 
     # Extract fields using grep/sed (portable, no jq dependency)
     ts=$(echo "$line" | grep -o '"timestamp": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/' | cut -d'T' -f2 | cut -d'.' -f1)
