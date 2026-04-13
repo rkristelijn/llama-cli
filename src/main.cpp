@@ -63,17 +63,29 @@ int main(int argc, char* argv[]) {
 
   if (cfg.mode == Mode::Sync) {
     // Sync mode: one-shot, response to stdout (ADR-007)
-    tui::system_msg(std::cerr, color,
-                    "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-    std::string response = ollama_generate(cfg, cfg.prompt);
-    if (!response.empty()) {
-      std::cout << response << "\n";
+    if (cfg.provider == "mock") {
+      std::cout << "mock response: " << cfg.prompt << "\n";
+    } else {
+      tui::system_msg(std::cerr, color,
+                      "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
+      std::string response = ollama_generate(cfg, cfg.prompt);
+      if (!response.empty()) {
+        std::cout << response << "\n";
+      }
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
+    if (cfg.provider == "mock") {
+      tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
+    }
     tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
-    auto generate = [&cfg](const std::vector<Message>& msgs) { return ollama_chat(cfg, msgs); };
+    auto generate = [&cfg](const std::vector<Message>& msgs) {
+      if (cfg.provider == "mock") {
+        return "mock response: " + msgs.back().content;
+      }
+      return ollama_chat(cfg, msgs);
+    };
     run_repl(generate, cfg);
   }
   return 0;

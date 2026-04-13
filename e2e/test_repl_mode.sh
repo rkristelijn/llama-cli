@@ -14,8 +14,10 @@ echo "=== E2E: REPL mode ==="
 check_binary "$BINARY"
 
 # Test REPL starts, responds, and exits cleanly
-OUTPUT=$(echo -e "hello\nexit" | "$BINARY" 2>&1) || die "binary exited with error"
+# Using mock provider for deterministic E2E test
+OUTPUT=$(echo -e "hello\nexit" | LLAMA_PROVIDER=mock "$BINARY" 2>&1) || die "binary exited with error"
 assert_nonempty "$OUTPUT" "REPL response"
 assert_contains "$OUTPUT" "hello" "greeting"
+assert_contains "$OUTPUT" "[MOCK MODE]" "mock indicator"
 
 echo "PASS: REPL started and exited (${#OUTPUT} chars output)"

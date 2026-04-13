@@ -32,6 +32,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-028-execution-limits.md`](docs/adr/adr-028-execution-limits.md) — ADR-028: Execution Limits
 - [`docs/adr/adr-029-repl-e2e.md`](docs/adr/adr-029-repl-e2e.md) — REPL end to end testing
 - [`docs/adr/adr-030-stdin-sync.md`](docs/adr/adr-030-stdin-sync.md) — ADR-030: Stdin and File Input for Sync Mode
+- [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
+- [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -45,7 +47,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
+- [`scripts/create-pr.sh`](scripts/create-pr.sh) — Create a pull request for the current branch
 - [`scripts/download-issues.sh`](scripts/download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
+- [`scripts/fetch-coderabbit-feedback.sh`](scripts/fetch-coderabbit-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
 - [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
 - [`scripts/log-viewer.sh`](scripts/log-viewer.sh) — log-viewer.sh — Read and display event logs in human-readable format
 - [`scripts/pipeline-status.sh`](scripts/pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
@@ -91,4 +95,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_88 files indexed._
+_92 files indexed._

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Set mock provider for deterministic E2E tests by default
+export LLAMA_PROVIDER="${LLAMA_PROVIDER:-mock}"
+
 # Shared e2e test helpers
 
 # Die with error message

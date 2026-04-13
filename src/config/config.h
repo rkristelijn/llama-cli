@@ -27,6 +27,7 @@ enum class Mode { Interactive, Sync };
 
 /// Application configuration
 struct Config {
+  std::string provider = "ollama";   ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";    ///< Ollama server hostname
   std::string port = "11434";        ///< Ollama server port
   std::string model = "gemma4:e4b";  ///< LLM model name

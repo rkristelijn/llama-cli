@@ -25,6 +25,7 @@ constexpr const char* cli =
     "Usage: llama-cli [OPTIONS] [PROMPT]\n"
     "\n"
     "Options:\n"
+    "  --provider=NAME   LLM provider (ollama, mock) (env: LLAMA_PROVIDER, default: ollama)\n"
     "  --host=HOST       Ollama server hostname  (env: OLLAMA_HOST,    "
     "default: localhost)\n"
     "  --port=PORT       Ollama server port      (env: OLLAMA_PORT,    "

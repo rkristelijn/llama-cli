@@ -60,6 +60,9 @@ static void validate_config(const Config& c) {
 Config load_env(const Config& defaults) {
   Config c = defaults;
   std::string val;
+  if (env_get("LLAMA_PROVIDER", val)) {
+    c.provider = val;
+  }
   if (env_get("OLLAMA_HOST", val)) {
     c.host = val;
   }
@@ -104,6 +107,7 @@ struct OptDef {
 
 /** Table of string CLI options */
 static const OptDef opts[] = {
+    {"--provider=", nullptr, &Config::provider},
     {"--host=", "-h", &Config::host},
     {"--port=", "-p", &Config::port},
     {"--model=", "-m", &Config::model},
@@ -142,7 +146,7 @@ static std::string match_long(const std::string& arg, const char* prefix) {
 static bool match_string_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : opts) {
     std::string val = match_long(arg, opt.long_prefix);
-    if (val.empty() && arg == opt.short_flag && i + 1 < argc) {
+    if (val.empty() && opt.short_flag && arg == opt.short_flag && i + 1 < argc) {
       val = argv[++i];
     }
     if (!val.empty()) {
