@@ -30,7 +30,7 @@ Logger& Logger::instance() {
   return instance;
 }
 
-std::string Logger::path() const { return log_path_; }
+const std::string& Logger::path() const { return log_path_; }
 
 void Logger::log(const Event& e) {
   // Get current timestamp

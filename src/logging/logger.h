@@ -31,7 +31,7 @@ class Logger {
   void log(const Event& e);
 
   /// Get log file path
-  std::string path() const;
+  const std::string& path() const;
 
  private:
   Logger();

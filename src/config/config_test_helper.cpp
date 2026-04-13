@@ -10,6 +10,8 @@
 #include "config/config.h"
 
 // Minimal implementations needed for config tests
+
+/// Read environment variable into string, return true if set
 bool env_get(const char* name, std::string& out) {
   const char* val = std::getenv(name);
   if (!val) {
@@ -37,6 +39,7 @@ Config load_env(const Config& defaults) {
   return c;
 }
 
+/// Try to match arg against long option prefix, return value if matched
 std::string match_long(const std::string& arg, const char* prefix) {
   std::string p(prefix);
   if (arg.rfind(p, 0) == 0) {

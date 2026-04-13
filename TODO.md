@@ -53,10 +53,10 @@
 - [ ] Add config validation (port range, timeout > 0, non-empty host/model)
 - [ ] Upgrade doctest v2.4.12 → v2.5.1 (fixes CMake deprecation warning)
 - [x] Integration test: mock LLM server, test all features end-to-end
-- [ ] Add E2E test for main
+- [ ] Add logging tests (Logger::log, path(), JSONL format validation)
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] Define release process (#11)
-- [ ] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
+- [x] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
 - [ ] Fix pmccabe "too many }'s" in `src/json/json_test.cpp` (lines 29, 44)
 - [ ] Reduce complexity of `show_diff` and `confirm_write` in `src/repl/repl.cpp` (currently > 10)
 - [ ] Align local `make check` pmccabe threshold (15) with CI (10) and include test files

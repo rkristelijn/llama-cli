@@ -85,7 +85,7 @@ check: all test
 	@echo "==> coverage (>= 80%)"
 	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"
-	PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error
+	@PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error --quiet
 	@echo "==> gitleaks"
 	gitleaks detect --source .
 	@echo "==> open items"
