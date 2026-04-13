@@ -31,7 +31,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
-    GIT_TAG v2.4.12
+    GIT_TAG v2.5.1
 )
 # cpp-linenoise: header-only, download only (its CMakeLists.txt needs CMake < 3.5)
 FetchContent_Declare(

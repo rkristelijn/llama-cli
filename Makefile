@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-it integration-test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
+.PHONY: all build clean run start test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -33,27 +33,16 @@ test-unit: all
 	./$(BUILD_DIR)/test_exec
 	bash scripts/test_comment_ratio.sh
 
-test-it: all
-	cmake --build $(BUILD_DIR) --target test_config_it
-	cmake --build $(BUILD_DIR) --target test_commands
-	cmake --build $(BUILD_DIR) --target test_conversation
-	cmake --build $(BUILD_DIR) --target test_options
-	cmake --build $(BUILD_DIR) --target test_annotations
-	cmake --build $(BUILD_DIR) --target test_markdown
-	./$(BUILD_DIR)/test_config_it
-	./$(BUILD_DIR)/test_commands
-	./$(BUILD_DIR)/test_conversation
-	./$(BUILD_DIR)/test_options
-	./$(BUILD_DIR)/test_annotations
-	./$(BUILD_DIR)/test_markdown
+test: test-unit
 
-test: test-unit test-it
+e2e: test-e2e
 
-integration-test: build
-	@echo "==> Integration tests: --files flag with benchmarking"
-	bash scripts/test-files-integration.sh $(BUILD_DIR)/llama-cli
+test-e2e: build
+	@echo "==> E2E tests"
+	@for t in e2e/*.sh; do echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
+	@echo "E2E tests passed."
 
-check: all test format-check
+check: all test e2e format-check
 	@echo "==> clang-tidy"
 	@# Suppress: identifier-naming (doctest), function-size (marked with clang-tidy:skip-complexity)
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
@@ -209,7 +198,8 @@ help:
 	@echo "  make run            build and run (alias: make start)"
 	@echo "  make start          build and start REPL (ARGS=... for extra args)"
 	@echo "  make quick          incremental build + tests (fast)"
-	@echo "  make test           full build + tests"
+	@echo "  make test           unit tests"
+	@echo "  make e2e            end-to-end tests (requires Ollama)"
 	@echo "  make prepush        smart check (only what changed vs main)"
 	@echo "  make check          run all quality checks"
 	@echo "  make install        build and install to /usr/local/bin"

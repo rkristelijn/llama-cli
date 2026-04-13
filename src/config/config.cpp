@@ -8,6 +8,7 @@
 #include "config/config.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -18,6 +19,41 @@ static bool env_get(const char* name, std::string& out) {
     out = val;
   }
   return val != nullptr;
+}
+
+/** Validate the configuration, print errors and exit on failure */
+static void validate_config(const Config& c) {
+  bool ok = true;
+  if (c.host.empty()) {
+    std::cerr << "Error: OLLAMA_HOST cannot be empty" << std::endl;
+    ok = false;
+  }
+  if (c.model.empty()) {
+    std::cerr << "Error: OLLAMA_MODEL cannot be empty" << std::endl;
+    ok = false;
+  }
+  if (c.timeout <= 0) {
+    std::cerr << "Error: timeout must be positive" << std::endl;
+    ok = false;
+  }
+  if (c.exec_timeout <= 0) {
+    std::cerr << "Error: exec_timeout must be positive" << std::endl;
+    ok = false;
+  }
+  try {
+    int p = std::stoi(c.port);
+    if (p < 0 || p > 65535) {
+      std::cerr << "Error: OLLAMA_PORT must be between 0 and 65535" << std::endl;
+      ok = false;
+    }
+  } catch (...) {
+    std::cerr << "Error: OLLAMA_PORT must be a valid number" << std::endl;
+    ok = false;
+  }
+
+  if (!ok) {
+    exit(1);
+  }
 }
 
 /** Load config from environment variables, overriding defaults */
@@ -194,5 +230,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
 /** Full config resolution: defaults -> env -> cli */
 Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
-  return load_cli(argc, argv, c);
+  c = load_cli(argc, argv, c);
+  validate_config(c);
+  return c;
 }

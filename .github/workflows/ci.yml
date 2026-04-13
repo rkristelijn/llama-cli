@@ -65,6 +65,17 @@ jobs:
       - name: Run tests
         run: make test
 
+  e2e:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make
+      - name: Run E2E tests
+        run: make e2e
+
   format:
     needs: changes
     if: needs.changes.outputs.code == 'true'
