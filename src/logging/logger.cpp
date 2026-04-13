@@ -66,13 +66,13 @@ void Logger::log(const Event& e) {
   // Write JSONL entry
   std::ofstream out(log_path_, std::ios::app);
   if (out) {
-    out << "{\"timestamp\":\"" << ts.str() << "\","
-        << "\"agent\":\"" << escape(e.agent) << "\","
-        << "\"action\":\"" << escape(e.action) << "\","
-        << "\"input\":\"" << escape(e.input) << "\","
-        << "\"output\":\"" << escape(e.output) << "\","
-        << "\"duration_ms\":" << e.duration_ms << ","
-        << "\"tokens_prompt\":" << e.tokens_prompt << ","
-        << "\"tokens_completion\":" << e.tokens_completion << "}\n";
+    out << "{\"timestamp\":\"" << ts.str() << "\",";
+    out << "\"agent\":\"" << escape(e.agent) << "\",";
+    out << "\"action\":\"" << escape(e.action) << "\",";
+    out << "\"input\":\"" << escape(e.input) << "\",";
+    out << "\"output\":\"" << escape(e.output) << "\",";
+    out << "\"duration_ms\":" << e.duration_ms << ",";
+    out << "\"tokens_prompt\":" << e.tokens_prompt << ",";
+    out << "\"tokens_completion\":" << e.tokens_completion << "}\n";
   }
 }

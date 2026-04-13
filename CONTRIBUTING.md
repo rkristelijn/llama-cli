@@ -8,6 +8,7 @@ This codebase is kept accessible for C++ newcomers:
 - Comments explain *why*, not *what*
 - Test names read as documentation: `TEST_CASE("config: env vars override defaults")`
 - Prefer `std::string` over `const char*`, `std::vector` over raw arrays
+- Avoid chained `<<` operators across multiple lines — CI clang-format (v14) and local (v21+) disagree on line-breaking. Use separate statements instead
 - If a beginner can't understand it in 30 seconds, simplify it
 
 ## Workflow
