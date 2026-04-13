@@ -44,7 +44,7 @@
 - [ ] Clarify LLM interaction model — suggesting vs executing (#47)
 
 ## Quality
-- [ ] Pin all tool versions in `.config/versions.json` (doxygen, clang-format, clang-tidy, cppcheck, pmccabe, semgrep, gitleaks)
+- [ ] Pin all tool versions in `.config/versions.json` (doxygen [x], clang-format, clang-tidy, cppcheck, pmccabe, semgrep, gitleaks)
 - [x] Adopt test framework — doctest with GWT style (#9)
 - [x] Add linter — clang-format (Google/K&R) with auto-fix
 - [x] Add complexity monitoring — clang-tidy + pmccabe
