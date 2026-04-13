@@ -100,18 +100,7 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
     if (i > 0) {
       json += ",";
     }
-    // Escape quotes in content
-    std::string escaped;
-    for (char c : messages[i].content) {
-      if (c == '"') {
-        escaped += "\\\"";
-      } else if (c == '\n') {
-        escaped += "\\n";
-      } else {
-        escaped += c;
-      }
-    }
-    json += R"({"role":")" + messages[i].role + R"(","content":")" + escaped + R"("})";
+    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json_string(messages[i].content) + R"("})";
   }
   json += "]";
   return json;

@@ -68,4 +68,10 @@
 - [ ] Publish to Homebrew (brew tap or core formula)
 - [ ] Publish to apt (PPA or .deb package)
 - [ ] Write user documentation (install, usage, config, examples)
-- [ ] make compile watch: https://stackoverflow.com/questions/931093/how-do-i-make-my-program-watch-for-file-modification-in-c- [ ] when executing !! the ai doesn't respond to question
+- [ ] make compile watch: https://stackoverflow.com/questions/931093/how-do-i-make-my-program-watch-for-file-modification-in-c
+- [ ] when executing !! the ai doesn't respond to question
+- [ ] discover whether it is possible to include autocompletion with tab when using paths, e.g. if it starts with ~, . or /
+- [ ] optimize and cleanup the make check, when succes it doesn't say always, some tools are just too chatty, there must be a golden ratio, enough to have overview and not to much to ocerflow
+
+
+

@@ -32,7 +32,7 @@ llama-cli --files src/main.cpp src/config.cpp "review these files"
 llama-cli --files *.md "list the topics"
 ```
 
-`--files` collects all arguments until the next `--` flag or end of args. File contents are concatenated with a `--- filename ---` separator and prepended to the prompt.
+`--files` accepts a single argument (space-separated for multiple files). File contents are concatenated with a `--- filename ---` separator and prepended to the prompt.
 
 ### 2. Stdin pipe (per ADR-007)
 

@@ -75,6 +75,10 @@ int json_extract_int(const std::string& json, const std::string& key) {
     return 0;
   }
   pos += needle.size();
+  // Skip whitespace after colon
+  while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n' || json[pos] == '\r')) {
+    pos++;
+  }
   int result = 0;
   for (size_t i = pos; i < json.size(); i++) {
     if (json[i] < '0' || json[i] > '9') {

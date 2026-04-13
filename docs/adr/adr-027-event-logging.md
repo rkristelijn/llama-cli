@@ -32,9 +32,9 @@ Log all agent actions as structured JSON events.
 | Event | Fields |
 |-------|--------|
 | LLM prompts/responses | timestamp, agent, action, input, output, duration_ms, tokens_prompt, tokens_completion |
-| Tool calls | timestamp, agent, action, tool_name, input, output, duration_ms |
-| Shell executions | timestamp, agent, action, command, output, exit_code, duration_ms |
-| Errors | timestamp, agent, action, error_message, stack_trace |
+| Tool calls | timestamp, agent, action, input, output, duration_ms |
+| Shell executions | timestamp, agent, action, input, output, duration_ms |
+| Errors | timestamp, agent, action, input, output, duration_ms |
 
 ### Key design decisions
 

@@ -178,7 +178,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
     parse_files_flag(arg, i, argc, argv, c);
     if (!c.files.empty()) {
-      continue;
+      // Don't continue here — still allow positional prompt after --files
     }
 
     // Positional arg = prompt (first non-option argument)

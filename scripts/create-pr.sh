@@ -17,7 +17,7 @@ echo "Creating PR: $BRANCH → $BASE"
 echo "Title: $TITLE"
 
 # Get commit messages for body
-BODY=$(git log --pretty=format:"- %s" $BASE..$BRANCH | head -10)
+BODY=$(git log --pretty=format:"- %s" "$BASE..$BRANCH" | head -10)
 
 gh pr create \
   --title "$TITLE" \

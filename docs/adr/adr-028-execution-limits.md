@@ -30,7 +30,7 @@ When a limit is reached:
 ### Trace mode
 
 Add `--trace` flag for debug output:
-```
+```text
 [TRACE] enter: handle_exec
 [TRACE] exit: handle_exec (duration_ms=12)
 ```
