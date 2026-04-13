@@ -26,9 +26,17 @@ echo ""
 echo -n "  [1/5] Single file... "
 tmpfile=$(mktemp)
 echo "The quick brown fox jumps over the lazy dog." > "$tmpfile"
-start=$(date +%s%N)
+if date +%s%N >/dev/null 2>&1; then
+  start=$(date +%s%N)
+else
+  start=$(($(date +%s) * 1000000000))
+fi
 result=$(timeout $TIMEOUT "$LLAMA" --files="$tmpfile" "what animal?" 2>/dev/null || echo "TIMEOUT")
-end=$(date +%s%N)
+if date +%s%N >/dev/null 2>&1; then
+  end=$(date +%s%N)
+else
+  end=$(($(date +%s) * 1000000000))
+fi
 dur=$(( (end - start) / 1000000 ))
 status="✅"
 [ "$result" = "TIMEOUT" ] && status="❌"
