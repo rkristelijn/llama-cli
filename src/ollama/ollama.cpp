@@ -125,7 +125,17 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
     return "";
   }
 
-  std::string response_text = json_extract_string(res->body, "content");
+  // Rationale: The Ollama API's chat completion response structure nests the assistant's
+  // reply within a "message" object. The original code attempted to directly extract
+  // "content" from the top-level `res->body`, which is incorrect as "content" is not
+  // a direct child of the root JSON object in this context.
+  //
+  // To correctly retrieve the assistant's response, we first extract the "message" object
+  // (which itself is a JSON string representation) from `res->body`. Then, we use
+  // `json_extract_string` again on this intermediate `message_json_string` to get the
+  // actual "content" field. This ensures we are parsing the nested structure as expected.
+  std::string message_json_string = json_extract_string(res->body, "message");
+  std::string response_text = json_extract_string(message_json_string, "content");
   int prompt_tokens = json_extract_int(res->body, "prompt_eval_count");
   int completion_tokens = json_extract_int(res->body, "eval_count");
   LOG_EVENT("ollama", "chat", build_messages_json(messages), response_text, duration, prompt_tokens, completion_tokens);

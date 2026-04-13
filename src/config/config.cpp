@@ -178,21 +178,39 @@ static bool match_opts(const std::string& arg, int& i, int argc, const char* con
   return match_string_opts(arg, i, argc, argv, c) || match_int_opts(arg, i, argc, argv, c);
 }
 
+/// Extract the value for --files from CLI args, or empty if not a --files arg
+static std::string get_files_value(const std::string& arg, int& i, int argc, const char* const argv[]) {
+  std::string val = match_long(arg, "--files=");
+  if (!val.empty()) {
+    return val;
+  }
+  if (arg == "--files" && i + 1 < argc) {
+    return std::string(argv[++i]);
+  }
+  return "";
+}
+
 /// Parse --files flag and populate config.files (ADR-030)
 static void parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
-  std::string files_val = match_long(arg, "--files=");
-  if (!files_val.empty() || arg == "--files") {
-    if (files_val.empty() && i + 1 < argc) {
-      files_val = argv[++i];
-    }
-    if (!files_val.empty()) {
-      std::istringstream iss(files_val);
-      std::string path;
-      while (iss >> path) {
-        c.files.push_back(path);
-      }
-      c.mode = Mode::Sync;
-    }
+  std::string files_val = get_files_value(arg, i, argc, argv);
+  if (files_val.empty() && arg.rfind("--files", 0) == 0) {
+    // --files or --files= with no value
+    std::cerr << "Error: --files flag requires at least one file path." << std::endl;
+    std::exit(1);
+  }
+  if (files_val.empty()) {
+    return;  // not a --files arg at all
+  }
+
+  // Parse space-separated file paths
+  std::istringstream iss(files_val);
+  std::string path;
+  while (iss >> path) {
+    c.files.push_back(path);
+  }
+  // Activate sync mode when files are provided (ADR-005)
+  if (!c.files.empty()) {
+    c.mode = Mode::Sync;
   }
 }
 

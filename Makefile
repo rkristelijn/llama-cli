@@ -44,7 +44,7 @@ test-e2e: build
 
 check: all test e2e format-check
 	@echo "==> clang-tidy"
-	@# Suppress: identifier-naming (doctest), function-size (marked with clang-tidy:skip-complexity)
+	@# Suppress: identifier-naming (doctest), function-size (use NOLINT in source; logger filtered here)
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
 	@echo "==> pmccabe (complexity <= 10)"
 	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
