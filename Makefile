@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-it check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status download-issues check-deps
+.PHONY: all build clean run start test test-unit test-it check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -144,6 +144,11 @@ pipeline-status:
 # Show failed PR jobs for current branch
 pr-status:
 	sh scripts/pr-status.sh $(ARGS)
+
+# Create a pull request for current branch
+pr:
+	sh scripts/create-pr.sh
+
 # Download GitHub issues to .cache/issues/
 download-issues:
 	sh scripts/download-issues.sh
