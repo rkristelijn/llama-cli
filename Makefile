@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-it check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr download-issues check-deps
+.PHONY: all build clean run start test test-unit test-it integration-test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -61,9 +61,9 @@ test: test-unit test-it
 
 integration-test: build
 	@echo "==> Integration tests: --files flag with benchmarking"
-	sh scripts/test-files-integration.sh $(BUILD_DIR)/llama-cli
+	bash scripts/test-files-integration.sh $(BUILD_DIR)/llama-cli
 
-check: all test
+check: all test format-check
 	@echo "==> clang-tidy"
 	@# Suppress: identifier-naming (doctest), function-size (marked with clang-tidy:skip-complexity)
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
@@ -129,6 +129,7 @@ format:
 # Dry-run clang-format check (non-zero exit if violations)
 format-check:
 	find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
+	@echo "format-check: OK"
 
 # Show comment ratio per production file (excludes _test/_it)
 comment-ratio:
@@ -147,7 +148,7 @@ pr-status:
 
 # Create a pull request for current branch
 pr:
-	sh scripts/create-pr.sh
+	bash scripts/create-pr.sh
 
 # Download GitHub issues to .cache/issues/
 download-issues:
