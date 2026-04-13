@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-it integration-test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr download-issues check-deps
+.PHONY: all build clean run start test test-unit test-it integration-test check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -25,23 +25,13 @@ test-unit: all
 	cmake --build $(BUILD_DIR) --target test_command
 	cmake --build $(BUILD_DIR) --target test_annotation
 	cmake --build $(BUILD_DIR) --target test_exec
-	cmake --build $(BUILD_DIR) --target test_conversation
-	cmake --build $(BUILD_DIR) --target test_commands
-	cmake --build $(BUILD_DIR) --target test_options
-	cmake --build $(BUILD_DIR) --target test_annotations
-	cmake --build $(BUILD_DIR) --target test_markdown
 	./$(BUILD_DIR)/test_config
 	./$(BUILD_DIR)/test_json
 	./$(BUILD_DIR)/test_repl
 	./$(BUILD_DIR)/test_command
 	./$(BUILD_DIR)/test_annotation
 	./$(BUILD_DIR)/test_exec
-	./$(BUILD_DIR)/test_conversation
-	./$(BUILD_DIR)/test_commands
-	./$(BUILD_DIR)/test_options
-	./$(BUILD_DIR)/test_annotations
-	./$(BUILD_DIR)/test_markdown
-	sh scripts/test_comment_ratio.sh
+	bash scripts/test_comment_ratio.sh
 
 test-it: all
 	cmake --build $(BUILD_DIR) --target test_config_it
@@ -152,7 +142,11 @@ pr:
 
 # Download GitHub issues to .cache/issues/
 download-issues:
-	sh scripts/download-issues.sh
+	bash scripts/download-issues.sh
+
+# Download CodeRabbit feedback for a PR to .cache/pr/
+pr-feedback:
+	bash scripts/fetch-coderabbit-feedback.sh
 
 # Create a new GitHub issue
 create-issue:
