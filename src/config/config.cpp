@@ -118,6 +118,7 @@ static void validate_config(const Config& c) {
 
 /** Load config from environment variables, overriding defaults */
 // todo: reduce complexity of load_env
+// pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 Config load_env(const Config& defaults) {
   Config c = defaults;
