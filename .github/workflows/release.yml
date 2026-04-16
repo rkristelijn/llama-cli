@@ -46,7 +46,7 @@ jobs:
 
       - name: Generate CHANGELOG.md
         run: |
-          git-cliff --config cliff.toml --output CHANGELOG.md
+          git-cliff --config .config/cliff.toml --output CHANGELOG.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
