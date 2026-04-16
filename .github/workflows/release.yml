@@ -21,19 +21,10 @@ jobs:
           echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-  # Build for Linux platforms
+  # Build for Linux ARM64
   build:
     needs: version
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            binary: llama-cli-linux-x64
-          - target: aarch64-unknown-linux-gnu
-            binary: llama-cli-linux-arm64
-            cmake_flags: "-DCMAKE_TOOLCHAIN_FILE=.config/cmake/aarch64-linux-gnu.cmake"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,22 +33,22 @@ jobs:
       - name: Set up dependencies
         run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
-      - name: Build ${{ matrix.target }}
+      - name: Build aarch64-unknown-linux-gnu
         run: |
           make clean
-          cmake -B build -S . ${{ matrix.cmake_flags }}
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=.config/cmake/aarch64-linux-gnu.cmake
           cmake --build build --target llama-cli
-          cp build/llama-cli ${{ matrix.binary }}
-          ls -la ${{ matrix.binary }}
+          cp build/llama-cli llama-cli-linux-arm64
+          ls -la llama-cli-linux-arm64
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.binary }}
-          path: ${{ matrix.binary }}
+          name: llama-cli-linux-arm64
+          path: llama-cli-linux-arm64
           retention-days: 1
 
-  # Create tag and release after all builds complete
+  # Create tag and release after build completes
   release:
     needs: [version, build]
     runs-on: ubuntu-latest
@@ -72,7 +63,7 @@ jobs:
         id: version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
 
-      - name: Download all binaries
+      - name: Download binary
         uses: actions/download-artifact@v4
         with:
           path: release
