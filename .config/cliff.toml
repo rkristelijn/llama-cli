@@ -1,18 +1,23 @@
 # git-cliff configuration
 [changelog]
-# Header format
 header = """
 # Changelog\n
 """
-# Footer format
 footer = ""
-# Sort commits
 sort = "newest"
+# Body template for commit messages
+body = """
+{% for section in sections %}
+### {{ section.group }}
+{% for commit in section.commits %}
+- {{ commit.message | upper_first }}{% endfor %}
+{% endfor %}
+"""
 
-# Changelog sections
+# Dit is de juiste manier om secties te verdelen in git-cliff
 [[changelog.sections]]
 group = "💥 Breaking Changes"
-filter = "^.*!:.*"
+filter = "^.*!:"
 
 [[changelog.sections]]
 group = "🚀 Features"
@@ -47,11 +52,7 @@ group = "🔨 Other"
 filter = "^chore|^style"
 
 [git]
-# Parse commits
 conventional_commits = true
-# Filter out commits
 filter_unconventional = true
-# Tag prefix
 tag_prefix = "v"
-# Regex to ignore tags
 ignore_tags = ""
