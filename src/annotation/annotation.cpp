@@ -148,8 +148,12 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text) {
     if (!lines_val.empty()) {
       auto dash = lines_val.find('-');
       if (dash != std::string::npos) {
-        action.from_line = std::stoi(lines_val.substr(0, dash));
-        action.to_line = std::stoi(lines_val.substr(dash + 1));
+        try {
+          action.from_line = std::stoi(lines_val.substr(0, dash));
+          action.to_line = std::stoi(lines_val.substr(dash + 1));
+        } catch (...) {
+          // malformed line range from LLM, leave as 0
+        }
       }
     }
     action.search = attr(tag, "search");
@@ -169,6 +173,7 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text) {
  * @param text Input string possibly containing annotation tags.
  * @return Cleaned string with annotations replaced by summaries.
  */
+// todo: reduce complexity of strip_annotations
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 std::string strip_annotations(const std::string& text) {

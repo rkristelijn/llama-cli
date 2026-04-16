@@ -25,6 +25,7 @@ static bool env_get(const char* name, std::string& out) {
 /** Load KEY=VALUE pairs from a .env file into a Config struct.
  * Skips blank lines, comments (#), and lines without '='.
  * Overrides values already in the config (project-local wins over env). */
+// todo: reduce complexity of load_dotenv
 // NOLINTNEXTLINE(readability-function-size)
 void load_dotenv(const std::string& path, Config& c) {
   std::ifstream f(path);
@@ -115,6 +116,7 @@ static void validate_config(const Config& c) {
 }
 
 /** Load config from environment variables, overriding defaults */
+// todo: reduce complexity of load_env
 // NOLINTNEXTLINE(readability-function-size)
 Config load_env(const Config& defaults) {
   Config c = defaults;
@@ -313,9 +315,6 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
 
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
     parse_files_flag(arg, i, argc, argv, c);
-    if (!c.files.empty()) {
-      // Don't continue here — still allow positional prompt after --files
-    }
 
     // Positional arg = prompt (first non-option argument)
     // Triggers sync mode per ADR-005

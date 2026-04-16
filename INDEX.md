@@ -31,7 +31,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-026-version-pinning.md`](docs/adr/adr-026-version-pinning.md) — ADR-026: Tool Version Pinning
 - [`docs/adr/adr-027-event-logging.md`](docs/adr/adr-027-event-logging.md) — ADR-027: Event Logging & Replay
 - [`docs/adr/adr-028-execution-limits.md`](docs/adr/adr-028-execution-limits.md) — ADR-028: Execution Limits
-- [`docs/adr/adr-029-repl-e2e.md`](docs/adr/adr-029-repl-e2e.md) — REPL end to end testing
+- [`docs/adr/adr-029-repl-e2e.md`](docs/adr/adr-029-repl-e2e.md) — REPL end-to-end testing
 - [`docs/adr/adr-030-stdin-sync.md`](docs/adr/adr-030-stdin-sync.md) — ADR-030: Stdin and File Input for Sync Mode
 - [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements

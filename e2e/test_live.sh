@@ -20,7 +20,7 @@ fi
 echo "=== LIVE integration test (real LLM) ==="
 
 TMP="/tmp/llama-live-test-$$"
-trap 'rm -f "$TMP" "${TMP}.bak"' EXIT
+trap 'rm -f "$TMP" "${TMP}.bak" "${TMP}.skip"' EXIT
 
 # Helper: send prompts, auto-confirm with y, capture output
 # $1 = newline-separated prompts

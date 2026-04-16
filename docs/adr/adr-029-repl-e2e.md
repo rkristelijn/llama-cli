@@ -1,4 +1,4 @@
-# REPL end to end testing
+# REPL end-to-end testing
 
 ## CLI-Based REPL Testing
 

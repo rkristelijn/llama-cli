@@ -240,10 +240,12 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  * before prompting. Accepts y/yes to confirm, n/no to decline, s/show to
  * re-display content.
  */
+// todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
   std::string existing = read_file(action.path);
-  bool file_exists = !existing.empty();
+  std::ifstream check(action.path);
+  bool file_exists = check.good();
 
   // Always show diff / content before prompting
   if (file_exists) {
@@ -310,11 +312,12 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
  * @brief Apply a <str_replace> action: show diff, prompt, then do targeted replacement.
  */
 static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color) {
-  std::string existing = read_file(action.path);
-  if (existing.empty()) {
+  std::ifstream check(action.path);
+  if (!check.good()) {
     tui::error(out, color, "str_replace: file not found: " + action.path);
     return;
   }
+  std::string existing = read_file(action.path);
   if (existing.find(action.old_str) == std::string::npos) {
     tui::error(out, color, "str_replace: old string not found in " + action.path);
     return;
@@ -351,14 +354,16 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
  * Reads the requested lines or searches for a term, returning the content
  * so it can be injected into the conversation history.
  */
+// todo: reduce complexity of process_read
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 static std::string process_read(const ReadAction& action, std::ostream& out, bool color) {
-  std::string content = read_file(action.path);
-  if (content.empty()) {
+  std::ifstream check(action.path);
+  if (!check.good()) {
     tui::error(out, color, "read: file not found: " + action.path);
     return "";
   }
+  std::string content = read_file(action.path);
 
   // Split into lines (1-based)
   std::vector<std::string> lines;
@@ -492,6 +497,7 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  * @param s REPL state used for I/O, configuration, and conversation history.
  * @return true if any exec command produced output that was appended to the conversation history; false otherwise.
  */
+// todo: reduce complexity of handle_response
 // pmccabe:skip-complexity
 static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);

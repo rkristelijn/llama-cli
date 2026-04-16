@@ -4,7 +4,7 @@
 
 The REPL loop consists of three layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  run_repl() — outer loop                                    │
 │  - Reads input (linenoise or getline)                       │
@@ -38,7 +38,7 @@ The REPL loop consists of three layers:
 
 When the LLM proposes an `<exec>` command and the user confirms it:
 
-```
+```text
 User: "run the tests"
 LLM: "I'll run the tests: <exec>make test</exec>"
 User: y
@@ -52,7 +52,7 @@ User: y
 → LLM called again
 LLM: "Let me verify: <exec>make test</exec>"
 ...
-```
+```text
 
 ## Problem: Unbounded Follow-Up
 
@@ -93,7 +93,7 @@ Enable with `--trace` for debug output:
 [TRACE] send_prompt: iteration=3
 ...
 [TRACE] max_iterations reached (50), stopping
-```
+```text
 
 ## Debugging with Event Logs
 
@@ -106,7 +106,7 @@ make log exec --context 5   # show exec events with 5 lines context
 ```
 
 Output format:
-```
+```text
 [18:25:03] planner   exec         |  120ms | 150 45
   input:  make test
   output: [doctest] Status: SUCCESS!

@@ -73,6 +73,7 @@ static std::string escape_json_string(const std::string& s) {
  * Checks for API errors (e.g. model not found) and shows them to the user.
  * When trace is enabled, logs the HTTP request and response details to stderr.
  * All calls are logged to ~/.llama-cli/events.jsonl regardless of trace. */
+// todo: reduce complexity of ollama_generate
 // NOLINTNEXTLINE(readability-function-size)
 std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto start = std::chrono::high_resolution_clock::now();
@@ -139,6 +140,7 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
  * so we first extract that object, then extract "content" from it.
  * Checks for API errors and shows them to the user.
  * When trace is enabled, logs request/response details to stderr. */
+// todo: reduce complexity of ollama_chat
 // NOLINTNEXTLINE(readability-function-size)
 std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages) {
   auto start = std::chrono::high_resolution_clock::now();

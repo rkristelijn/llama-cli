@@ -2,7 +2,13 @@
 # Download CodeRabbit review comments from a PR and persist in .cache/pr/
 
 REPO="${1:-$(git remote get-url origin 2>/dev/null | sed 's/.*github.com[/:]//' | sed 's/\.git$//')}"
-PR="${2:-61}"
+BRANCH="$(git branch --show-current 2>/dev/null)"
+PR="${2:-$(gh pr view "$BRANCH" --json number --jq .number 2>/dev/null || echo "")}"
+
+if [ -z "$PR" ]; then
+  echo "Error: could not detect PR number. Pass it as argument: $0 [REPO] PR_NUMBER" >&2
+  exit 1
+fi
 OUTPUT_DIR=".cache/pr"
 
 mkdir -p "$OUTPUT_DIR"
