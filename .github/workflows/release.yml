@@ -8,9 +8,71 @@ on:
       - 'VERSION'
 
 jobs:
-  release:
+  # Read version once and pass to all build jobs
+  version:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read version
+        id: version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  # Build for multiple platforms
+  build:
+    needs: version
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: llama-cli-linux-x64
+          - os: ubuntu-latest
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            binary: llama-cli-linux-arm64
+            cmake_flags: "-DCMAKE_TOOLCHAIN_FILE=.config/cmake/aarch64-linux-gnu.cmake"
+          - os: macos-13
+            runner: macos-13
+            target: x86_64-apple-darwin
+            binary: llama-cli-macos-x64
+          - os: macos-14
+            runner: macos-14
+            target: aarch64-apple-darwin
+            binary: llama-cli-macos-arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Build ${{ matrix.target }}
+        run: |
+          make clean
+          cmake -B build -S . ${{ matrix.cmake_flags }}
+          cmake --build build --target llama-cli
+          cp build/llama-cli ${{ matrix.binary }}
+          ls -la ${{ matrix.binary }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary }}
+          path: ${{ matrix.binary }}
+          retention-days: 1
+
+  # Create tag and release after all builds complete
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -21,6 +83,12 @@ jobs:
       - name: Read version
         id: version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
 
       - name: Install git-cliff
         run: |
@@ -33,15 +101,9 @@ jobs:
           rm -rf temp-cliff "git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz"
           git-cliff --version
 
-      - name: Build Linux
-        run: |
-          make clean
-          make
-          ls -la
-
       - name: Create tag
         run: |
-          TAG="v${{ steps.version.outputs.VERSION }}"
+          TAG="v${{ needs.version.outputs.version }}"
           git fetch --tags
           if git rev-parse -q --verify "refs/tags/$TAG"; then
             echo "Tag $TAG already exists, skipping"
@@ -57,9 +119,9 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: llama-cli
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: Release v${{ steps.version.outputs.VERSION }}
+          files: release/*
+          tag_name: v${{ needs.version.outputs.version }}
+          name: Release v${{ needs.version.outputs.version }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
