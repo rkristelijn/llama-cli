@@ -100,7 +100,7 @@ if (!context.empty()) {
 
 ### CLI help update
 
-```
+```text
   --files FILE [FILE...]  Read files as context (triggers sync mode)
 ```
 

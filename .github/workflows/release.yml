@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Auto-tag and release when VERSION changes on main
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check VERSION changed
+        id: version
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '^VERSION$'; then
+            VERSION=$(cat VERSION)
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo "RELEASE=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag and release
+        if: steps.version.outputs.RELEASE == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Build Linux
+        run: |
+          make clean
+          make
+
+      - name: Create GitHub release
+        if: steps.version.outputs.RELEASE == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: llama-cli
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

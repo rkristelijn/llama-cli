@@ -8,15 +8,33 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 - **Fast**: no API latency, no rate limits, no subscriptions
 - **Integrated**: read files, execute commands, and get AI-powered answers in one place
 
-## Quick start
+## Install
+
+### Pre-built binary (recommended)
+
+Download the latest release from [GitHub Releases](https://github.com/ollama/llama-cli/releases):
+
+```bash
+# Linux/macOS
+curl -L https://github.com/ollama/llama-cli/releases/latest/download/llama-cli -o llama-cli
+chmod +x llama-cli
+./llama-cli
+```
+
+Or move it to your PATH:
+
+```bash
+sudo mv llama-cli /usr/local/bin/
+```
+
+### From source
 
 ```bash
 brew install ollama
 brew services start ollama
 ollama pull gemma4:e4b
 make setup
-sudo make install   # installs llama-cli to /usr/local/bin
-llama-cli           # start chatting
+sudo make install
 ```
 
 ## Usage
@@ -40,6 +58,18 @@ The LLM can also propose commands and file writes:
 Write to src/main.cpp? [y/n/s]
 ```
 
+The LLM can read files and make targeted edits:
+```
+> what does repl.cpp do?
+[read src/repl/repl.cpp]          # LLM reads the requested file
+
+> fix the typo on line 42
+[proposed: str_replace src/repl/repl.cpp]
+- old text
++ new text
+Apply str_replace to src/repl/repl.cpp? [y/n]
+```
+
 ## Configuration
 
 | Setting | CLI arg | Env var | Default |
@@ -60,13 +90,17 @@ Write to src/main.cpp? [y/n/s]
 - [x] Configurable host, port, model, timeout
 - [x] Interactive chat with conversation memory
 - [x] Write files from response (`<write>`)
+- [x] Targeted edits (`<str_replace>`)
+- [x] Smart file reading (`<read>` with line ranges and search)
 - [x] Run commands (`!`, `!!`, `<exec>`)
 - [x] TUI: ANSI colors, markdown rendering, spinner
 - [x] Arrow key history (linenoise)
 - [x] Runtime options (`/set markdown`, `/set color`, `/set bofh`)
 - [x] Ctrl+C interrupt during LLM calls
+- [x] Stdin pipe support (`--files`)
+- [x] Auto-diff preview before file writes
 - [ ] Streaming responses
-- [ ] Stdin pipe support
+- [ ] Inline code rendering in markdown
 
 ## Contributing
 

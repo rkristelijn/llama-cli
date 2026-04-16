@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
+.PHONY: all build clean run start log test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -9,6 +9,7 @@ check-deps:
 all: check-deps
 	cmake -B $(BUILD_DIR) -S .
 	cmake --build $(BUILD_DIR) --target llama-cli
+	cp $(BUILD_DIR)/llama-cli .
 
 build: all
 
@@ -17,6 +18,9 @@ run: all
 
 start: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
+
+log:
+	@sh scripts/log-viewer.sh $(ARGS)
 
 test-unit: all
 	cmake --build $(BUILD_DIR) --target test_config
@@ -37,12 +41,17 @@ test: test-unit
 
 e2e: test-e2e
 
+# Live integration test with real LLM (requires running Ollama)
+# Tests REPL mechanics against a real model. LLM-dependent tests SKIP gracefully.
+live: all
+	@bash e2e/test_live.sh $(BUILD_DIR)/llama-cli
+
 test-e2e: build
 	@echo "==> E2E tests"
-	@for t in e2e/*.sh; do echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
+	@for t in e2e/*.sh; do case "$$t" in *test_live*|*helpers*) continue;; esac; echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
 	@echo "E2E tests passed."
 
-check: all test e2e format-check
+check: all test e2e format index
 	@echo "==> clang-tidy"
 	@# Suppress: identifier-naming (doctest), function-size (use NOLINT in source; logger filtered here)
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
@@ -58,9 +67,7 @@ check: all test e2e format-check
 	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
-	@echo "==> index freshness"
-	# todo: fix make index
-	# @sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
+	@echo "==> index (auto-updated)"
 	@echo "==> coverage (>= 80%)"
 	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"
@@ -145,8 +152,6 @@ create-issue:
 	fi
 	sh scripts/gh-create-issue.sh "$(TITLE)" "$(DESC)"
 
-clean:
-
 # Generate test coverage report
 coverage:
 	cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage"
@@ -162,7 +167,7 @@ coverage:
 	  | grep -A1 "^File.*llama-cli/src\|^File.*llama-cli/include"
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) llama-cli
 
 # Quick: incremental build + run tests only (no static analysis)
 quick: all

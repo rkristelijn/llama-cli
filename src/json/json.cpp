@@ -68,7 +68,58 @@ std::string json_extract_string(const std::string& json, const std::string& key)
   return result;
 }
 
+/** Extract a JSON object by key: "key":{...}
+ * Needed for Ollama's chat response where the assistant reply is nested:
+ *   {"message":{"role":"assistant","content":"hello"}}
+ * Returns the full object including braces, e.g. {"role":"assistant",...}
+ * Tracks brace nesting depth to find the matching closing brace. */
+// todo: reduce complexity of json_extract_object
+// NOLINTNEXTLINE(readability-function-size)
+// pmccabe:skip-complexity
+std::string json_extract_object(const std::string& json, const std::string& key) {
+  // Look for "key":{ pattern
+  std::string needle = "\"" + key + "\":{";
+  auto pos = json.find(needle);
+  if (pos == std::string::npos) {
+    return "";
+  }
+  pos += needle.size() - 1;  // point at opening {
+  // Walk forward, tracking { and } depth until we find the matching close
+  int depth = 0;
+  bool in_string = false;
+  bool escaped = false;
+  for (size_t i = pos; i < json.size(); i++) {
+    char c = json[i];
+    if (in_string) {
+      if (escaped) {
+        escaped = false;
+      } else if (c == '\\') {
+        escaped = true;
+      } else if (c == '"') {
+        in_string = false;
+      }
+      continue;
+    }
+    if (c == '"') {
+      in_string = true;
+    } else if (c == '{') {
+      depth++;
+    } else if (c == '}') {
+      depth--;
+      if (depth == 0) {
+        return json.substr(pos, i - pos + 1);
+      }
+    }
+  }
+  return "";
+}
+
+/** Extract a JSON integer value by key: "key":123
+ * Skips whitespace after the colon, then reads consecutive digits.
+ * Returns 0 if the key is not found (sufficient for token counts). */
+
 int json_extract_int(const std::string& json, const std::string& key) {
+  // Find "key": pattern, then parse the digits that follow
   std::string needle = "\"" + key + "\":";
   auto pos = json.find(needle);
   if (pos == std::string::npos) {

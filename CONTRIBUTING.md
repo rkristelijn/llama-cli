@@ -33,6 +33,10 @@ Quick reference:
 | `// NOLINT(check)` | same line | Only for short lines that won't exceed column limit |
 | `// NOLINTBEGIN(check)` / `// NOLINTEND` | block | Larger sections (use sparingly) |
 
+### doctest macros and clang-format
+
+`SCENARIO`, `GIVEN`, `WHEN`, `THEN`, `TEST_CASE` are uppercase macros — clang-format must not lowercase them. They are listed in `StatementMacros` in `.config/.clang-format`. If you add a new doctest macro, add it there too. Never run `clang-tidy --fix` on test files — it does not understand doctest macros and will corrupt them.
+
 ## Workflow
 
 - Always work on a feature branch, never commit directly to `main`
@@ -46,10 +50,46 @@ Run the full check suite locally before pushing:
 ```bash
 make quick   # incremental build + tests + comment ratio (fast, for dev)
 make test    # full build + all 6 test suites + comment ratio
-make check   # everything: clang-tidy, pmccabe, cppcheck, doxygen, index freshness, coverage, semgrep, gitleaks
+make check   # everything below — same as CI
+make live    # integration test with real LLM (requires running Ollama)
 ```
 
+### What `make check` verifies
+
+| Check | Threshold | Fix |
+|-------|-----------|-----|
+| Unit tests | all pass | fix the failing test |
+| E2E tests | all pass | `e2e/*.sh` — needs Ollama running |
+| Live tests | PASS or SKIP | `make live` — SKIP is OK for LLM-dependent tests |
+| clang-format | zero violations | `make format` to auto-fix |
+| clang-tidy | zero warnings (excl. filtered) | fix the warning or add `NOLINTNEXTLINE` |
+| pmccabe | complexity ≤ 10 per function | split the function, or add `pmccabe:skip-complexity` |
+| cppcheck | zero errors | fix the issue |
+| doxygen | zero warnings | add missing `@param` / `@brief` |
+| coverage | ≥ 80% per file | add tests |
+| comment ratio | ≥ 20% of lines | add comments explaining *why* |
+| semgrep | zero findings | fix the security/quality issue |
+| gitleaks | zero secrets | remove the secret, rotate it |
+
 CI runs the same checks automatically on every pull request.
+
+### Configuration
+
+Settings are loaded in this order (last wins):
+
+```
+struct defaults → environment variables → .env file → CLI arguments
+```
+
+Put project-local settings in `.env` (git-ignored):
+
+```bash
+OLLAMA_HOST=localhost:11434
+OLLAMA_MODEL=gemma4:26b
+TRACE=true
+```
+
+See `src/config/config.h` for all available settings.
 
 ## Versioning
 

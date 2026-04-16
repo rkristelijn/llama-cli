@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 if(POLICY CMP0169)
   cmake_policy(SET CMP0169 OLD)
 endif()
@@ -42,8 +42,14 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/yhirose/cpp-linenoise.git
     GIT_TAG master
 )
+FetchContent_Declare(
+    dtl
+    GIT_REPOSITORY https://github.com/cubicdaiya/dtl.git
+    GIT_TAG v1.20
+)
 FetchContent_MakeAvailable(httplib doctest)
 FetchContent_Populate(cpp_linenoise)
+FetchContent_Populate(dtl)
 
 # Shared source files (excluding main and tests)
 set(LIB_SOURCES
@@ -57,7 +63,14 @@ set(LIB_SOURCES
   src/trace/trace.cpp
   src/logging/logger.cpp
 )
-set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} src/trace src/logging)
+set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
+
+# Inject build timezone at compile time (portable CMake-only)
+string(TIMESTAMP BUILD_TZ "%z")
+if(BUILD_TZ STREQUAL "")
+  set(BUILD_TZ "+0000")
+endif()
+add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})

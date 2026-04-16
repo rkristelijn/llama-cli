@@ -16,7 +16,7 @@ Log all agent actions as structured JSON events.
 
 ```json
 {
-  "timestamp": "2026-04-12T18:00:00Z",
+  "timestamp": "2026-04-12T18:00:00.123Z",
   "agent": "planner",
   "action": "exec",
   "input": "make test",

@@ -10,8 +10,11 @@ The LLM is instructed via the system prompt to use XML-style annotations when it
 | Annotation | Purpose | Example |
 |------------|---------|---------|
 | `<write file="path">content</write>` | Write or create a file | `<write file="src/main.cpp">...</write>` |
-| `<run>command</run>` | Execute a shell command | `<run>make test</run>` |
-| `<read file="path"/>` | Request to read a file | `<read file="config.h"/>` |
+| `<str_replace path="path"><old>...</old><new>...</new></str_replace>` | Targeted edit in existing file | See below |
+| `<read path="path" lines="1-20"/>` | Read specific lines from a file | `<read path="config.h" lines="1-50"/>` |
+| `<read path="path" search="term"/>` | Search for a term in a file | `<read path="repl.cpp" search="confirm"/>` |
+| `<read path="path"/>` | Read entire file | `<read path="config.h"/>` |
+| `<exec>command</exec>` | Execute a shell command | `<exec>make test</exec>` |
 
 ### Flow
 
@@ -34,19 +37,21 @@ sequenceDiagram
 
 ### User confirmation
 
-| Input | Action |
-|-------|--------|
-| `y` | Execute the action |
-| `n` | Skip the action |
-| `s` / `show` | Show the full content before deciding |
+| Action | Prompt | Options |
+|--------|--------|---------|
+| `<write>` (existing file) | Auto-diff shown, then `Write to path? [y/n/s]` | y/n/s |
+| `<write>` (new file) | Content shown, then `Write to path? [y/n/s]` | y/n/s |
+| `<str_replace>` | Diff of old→new shown, then `Apply str_replace to path? [y/n]` | y/n |
+| `<exec>` | `Run: command? [y/n]` | y/n |
+| `<read>` | No confirmation — content injected automatically | — |
 
 ### System prompt addition
 The system prompt is extended to instruct the LLM about available annotations:
 
 ```
 When you want to write a file, wrap the content in <write file="path">content</write>.
-When you want to run a command, wrap it in <run>command</run>.
-When you need to read a file, use <read file="path"/>.
+When you want to run a command, wrap it in <exec>command</exec>.
+When you need to read a file, use <read path="path"/>.
 The user will be asked to confirm before any action is executed.
 Do not use annotations unless the user asks you to create, modify, or run something.
 ```

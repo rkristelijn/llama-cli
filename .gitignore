@@ -1,4 +1,5 @@
 build/
+build-cov/
 .cache/
 compile_commands.json
 *.o
@@ -6,3 +7,5 @@ compile_commands.json
 *.gcda
 *.gcno
 *.log
+.env
+/llama-cli

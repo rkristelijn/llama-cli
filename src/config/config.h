@@ -25,8 +25,14 @@
  */
 enum class Mode { Interactive, Sync };
 
-/// Application configuration
+/// Application configuration (singleton — use Config::instance() for global access)
 struct Config {
+  /// Get the global config instance
+  static Config& instance() {
+    static Config cfg;
+    return cfg;
+  }
+
   std::string provider = "ollama";   ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";    ///< Ollama server hostname
   std::string port = "11434";        ///< Ollama server port
@@ -36,28 +42,35 @@ struct Config {
   int max_output = 10000;            ///< Max chars of command output for LLM context
   bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
   bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
+  bool trace = false;                ///< Trace mode: show HTTP calls and debug info
+  bool force_repl = false;           ///< Force REPL mode even when stdin is not a TTY (--repl)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
   std::string system_prompt =        ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
-      "Keep responses concise and relevant. "
+      "Keep responses concise and relevant. Always respond in the same "
+      "language as the user's message. "
       "You can run shell commands with <exec>command</exec> — use this "
       "proactively "
       "to explore files, find information, and verify your work. "
-      "When asked about files, use <exec>find . -name 'pattern'</exec> or "
-      "<exec>cat path</exec> to look. "
-      "When asked to create or modify a file, FIRST read it with <exec>cat "
-      "path</exec>, "
-      "then use <write file=\"path\">full content</write> with the changes "
-      "applied. "
-      "NEVER write a file without reading it first if it might already exist. "
-      "The user will confirm before execution. Output is fed back to you. "
+      "To read a file, use <read path=\"file\" lines=\"10-20\"/> for a line "
+      "range, "
+      "<read path=\"file\" search=\"term\"/> to search, or <read "
+      "path=\"file\"/> for the full file. "
+      "To modify an existing file, prefer <str_replace "
+      "path=\"file\"><old>exact old text</old><new>replacement</new>"
+      "</str_replace> — this is safer than rewriting the whole file. "
+      "Use <write file=\"path\">full content</write> only for new files. "
+      "The user will confirm before any write. Output is fed back to you. "
       "When you receive command output, ANALYZE it — do not repeat it "
       "verbatim. "
       "Do NOT ask for confirmation or file paths — the client handles that. "
       "Just include the tags directly in your response.";
 };
+
+// Load .env file into config (project-local, overrides env vars)
+void load_dotenv(const std::string& path, Config& c);
 
 // Load config from environment variables, overriding defaults
 Config load_env(const Config& defaults = Config{});

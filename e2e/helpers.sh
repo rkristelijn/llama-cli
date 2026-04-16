@@ -27,12 +27,12 @@ assert_nonempty() {
     fi
 }
 
-# Assert output contains expected substring
+# Assert output contains expected substring (fixed string, case-insensitive)
 assert_contains() {
     local output="$1"
     local expected="$2"
     local label="$3"
-    if ! echo "$output" | grep -qi "$expected"; then
+    if ! printf '%s' "$output" | grep -F -i -- "$expected" > /dev/null 2>&1; then
         die "expected '$expected' (case-insensitive) in output for: $label"
     fi
 }

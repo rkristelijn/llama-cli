@@ -11,6 +11,7 @@
 
 #include <csignal>
 #include <fstream>
+#include <set>
 #include <sstream>
 
 #include "annotation/annotation.h"
@@ -25,6 +26,14 @@
 #else
 #include "linenoise.hpp"
 #endif
+
+#include "dtl/dtl.hpp"
+
+/// @cond
+#ifndef BUILD_TIMEZONE
+#define BUILD_TIMEZONE "UTC"
+#endif
+/// @endcond
 
 /// Global flag set by SIGINT handler to interrupt LLM calls
 static volatile sig_atomic_t g_interrupted = 0;
@@ -44,7 +53,6 @@ struct ReplState {
   bool interactive = false;       ///< Whether running on a real TTY (for spinner)
   bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
-  bool trace = false;             ///< Whether trace output is enabled
 };
 
 /** Get version string from VERSION file + git dirty status.
@@ -60,6 +68,7 @@ static std::string get_version() {
   if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
     ver += "-dirty";
   }
+  ver += " (built " __DATE__ " " __TIME__ " " BUILD_TIMEZONE ")";
   return ver;
 }
 
@@ -70,7 +79,7 @@ static void show_options(ReplState& s) {
   s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
   s.out << "  color     " << (s.color ? "on" : "off") << "\n";
   s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
-  s.out << "  trace     " << (s.trace ? "on" : "off") << "\n";
+  s.out << "  trace     " << (Config::instance().trace ? "on" : "off") << "\n";
 }
 
 /** Toggle a named option, return true if recognized.
@@ -85,8 +94,12 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"markdown", &ReplState::markdown},
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
-      {"trace", &ReplState::trace},
   };
+  if (name == "trace") {
+    Config::instance().trace = !Config::instance().trace;
+    s.out << "[trace " << (Config::instance().trace ? "on" : "off") << "]\n";
+    return true;
+  }
   for (const auto& opt : opts) {
     if (name == opt.name) {
       s.*(opt.field) = !(s.*(opt.field));
@@ -181,39 +194,41 @@ static void emit_diff_line(std::ostream& out, const char* ansi, const char* pref
 }
 
 /**
- * @brief Print a simple line-by-line diff between two text blobs.
+ * @brief Print a git-style LCS diff between two text blobs using dtl.
  *
- * Compares lines from `old_text` and `new_text` sequentially and emits each
- * line prefixed to indicate its status: unchanged lines are prefixed with
- * two spaces ("  "), deletions with "- ", and additions with "+ ".
- *
- * When `color` is true, deletion prefixes and added prefixes are wrapped in
- * ANSI red and green escape sequences respectively.
- *
- * @param old_text Original text to compare (treated as lines separated by '\n').
- * @param new_text New text to compare (treated as lines separated by '\n').
- * @param out Output stream to which diff lines are written.
- * @param color If true, use ANSI color codes for added/removed line prefixes.
+ * Uses Myers diff (via dtl) for accurate change detection — inserted/deleted
+ * blocks are shown with +/- prefixes; unchanged lines with two spaces.
+ * ANSI colors applied when color is true.
  */
 static void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
-  std::istringstream old_s(old_text);
-  std::istringstream new_s(new_text);
-  std::string old_line;
-  std::string new_line;
-  bool has_old = true;
-  bool has_new = true;
-  while (has_old || has_new) {
-    has_old = static_cast<bool>(std::getline(old_s, old_line));
-    has_new = static_cast<bool>(std::getline(new_s, new_line));
-    if (has_old && has_new && old_line == new_line) {
-      out << "  " << old_line << "\n";
-    } else {
-      if (has_old) {
-        emit_diff_line(out, "\033[1;31m", "- ", old_line, color);
-      }
-      if (has_new) {
-        emit_diff_line(out, "\033[1;32m", "+ ", new_line, color);
-      }
+  // Split into lines
+  auto split = [](const std::string& s) {
+    std::vector<std::string> lines;
+    std::istringstream ss(s);
+    std::string line;
+    while (std::getline(ss, line)) {
+      lines.push_back(line);
+    }
+    return lines;
+  };
+  auto old_lines = split(old_text);
+  auto new_lines = split(new_text);
+
+  dtl::Diff<std::string> diff(old_lines, new_lines);
+  diff.compose();
+
+  for (const auto& elem : diff.getSes().getSequence()) {
+    const auto& line = elem.first;
+    switch (elem.second.type) {
+      case dtl::SES_DELETE:
+        emit_diff_line(out, "\033[1;31m", "- ", line, color);
+        break;
+      case dtl::SES_ADD:
+        emit_diff_line(out, "\033[1;32m", "+ ", line, color);
+        break;
+      default:
+        out << "  " << line << "\n";
+        break;
     }
   }
 }
@@ -221,30 +236,25 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
 /**
  * @brief Prompt the user to confirm writing a proposed file change.
  *
- * Prompts "Write to <path>? [options]" where options are "[y/n/s/d]" for existing
- * files and "[y/n/s]" for new files. Accepts the following responses on stdin:
- * - `y` or `yes`: confirm and return true.
- * - `n` or `no`: decline and return false.
- * - `s` or `show`: print the proposed file content and re-prompt.
- * - `d` or `diff`: when the target file exists, print a line-by-line diff
- *   between existing and proposed content (uses ANSI colors if `color` is true),
- *   then re-prompt.
- *
- * If input reaches EOF or no confirmation is given, the function returns false.
- *
- * @param action WriteAction containing `path` and `content` for the proposed write.
- * @param in Input stream to read user responses from.
- * @param out Output stream to write prompts, content, and diffs to.
- * @param color When true, diffs are printed with ANSI color codes.
- * @return true if the user confirmed the write with `y` or `yes`, `false` otherwise.
+ * Always shows a diff (for existing files) or the full content (for new files)
+ * before prompting. Accepts y/yes to confirm, n/no to decline, s/show to
+ * re-display content.
  */
+// todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
-// todo: reduce complexity of confirm_write (see TODO.md)
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
   std::string existing = read_file(action.path);
-  bool file_exists = !existing.empty();
-  std::string opts = file_exists ? "[y/n/s/d]" : "[y/n/s]";
+  std::ifstream check(action.path);
+  bool file_exists = check.good();
 
+  // Always show diff / content before prompting
+  if (file_exists) {
+    show_diff(existing, action.content, out, color);
+  } else {
+    out << action.content << "\n";
+  }
+
+  std::string opts = "[y/n/s]";
   out << "Write to " << action.path << "? " << opts << " " << std::flush;
   std::string answer;
   while (std::getline(in, answer)) {
@@ -256,8 +266,6 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
-    } else if ((answer == "d" || answer == "diff") && file_exists) {
-      show_diff(existing, action.content, out, color);
     }
     out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
@@ -279,7 +287,6 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
  * @param color If true, enable ANSI-colored output where supported.
  */
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
-  tui::write_proposal(out, color, action.path);
   if (confirm_write(action, in, out, color)) {
     // Backup existing file before overwriting
     std::string existing = read_file(action.path);
@@ -299,6 +306,106 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
   } else {
     out << "[skipped]\n";
   }
+}
+
+/**
+ * @brief Apply a <str_replace> action: show diff, prompt, then do targeted replacement.
+ */
+static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color) {
+  std::ifstream check(action.path);
+  if (!check.good()) {
+    tui::error(out, color, "str_replace: file not found: " + action.path);
+    return;
+  }
+  std::string existing = read_file(action.path);
+  if (existing.find(action.old_str) == std::string::npos) {
+    tui::error(out, color, "str_replace: old string not found in " + action.path);
+    return;
+  }
+
+  // Compute updated file for preview
+  std::string updated = existing;
+  auto replace_pos = updated.find(action.old_str);
+  updated.replace(replace_pos, action.old_str.size(), action.new_str);
+  show_diff(existing, updated, out, color);
+
+  out << "Apply str_replace to " << action.path << "? [y/n] " << std::flush;
+  std::string answer;
+  if (!std::getline(in, answer) || (answer != "y" && answer != "yes")) {
+    out << "[skipped]\n";
+    return;
+  }
+
+  // Backup and write
+  {
+    std::ofstream bak(action.path + ".bak");
+    bak << existing;
+  }
+  std::ofstream f(action.path);
+  if (f.is_open()) {
+    f << updated;
+    out << "[wrote " << action.path << "]\n";
+  } else {
+    tui::error(out, color, "Error: could not write to " + action.path);
+  }
+}
+
+/**
+ * @brief Execute a <read> action and return the result as a context string for the LLM.
+ *
+ * Reads the requested lines or searches for a term, returning the content
+ * so it can be injected into the conversation history.
+ */
+// todo: reduce complexity of process_read
+// pmccabe:skip-complexity
+// NOLINTNEXTLINE(readability-function-size)
+static std::string process_read(const ReadAction& action, std::ostream& out, bool color) {
+  std::ifstream check(action.path);
+  if (!check.good()) {
+    tui::error(out, color, "read: file not found: " + action.path);
+    return "";
+  }
+  std::string content = read_file(action.path);
+
+  // Split into lines (1-based)
+  std::vector<std::string> lines;
+  std::istringstream ss(content);
+  std::string line;
+  while (std::getline(ss, line)) {
+    lines.push_back(line);
+  }
+
+  std::ostringstream result;
+  result << "[file: " << action.path;
+
+  if (!action.search.empty()) {
+    // Search mode: return lines containing the term with context (±3 lines)
+    result << " search=\"" << action.search << "\"]\n";
+    for (size_t i = 0; i < lines.size(); ++i) {
+      if (lines[i].find(action.search) != std::string::npos) {
+        size_t from = (i >= 3) ? i - 3 : 0;
+        size_t to = std::min(i + 3, lines.size() - 1);
+        for (size_t j = from; j <= to; ++j) {
+          result << (j + 1) << ": " << lines[j] << "\n";
+        }
+        result << "---\n";
+      }
+    }
+  } else if (action.from_line > 0 && action.to_line > 0) {
+    // Line range mode
+    int from = std::max(1, action.from_line);
+    int to = std::min((int)lines.size(), action.to_line);
+    result << " lines=" << from << "-" << to << "]\n";
+    for (int i = from; i <= to; ++i) {
+      result << i << ": " << lines[i - 1] << "\n";
+    }
+  } else {
+    // Full file
+    result << "]\n" << content;
+  }
+
+  std::string r = result.str();
+  return r;
 }
 
 /**
@@ -392,11 +499,16 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  * @param s REPL state used for I/O, configuration, and conversation history.
  * @return true if any exec command produced output that was appended to the conversation history; false otherwise.
  */
+// todo: reduce complexity of handle_response
+// pmccabe:skip-complexity
+// NOLINTNEXTLINE(readability-function-size)
 static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);
+  auto str_replaces = parse_str_replace_annotations(response);
+  auto reads = parse_read_annotations(response);
   auto execs = parse_exec_annotations(response);
 
-  if (writes.empty() && execs.empty()) {
+  if (writes.empty() && str_replaces.empty() && reads.empty() && execs.empty()) {
     s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
     return false;
   }
@@ -407,15 +519,31 @@ static bool handle_response(const std::string& response, ReplState& s) {
   for (const auto& action : writes) {
     process_write(action, s.in, s.out, s.color);
   }
-  bool has_exec_output = false;
+  for (const auto& action : str_replaces) {
+    process_str_replace(action, s.in, s.out, s.color);
+  }
+  bool has_followup = false;
+  std::set<std::string> seen_reads;
+  for (const auto& action : reads) {
+    std::string key = action.path + "|" + std::to_string(action.from_line) + "-" + std::to_string(action.to_line) +
+                      "|" + action.search;
+    if (!seen_reads.insert(key).second) {
+      continue;  // skip exact duplicate read
+    }
+    std::string ctx = process_read(action, s.out, s.color);
+    if (!ctx.empty()) {
+      s.history.push_back({"user", ctx});
+      has_followup = true;
+    }
+  }
   for (const auto& cmd : execs) {
     std::string output = confirm_exec(cmd, s.cfg, s.in, s.out);
     if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
-      has_exec_output = true;
+      has_followup = true;
     }
   }
-  return has_exec_output;
+  return has_followup;
 }
 
 // Read one line of input using linenoise (interactive) or getline (tests).
@@ -437,6 +565,10 @@ static bool handle_response(const std::string& response, ReplState& s) {
 static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
   // Use std::getline for non-stdin streams (tests, pipes)
   if (&in != &std::cin) {
+    return static_cast<bool>(std::getline(in, line));
+  }
+  // Use std::getline when stdin is not a TTY (piped input, --repl mode)
+  if (!isatty(STDIN_FILENO)) {
     return static_cast<bool>(std::getline(in, line));
   }
   // Interactive mode: use linenoise with colored prompt
@@ -527,7 +659,7 @@ static std::string chat_with_spinner(ReplState& s) {
  */
 static void send_prompt(const std::string& line, ReplState& s) {
   // Trace output for debugging loop behavior (ADR-028)
-  if (s.trace) {
+  if (Config::instance().trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
 
@@ -597,7 +729,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     history.push_back({"system", cfg.system_prompt});
   }
   bool is_tty = tui::use_color(cfg.no_color);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh, false};
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {

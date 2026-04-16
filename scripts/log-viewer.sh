@@ -57,11 +57,11 @@ format_line() {
     tokens=""
 
     # Extract fields using grep/sed (portable, no jq dependency)
-    ts=$(echo "$line" | grep -o '"timestamp": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/' | cut -d'T' -f2 | cut -d'.' -f1)
-    agent=$(echo "$line" | grep -o '"agent": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/')
-    action=$(echo "$line" | grep -o '"action": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/')
-    duration=$(echo "$line" | grep -o '"duration_ms": *[0-9]*' | sed 's/.*: *//')
-    tokens=$(echo "$line" | grep -o '"tokens_[a-z]*": *[0-9]*' | sed 's/.*: *//' | tr '\n' ' ')
+    ts=$(echo "$line" | grep -o '"timestamp":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -d'T' -f2 | cut -d'.' -f1)
+    agent=$(echo "$line" | grep -o '"agent":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/')
+    action=$(echo "$line" | grep -o '"action":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/')
+    duration=$(echo "$line" | grep -o '"duration_ms":[0-9]*' | sed 's/.*://')
+    tokens=$(echo "$line" | grep -o '"tokens_[a-z]*":[0-9]*' | sed 's/.*://' | tr '\n' ' ')
 
     # Format: [HH:MM:SS] AGENT ACTION | DURATION | TOKENS
     printf "[%s] %-10s %-12s" "$ts" "$agent" "$action"
@@ -74,8 +74,8 @@ format_line() {
     echo ""
 
     # Show input/output truncated
-    input=$(echo "$line" | grep -o '"input": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/' | cut -c1-60)
-    output=$(echo "$line" | grep -o '"output": *"[^"]*"' | sed 's/.*: *"\([^"]*\)"/\1/' | cut -c1-60)
+    input=$(echo "$line" | grep -o '"input":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -c1-60)
+    output=$(echo "$line" | grep -o '"output":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -c1-60)
 
     if [ -n "$input" ]; then
         echo "  input:  $input"

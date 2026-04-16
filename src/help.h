@@ -58,9 +58,15 @@ constexpr const char* repl =
     "  !!command     Run command, output as LLM context\n"
     "  /clear        Clear conversation history\n"
     "  /set          Show options\n"
-    "  /set <opt>    Toggle option (markdown, color, bofh)\n"
+    "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
     "  /version      Show version info\n"
     "  /help         Show this help\n"
-    "  exit, quit    Exit the REPL\n";
+    "  exit, quit    Exit the REPL\n"
+    "\n"
+    "The LLM can use these tools (you confirm before apply):\n"
+    "  <write file=\"path\">       Write/create a file (auto-diff shown)\n"
+    "  <str_replace path=\"...\">  Targeted edit in existing file\n"
+    "  <read path=\"...\" .../>    Read file (lines, search, or full)\n"
+    "  <exec>command</exec>      Run a shell command\n";
 
 }  // namespace help
