@@ -20,15 +20,21 @@ jobs:
         id: version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
 
-      - name: Create tag
-        run: |
-          git tag "v${{ steps.version.outputs.VERSION }}"
-          git push origin "v${{ steps.version.outputs.VERSION }}"
-
       - name: Build Linux
         run: |
           make clean
           make
+
+      - name: Create tag
+        run: |
+          TAG="v${{ steps.version.outputs.VERSION }}"
+          git fetch --tags
+          if git rev-parse -q --verify "refs/tags/$TAG"; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

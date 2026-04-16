@@ -23,12 +23,12 @@ jobs:
               - 'CMakeLists.txt'
               - 'Makefile'
               - '.config/**'
-              - '.github/workflows/ci.yml'
             docs:
               - 'docs/**'
               - 'README.md'
               - 'INDEX.md'
               - 'CONTRIBUTING.md'
+              - '.github/**'
 
   version-bump:
     runs-on: ubuntu-latest
