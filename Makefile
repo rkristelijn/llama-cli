@@ -48,7 +48,7 @@ live: all
 
 test-e2e: build
 	@echo "==> E2E tests"
-	@for t in e2e/*.sh; do echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
+	@for t in e2e/*.sh; do case "$$t" in *test_live*|*helpers*) continue;; esac; echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
 	@echo "E2E tests passed."
 
 check: all test e2e format index

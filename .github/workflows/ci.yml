@@ -82,10 +82,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install clang-format
-        run: sudo apt-get install -y clang-format
+      - name: Install clang-format (pinned)
+        run: |
+          VER=$(jq -r '.["clang-format"]' .config/versions.json)
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update && sudo apt-get install -y clang-format-${VER}
       - name: Check formatting
-        run: make format-check
+        run: |
+          VER=$(jq -r '.["clang-format"]' .config/versions.json)
+          find src -name '*.cpp' -o -name '*.h' | xargs clang-format-${VER} --dry-run -Werror --style=file:.config/.clang-format
 
   clang-tidy:
     needs: changes
@@ -93,10 +99,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install clang-tidy
-        run: sudo apt-get install -y clang-tidy
+      - name: Install clang-tidy (pinned)
+        run: |
+          VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update && sudo apt-get install -y clang-tidy-${VER}
       - name: Run clang-tidy
-        run: find src -name '*.cpp' -print0 | xargs -0 clang-tidy --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
+        run: |
+          VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
+          find src -name '*.cpp' -print0 | xargs -0 clang-tidy-${VER} --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
 
   pmccabe:
     needs: changes
@@ -122,11 +134,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install doxygen
+      - name: Install doxygen (pinned)
         run: |
-          wget https://doxygen.nl/files/doxygen-1.16.1.linux.bin.tar.gz
-          tar -xzf doxygen-1.16.1.linux.bin.tar.gz
-          echo "$(pwd)/doxygen-1.16.1/bin" >> $GITHUB_PATH
+          VER=$(jq -r '.doxygen' .config/versions.json)
+          wget https://doxygen.nl/files/doxygen-${VER}.linux.bin.tar.gz
+          tar -xzf doxygen-${VER}.linux.bin.tar.gz
+          echo "$(pwd)/doxygen-${VER}/bin" >> $GITHUB_PATH
       - name: Doxygen lint
         run: doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 

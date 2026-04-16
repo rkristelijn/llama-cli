@@ -21,7 +21,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-016-tui-design.md`](docs/adr/adr-016-tui-design.md) — ADR-016: TUI Design
 - [`docs/adr/adr-017-integration-tests.md`](docs/adr/adr-017-integration-tests.md) — ADR-017: Integration Tests
 - [`docs/adr/adr-018-module-layout.md`](docs/adr/adr-018-module-layout.md) — ADR-018: Feature Module Layout
-- [`docs/adr/adr-019-safe-file-writes.md`](docs/adr/adr-019-safe-file-writes.md) — ADR-019: Safe File Writes — Diff Preview and Backup
+- [`docs/adr/adr-019-safe-file-writes.md`](docs/adr/adr-019-safe-file-writes.md) — ADR-019: Safe File Writes — Auto-Diff, Backup, and Targeted Edits
 - [`docs/adr/adr-020-provider-abstraction.md`](docs/adr/adr-020-provider-abstraction.md) — ADR-020: Provider Abstraction Layer
 - [`docs/adr/adr-021-gemini-provider.md`](docs/adr/adr-021-gemini-provider.md) — ADR-021: Gemini CLI Integration
 - [`docs/adr/adr-022-xref-integrity.md`](docs/adr/adr-022-xref-integrity.md) — ADR-022: Cross-Reference Integrity Checks

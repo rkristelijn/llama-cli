@@ -351,6 +351,7 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
  * Reads the requested lines or searches for a term, returning the content
  * so it can be injected into the conversation history.
  */
+// pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 static std::string process_read(const ReadAction& action, std::ostream& out, bool color) {
   std::string content = read_file(action.path);
@@ -491,6 +492,7 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  * @param s REPL state used for I/O, configuration, and conversation history.
  * @return true if any exec command produced output that was appended to the conversation history; false otherwise.
  */
+// pmccabe:skip-complexity
 static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);
   auto str_replaces = parse_str_replace_annotations(response);

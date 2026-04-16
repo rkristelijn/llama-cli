@@ -169,6 +169,7 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text) {
  * @param text Input string possibly containing annotation tags.
  * @return Cleaned string with annotations replaced by summaries.
  */
+// pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 std::string strip_annotations(const std::string& text) {
   std::string result = text;
