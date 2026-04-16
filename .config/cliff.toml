@@ -9,6 +9,43 @@ footer = ""
 # Sort commits
 sort = "newest"
 
+# Changelog sections
+[[changelog.sections]]
+group = "💥 Breaking Changes"
+filter = "^.*!:.*"
+
+[[changelog.sections]]
+group = "🚀 Features"
+filter = "^feat"
+
+[[changelog.sections]]
+group = "🐛 Bug Fixes"
+filter = "^fix"
+
+[[changelog.sections]]
+group = "📚 Documentation"
+filter = "^doc"
+
+[[changelog.sections]]
+group = "⚡ Performance"
+filter = "^perf"
+
+[[changelog.sections]]
+group = "♻️ Refactoring"
+filter = "^refactor"
+
+[[changelog.sections]]
+group = "✅ Testing"
+filter = "^test"
+
+[[changelog.sections]]
+group = "🔧 Build"
+filter = "^build|^ci"
+
+[[changelog.sections]]
+group = "🔨 Other"
+filter = "^chore|^style"
+
 [git]
 # Parse commits
 conventional_commits = true
@@ -17,35 +54,4 @@ filter_unconventional = true
 # Tag prefix
 tag_prefix = "v"
 # Regex to ignore tags
-ignore_tags = "^v.*"
-
-# Changelog sections
-[changelog.categories]
-# Category mapping
-[[changelog.categories]]
-# Category for breaking changes
-breaking = "💥 Breaking Changes"
-[[changelog.categories]]
-# Category for features
-feature = "🚀 Features"
-[[changelog.categories]]
-# Category for bug fixes
-fix = "🐛 Bug Fixes"
-[[changelog.categories]]
-# Category for documentation
-doc = "📚 Documentation"
-[[changelog.categories]]
-# Category for performance
-perf = "⚡ Performance"
-[[changelog.categories]]
-# Category for refactoring
-refactor = "♻️ Refactoring"
-[[changelog.categories]]
-# Category for testing
-test = "✅ Testing"
-[[changelog.categories]]
-# Category for build/CI
-build = "🔧 Build"
-[[changelog.categories]]
-# Category for other
-other = "🔨 Other"
+ignore_tags = ""
