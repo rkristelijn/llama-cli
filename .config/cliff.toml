@@ -3,16 +3,21 @@
 header = """
 # Changelog\n
 """
+body = """
+{% if version %}\
+ ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+ ## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+ ### {{ group | upper_first }}
+ {% for commit in commits %}
+ - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}\
+ {% endfor %}
+{% endfor %}\n
+"""
 footer = ""
 sort = "newest"
-# Body template for commit messages
-body = """
-{% for section in sections %}
-### {{ section.group }}
-{% for commit in section.commits %}
-- {{ commit.message | upper_first }}{% endfor %}
-{% endfor %}
-"""
 
 # Dit is de juiste manier om secties te verdelen in git-cliff
 [[changelog.sections]]
