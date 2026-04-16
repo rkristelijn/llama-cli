@@ -83,10 +83,25 @@ std::string json_extract_object(const std::string& json, const std::string& key)
   pos += needle.size() - 1;  // point at opening {
   // Walk forward, tracking { and } depth until we find the matching close
   int depth = 0;
+  bool in_string = false;
+  bool escaped = false;
   for (size_t i = pos; i < json.size(); i++) {
-    if (json[i] == '{') {
+    char c = json[i];
+    if (in_string) {
+      if (escaped) {
+        escaped = false;
+      } else if (c == '\\') {
+        escaped = true;
+      } else if (c == '"') {
+        in_string = false;
+      }
+      continue;
+    }
+    if (c == '"') {
+      in_string = true;
+    } else if (c == '{') {
       depth++;
-    } else if (json[i] == '}') {
+    } else if (c == '}') {
       depth--;
       if (depth == 0) {
         return json.substr(pos, i - pos + 1);
