@@ -501,6 +501,7 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  */
 // todo: reduce complexity of handle_response
 // pmccabe:skip-complexity
+// NOLINTNEXTLINE(readability-function-size)
 static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);
   auto str_replaces = parse_str_replace_annotations(response);
