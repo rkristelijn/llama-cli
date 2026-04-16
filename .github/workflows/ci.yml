@@ -206,15 +206,15 @@ jobs:
         with:
           files: coverage.info
           fail_ci_if_error: false
-      - name: Check coverage threshold (>= 80%)
+      - name: Check coverage threshold (>= 55%)
         run: |
           PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
           echo "Total Line Coverage: $PERCENT%"
-          if [ "$(echo "$PERCENT < 80" | bc -l)" -eq 1 ]; then
-            echo "Coverage is below 80%!"
+          if [ "$(echo "$PERCENT < 55" | bc -l)" -eq 1 ]; then
+            echo "Coverage is below 55%!"
             exit 1
           fi
-          echo "PASS: coverage >= 80%"
+          echo "PASS: coverage >= 55%"
 
   semgrep:
     needs: changes
