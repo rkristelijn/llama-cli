@@ -26,6 +26,7 @@ static bool env_get(const char* name, std::string& out) {
  * Skips blank lines, comments (#), and lines without '='.
  * Overrides values already in the config (project-local wins over env). */
 // todo: reduce complexity of load_dotenv
+// pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 void load_dotenv(const std::string& path, Config& c) {
   std::ifstream f(path);

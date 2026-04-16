@@ -43,7 +43,7 @@ Write to src/main.cpp? [y/n/s]
 The LLM can read files and make targeted edits:
 ```
 > what does repl.cpp do?
-[read src/repl/repl.cpp]          # LLM reads specific lines
+[read src/repl/repl.cpp]          # LLM reads the requested file
 
 > fix the typo on line 42
 [proposed: str_replace src/repl/repl.cpp]

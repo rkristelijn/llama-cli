@@ -323,7 +323,11 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
     return;
   }
 
-  show_diff(action.old_str, action.new_str, out, color);
+  // Compute updated file for preview
+  std::string updated = existing;
+  auto replace_pos = updated.find(action.old_str);
+  updated.replace(replace_pos, action.old_str.size(), action.new_str);
+  show_diff(existing, updated, out, color);
 
   out << "Apply str_replace to " << action.path << "? [y/n] " << std::flush;
   std::string answer;
@@ -337,8 +341,6 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
     std::ofstream bak(action.path + ".bak");
     bak << existing;
   }
-  std::string updated = existing;
-  updated.replace(updated.find(action.old_str), action.old_str.size(), action.new_str);
   std::ofstream f(action.path);
   if (f.is_open()) {
     f << updated;
@@ -520,10 +522,12 @@ static bool handle_response(const std::string& response, ReplState& s) {
     process_str_replace(action, s.in, s.out, s.color);
   }
   bool has_followup = false;
-  std::set<std::string> seen_paths;
+  std::set<std::string> seen_reads;
   for (const auto& action : reads) {
-    if (!seen_paths.insert(action.path).second) {
-      continue;  // skip duplicate path
+    std::string key = action.path + "|" + std::to_string(action.from_line) + "-" + std::to_string(action.to_line) +
+                      "|" + action.search;
+    if (!seen_reads.insert(key).second) {
+      continue;  // skip exact duplicate read
     }
     std::string ctx = process_read(action, s.out, s.color);
     if (!ctx.empty()) {

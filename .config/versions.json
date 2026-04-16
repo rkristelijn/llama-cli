@@ -1,5 +1,5 @@
 {
   "doxygen": "1.16.1",
-  "clang-format": "21",
-  "clang-tidy": "21"
+  "clang-format": "19",
+  "clang-tidy": "19"
 }

@@ -32,7 +32,7 @@ assert_contains() {
     local output="$1"
     local expected="$2"
     local label="$3"
-    if ! echo "$output" | grep -i -- "$expected" > /dev/null 2>&1; then
+    if ! printf '%s' "$output" | grep -F -i -- "$expected" > /dev/null 2>&1; then
         die "expected '$expected' (case-insensitive) in output for: $label"
     fi
 }

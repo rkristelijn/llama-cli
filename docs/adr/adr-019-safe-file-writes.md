@@ -28,7 +28,7 @@ The LLM can propose file writes via `<write>` and targeted edits via `<str_repla
 
 ### Diff format
 LCS-based diff with git-style prefixes:
-```
+```diff
   unchanged line
 - removed line      (red)
 + added line        (green)

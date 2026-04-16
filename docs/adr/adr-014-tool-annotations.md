@@ -50,8 +50,8 @@ The system prompt is extended to instruct the LLM about available annotations:
 
 ```
 When you want to write a file, wrap the content in <write file="path">content</write>.
-When you want to run a command, wrap it in <run>command</run>.
-When you need to read a file, use <read file="path"/>.
+When you want to run a command, wrap it in <exec>command</exec>.
+When you need to read a file, use <read path="path"/>.
 The user will be asked to confirm before any action is executed.
 Do not use annotations unless the user asks you to create, modify, or run something.
 ```

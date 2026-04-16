@@ -65,9 +65,11 @@ set(LIB_SOURCES
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
-# Inject build timezone at compile time
-string(TIMESTAMP BUILD_TZ "%z" UTC)
-execute_process(COMMAND date "+%z" OUTPUT_VARIABLE BUILD_TZ OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+# Inject build timezone at compile time (portable CMake-only)
+string(TIMESTAMP BUILD_TZ "%z")
+if(BUILD_TZ STREQUAL "")
+  set(BUILD_TZ "+0000")
+endif()
 add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
 
 # Main binary

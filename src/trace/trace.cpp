@@ -11,7 +11,7 @@
 
 StderrTrace stderr_trace_instance;  ///< Global instance for production use
 
-/// Write trace message to stderr with ISO-8601 timestamp.
+/// Write trace message to stderr with local-time HH:MM:SS timestamp.
 void StderrTrace::log(const char* fmt, ...) {
   fprintf(stderr, "\r\033[K");
   // Print timestamp

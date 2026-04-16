@@ -22,6 +22,8 @@ jobs:
               - 'src/**'
               - 'CMakeLists.txt'
               - 'Makefile'
+              - '.config/**'
+              - '.github/workflows/ci.yml'
             docs:
               - 'docs/**'
               - 'README.md'
@@ -86,7 +88,8 @@ jobs:
         run: |
           VER=$(jq -r '.["clang-format"]' .config/versions.json)
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          . /etc/os-release
+          echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update && sudo apt-get install -y clang-format-${VER}
       - name: Check formatting
         run: |
@@ -103,7 +106,8 @@ jobs:
         run: |
           VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          . /etc/os-release
+          echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update && sudo apt-get install -y clang-tidy-${VER}
       - name: Run clang-tidy
         run: |
