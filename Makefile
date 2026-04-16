@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start log test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
+.PHONY: all build clean run start log test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -40,6 +40,11 @@ test-unit: all
 test: test-unit
 
 e2e: test-e2e
+
+# Live integration test with real LLM (requires running Ollama)
+# Tests REPL mechanics against a real model. LLM-dependent tests SKIP gracefully.
+live: all
+	@bash e2e/test_live.sh $(BUILD_DIR)/llama-cli
 
 test-e2e: build
 	@echo "==> E2E tests"

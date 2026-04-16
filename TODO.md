@@ -14,7 +14,7 @@
 - [ ] Feature module decomposition: split monolithic files into focused modules
 
 ## Pre-release blockers
-- [ ] Show diff preview before overwriting existing files (#50)
+- [x] Show diff preview before overwriting existing files (#50)
 - [ ] /model command: list available models, switch model at runtime (#48)
 - [ ] Improve system prompt: LLM repeats command output instead of analyzing it (#27)
 
@@ -59,11 +59,11 @@
 - [ ] Define release process (#11)
 - [x] Fix chatty semgrep output in Makefile (use --quiet or filter marketing text)
 - [x] Fix pmccabe "too many }'s" in `src/json/json_test.cpp` (lines 29, 44)
-- [ ] Reduce complexity of `show_diff` and `confirm_write` in `src/repl/repl.cpp` (currently > 10)
+- [x] Reduce complexity of `show_diff` and `confirm_write` in `src/repl/repl.cpp` (rewritten with dtl LCS diff)
 - [x] Align local `make check` pmccabe threshold (15) with CI (10) and include test files
 - [ ] Refactor `src/logging/logger.cpp:log()` — exceeds function-size threshold (ADR-027)
 - [ ] Split `src/config/config.cpp` — parse_files_flag extracted, but more modularization needed
-- [ ] cmake_minimum_required(VERSION 3.10) conflicts with the later FetchContent usage. The FetchContent module was introduced in CMake 3.11, so builds targeting CMake 3.10 will fail during configuration.
+- [x] cmake_minimum_required(VERSION 3.14) — updated from 3.10 (FetchContent requires 3.11+)
 - [ ] exec capture claim is inconsistent with current implementation. Line 77 states exec events are already captured, but src/exec/exec.cpp:28-65 currently executes commands and returns ExecResult without emitting LOG_EVENT(...). Either update this ADR statement or add the missing logging in exec flow.
 - [ ] --provider is already the app-level provider selector. Config::provider already selects backends like ollama and mock. Reusing the same setting for tgpt's internal upstream choice makes the CLI ambiguous. This should be modeled as a separate tgpt-specific option such as TGPT_PROVIDER / --tgpt-provider.
 - [ ] scripts/test-files-integration.sh path hardcoded, this makes the script fail out of the box anywhere except that workstation, including CI. Default these repo-relative locations instead.
@@ -82,5 +82,6 @@
 - [ ] discover whether it is possible to include autocompletion with tab when using paths, e.g. if it starts with ~, . or /
 - [ ] optimize and cleanup the make check, when succes it doesn't say always, some tools are just too chatty, there must be a golden ratio, enough to have overview and not too much to overflow
 - [ ] llama-cli --make-config makes example .env with all options and a short description what it does (self documenting)
+- [ ] what if cli call returns session id and that can be used for follow up questions so you can have a conversation? is this needed?
 
 

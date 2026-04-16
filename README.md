@@ -40,6 +40,18 @@ The LLM can also propose commands and file writes:
 Write to src/main.cpp? [y/n/s]
 ```
 
+The LLM can read files and make targeted edits:
+```
+> what does repl.cpp do?
+[read src/repl/repl.cpp]          # LLM reads specific lines
+
+> fix the typo on line 42
+[proposed: str_replace src/repl/repl.cpp]
+- old text
++ new text
+Apply str_replace to src/repl/repl.cpp? [y/n]
+```
+
 ## Configuration
 
 | Setting | CLI arg | Env var | Default |
@@ -60,13 +72,17 @@ Write to src/main.cpp? [y/n/s]
 - [x] Configurable host, port, model, timeout
 - [x] Interactive chat with conversation memory
 - [x] Write files from response (`<write>`)
+- [x] Targeted edits (`<str_replace>`)
+- [x] Smart file reading (`<read>` with line ranges and search)
 - [x] Run commands (`!`, `!!`, `<exec>`)
 - [x] TUI: ANSI colors, markdown rendering, spinner
 - [x] Arrow key history (linenoise)
 - [x] Runtime options (`/set markdown`, `/set color`, `/set bofh`)
 - [x] Ctrl+C interrupt during LLM calls
+- [x] Stdin pipe support (`--files`)
+- [x] Auto-diff preview before file writes
 - [ ] Streaming responses
-- [ ] Stdin pipe support
+- [ ] Inline code rendering in markdown
 
 ## Contributing
 

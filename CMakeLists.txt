@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 if(POLICY CMP0169)
   cmake_policy(SET CMP0169 OLD)
 endif()
@@ -64,6 +64,11 @@ set(LIB_SOURCES
   src/logging/logger.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
+
+# Inject build timezone at compile time
+string(TIMESTAMP BUILD_TZ "%z" UTC)
+execute_process(COMMAND date "+%z" OUTPUT_VARIABLE BUILD_TZ OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})

@@ -2,6 +2,7 @@
 
 Auto-generated overview of all files in this repo.
 
+- [`docs/adr/0003-kiro-cli-as-reference.md`](docs/adr/0003-kiro-cli-as-reference.md) — ADR-003: Use Kiro CLI as Reference Implementation
 - [`docs/adr/adr-001-http-library.md`](docs/adr/adr-001-http-library.md) — ADR-001: HTTP Library — cpp-httplib
 - [`docs/adr/adr-002-quality-checks.md`](docs/adr/adr-002-quality-checks.md) — ADR-002: Quality Checks & CI Pipeline
 - [`docs/adr/adr-003-v-model-workflow.md`](docs/adr/adr-003-v-model-workflow.md) — ADR-003: Development Workflow
@@ -34,11 +35,14 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-030-stdin-sync.md`](docs/adr/adr-030-stdin-sync.md) — ADR-030: Stdin and File Input for Sync Mode
 - [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
+- [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
+- [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
+- [`docs/full-test-script.md`](docs/full-test-script.md) — Manual Test Script
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
@@ -95,4 +99,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_92 files indexed._
+_96 files indexed._

@@ -51,6 +51,7 @@ Run the full check suite locally before pushing:
 make quick   # incremental build + tests + comment ratio (fast, for dev)
 make test    # full build + all 6 test suites + comment ratio
 make check   # everything below — same as CI
+make live    # integration test with real LLM (requires running Ollama)
 ```
 
 ### What `make check` verifies
@@ -59,6 +60,7 @@ make check   # everything below — same as CI
 |-------|-----------|-----|
 | Unit tests | all pass | fix the failing test |
 | E2E tests | all pass | `e2e/*.sh` — needs Ollama running |
+| Live tests | PASS or SKIP | `make live` — SKIP is OK for LLM-dependent tests |
 | clang-format | zero violations | `make format` to auto-fix |
 | clang-tidy | zero warnings (excl. filtered) | fix the warning or add `NOLINTNEXTLINE` |
 | pmccabe | complexity ≤ 10 per function | split the function, or add `pmccabe:skip-complexity` |

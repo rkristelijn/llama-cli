@@ -7,15 +7,20 @@
 #include "trace/trace.h"
 
 #include <cstdio>
+#include <ctime>
 
 StderrTrace stderr_trace_instance;  ///< Global instance for production use
 
-/// Write trace message to stderr.
-/// First clears the current terminal line (\\r = move cursor to start,
-/// \033[K = erase to end of line) so trace output doesn't collide
-/// with the spinner animation that also writes to stderr.
+/// Write trace message to stderr with ISO-8601 timestamp.
 void StderrTrace::log(const char* fmt, ...) {
   fprintf(stderr, "\r\033[K");
+  // Print timestamp
+  time_t now = time(nullptr);
+  struct tm tm_buf;
+  localtime_r(&now, &tm_buf);
+  char ts[20];
+  strftime(ts, sizeof(ts), "%H:%M:%S", &tm_buf);
+  fprintf(stderr, "[%s] ", ts);
   va_list args;
   va_start(args, fmt);
   vfprintf(stderr, fmt, args);

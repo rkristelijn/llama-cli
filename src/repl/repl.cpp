@@ -11,6 +11,7 @@
 
 #include <csignal>
 #include <fstream>
+#include <set>
 #include <sstream>
 
 #include "annotation/annotation.h"
@@ -27,6 +28,12 @@
 #endif
 
 #include "dtl/dtl.hpp"
+
+/// @cond
+#ifndef BUILD_TIMEZONE
+#define BUILD_TIMEZONE "UTC"
+#endif
+/// @endcond
 
 /// Global flag set by SIGINT handler to interrupt LLM calls
 static volatile sig_atomic_t g_interrupted = 0;
@@ -61,6 +68,7 @@ static std::string get_version() {
   if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
     ver += "-dirty";
   }
+  ver += " (built " __DATE__ " " __TIME__ " " BUILD_TIMEZONE ")";
   return ver;
 }
 
@@ -277,7 +285,6 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
  * @param color If true, enable ANSI-colored output where supported.
  */
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
-  tui::write_proposal(out, color, action.path);
   if (confirm_write(action, in, out, color)) {
     // Backup existing file before overwriting
     std::string existing = read_file(action.path);
@@ -313,7 +320,6 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
     return;
   }
 
-  tui::write_proposal(out, color, action.path);
   show_diff(action.old_str, action.new_str, out, color);
 
   out << "Apply str_replace to " << action.path << "? [y/n] " << std::flush;
@@ -391,7 +397,6 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   }
 
   std::string r = result.str();
-  out << "[read " << action.path << "]\n";
   return r;
 }
 
@@ -507,7 +512,11 @@ static bool handle_response(const std::string& response, ReplState& s) {
     process_str_replace(action, s.in, s.out, s.color);
   }
   bool has_followup = false;
+  std::set<std::string> seen_paths;
   for (const auto& action : reads) {
+    if (!seen_paths.insert(action.path).second) {
+      continue;  // skip duplicate path
+    }
     std::string ctx = process_read(action, s.out, s.color);
     if (!ctx.empty()) {
       s.history.push_back({"user", ctx});
