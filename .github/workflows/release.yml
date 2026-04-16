@@ -15,15 +15,23 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Read version
         id: version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
 
+      - name: Install git-cliff
+        run: |
+          wget -qO- https://github.com/orhun/git-cliff/releases/download/v2.5.0/git-cliff-2.5.0-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+          sudo mv git-cliff /usr/local/bin/
+
       - name: Build Linux
         run: |
           make clean
           make
+          ls -la
 
       - name: Create tag
         run: |
@@ -36,12 +44,16 @@ jobs:
             git push origin "$TAG"
           fi
 
+      - name: Generate CHANGELOG.md
+        run: |
+          git-cliff --config cliff.toml --output CHANGELOG.md
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: llama-cli
           tag_name: v${{ steps.version.outputs.VERSION }}
           name: Release v${{ steps.version.outputs.VERSION }}
+          body_path: CHANGELOG.md
           draft: false
           prerelease: false
-          generate_release_notes: true
