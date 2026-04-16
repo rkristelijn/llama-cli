@@ -177,4 +177,20 @@ SCENARIO("parsing read annotations")
       }
     }
   }
+
+  GIVEN("a read annotation with malformed line range")
+  {
+    std::string text = R"(<read path="src/main.cpp" lines="x-y"/>)";
+
+    WHEN("annotations are parsed")
+    {
+      auto actions = parse_read_annotations(text);
+      THEN("it does not crash and defaults to 0")
+      {
+        CHECK(actions.size() == 1);
+        CHECK(actions[0].from_line == 0);
+        CHECK(actions[0].to_line == 0);
+      }
+    }
+  }
 }

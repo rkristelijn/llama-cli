@@ -20,7 +20,7 @@ The LLM can propose file writes via `<write>` and targeted edits via `<str_repla
 - Preferred over full-file `<write>` for existing files — safer, less error-prone
 - Shows diff of only the changed section (old → new)
 - Prompt: `Apply str_replace to path? [y/n]`
-- Validates that old_str exists exactly once in the file
+- Validates that old_str exists in the file before replacing the first occurrence
 
 ### Automatic backup
 - Before overwriting an existing file, a `.bak` copy is created
