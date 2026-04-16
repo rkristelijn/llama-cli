@@ -42,7 +42,7 @@
 - [ ] Pin all tool versions in `.config/versions.json` (cppcheck, pmccabe, semgrep, gitleaks)
 - [ ] Add logging tests (Logger::log, path(), JSONL format validation)
 - [ ] Evaluate remaining 12-factor principles (#10)
-- [ ] Define release process (#11)
+- [x] Define release process (#11) — GitHub Actions workflow, VERSION file, tag workflow
 - [ ] scripts/test-files-integration.sh: hardcoded paths — default to repo-relative
 - [ ] scripts/test-files-integration.sh: tests don't assert expected content — benchmark, not test
 - [ ] Optimize `make check` output — too chatty, find golden ratio of feedback
@@ -58,3 +58,4 @@
 - [ ] Publish to Homebrew (brew tap or core formula)
 - [ ] Publish to apt (PPA or .deb package)
 - [ ] Write user documentation (install, usage, config, examples)
+ed

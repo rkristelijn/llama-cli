@@ -8,15 +8,33 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 - **Fast**: no API latency, no rate limits, no subscriptions
 - **Integrated**: read files, execute commands, and get AI-powered answers in one place
 
-## Quick start
+## Install
+
+### Pre-built binary (recommended)
+
+Download the latest release from [GitHub Releases](https://github.com/ollama/llama-cli/releases):
+
+```bash
+# Linux/macOS
+curl -L https://github.com/ollama/llama-cli/releases/latest/download/llama-cli -o llama-cli
+chmod +x llama-cli
+./llama-cli
+```
+
+Or move it to your PATH:
+
+```bash
+sudo mv llama-cli /usr/local/bin/
+```
+
+### From source
 
 ```bash
 brew install ollama
 brew services start ollama
 ollama pull gemma4:e4b
 make setup
-sudo make install   # installs llama-cli to /usr/local/bin
-llama-cli           # start chatting
+sudo make install
 ```
 
 ## Usage
