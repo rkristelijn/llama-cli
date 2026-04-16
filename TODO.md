@@ -63,6 +63,14 @@
 - [x] Align local `make check` pmccabe threshold (15) with CI (10) and include test files
 - [ ] Refactor `src/logging/logger.cpp:log()` — exceeds function-size threshold (ADR-027)
 - [ ] Split `src/config/config.cpp` — parse_files_flag extracted, but more modularization needed
+- [ ] cmake_minimum_required(VERSION 3.10) conflicts with the later FetchContent usage. The FetchContent module was introduced in CMake 3.11, so builds targeting CMake 3.10 will fail during configuration.
+- [ ] exec capture claim is inconsistent with current implementation. Line 77 states exec events are already captured, but src/exec/exec.cpp:28-65 currently executes commands and returns ExecResult without emitting LOG_EVENT(...). Either update this ADR statement or add the missing logging in exec flow.
+- [ ] --provider is already the app-level provider selector. Config::provider already selects backends like ollama and mock. Reusing the same setting for tgpt's internal upstream choice makes the CLI ambiguous. This should be modeled as a separate tgpt-specific option such as TGPT_PROVIDER / --tgpt-provider.
+- [ ] scripts/test-files-integration.sh path hardcoded, this makes the script fail out of the box anywhere except that workstation, including CI. Default these repo-relative locations instead.
+- [ ] scripts/test-files-integration.sh For Tests 1, 2, 3, and 5, status stays ✅ even if the binary returns the wrong answer or an immediate error. That makes this script a benchmark harness, not a reliable integration test. Please assert expected content/exit behavior, similar to e2e/test_files_flag.sh.
+- [ ] config.cpp std::stoi(c.port) accepts values like 11434abc and returns 11434, but the original invalid string is used directly to build the client URL at http:// + host + : + port, creating a malformed URL. Verify the entire port string is numeric.
+- [ ] config.cpp Whitespace tokenization breaks quoted file paths. --files "/tmp/my notes.txt" reaches this code as one argv entry, but iss >> path splits it into two paths. That makes valid filenames containing spaces impossible to pass through --files.
+- [ ] config.cpp Malformed numeric env/CLI values still abort before validate_config() runs. load_env() and match_int_opts() call std::stoi() without exception handling on OLLAMA_TIMEOUT, LLAMA_EXEC_TIMEOUT, LLAMA_MAX_OUTPUT (from env), and numeric CLI options. Inputs like OLLAMA_TIMEOUT=abc or --max-output=NaN throw unhandled exceptions before validate_config() is reached. Only the port validation in validate_config() includes a try-catch block; the other numeric fields assume already-parsed integers.
 
 ## Release & Distribution
 - [ ] Prepare repo for first release (tag, changelog, version bump)

@@ -24,3 +24,6 @@ Summary of all decisions made in this project.
 | [018](adr-018-module-layout.md) | Module layout | Feature folders, co-located tests, shared types | 2026-04-11 |
 | [019](adr-019-safe-file-writes.md) | Safe file writes | Diff preview, .bak backup before overwrite | 2026-04-11 |
 | [030](adr-030-stdin-sync.md) | Stdin & file input for sync mode | `--files`, stdin pipe, completes ADR-007 | 2026-04-13 |
+| [031](adr-031-tgpt-provider.md) | tgpt Provider Integration | Free CLI-based alternative to Ollama/Gemini | 2026-04-13 |
+| [032](adr-032-e2e-test-improvements.md) | E2E Test Improvements | Shared helpers, table-driven tests, cleanup traps | 2026-04-13 |
+| [033](adr-033-kiro-cli-ollama.md) | kiro-cli Ollama Integration | Research on connecting kiro-cli to local Ollama | 2026-04-15 |
