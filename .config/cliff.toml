@@ -19,45 +19,21 @@ body = """
 footer = ""
 sort = "newest"
 
-# Dit is de juiste manier om secties te verdelen in git-cliff
-[[changelog.sections]]
-group = "💥 Breaking Changes"
-filter = "^.*!:"
-
-[[changelog.sections]]
-group = "🚀 Features"
-filter = "^feat"
-
-[[changelog.sections]]
-group = "🐛 Bug Fixes"
-filter = "^fix"
-
-[[changelog.sections]]
-group = "📚 Documentation"
-filter = "^doc"
-
-[[changelog.sections]]
-group = "⚡ Performance"
-filter = "^perf"
-
-[[changelog.sections]]
-group = "♻️ Refactoring"
-filter = "^refactor"
-
-[[changelog.sections]]
-group = "✅ Testing"
-filter = "^test"
-
-[[changelog.sections]]
-group = "🔧 Build"
-filter = "^build|^ci"
-
-[[changelog.sections]]
-group = "🔨 Other"
-filter = "^chore|^style"
-
 [git]
 conventional_commits = true
 filter_unconventional = true
 tag_prefix = "v"
 ignore_tags = ""
+
+# Modern approach using commit_parsers
+commit_parsers = [
+ { message = "^feat", group = "🚀 Features" },
+ { message = "^fix", group = "🐛 Bug Fixes" },
+ { message = "^doc", group = "📚 Documentation" },
+ { message = "^perf", group = "⚡ Performance" },
+ { message = "^refactor", group = "♻️ Refactoring" },
+ { message = "^test", group = "✅ Testing" },
+ { message = "^build|^ci", group = "🔧 Build" },
+ { message = "^chore|^style", group = "🔨 Other" },
+ { message = "^.*!:", group = "💥 Breaking Changes" },
+]
