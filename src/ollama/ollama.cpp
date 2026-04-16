@@ -100,8 +100,11 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   }
 
   // API error — e.g. model not found, invalid request
-  std::string err = json_extract_string(res->body, "error");
-  if (!err.empty()) {
+  if (res->status < 200 || res->status >= 300) {
+    std::string err = json_extract_string(res->body, "error");
+    if (err.empty()) {
+      err = "HTTP " + std::to_string(res->status);
+    }
     tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
     LOG_EVENT("ollama", "generate", prompt, err, duration, 0, 0);
     return "";
@@ -168,8 +171,11 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   }
 
   // API error — e.g. model not found, invalid request
-  std::string err = json_extract_string(res->body, "error");
-  if (!err.empty()) {
+  if (res->status < 200 || res->status >= 300) {
+    std::string err = json_extract_string(res->body, "error");
+    if (err.empty()) {
+      err = "HTTP " + std::to_string(res->status);
+    }
     tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
     LOG_EVENT("ollama", "chat", build_messages_json(messages), err, duration, 0, 0);
     return "";
