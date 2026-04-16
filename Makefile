@@ -1,7 +1,7 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
+.PHONY: all build clean run start log test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -9,6 +9,7 @@ check-deps:
 all: check-deps
 	cmake -B $(BUILD_DIR) -S .
 	cmake --build $(BUILD_DIR) --target llama-cli
+	cp $(BUILD_DIR)/llama-cli .
 
 build: all
 
@@ -17,6 +18,9 @@ run: all
 
 start: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
+
+log:
+	@sh scripts/log-viewer.sh $(ARGS)
 
 test-unit: all
 	cmake --build $(BUILD_DIR) --target test_config
@@ -145,8 +149,6 @@ create-issue:
 	fi
 	sh scripts/gh-create-issue.sh "$(TITLE)" "$(DESC)"
 
-clean:
-
 # Generate test coverage report
 coverage:
 	cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage"
@@ -162,7 +164,7 @@ coverage:
 	  | grep -A1 "^File.*llama-cli/src\|^File.*llama-cli/include"
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) llama-cli
 
 # Quick: incremental build + run tests only (no static analysis)
 quick: all

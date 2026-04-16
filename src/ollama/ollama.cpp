@@ -15,6 +15,7 @@
 
 #include "json/json.h"
 #include "logging/logger.h"
+#include "trace/trace.h"
 #include "tui/tui.h"
 
 // Build an HTTP client for the configured Ollama instance
@@ -26,7 +27,8 @@ static httplib::Client make_client(const Config& cfg) {
   return cli;
 }
 
-/// Escape quotes and newlines for JSON string (shortest representation)
+/// Escape special characters for safe embedding in a JSON string value.
+/// Handles quotes, backslashes, control characters, and non-printable bytes.
 /// @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
 static std::string escape_json_string(const std::string& s) {
   std::string escaped;
@@ -66,18 +68,29 @@ static std::string escape_json_string(const std::string& s) {
   return escaped;
 }
 
-/** One-shot prompt via /api/generate (no conversation history)
- * Returns the response text, or empty string on connection error */
+/** One-shot prompt via /api/generate (no conversation history).
+ * Sends a single prompt to Ollama and returns the response text.
+ * Checks for API errors (e.g. model not found) and shows them to the user.
+ * When trace is enabled, logs the HTTP request and response details to stderr.
+ * All calls are logged to ~/.llama-cli/events.jsonl regardless of trace. */
+// NOLINTNEXTLINE(readability-function-size)
 std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto start = std::chrono::high_resolution_clock::now();
   auto cli = make_client(cfg);
+  std::string url = "http://" + cfg.host + ":" + cfg.port;
   std::string escaped_prompt = escape_json_string(prompt);
+  // stream:false = wait for complete response (no chunked streaming yet)
   std::string body = R"({"model": ")" + cfg.model + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] POST %s/api/generate model=%s\n", url.c_str(), cfg.model.c_str());
+  }
 
   auto res = cli.Post("/api/generate", body, "application/json");
   auto end = std::chrono::high_resolution_clock::now();
   int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
+  // Connection failed — Ollama is probably not running
   if (!res) {
     tui::error(std::cerr, tui::use_color(cfg.no_color),
                "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
@@ -85,9 +98,23 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
     return "";
   }
 
+  // API error — e.g. model not found, invalid request
+  std::string err = json_extract_string(res->body, "error");
+  if (!err.empty()) {
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    LOG_EVENT("ollama", "generate", prompt, err, duration, 0, 0);
+    return "";
+  }
+
   std::string response_text = json_extract_string(res->body, "response");
   int prompt_tokens = json_extract_int(res->body, "prompt_eval_count");
   int completion_tokens = json_extract_int(res->body, "eval_count");
+
+  // Trace: show HTTP status, timing, and token usage
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] %d %dms tokens=%d/%d\n", res->status, duration, prompt_tokens, completion_tokens);
+  }
+
   LOG_EVENT("ollama", "generate", prompt, response_text, duration, prompt_tokens, completion_tokens);
   return response_text;
 }
@@ -106,18 +133,31 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
   return json;
 }
 
-/** Conversation via /api/chat (with message history)
- * Returns the assistant's response text, or empty string on error */
+/** Conversation via /api/chat (with message history).
+ * Sends the full conversation history to Ollama and returns the assistant's reply.
+ * The Ollama chat response nests the reply inside a "message" JSON object,
+ * so we first extract that object, then extract "content" from it.
+ * Checks for API errors and shows them to the user.
+ * When trace is enabled, logs request/response details to stderr. */
+// NOLINTNEXTLINE(readability-function-size)
 std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages) {
   auto start = std::chrono::high_resolution_clock::now();
   auto cli = make_client(cfg);
+  std::string url = "http://" + cfg.host + ":" + cfg.port;
+  // stream:false = wait for complete response (no chunked streaming yet)
   std::string body =
       R"({"model": ")" + cfg.model + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(),
+                      messages.size());
+  }
 
   auto res = cli.Post("/api/chat", body, "application/json");
   auto end = std::chrono::high_resolution_clock::now();
   int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
+  // Connection failed — Ollama is probably not running
   if (!res) {
     tui::error(std::cerr, tui::use_color(cfg.no_color),
                "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
@@ -125,19 +165,26 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
     return "";
   }
 
-  // Rationale: The Ollama API's chat completion response structure nests the assistant's
-  // reply within a "message" object. The original code attempted to directly extract
-  // "content" from the top-level `res->body`, which is incorrect as "content" is not
-  // a direct child of the root JSON object in this context.
-  //
-  // To correctly retrieve the assistant's response, we first extract the "message" object
-  // (which itself is a JSON string representation) from `res->body`. Then, we use
-  // `json_extract_string` again on this intermediate `message_json_string` to get the
-  // actual "content" field. This ensures we are parsing the nested structure as expected.
-  std::string message_json_string = json_extract_string(res->body, "message");
-  std::string response_text = json_extract_string(message_json_string, "content");
+  // API error — e.g. model not found, invalid request
+  std::string err = json_extract_string(res->body, "error");
+  if (!err.empty()) {
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    LOG_EVENT("ollama", "chat", build_messages_json(messages), err, duration, 0, 0);
+    return "";
+  }
+
+  // Ollama nests the reply in {"message":{"role":"assistant","content":"..."}}
+  std::string message_json = json_extract_object(res->body, "message");
+  std::string response_text = json_extract_string(message_json, "content");
   int prompt_tokens = json_extract_int(res->body, "prompt_eval_count");
   int completion_tokens = json_extract_int(res->body, "eval_count");
+
+  // Trace: show HTTP status, timing, token usage, and truncated response
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] %d %dms tokens=%d/%d response=%.80s\n", res->status, duration, prompt_tokens,
+                      completion_tokens, response_text.c_str());
+  }
+
   LOG_EVENT("ollama", "chat", build_messages_json(messages), response_text, duration, prompt_tokens, completion_tokens);
   return response_text;
 }

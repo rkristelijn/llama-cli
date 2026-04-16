@@ -39,7 +39,7 @@ inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
 
 /** Print a bold red error message */
 inline void error(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? "\033[1;31m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << "\n" << (color ? "\033[1;31m" : "") << msg << (color ? "\033[0m" : "") << "\n";
 }
 
 /** Print cyan command output */

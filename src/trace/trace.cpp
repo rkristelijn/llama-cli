@@ -10,7 +10,12 @@
 
 StderrTrace stderr_trace_instance;  ///< Global instance for production use
 
+/// Write trace message to stderr.
+/// First clears the current terminal line (\\r = move cursor to start,
+/// \033[K = erase to end of line) so trace output doesn't collide
+/// with the spinner animation that also writes to stderr.
 void StderrTrace::log(const char* fmt, ...) {
+  fprintf(stderr, "\r\033[K");
   va_list args;
   va_start(args, fmt);
   vfprintf(stderr, fmt, args);

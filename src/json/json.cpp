@@ -68,7 +68,40 @@ std::string json_extract_string(const std::string& json, const std::string& key)
   return result;
 }
 
+/** Extract a JSON object by key: "key":{...}
+ * Needed for Ollama's chat response where the assistant reply is nested:
+ *   {"message":{"role":"assistant","content":"hello"}}
+ * Returns the full object including braces, e.g. {"role":"assistant",...}
+ * Tracks brace nesting depth to find the matching closing brace. */
+std::string json_extract_object(const std::string& json, const std::string& key) {
+  // Look for "key":{ pattern
+  std::string needle = "\"" + key + "\":{";
+  auto pos = json.find(needle);
+  if (pos == std::string::npos) {
+    return "";
+  }
+  pos += needle.size() - 1;  // point at opening {
+  // Walk forward, tracking { and } depth until we find the matching close
+  int depth = 0;
+  for (size_t i = pos; i < json.size(); i++) {
+    if (json[i] == '{') {
+      depth++;
+    } else if (json[i] == '}') {
+      depth--;
+      if (depth == 0) {
+        return json.substr(pos, i - pos + 1);
+      }
+    }
+  }
+  return "";
+}
+
+/** Extract a JSON integer value by key: "key":123
+ * Skips whitespace after the colon, then reads consecutive digits.
+ * Returns 0 if the key is not found (sufficient for token counts). */
+
 int json_extract_int(const std::string& json, const std::string& key) {
+  // Find "key": pattern, then parse the digits that follow
   std::string needle = "\"" + key + "\":";
   auto pos = json.find(needle);
   if (pos == std::string::npos) {

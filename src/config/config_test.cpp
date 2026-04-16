@@ -18,6 +18,18 @@ static void clean_env() {
   unsetenv("LLAMA_MAX_OUTPUT");
 }
 
+#include <fstream>
+
+/// Write a temporary .env file, clean up on destruction
+struct TmpEnvFile {
+  std::string path;
+  TmpEnvFile(const std::string& p, const std::string& content) : path(p) {
+    std::ofstream f(p);
+    f << content;
+  }
+  ~TmpEnvFile() { std::remove(path.c_str()); }
+};
+
 SCENARIO("config defaults") {
   GIVEN("no configuration is provided") {
     Config c;
@@ -63,6 +75,19 @@ SCENARIO("config from environment variables") {
         CHECK(c.port == "11434");
       }
     }
+  }
+
+  GIVEN("OLLAMA_HOST contains host:port") {
+    clean_env();
+    setenv("OLLAMA_HOST", "0.0.0.0:11434", 1);
+    WHEN("config is loaded from env") {
+      Config c = load_env();
+      THEN("host and port are split") {
+        CHECK(c.host == "0.0.0.0");
+        CHECK(c.port == "11434");
+      }
+    }
+    clean_env();
   }
 }
 
@@ -166,11 +191,76 @@ SCENARIO("config precedence chain") {
     setenv("OLLAMA_HOST", "192.168.1.10", 1);
     setenv("OLLAMA_MODEL", "gemma4:26b", 1);
 
-    const char* argv[] = {"llama-cli", "--host=localhost", nullptr};
+    const char* argv[] = {"llama-cli", "--host=localhost", "--model=cli-model", nullptr};
     WHEN("full config is loaded") {
-      Config c = load_config(2, argv);
-      THEN("CLI wins over env for host") { CHECK(c.host == "localhost"); }
-      THEN("env wins over default for model") { CHECK(c.model == "gemma4:26b"); }
+      Config c = load_config(3, argv);
+      THEN("CLI wins over everything for host") { CHECK(c.host == "localhost"); }
+      THEN("CLI wins over everything for model") { CHECK(c.model == "cli-model"); }
+    }
+    clean_env();
+  }
+}
+
+SCENARIO("config from .env file") {
+  GIVEN("a .env file with KEY=VALUE pairs") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test.env", "OLLAMA_HOST=10.0.0.5\nOLLAMA_MODEL=test-model\n");
+    Config c;
+    load_dotenv("/tmp/llama-test.env", c);
+    THEN("values from .env are used") {
+      CHECK(c.host == "10.0.0.5");
+      CHECK(c.model == "test-model");
+    }
+    clean_env();
+  }
+
+  GIVEN("a .env file with comments and blank lines") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test2.env", "# comment\n\nOLLAMA_PORT=9999\n");
+    Config c;
+    load_dotenv("/tmp/llama-test2.env", c);
+    THEN("comments are skipped and values are loaded") { CHECK(c.port == "9999"); }
+    clean_env();
+  }
+
+  GIVEN("a .env file with quoted values") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test3.env", "OLLAMA_HOST=\"my-host\"\nOLLAMA_MODEL='my-model'\n");
+    Config c;
+    load_dotenv("/tmp/llama-test3.env", c);
+    THEN("quotes are stripped") {
+      CHECK(c.host == "my-host");
+      CHECK(c.model == "my-model");
+    }
+    clean_env();
+  }
+
+  GIVEN(".env overrides env vars") {
+    clean_env();
+    setenv("OLLAMA_HOST", "env-host", 1);
+    TmpEnvFile env("/tmp/llama-test4.env", "OLLAMA_HOST=dotenv-host\n");
+    Config c = load_env();
+    load_dotenv("/tmp/llama-test4.env", c);
+    THEN(".env wins over env var") { CHECK(c.host == "dotenv-host"); }
+    clean_env();
+  }
+
+  GIVEN("no .env file exists") {
+    clean_env();
+    Config c;
+    load_dotenv("/tmp/nonexistent-llama.env", c);
+    THEN("defaults are used") { CHECK(c.host == "localhost"); }
+    clean_env();
+  }
+
+  GIVEN(".env with host:port") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test5.env", "OLLAMA_HOST=myhost:9999\n");
+    Config c;
+    load_dotenv("/tmp/llama-test5.env", c);
+    THEN("host and port are split") {
+      CHECK(c.host == "myhost");
+      CHECK(c.port == "9999");
     }
     clean_env();
   }

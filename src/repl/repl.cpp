@@ -44,7 +44,6 @@ struct ReplState {
   bool interactive = false;       ///< Whether running on a real TTY (for spinner)
   bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
-  bool trace = false;             ///< Whether trace output is enabled
 };
 
 /** Get version string from VERSION file + git dirty status.
@@ -70,7 +69,7 @@ static void show_options(ReplState& s) {
   s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
   s.out << "  color     " << (s.color ? "on" : "off") << "\n";
   s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
-  s.out << "  trace     " << (s.trace ? "on" : "off") << "\n";
+  s.out << "  trace     " << (Config::instance().trace ? "on" : "off") << "\n";
 }
 
 /** Toggle a named option, return true if recognized.
@@ -85,8 +84,12 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"markdown", &ReplState::markdown},
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
-      {"trace", &ReplState::trace},
   };
+  if (name == "trace") {
+    Config::instance().trace = !Config::instance().trace;
+    s.out << "[trace " << (Config::instance().trace ? "on" : "off") << "]\n";
+    return true;
+  }
   for (const auto& opt : opts) {
     if (name == opt.name) {
       s.*(opt.field) = !(s.*(opt.field));
@@ -527,7 +530,7 @@ static std::string chat_with_spinner(ReplState& s) {
  */
 static void send_prompt(const std::string& line, ReplState& s) {
   // Trace output for debugging loop behavior (ADR-028)
-  if (s.trace) {
+  if (Config::instance().trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
 
@@ -597,7 +600,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     history.push_back({"system", cfg.system_prompt});
   }
   bool is_tty = tui::use_color(cfg.no_color);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh, false};
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
 
   while (read_line(in, out, line, state.color)) {
     if (line.empty()) {

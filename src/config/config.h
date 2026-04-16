@@ -25,8 +25,14 @@
  */
 enum class Mode { Interactive, Sync };
 
-/// Application configuration
+/// Application configuration (singleton — use Config::instance() for global access)
 struct Config {
+  /// Get the global config instance
+  static Config& instance() {
+    static Config cfg;
+    return cfg;
+  }
+
   std::string provider = "ollama";   ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";    ///< Ollama server hostname
   std::string port = "11434";        ///< Ollama server port
@@ -36,6 +42,7 @@ struct Config {
   int max_output = 10000;            ///< Max chars of command output for LLM context
   bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
   bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
+  bool trace = false;                ///< Trace mode: show HTTP calls and debug info
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
@@ -58,6 +65,9 @@ struct Config {
       "Do NOT ask for confirmation or file paths — the client handles that. "
       "Just include the tags directly in your response.";
 };
+
+// Load .env file into config (project-local, overrides env vars)
+void load_dotenv(const std::string& path, Config& c);
 
 // Load config from environment variables, overriding defaults
 Config load_env(const Config& defaults = Config{});

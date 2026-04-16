@@ -6,3 +6,5 @@ compile_commands.json
 *.gcda
 *.gcno
 *.log
+.env
+/llama-cli

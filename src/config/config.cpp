@@ -8,6 +8,7 @@
 #include "config/config.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -19,6 +20,63 @@ static bool env_get(const char* name, std::string& out) {
     out = val;
   }
   return val != nullptr;
+}
+
+/** Load KEY=VALUE pairs from a .env file into a Config struct.
+ * Skips blank lines, comments (#), and lines without '='.
+ * Overrides values already in the config (project-local wins over env). */
+// NOLINTNEXTLINE(readability-function-size)
+void load_dotenv(const std::string& path, Config& c) {
+  std::ifstream f(path);
+  if (!f.is_open()) {
+    return;
+  }
+  std::string line;
+  while (std::getline(f, line)) {
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+    auto eq = line.find('=');
+    if (eq == std::string::npos) {
+      continue;
+    }
+    std::string key = line.substr(0, eq);
+    std::string val = line.substr(eq + 1);
+    // Strip optional surrounding quotes from value
+    if (val.size() >= 2 && ((val.front() == '"' && val.back() == '"') || (val.front() == '\'' && val.back() == '\''))) {
+      val = val.substr(1, val.size() - 2);
+    }
+    if (key == "OLLAMA_HOST") {
+      // Support host:port format (e.g. OLLAMA_HOST=0.0.0.0:11434)
+      // Split on last colon to separate host from port
+      auto colon = val.rfind(':');
+      if (colon != std::string::npos) {
+        c.host = val.substr(0, colon);
+        c.port = val.substr(colon + 1);
+      } else {
+        c.host = val;
+      }
+    } else if (key == "OLLAMA_PORT") {
+      c.port = val;
+    } else if (key == "OLLAMA_MODEL") {
+      c.model = val;
+    } else if (key == "OLLAMA_TIMEOUT") {
+      c.timeout = std::stoi(val);
+    } else if (key == "LLAMA_EXEC_TIMEOUT") {
+      c.exec_timeout = std::stoi(val);
+    } else if (key == "LLAMA_MAX_OUTPUT") {
+      c.max_output = std::stoi(val);
+    } else if (key == "OLLAMA_SYSTEM_PROMPT") {
+      c.system_prompt = val;
+    } else if (key == "LLAMA_PROVIDER") {
+      c.provider = val;
+    } else if (key == "NO_COLOR") {
+      c.no_color = true;
+    } else if (key == "TRACE") {
+      // TRACE=true or TRACE=1 enables trace output (HTTP calls, timing)
+      c.trace = (val == "true" || val == "1");
+    }
+  }
 }
 
 /** Validate the configuration, print errors and exit on failure */
@@ -57,6 +115,7 @@ static void validate_config(const Config& c) {
 }
 
 /** Load config from environment variables, overriding defaults */
+// NOLINTNEXTLINE(readability-function-size)
 Config load_env(const Config& defaults) {
   Config c = defaults;
   std::string val;
@@ -64,7 +123,15 @@ Config load_env(const Config& defaults) {
     c.provider = val;
   }
   if (env_get("OLLAMA_HOST", val)) {
-    c.host = val;
+    // Support OLLAMA_HOST=host:port (Ollama's own convention)
+    // Split on last colon to separate host from port
+    auto colon = val.rfind(':');
+    if (colon != std::string::npos) {
+      c.host = val.substr(0, colon);
+      c.port = val.substr(colon + 1);
+    } else {
+      c.host = val;
+    }
   }
   if (env_get("OLLAMA_PORT", val)) {
     c.port = val;
@@ -86,6 +153,10 @@ Config load_env(const Config& defaults) {
   }
   if (std::getenv("NO_COLOR")) {
     c.no_color = true;
+  }
+  if (std::getenv("TRACE")) {
+    // Any value enables trace (TRACE=1, TRACE=true, etc.)
+    c.trace = true;
   }
   return c;
 }
@@ -133,7 +204,8 @@ static const IntOptDef int_opts[] = {
     {"--max-output=", nullptr, &Config::max_output},
 };
 
-/** Try to match arg against a long option prefix, return value if matched */
+/** Try to match arg against a long option prefix (e.g. "--host=value").
+ * Returns the value part after the prefix, or empty string if no match. */
 static std::string match_long(const std::string& arg, const char* prefix) {
   std::string p(prefix);
   if (arg.rfind(p, 0) == 0) {
@@ -142,7 +214,8 @@ static std::string match_long(const std::string& arg, const char* prefix) {
   return "";
 }
 
-/** Try to match arg against string option definitions */
+/** Try to match arg against string option definitions.
+ * Checks both long form (--host=value) and short form (-h value). */
 static bool match_string_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : opts) {
     std::string val = match_long(arg, opt.long_prefix);
@@ -157,7 +230,8 @@ static bool match_string_opts(const std::string& arg, int& i, int argc, const ch
   return false;
 }
 
-/** Try to match arg against int option definitions */
+/** Try to match arg against int option definitions.
+ * Same as match_string_opts but converts the value to int via stoi. */
 static bool match_int_opts(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   for (const auto& opt : int_opts) {
     std::string val = match_long(arg, opt.long_prefix);
@@ -249,10 +323,13 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
   return c;
 }
 
-/** Full config resolution: defaults -> env -> cli */
+/** Full config resolution: defaults -> env -> .env -> cli
+ * Also fills Config::instance() for global access */
 Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
+  load_dotenv(".env", c);
   c = load_cli(argc, argv, c);
   validate_config(c);
+  Config::instance() = c;
   return c;
 }
