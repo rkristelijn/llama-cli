@@ -2,4 +2,4 @@ BasedOnStyle: Google
 IndentWidth: 2
 ColumnLimit: 120
 PointerAlignment: Left
-StatementMacros: [SCENARIO, GIVEN, WHEN, THEN, TEST_SUITE, TEST_CASE, CHECK, CHECK_FALSE, REQUIRE]
+IfMacros: [SCENARIO, GIVEN, WHEN, THEN, TEST_SUITE, TEST_CASE, CHECK, CHECK_FALSE, REQUIRE]
