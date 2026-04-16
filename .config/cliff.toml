@@ -6,8 +6,6 @@ header = """
 """
 # Footer format
 footer = ""
-# Ignore commits
-ignore_tags = ""
 # Sort commits
 sort = "newest"
 
@@ -18,8 +16,9 @@ conventional_commits = true
 filter_unconventional = true
 # Tag prefix
 tag_prefix = "v"
-# Regex to parse tags
+# Regex to ignore tags
 ignore_tags = "^v.*"
+
 # Changelog sections
 [changelog.categories]
 # Category mapping
