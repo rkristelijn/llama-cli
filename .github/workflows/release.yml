@@ -29,6 +29,7 @@ jobs:
           mkdir -p temp-cliff
           tar -xzf "git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz" -C temp-cliff
           sudo find temp-cliff -name "git-cliff" -type f -exec mv {} /usr/local/bin/ \;
+          sudo chmod +x /usr/local/bin/git-cliff
           rm -rf temp-cliff "git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz"
           git-cliff --version
 
