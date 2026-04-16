@@ -1,0 +1,52 @@
+# git-cliff configuration
+[changelog]
+# Header format
+header = """
+# Changelog\n
+"""
+# Footer format
+footer = ""
+# Ignore commits
+ignore_tags = ""
+# Sort commits
+sort = "newest"
+
+[git]
+# Parse commits
+conventional_commits = true
+# Filter out commits
+filter_unconventional = true
+# Tag prefix
+tag_prefix = "v"
+# Regex to parse tags
+ignore_tags = "^v.*"
+# Changelog sections
+[changelog.categories]
+# Category mapping
+[[changelog.categories]]
+# Category for breaking changes
+breaking = "💥 Breaking Changes"
+[[changelog.categories]]
+# Category for features
+feature = "🚀 Features"
+[[changelog.categories]]
+# Category for bug fixes
+fix = "🐛 Bug Fixes"
+[[changelog.categories]]
+# Category for documentation
+doc = "📚 Documentation"
+[[changelog.categories]]
+# Category for performance
+perf = "⚡ Performance"
+[[changelog.categories]]
+# Category for refactoring
+refactor = "♻️ Refactoring"
+[[changelog.categories]]
+# Category for testing
+test = "✅ Testing"
+[[changelog.categories]]
+# Category for build/CI
+build = "🔧 Build"
+[[changelog.categories]]
+# Category for other
+other = "🔨 Other"

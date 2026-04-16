@@ -22,13 +22,13 @@ jobs:
               - 'src/**'
               - 'CMakeLists.txt'
               - 'Makefile'
-              - '.config/**'
             docs:
               - 'docs/**'
               - 'README.md'
               - 'INDEX.md'
               - 'CONTRIBUTING.md'
               - '.github/**'
+              - '.config/**'
 
   version-bump:
     runs-on: ubuntu-latest
