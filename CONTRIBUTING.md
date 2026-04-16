@@ -33,6 +33,10 @@ Quick reference:
 | `// NOLINT(check)` | same line | Only for short lines that won't exceed column limit |
 | `// NOLINTBEGIN(check)` / `// NOLINTEND` | block | Larger sections (use sparingly) |
 
+### doctest macros and clang-format
+
+`SCENARIO`, `GIVEN`, `WHEN`, `THEN`, `TEST_CASE` are uppercase macros — clang-format must not lowercase them. They are listed in `StatementMacros` in `.config/.clang-format`. If you add a new doctest macro, add it there too. Never run `clang-tidy --fix` on test files — it does not understand doctest macros and will corrupt them.
+
 ## Workflow
 
 - Always work on a feature branch, never commit directly to `main`

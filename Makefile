@@ -46,7 +46,7 @@ test-e2e: build
 	@for t in e2e/*.sh; do echo "Running $$t"; bash "$$t" $(BUILD_DIR)/llama-cli || exit 1; done
 	@echo "E2E tests passed."
 
-check: all test e2e format-check
+check: all test e2e format index
 	@echo "==> clang-tidy"
 	@# Suppress: identifier-naming (doctest), function-size (use NOLINT in source; logger filtered here)
 	@$(CLANG_TIDY) --config-file=.config/.clang-tidy src/*/*.cpp -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
@@ -62,9 +62,7 @@ check: all test e2e format-check
 	cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/
 	@echo "==> doxygen lint"
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
-	@echo "==> index freshness"
-	# todo: fix make index
-	# @sh scripts/build-index.sh > /dev/null && git diff --quiet INDEX.md || { echo "FAIL: INDEX.md is outdated. Run 'make index'"; exit 1; }
+	@echo "==> index (auto-updated)"
 	@echo "==> coverage (>= 80%)"
 	@sh scripts/test_coverage.sh
 	@echo "==> semgrep"

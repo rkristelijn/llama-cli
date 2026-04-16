@@ -306,6 +306,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       c.bofh = true;
       continue;
     }
+    if (arg == "--repl") {
+      c.force_repl = true;
+      continue;
+    }
 
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
     parse_files_flag(arg, i, argc, argv, c);

@@ -42,8 +42,14 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/yhirose/cpp-linenoise.git
     GIT_TAG master
 )
+FetchContent_Declare(
+    dtl
+    GIT_REPOSITORY https://github.com/cubicdaiya/dtl.git
+    GIT_TAG v1.20
+)
 FetchContent_MakeAvailable(httplib doctest)
 FetchContent_Populate(cpp_linenoise)
+FetchContent_Populate(dtl)
 
 # Shared source files (excluding main and tests)
 set(LIB_SOURCES
@@ -57,7 +63,7 @@ set(LIB_SOURCES
   src/trace/trace.cpp
   src/logging/logger.cpp
 )
-set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} src/trace src/logging)
+set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})

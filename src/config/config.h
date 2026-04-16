@@ -43,6 +43,7 @@ struct Config {
   bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
   bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   bool trace = false;                ///< Trace mode: show HTTP calls and debug info
+  bool force_repl = false;           ///< Force REPL mode even when stdin is not a TTY (--repl)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)

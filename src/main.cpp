@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
       context += std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
       context += "\n";
     }
-  } else if (!isatty(STDIN_FILENO)) {
+  } else if (!isatty(STDIN_FILENO) && !cfg.force_repl) {
     context = std::string((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
   }
   if (!context.empty()) {
