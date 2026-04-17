@@ -203,7 +203,8 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make sast-security
+      # Run semgrep directly — the semgrep/semgrep container is Alpine-based and has no make
+      - run: semgrep scan --config auto --error --quiet
 
   sast-secret:
     runs-on: ubuntu-24.04

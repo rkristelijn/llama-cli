@@ -5,7 +5,7 @@
 This codebase is kept accessible for C++ newcomers:
 
 - Write simple C++ — no template magic, no operator overloading, no unnecessary abstractions
-- Comments explain *why*, not *what*
+- Comments explain *why*, not *what* — we enforce a **minimum 20% comment ratio** in all code and scripts (`make comment-ratio`)
 - Test names read as documentation: `TEST_CASE("config: env vars override defaults")`
 - Prefer `std::string` over `const char*`, `std::vector` over raw arrays
 - Avoid chained `<<` operators across multiple lines — CI clang-format (v14) and local (v21+) disagree on line-breaking. Use separate statements instead
