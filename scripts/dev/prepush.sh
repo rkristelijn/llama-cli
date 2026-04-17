@@ -21,6 +21,9 @@ main() {
   if echo "${changed}" | grep -qE '\.(cpp|h)$'; then
     echo "==> make check (code changed)"
     make -s check
+  elif echo "${changed}" | grep -qvE '\.(md|rst)$'; then
+    echo "==> make check (non-doc files changed)"
+    make -s check
   else
     echo "==> make index (docs only)"
     make -s index

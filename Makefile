@@ -86,11 +86,18 @@ quick: all ## Fast feedback: unit tests + comment ratio
 
 ##@ Linting
 
-format: ## Auto-format C++, YAML, Markdown, and shell scripts
-	@echo "==> make format"
+format: format-cpp format-yaml format-markdown format-scripts ## Auto-format all
+
+format-cpp: ## Auto-format C++ source files
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
+
+format-yaml: ## Auto-format YAML files
 	@if command -v yamllint >/dev/null; then yamllint -d relaxed -f parsable .github/ | awk -F: '{print $$1}' | sort -u | xargs -r sed -i 's/[[:space:]]*$$//'; fi
+
+format-markdown: ## Auto-format Markdown files
 	@if command -v rumdl >/dev/null; then rumdl fmt .; fi
+
+format-scripts: ## Auto-format shell scripts
 	@if command -v shfmt >/dev/null; then find scripts -name '*.sh' -exec shfmt -i 2 -w {} \;; fi
 
 cpp-format: ## Check C++ formatting (no changes)
@@ -103,7 +110,8 @@ tidy: all ## Run clang-tidy (smart: changed files only)
 
 lint: all ## Run cppcheck static analysis
 	@echo "==> make lint (running cppcheck...)"
-	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
+	@output=$$(cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1) || { echo "$$output" | grep -v "Checking\|files checked"; exit 1; }; \
+	echo "$$output" | grep -v "Checking\|files checked" || true
 	@echo "  [done] lint"
 
 complexity: all ## Check cyclomatic complexity (pmccabe)
@@ -141,7 +149,8 @@ lint-scripts: ## Check shell script conventions
 
 docs: ## Check doxygen warnings
 	@echo "==> make docs (generating doxygen...)"
-	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
+	@output=$$(doxygen .config/Doxyfile 2>&1) || { echo "doxygen failed"; exit 1; }; \
+	echo "$$output" | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
 
 comment-ratio: ## Show comment ratio per file

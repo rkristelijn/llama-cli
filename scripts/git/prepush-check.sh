@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# prepush-check.sh — Run pre-push checks (skips lints done in pre-commit).
+# prepush-check.sh — Validate formatting + analysis + tests + security (13 checks).
 #
-# If code changed: runs analysis, tests, security (lints already done).
-# If only docs: verifies INDEX.md is up-to-date.
+# Formatting auto-fixed in pre-commit; this validates it stuck.
+# sast-secret already runs in pre-commit, skipped here.
 #
 # Usage:
 #   bash scripts/git/prepush-check.sh
@@ -20,10 +20,15 @@ FAILED=0
 STEP=0
 FAILED_NAMES=()
 
-# Pre-push checks (formatting already auto-fixed in pre-commit)
 STEPS=(
+  "Lint|cpp-format|make -s cpp-format"
+  "Lint|yamllint|make -s yamllint"
+  "Lint|markdownlint|make -s markdownlint"
+  "Lint|lint-makefile|make -s lint-makefile"
+  "Lint|lint-scripts|make -s lint-scripts"
   "Analysis|tidy|make -s tidy"
   "Analysis|complexity|make -s complexity"
+  "Analysis|lint|make -s lint"
   "Analysis|docs|make -s docs"
   "Analysis|index|make -s index"
   "Test|coverage|make -s coverage-folder"
@@ -34,8 +39,14 @@ STEPS=(
 TOTAL="${#STEPS[@]}"
 
 declare -A HINTS=(
+  ["cpp-format"]="fix: make format-cpp, recheck: make cpp-format"
+  ["yamllint"]="fix: make format-yaml, recheck: make yamllint"
+  ["markdownlint"]="fix: make format-markdown, recheck: make markdownlint"
+  ["lint-makefile"]="fix: extract target to scripts/, recheck: make lint-makefile"
+  ["lint-scripts"]="fix: make format-scripts, recheck: make lint-scripts"
   ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
   ["complexity"]="fix: refactor or add pmccabe:skip-complexity, recheck: make complexity"
+  ["lint"]="fix: address cppcheck warnings, recheck: make lint"
   ["docs"]="fix: address doxygen warnings in source, recheck: make docs"
   ["index"]="fix: make index, recheck: make index"
   ["coverage"]="fix: add tests, recheck: make coverage-folder"
@@ -67,7 +78,7 @@ main() {
   changed="$(git diff --name-only origin/main...HEAD)"
 
   if ! echo "${changed}" | grep -qE '\.(cpp|h)$'; then
-    echo "==> make index (docs only)"
+    echo "==> docs only — verifying INDEX.md"
     make -s index
     git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }
     echo "All checks passed."

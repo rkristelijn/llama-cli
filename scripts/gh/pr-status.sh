@@ -84,15 +84,21 @@ if [ -n "$FAILED_JOBS" ]; then
   printf "\n${RED}Failed jobs detail:${NC}\n"
   
   # Fetch full logs for the run as a fallback (gh CLI limitation: individual job logs often fail)
-  gh run view "$RUN_ID" --log > full_log.txt 2>/dev/null
+  LOG_FILE="$(mktemp)"
+  trap 'rm -f "$LOG_FILE"' EXIT
+  gh run view "$RUN_ID" --log > "$LOG_FILE" 2>/dev/null
   
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"
-    # Show log for the failed job, focusing on the actual step output.
-    # We grep out the timestamps (2026-04-17T...) to keep it clean.
-    grep -A 50 "$JOB_NAME" full_log.txt | grep -v "^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T" | tail -n 50 || echo "Logs not found for $JOB_NAME"
+    snippet=$(grep -A 50 "$JOB_NAME" "$LOG_FILE" | grep -v "^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T" | tail -n 50 || true)
+    if [ -n "$snippet" ]; then
+      printf '%s\n' "$snippet"
+    else
+      echo "Logs not found for $JOB_NAME"
+    fi
   done <<< "$FAILED_JOBS"
-  rm full_log.txt
+  rm -f "$LOG_FILE"
+  trap - EXIT
   exit 1
 fi
 

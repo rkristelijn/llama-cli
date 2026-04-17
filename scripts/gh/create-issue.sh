@@ -9,8 +9,8 @@ set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 
-TITLE="$1"
-BODY="$2"
+TITLE="${1:-}"
+BODY="${2:-}"
 
 if [ -z "$TITLE" ] || [ -z "$BODY" ]; then
   echo "Usage: $0 \"title\" \"description\""

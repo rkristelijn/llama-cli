@@ -93,7 +93,7 @@ Apply str_replace to src/repl/repl.cpp? [y/n]
 | BOFH mode | `--why-so-serious` | — | `false` |
 | System prompt | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
-CLI flags override env vars, env vars override defaults. Use `--default-env > .env` to generate a template configuration file.
+CLI flags override `.env`, `.env` overrides environment variables, which override defaults. Use `--default-env > .env` to generate a template configuration file.
 
 See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 

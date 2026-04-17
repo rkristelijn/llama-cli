@@ -71,11 +71,11 @@ CI workflows are thin proxies that call `make` targets or scripts:
 
 ### Version pinning
 
-All development tools are pinned in `versions.env` (single source of truth):
+All development tools are pinned in `.config/versions.env` (single source of truth):
 
-- **`versions.env`** — shell-sourceable `KEY=VALUE` file, read by Makefile and `scripts/dev/setup.sh`
+- **`.config/versions.env`** — shell-sourceable `KEY=VALUE` file, read by Makefile and `scripts/dev/setup.sh`
 - **`make setup`** — installs all tools at pinned versions, works on macOS (brew) and Linux (apt)
-- **`make check-versions`** — warns when installed versions don't match `versions.env`
+- **`make check-versions`** — warns when installed versions don't match `.config/versions.env`
 - **No Node.js or Python required** — markup linting uses native binaries: `yamllint` (installed via brew/apt) and `rumdl` (Rust single-binary). All config lives in `.config/`
 - See [ADR-026](docs/adr/adr-026-version-pinning.md) for rationale
 
@@ -98,7 +98,7 @@ We follow a **Dev-First** philosophy: productivity and fast feedback loops for d
 ### Check targets
 
 ```bash
-make check       # SMART & FAST: Only verifies files changed vs main (default)
+make check       # DEFAULT: Full linting, smart clang-tidy (changed files only)
 make full-check  # EXHAUSTIVE: Verifies every file in the project (CI uses this on main)
 make quick       # Incremental build + unit tests + comment ratio
 make live        # Integration test with real LLM (requires running Ollama)

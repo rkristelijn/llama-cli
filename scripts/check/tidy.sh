@@ -35,6 +35,18 @@ main() {
     branch="$(git rev-parse --abbrev-ref HEAD)"
     diff_base="$( [[ "${branch}" == "main" ]] && echo "HEAD^" || echo "origin/main" )"
     files="$(git diff --name-only "${diff_base}" | grep '\.cpp$' | grep '^src/' || true)"
+    local headers
+    headers="$(git diff --name-only "${diff_base}" | grep '\.h$' | grep '^src/' || true)"
+
+    # If headers changed, include all cpp files from those directories
+    if [[ -n "${headers}" ]]; then
+      local header_dirs
+      header_dirs="$(echo "${headers}" | xargs -n1 dirname | sort -u)"
+      for hdir in ${header_dirs}; do
+        files="$(printf '%s\n%s' "${files}" "$(find "${hdir}" -maxdepth 1 -name '*.cpp' 2>/dev/null)" | sort -u)"
+      done
+      files="$(echo "${files}" | sed '/^$/d')"
+    fi
 
     if [[ -z "${files}" ]]; then
       echo "  [skip] no changed files vs ${diff_base}"
