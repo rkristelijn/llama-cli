@@ -229,7 +229,7 @@ help: ## Show this help
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) }' $(MAKEFILE_LIST)
 
 # Internal targets (no ## comment = hidden from help)
-all: check-deps
+all: $(if $(filter 1,$(SKIP_DEPS)),,check-deps)
 	@cmake -B $(BUILD_DIR) -S . > /dev/null
 	@cmake --build $(BUILD_DIR) --target llama-cli > /dev/null
 	@cp $(BUILD_DIR)/llama-cli .

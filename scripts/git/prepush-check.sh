@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 #
-# prepush-check.sh — Validate formatting + analysis + tests + security (13 checks).
+# prepush-check.sh — Validate all checks before pushing (15 checks).
 #
-# Formatting auto-fixed in pre-commit; this validates it stuck.
-# sast-secret already runs in pre-commit, skipped here.
+# Names match CI workflow jobs exactly.
 #
 # Usage:
 #   bash scripts/git/prepush-check.sh
@@ -21,17 +20,19 @@ STEP=0
 FAILED_NAMES=()
 
 STEPS=(
-  "Lint|cpp-format|make -s cpp-format"
-  "Lint|yamllint|make -s yamllint"
-  "Lint|markdownlint|make -s markdownlint"
+  "Lint|lint-cpp|make -s cpp-format"
+  "Lint|lint-yaml|make -s yamllint"
+  "Lint|lint-markdown|make -s markdownlint"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
-  "Analysis|tidy|make -s tidy"
-  "Analysis|complexity|make -s complexity"
-  "Analysis|lint|make -s lint"
-  "Analysis|docs|make -s docs"
-  "Analysis|index|make -s index"
-  "Test|coverage|make -s coverage-folder"
+  "Lint|lint-tidy|make -s tidy"
+  "Lint|lint-cppcheck|make -s lint"
+  "Lint|lint-docs|make -s docs"
+  "Lint|lint-complexity|make -s complexity"
+  "Build|build|make -s build"
+  "Test|unit-test|make -s test"
+  "Test|e2e-test|make -s e2e"
+  "Test|test-coverage|make -s coverage-folder"
   "Security|sast-security|make -s sast-security"
   "Metrics|comment-ratio|bash scripts/check/comment-ratio.sh"
 )
@@ -39,19 +40,21 @@ STEPS=(
 TOTAL="${#STEPS[@]}"
 
 declare -A HINTS=(
-  ["cpp-format"]="fix: make format-cpp, recheck: make cpp-format"
-  ["yamllint"]="fix: make format-yaml, recheck: make yamllint"
-  ["markdownlint"]="fix: make format-markdown, recheck: make markdownlint"
+  ["lint-cpp"]="fix: make format-cpp, recheck: make cpp-format"
+  ["lint-yaml"]="fix: make format-yaml, recheck: make yamllint"
+  ["lint-markdown"]="fix: make format-markdown, recheck: make markdownlint"
   ["lint-makefile"]="fix: extract target to scripts/, recheck: make lint-makefile"
   ["lint-scripts"]="fix: make format-scripts, recheck: make lint-scripts"
-  ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
-  ["complexity"]="fix: refactor or add pmccabe:skip-complexity, recheck: make complexity"
-  ["lint"]="fix: address cppcheck warnings, recheck: make lint"
-  ["docs"]="fix: address doxygen warnings in source, recheck: make docs"
-  ["index"]="fix: make index, recheck: make index"
-  ["coverage"]="fix: add tests, recheck: make coverage-folder"
+  ["lint-tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
+  ["lint-cppcheck"]="fix: address cppcheck warnings, recheck: make lint"
+  ["lint-docs"]="fix: address doxygen warnings, recheck: make docs"
+  ["lint-complexity"]="fix: refactor complex functions, recheck: make complexity"
+  ["build"]="fix: resolve build errors"
+  ["unit-test"]="fix: failing tests, recheck: make test"
+  ["e2e-test"]="fix: failing e2e tests, recheck: make e2e"
+  ["test-coverage"]="fix: add tests, recheck: make coverage-folder"
   ["sast-security"]="fix: address semgrep findings, recheck: make sast-security"
-  ["comment-ratio"]="fix: add comments to source, recheck: make comment-ratio"
+  ["comment-ratio"]="fix: add comments to source"
 )
 
 run_step() {
@@ -74,17 +77,6 @@ run_step() {
 }
 
 main() {
-  local changed
-  changed="$(git diff --name-only origin/main...HEAD)"
-
-  if ! echo "${changed}" | grep -qE '\.(cpp|h)$'; then
-    echo "==> docs only — verifying INDEX.md"
-    make -s index
-    git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }
-    echo "All checks passed."
-    return 0
-  fi
-
   local current_phase=""
   for entry in "${STEPS[@]}"; do
     local phase="${entry%%|*}"

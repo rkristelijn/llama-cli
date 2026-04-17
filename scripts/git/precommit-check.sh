@@ -12,7 +12,7 @@ set -o nounset
 set -o pipefail
 
 STEP=0
-TOTAL=5
+TOTAL=6
 
 run_step() {
   local name="$1"; shift
@@ -37,6 +37,9 @@ run_step "format-cpp" make -s format-cpp
 run_step "format-yaml" make -s format-yaml
 run_step "format-markdown" make -s format-markdown
 run_step "format-scripts" make -s format-scripts
+echo ""
+echo "── Docs ──"
+run_step "index" make -s index
 echo ""
 echo "── Security ──"
 run_step "sast-secret" make -s sast-secret

@@ -71,3 +71,4 @@
     - [ ] check, document and uphold the default cpp style guide to write consistent code, is it <https://google.github.io/styleguide/cppguide.html>? unsure
     - [ ] can checks be cached so when not needed they don't run?
     - [ ] get testcoverage up at min 80% but after refactoring complexity as it affects tests
+    - [ ] when /version is ran inside of REPL it is malformed. maybe depending on dynamic value

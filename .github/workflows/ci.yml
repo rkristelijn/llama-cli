@@ -9,6 +9,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  SKIP_DEPS: 1
+
 jobs:
   changes:
     runs-on: ubuntu-24.04
@@ -45,7 +48,7 @@ jobs:
 
   # --- Lint (no build, fast) ---
 
-  format:
+  lint-cpp:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -54,7 +57,7 @@ jobs:
       - run: bash scripts/ci/install-deps.sh llvm
       - run: make cpp-format
 
-  yamllint:
+  lint-yaml:
     runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     steps:
@@ -62,13 +65,68 @@ jobs:
       - run: bash scripts/ci/install-deps.sh yamllint
       - run: make yamllint
 
-  markdownlint:
+  lint-markdown:
     runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh rumdl
       - run: make markdownlint
+
+  lint-makefile:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make lint-makefile
+
+  lint-scripts:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make lint-scripts
+
+  lint-tidy:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh llvm
+      - run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            make FULL=1 tidy
+          else
+            make tidy
+          fi
+
+  lint-cppcheck:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh cppcheck
+      - run: make lint
+
+  lint-docs:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh doxygen
+      - run: make docs
+
+  lint-complexity:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh pmccabe
+      - run: make complexity
 
   # --- Build ---
 
@@ -82,7 +140,7 @@ jobs:
 
   # --- Test ---
 
-  test:
+  unit-test:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -90,13 +148,33 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make test
 
-  e2e:
+  e2e-test:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make e2e
+
+  test-coverage:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh lcov bc
+      - run: make coverage
+      - name: Generate and check coverage
+        run: |
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
+          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
+          PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
+          echo "Total Line Coverage: $PERCENT%"
+          [ "$(echo "$PERCENT < 55" | bc -l)" -eq 0 ] || { echo "Coverage below 55%!"; exit 1; }
+      - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
+        with:
+          files: coverage.info
+          fail_ci_if_error: false
 
   sanitizers:
     needs: changes
@@ -115,72 +193,9 @@ jobs:
           ./build/test_annotation
           ./build/test_exec
 
-  coverage:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: bash scripts/ci/install-deps.sh lcov bc
-      - run: make coverage
-      - name: Generate and check coverage
-        run: |
-          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
-          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
-          PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
-          echo "Total Line Coverage: $PERCENT%"
-          [ "$(echo "$PERCENT < 55" | bc -l)" -eq 0 ] || { echo "Coverage below 55%!"; exit 1; }
-      - uses: codecov/codecov-action@7d9f16c6eb04c5aa1b1c14179dff1ea1c7b02786 # v4.5.0
-        with:
-          files: coverage.info
-          fail_ci_if_error: false
-
-  # --- Analysis (build-dependent) ---
-
-  clang-tidy:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: bash scripts/ci/install-deps.sh llvm
-      - run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            make FULL=1 tidy
-          else
-            make tidy
-          fi
-
-  complexity:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: bash scripts/ci/install-deps.sh pmccabe
-      - run: make complexity
-
-  cppcheck:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: bash scripts/ci/install-deps.sh cppcheck
-      - run: make lint
-
-  doxygen:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: bash scripts/ci/install-deps.sh doxygen
-      - run: make docs
-
   # --- Security ---
 
-  semgrep:
+  sast-security:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -190,7 +205,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make sast-security
 
-  gitleaks:
+  sast-secret:
     runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     permissions:
@@ -202,3 +217,14 @@ jobs:
           fetch-depth: 0
       - run: bash scripts/ci/install-deps.sh gitleaks
       - run: make sast-secret
+
+  # --- Metrics ---
+
+  comment-ratio:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh cloc
+      - run: bash scripts/check/comment-ratio.sh
