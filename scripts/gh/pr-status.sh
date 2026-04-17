@@ -29,7 +29,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 DEBUG=false
-if [ "$1" = "--debug" ]; then
+if [ "${1:-}" = "--debug" ]; then
   DEBUG=true
 fi
 
