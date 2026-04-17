@@ -69,3 +69,4 @@
     - [ ] Would like to understand if documentation coverage is possible to calculate and linking code, so that all code is backed with documentation is possible
     - [ ] All Markdown file, except for INDEX.md and README.md (maybe others) should have numbered headers and table of contents and linting with auto fix
     - [ ] check, document and uphold the default cpp style guide to write consistent code, is it <https://google.github.io/styleguide/cppguide.html>? unsure
+    - [ ] can checks be cached so when not needed they don't run?
