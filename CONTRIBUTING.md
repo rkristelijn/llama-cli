@@ -76,6 +76,7 @@ All development tools are pinned in `versions.env` (single source of truth):
 - **`versions.env`** — shell-sourceable `KEY=VALUE` file, read by Makefile and `scripts/dev/setup.sh`
 - **`make setup`** — installs all tools at pinned versions, works on macOS (brew) and Linux (apt)
 - **`make check-versions`** — warns when installed versions don't match `versions.env`
+- **No Node.js or Python required** — markup linting uses native binaries: `yamllint` (installed via brew/apt) and `rumdl` (Rust single-binary). All config lives in `.config/`
 - See [ADR-026](docs/adr/adr-026-version-pinning.md) for rationale
 
 ## Workflow
@@ -104,19 +105,23 @@ make live        # Integration test with real LLM (requires running Ollama)
 
 ### What is verified
 
-| Check | Tool | Smart Mode | target |
-|-------|------|------------|--------|
-| Unit tests | doctest | Always runs all | `make test` |
-| E2E tests | bash | Always runs all | `make e2e` |
-| Format | clang-format | Always runs all | `make format-check` |
-| clang-tidy | clang-tidy | Only changed files | `make tidy` |
-| pmccabe | pmccabe | Always runs all | `make complexity` |
-| cppcheck | cppcheck | Always runs all | `make lint` |
-| doxygen | doxygen | Always runs all | `make docs` |
-| coverage | gcov | Folder-level summary | `make coverage-folder` |
-| comment ratio | cloc | Always runs all | `make comment-ratio` |
-| SAST Security | semgrep | Always runs all | `make sast-security` |
-| SAST Secret | gitleaks | Always runs all | `make sast-secret` |
+Ordered by the [shift-left principle](https://en.wikipedia.org/wiki/Shift-left_testing): fastest checks first, no-build checks before build-dependent checks.
+
+| Phase | Check | Tool | Smart Mode | target |
+|-------|-------|------|------------|--------|
+| Lint | Format | clang-format | Always runs all | `make format-check` |
+| Lint | YAML lint | yamllint | Always runs all | `make yamllint` |
+| Lint | Markdown lint | rumdl | Always runs all | `make markdownlint` |
+| Analysis | clang-tidy | clang-tidy | Only changed files | `make tidy` |
+| Analysis | Complexity | pmccabe | Always runs all | `make complexity` |
+| Analysis | cppcheck | cppcheck | Always runs all | `make lint` |
+| Analysis | Doxygen | doxygen | Always runs all | `make docs` |
+| Test | Unit tests | doctest | Always runs all | `make test` |
+| Test | E2E tests | bash | Always runs all | `make e2e` |
+| Test | Coverage | gcov | Folder-level summary | `make coverage-folder` |
+| Security | SAST Security | semgrep | Always runs all | `make sast-security` |
+| Security | SAST Secret | gitleaks | Always runs all | `make sast-secret` |
+| Metrics | Comment ratio | cloc | Always runs all | `make comment-ratio` |
 
 CI runs `make check` on pull requests to ensure your changes are clean, and `make full-check` on the `main` branch to maintain absolute project integrity.
 

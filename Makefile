@@ -10,10 +10,38 @@ else
   SMART ?= 1
 endif
 
-.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live tidy lint complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi
+.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps check-versions live tidy lint yamllint markdownlint complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
+
+# Check installed tool versions against .config/versions.env
+check-versions:
+	@. .config/versions.env; \
+	ok=0; fail=0; \
+	check() { \
+		local name="$$1" expected="$$2" actual="$$3"; \
+		if [ -z "$$actual" ]; then \
+			printf "  %-20s MISSING (expected %s)\n" "$$name" "$$expected"; fail=$$((fail+1)); \
+		elif echo "$$actual" | grep -q "$$expected"; then \
+			printf "  %-20s %s ✓\n" "$$name" "$$actual"; ok=$$((ok+1)); \
+		else \
+			printf "  %-20s %s (expected %s)\n" "$$name" "$$actual" "$$expected"; fail=$$((fail+1)); \
+		fi; \
+	}; \
+	echo "==> Checking tool versions against .config/versions.env"; \
+	check "cmake"        "$$CMAKE_VERSION"    "$$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)"; \
+	check "clang-format" "$$LLVM_VERSION"     "$$(clang-format --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"; \
+	check "clang-tidy"   "$$LLVM_VERSION"     "$$(clang-tidy --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)"; \
+	check "cppcheck"     "$$CPPCHECK_VERSION" "$$(cppcheck --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+')"; \
+	check "doxygen"      "$$DOXYGEN_VERSION"  "$$(doxygen --version 2>/dev/null)"; \
+	check "cloc"         "$$CLOC_VERSION"     "$$(cloc --version 2>/dev/null)"; \
+	check "shellcheck"   "$$SHELLCHECK_VERSION" "$$(shellcheck --version 2>/dev/null | grep '^version:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
+	check "yamllint"     "$$YAMLLINT_VERSION"   "$$(yamllint --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
+	check "rumdl"        "$$RUMDL_VERSION"      "$$(rumdl version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
+	echo ""; \
+	echo "  $$ok OK, $$fail mismatch/missing"; \
+	[ "$$fail" -eq 0 ] || echo "  Run 'make setup' to install missing tools."
 
 all: check-deps
 	@cmake -B $(BUILD_DIR) -S . > /dev/null
@@ -92,6 +120,16 @@ lint: all
 	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
 	@echo "  [done] lint"
 
+yamllint:
+	@echo "==> make yamllint"
+	@yamllint -c .config/yamllint.yml .github/
+	@echo "  [done] yamllint"
+
+markdownlint:
+	@echo "==> make markdownlint"
+	@rumdl check .
+	@echo "  [done] markdownlint"
+
 complexity: all
 	@echo "==> make complexity (running pmccabe...)"
 	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
@@ -124,7 +162,7 @@ docs:
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
 
-check: format-check tidy complexity lint docs index
+check: format-check yamllint markdownlint tidy complexity lint docs index
 	@$(MAKE) -s coverage-folder
 	@$(MAKE) -s sast
 	@echo "==> make comment-ratio"

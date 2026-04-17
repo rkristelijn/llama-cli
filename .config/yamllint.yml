@@ -1,0 +1,13 @@
+# yamllint configuration
+# @see docs/adr/adr-44-tidy-boilerplate.md
+
+extends: default
+
+rules:
+  line-length:
+    max: 120
+  truthy:
+    forbid-duplicated-merge-keys: true
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable

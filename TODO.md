@@ -39,7 +39,7 @@
   - [ ] ADR-027: exec capture claim inconsistent — add LOG_EVENT to exec flow or update ADR
 
 - [ ] Quality
-  - [ ] Pin all tool versions in `.config/versions.json` (cppcheck, pmccabe, semgrep, gitleaks)
+  - [x] Pin all tool versions in `.config/versions.env` (all tools now pinned)
   - [ ] Add logging tests (Logger::log, path(), JSONL format validation)
   - [ ] Evaluate remaining 12-factor principles (#10)
   - [x] Define release process (#11) — GitHub Actions workflow, VERSION file, tag workflow

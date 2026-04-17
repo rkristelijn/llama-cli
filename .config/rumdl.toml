@@ -1,0 +1,12 @@
+# rumdl configuration — Rust markdown linter
+# @see https://rumdl.dev/global-settings
+# @see docs/adr/adr-44-tidy-boilerplate.md
+
+[global]
+exclude = ["build", "node_modules"]
+respect-gitignore = true
+
+[MD013]
+line_length = 120
+tables = false
+code_blocks = false

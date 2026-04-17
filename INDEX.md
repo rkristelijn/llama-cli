@@ -53,6 +53,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
+- [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
@@ -62,7 +63,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh-pr-feedback.sh`](scripts/gh-pr-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
 - [`scripts/gh-pr-status.sh`](scripts/gh-pr-status.sh) — Show PR status and failed pipeline jobs with colors
 - [`scripts/log-viewer.sh`](scripts/log-viewer.sh) — log-viewer.sh — Read and display event logs in human-readable format
-- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
+- [`scripts/setup.sh`](scripts/setup.sh) — 
 - [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`scripts/test-files-integration.sh`](scripts/test-files-integration.sh) — Integration test: --files flag with benchmarking
@@ -103,4 +104,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_100 files indexed._
+_101 files indexed._
