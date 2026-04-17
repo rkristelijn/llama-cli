@@ -26,4 +26,4 @@ if [[ -n "${staged}" ]]; then
 fi
 
 # Quick build + secret scan (catch secrets early)
-make build && make sast-secret || { echo "ERROR: build or secret scan failed"; exit 1; }
+bash scripts/git/precommit-check.sh
