@@ -118,6 +118,14 @@ markdownlint: ## Lint Markdown files (rumdl)
 	else echo "  [skip] rumdl not installed"; fi
 	@echo "  [done] markdownlint"
 
+lint-code: cpp-format lint ## Alias: lint C++ code (format check + cppcheck)
+
+lint-yaml: yamllint ## Alias: lint YAML files
+
+lint-markdown: markdownlint ## Alias: lint Markdown files
+
+lint-all: lint-code lint-yaml lint-markdown lint-makefile lint-scripts ## Run all linting checks
+
 lint-makefile: ## Check Makefile targets are ≤5 lines
 	@echo "==> make lint-makefile"
 	@bash scripts/check/lint-makefile.sh

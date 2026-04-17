@@ -91,7 +91,9 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
@@ -131,4 +133,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_128 files indexed._
+_130 files indexed._

@@ -12,7 +12,7 @@ set -o nounset
 set -o pipefail
 
 STEP=0
-TOTAL=2
+TOTAL=3
 
 run_step() {
   local name="$1" cmd="$2"
@@ -32,7 +32,8 @@ run_step() {
 }
 
 echo "── Pre-commit checks ──"
-run_step "build" "make -s build"
+run_step "format" "make -s format"
+run_step "lint-all" "make -s lint-all"
 run_step "sast-secret" "make -s sast-secret"
 echo ""
 echo "All ${TOTAL} checks passed."
