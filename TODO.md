@@ -61,3 +61,7 @@
   - [ ] the release is broken, it now says 'v' and the downloads have a wrong filename. Would like to have a regular release build, and README.md updated so that people can easily download the tool.
   - [ ] would like to have logging enabled by default and the location of the logfiles in a common place on linux and macbook
   - [ ] there are a lot of too complex functions that need fixing
+
+  - [ ] Various
+    - [ ] Would like to understand if documentation coverage is possible to calculate and linking code, so that all code is backed with documentation is possible
+    - [ ] All Markdown file, except for INDEX.md and README.md (maybe others) should have numbered headers and table of contents and linting with auto fix

@@ -37,6 +37,47 @@ Quick reference:
 
 `SCENARIO`, `GIVEN`, `WHEN`, `THEN`, `TEST_CASE` are uppercase macros — clang-format must not lowercase them. They are listed in `StatementMacros` in `.config/.clang-format`. If you add a new doctest macro, add it there too. Never run `clang-tidy --fix` on test files — it does not understand doctest macros and will corrupt them.
 
+## Shell scripts
+
+All shell scripts follow the conventions in [docs/tools/shell-scripts.md](docs/tools/shell-scripts.md). Summary:
+
+- **Bash only** — `#!/usr/bin/env bash`, never `#!/bin/sh` or `#!/bin/zsh`
+- **Safety flags** — every script starts with `set -o errexit`, `set -o nounset`, `set -o pipefail`
+- **Debug support** — every script includes `if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi`
+- **Naming** — kebab-case filenames with `.sh` extension: `check-format.sh`, not `check_format.sh`
+- **Organization** — scripts live in subdirectories by purpose: `scripts/check/`, `scripts/ci/`, `scripts/dev/`, `scripts/gh/`, `scripts/test/`
+- **Comments** — file header required (purpose, usage, environment), function headers for non-trivial functions (Google-style: Globals/Arguments/Outputs/Returns)
+- **Linting** — all scripts must pass ShellCheck. Run `make shellcheck` to verify
+- **`main()` pattern** — scripts with multiple functions use a `main()` entry point called at the bottom: `main "$@"`
+
+### Makefile conventions
+
+The Makefile is an **orchestration layer**, not a scripting environment:
+
+- **Simple targets stay inline** — `clean`, `install`, `format` (1–5 lines, no conditionals)
+- **Complex logic goes to scripts** — if a recipe has conditionals, loops, or exceeds ~5 lines, extract it to `scripts/`
+- **All targets have `##` comments** — used by `make help` for auto-generated documentation
+- **Aliases are documented** — shorthand targets (e.g., `s` for `start`) appear in help output
+- **`make help` is the default** — bare `make` shows help, not builds
+
+### CI conventions
+
+CI workflows are thin proxies that call `make` targets or scripts:
+
+- **No inline build logic** — CI YAML handles triggers, runners, caching, and secrets only
+- **Pin runner OS** — `ubuntu-24.04`, never `ubuntu-latest`
+- **Pin action versions** — use commit SHA with version comment, not mutable tags
+- **Reproducible locally** — `make check` runs the same checks as CI
+
+### Version pinning
+
+All development tools are pinned in `versions.env` (single source of truth):
+
+- **`versions.env`** — shell-sourceable `KEY=VALUE` file, read by Makefile and `scripts/dev/setup.sh`
+- **`make setup`** — installs all tools at pinned versions, works on macOS (brew) and Linux (apt)
+- **`make check-versions`** — warns when installed versions don't match `versions.env`
+- See [ADR-026](docs/adr/adr-026-version-pinning.md) for rationale
+
 ## Workflow
 
 - Always work on a feature branch, never commit directly to `main`

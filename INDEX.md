@@ -36,6 +36,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
+- [`docs/adr/adr-44-tidy-boilerplate.md`](docs/adr/adr-44-tidy-boilerplate.md) — ADR-044: Tidy Build Boilerplate
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -44,6 +45,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
 - [`docs/full-test-script.md`](docs/full-test-script.md) — Manual Test Script
+- [`docs/gh-manual.md`](docs/gh-manual.md) — GitHub CLI Manual (gh)
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
@@ -53,13 +55,13 @@ Auto-generated overview of all files in this repo.
 - [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
-- [`scripts/create-pr.sh`](scripts/create-pr.sh) — Create a pull request for the current branch
-- [`scripts/download-issues.sh`](scripts/download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
-- [`scripts/fetch-coderabbit-feedback.sh`](scripts/fetch-coderabbit-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
 - [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
+- [`scripts/gh-create-pr.sh`](scripts/gh-create-pr.sh) — Create a pull request for the current branch
+- [`scripts/gh-download-issues.sh`](scripts/gh-download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
+- [`scripts/gh-pipeline-status.sh`](scripts/gh-pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
+- [`scripts/gh-pr-feedback.sh`](scripts/gh-pr-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
+- [`scripts/gh-pr-status.sh`](scripts/gh-pr-status.sh) — Show PR status and failed pipeline jobs with colors
 - [`scripts/log-viewer.sh`](scripts/log-viewer.sh) — log-viewer.sh — Read and display event logs in human-readable format
-- [`scripts/pipeline-status.sh`](scripts/pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
-- [`scripts/pr-status.sh`](scripts/pr-status.sh) — Show PR status and failed pipeline jobs with colors
 - [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
 - [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
 - [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
@@ -101,4 +103,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_98 files indexed._
+_100 files indexed._

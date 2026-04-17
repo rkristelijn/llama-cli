@@ -10,7 +10,7 @@ else
   SMART ?= 1
 endif
 
-.PHONY: all build clean run start log test test-unit test-e2e e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live tidy lint complexity docs sast sast-secret sast-security coverage coverage-folder todo
+.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live tidy lint complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -22,14 +22,28 @@ all: check-deps
 
 build: all
 
-run: all
-	./$(BUILD_DIR)/llama-cli $(ARGS)
-
+# Shorthands
+s: start
 start: all
 	./$(BUILD_DIR)/llama-cli $(ARGS)
 
+r: run
+run: start
+
+t: test
+test: test-unit
+
+end-to-end: e2e
+e2e: build
+	@echo "==> make e2e"
+	@for t in e2e/*.sh; do \
+		case "$$t" in *test_live*|*helpers*) continue;; esac; \
+		bash "$$t" $(BUILD_DIR)/llama-cli > /dev/null || { echo "FAIL: $$t"; exit 1; }; \
+	done
+	@echo "  [done] e2e"
+
 log:
-	@sh scripts/log-viewer.sh $(ARGS)
+	@bash scripts/log-viewer.sh $(ARGS)
 
 test-unit: all
 	@echo "==> make test-unit"
@@ -47,21 +61,8 @@ test-unit: all
 	@./$(BUILD_DIR)/test_exec --quiet
 	@echo "  [done] test-unit"
 
-test: test-unit
-
-e2e: test-e2e
-
-# Live integration test with real LLM (requires running Ollama)
 live: all
 	@bash e2e/test_live.sh $(BUILD_DIR)/llama-cli
-
-test-e2e: build
-	@echo "==> make e2e"
-	@for t in e2e/*.sh; do \
-		case "$$t" in *test_live*|*helpers*) continue;; esac; \
-		bash "$$t" $(BUILD_DIR)/llama-cli > /dev/null || { echo "FAIL: $$t"; exit 1; }; \
-	done
-	@echo "  [done] e2e"
 
 tidy: all
 	@if [ "$(SMART)" = "1" ]; then \
@@ -88,7 +89,7 @@ tidy: all
 
 lint: all
 	@echo "==> make lint (running cppcheck...)"
-	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
+	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
 	@echo "  [done] lint"
 
 complexity: all
@@ -140,7 +141,7 @@ check-ai:
 	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
 
 setup:
-	sh scripts/setup.sh
+	bash scripts/setup.sh
 
 install: all
 	@cp $(BUILD_DIR)/llama-cli /usr/local/bin/llama-cli
@@ -152,8 +153,6 @@ hooks:
 	@echo "Git hooks installed."
 
 todo:
-	@# Shows TODO items from all markdown files and technical debt in code.
-	@# Bolds parent tasks that have indented sub-tasks.
 	@echo "==> Markdown TODOs"
 	@find . -name "*.md" -not -path "./build/*" -not -path "./.git/*" -exec awk ' \
 		FNR == 1 { \
@@ -184,7 +183,7 @@ todo:
 
 index:
 	@echo "==> make index"
-	@sh scripts/build-index.sh
+	@bash scripts/build-index.sh
 
 format:
 	@echo "==> make format"
@@ -200,6 +199,33 @@ comment-ratio:
 	  | grep -v "^language\|^SUM\|^http" \
 	  | awk -F',' 'NF==5 && $$5>0 {ratio=int($$4/($$4+$$5)*100); printf "%d%%\t%s\n", ratio, $$2}' \
 	  | sort -n
+
+gh-pipeline-status:
+	bash scripts/gh-pipeline-status.sh
+gpls: gh-pipeline-status
+
+gh-pr-status:
+	bash scripts/gh-pr-status.sh $(ARGS)
+gps: gh-pr-status
+
+gh-create-pr:
+	bash scripts/gh-create-pr.sh
+gpr: gh-create-pr
+
+gh-download-issues:
+	bash scripts/gh-download-issues.sh
+gdi: gh-download-issues
+
+gh-pr-feedback:
+	bash scripts/gh-pr-feedback.sh
+gpf: gh-pr-feedback
+
+create-issue:
+	@if [ -z "$(TITLE)" ] || [ -z "$(DESC)" ]; then \
+		echo "Usage: make create-issue TITLE=\"My title\" DESC=\"My description\""; \
+		exit 1; \
+	fi
+	@bash scripts/gh-create-issue.sh "$(TITLE)" "$(DESC)"
 
 coverage:
 	@echo "==> make coverage (configuring with --coverage...)"
@@ -260,18 +286,17 @@ prepush:
 
 help:
 	@echo "Usage:"
-	@echo "  make                build the project"
-	@echo "  make run            build and run (alias: make start)"
-	@echo "  make quick          incremental build + tests (fast)"
-	@echo "  make test           unit tests"
-	@echo "  make e2e            end-to-end tests"
-	@echo "  make check          run smart quality checks (default)"
-	@echo "  make full-check     run exhaustive quality checks (used on main)"
-	@echo "  make sast           run all static analysis (security & secrets)"
-	@echo "  make sast-security  run security analysis (semgrep)"
-	@echo "  make sast-secret    run secret scanning (gitleaks)"
-	@echo "  make tidy           run incremental clang-tidy"
-	@echo "  make coverage       generate coverage report"
-	@echo "  make coverage-folder show coverage summary per folder"
-	@echo "  make clean          remove build artifacts"
-	@echo "  make todo           show TODO items from docs and code"
+	@echo "  make \033[1m(m)\033[0m                    build the project"
+	@echo "  make start \033[1m(s)\033[0m              build and run the REPL"
+	@echo "  make test \033[1m(t)\033[0m               unit tests"
+	@echo "  make end-to-end \033[1m(e2e)\033[0m       end-to-end tests"
+	@echo "  make check \033[1m(c)\033[0m              run smart quality checks (default)"
+	@echo "  make full-check \033[1m(fc)\033[0m        run exhaustive quality checks"
+	@echo "  make sast \033[1m(sast)\033[0m            run all static analysis"
+	@echo "  make sast-security \033[1m(ss)\033[0m     run security analysis (semgrep)"
+	@echo "  make sast-secret \033[1m(sss)\033[0m      run secret scanning (gitleaks)"
+	@echo "  make gh-pr-status \033[1m(gps)\033[0m     show failed PR jobs"
+	@echo "  make gh-pr-feedback \033[1m(gpf)\033[0m   show CodeRabbit feedback"
+	@echo "  make todo                   show TODO items"
+	@echo "  make coverage               generate coverage report"
+	@echo "  make clean                  remove build artifacts"
