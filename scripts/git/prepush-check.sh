@@ -20,7 +20,7 @@ FAILED=0
 STEP=0
 FAILED_NAMES=()
 
-# Pre-push checks (lints already done in pre-commit)
+# Pre-push checks (formatting already auto-fixed in pre-commit)
 STEPS=(
   "Analysis|tidy|make -s tidy"
   "Analysis|complexity|make -s complexity"

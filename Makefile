@@ -86,9 +86,12 @@ quick: all ## Fast feedback: unit tests + comment ratio
 
 ##@ Linting
 
-format: ## Auto-format C++ source files
+format: ## Auto-format C++, YAML, Markdown, and shell scripts
 	@echo "==> make format"
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
+	@if command -v yamllint >/dev/null; then yamllint -d relaxed -f parsable .github/ | awk -F: '{print $$1}' | sort -u | xargs -r sed -i 's/[[:space:]]*$$//'; fi
+	@if command -v rumdl >/dev/null; then rumdl fmt .; fi
+	@if command -v shfmt >/dev/null; then find scripts -name '*.sh' -exec shfmt -i 2 -w {} \;; fi
 
 cpp-format: ## Check C++ formatting (no changes)
 	@echo "==> make cpp-format"
