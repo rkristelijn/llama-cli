@@ -107,6 +107,17 @@ llama-cli "generate a .gitignore for C++" > .gitignore
 
 CLI flags override env vars, env vars override defaults.
 
+### Local Configuration (.env)
+
+You can create a `.env` file in your project directory to persist your settings:
+
+```bash
+# Generate a template .env file
+llama-cli --default-env > .env
+```
+
+Edit the `.env` file to uncomment and change the values you need. `llama-cli` will automatically load it from the current directory.
+
 ## Prerequisites
 
 - [Ollama](https://ollama.com) running locally or on a reachable host

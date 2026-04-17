@@ -338,3 +338,33 @@ Config load_config(int argc, const char* const argv[]) {
   Config::instance() = c;
   return c;
 }
+
+/**
+ * @brief Prints a template .env file to stdout with all default values.
+ *
+ * Each variable is output on its own line, commented out, and followed by a
+ * brief description and example values. This output can be redirected to a
+ * .env file for local configuration (e.g., `llama-cli --default-env > .env`).
+ */
+void print_default_env() {
+  Config c;
+  // Strip newlines from system prompt for the template
+  std::string flat_prompt = c.system_prompt;
+  size_t pos = 0;
+  while ((pos = flat_prompt.find('\n', pos)) != std::string::npos) {
+    flat_prompt.replace(pos, 1, " ");
+  }
+
+  std::cout << "# llama-cli configuration template. Save to .env (e.g. ./llama-cli --default-env > .env) and uncomment "
+               "to use.\n"
+            << "# LLAMA_PROVIDER=" << c.provider << " # LLM provider (ollama, mock)\n"
+            << "# OLLAMA_HOST=" << c.host << " # Ollama server hostname (localhost, 127.0.0.1)\n"
+            << "# OLLAMA_PORT=" << c.port << " # Ollama server port (11434)\n"
+            << "# OLLAMA_MODEL=" << c.model << " # LLM model name (llama3.2, gemma4:e4b)\n"
+            << "# OLLAMA_TIMEOUT=" << c.timeout << " # HTTP timeout in seconds for LLM generation\n"
+            << "# LLAMA_EXEC_TIMEOUT=" << c.exec_timeout << " # Max seconds for shell command execution\n"
+            << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"
+            << "# NO_COLOR=1 # Disable colored terminal output\n"
+            << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
+            << "# OLLAMA_SYSTEM_PROMPT=\"" << flat_prompt << "\" # System prompt\n";
+}

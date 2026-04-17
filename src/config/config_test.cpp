@@ -7,6 +7,8 @@
 #include <doctest/doctest.h>
 
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 // Helper to clean all OLLAMA_ env vars
 static void clean_env() {
@@ -321,5 +323,34 @@ SCENARIO ("config from .env file") {
         ;
     }
     clean_env();
+  }
+}
+
+SCENARIO ("print default env template") {
+  GIVEN ("the user requests a default .env template") {
+    WHEN ("print_default_env is called") {
+      std::stringstream buffer;
+      std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+      print_default_env();
+      std::cout.rdbuf(old);
+      std::string output = buffer.str();
+
+      THEN ("it contains all expected variables commented out") {
+        CHECK (output.find("# llama-cli configuration template") != std::string::npos)
+          ;
+        CHECK (output.find("# LLAMA_PROVIDER=ollama") != std::string::npos)
+          ;
+        CHECK (output.find("# OLLAMA_HOST=localhost") != std::string::npos)
+          ;
+        CHECK (output.find("# OLLAMA_PORT=11434") != std::string::npos)
+          ;
+        CHECK (output.find("# OLLAMA_MODEL=gemma4:e4b") != std::string::npos)
+          ;
+        CHECK (output.find("# OLLAMA_SYSTEM_PROMPT=") != std::string::npos)
+          ;
+        CHECK (output.find("> .env") != std::string::npos)
+          ;
+      }
+    }
   }
 }

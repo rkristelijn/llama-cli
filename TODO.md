@@ -58,4 +58,6 @@
 - [ ] Publish to Homebrew (brew tap or core formula)
 - [ ] Publish to apt (PPA or .deb package)
 - [ ] Write user documentation (install, usage, config, examples)
-ed
+- [ ] the release is broken, it now says 'v' and the downloads have a wrong filename. Would like to have a regular release build, and README.md updated so that people can easily download the tool.
+- [ ] would like to have logging enabled by default and the location of the logfiles in a common place on linux and macbook
+- [ ] there are a lot of too complex functions that need fixing

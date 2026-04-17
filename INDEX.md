@@ -37,8 +37,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
-- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
+- [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
@@ -49,6 +50,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
+- [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
 - [`scripts/create-pr.sh`](scripts/create-pr.sh) — Create a pull request for the current branch
@@ -63,26 +65,26 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
 - [`scripts/test-files-integration.sh`](scripts/test-files-integration.sh) — Integration test: --files flag with benchmarking
 - [`scripts/test-index.sh`](scripts/test-index.sh) — Test llama-cli sync mode with repo indexing
-- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
-- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
-- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
-- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
-- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
-- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/help.h`](src/help.h) — /**
-- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
@@ -90,13 +92,13 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
-- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_96 files indexed._
+_98 files indexed._

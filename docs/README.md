@@ -5,6 +5,7 @@ Llama CLI is a C++ TUI that connects to a local [Ollama](https://ollama.com) ins
 ## Guides
 
 - [User Guide](user-guide.md) — installation, usage, configuration
+- [Clang-Tidy Guide](clang-tidy.md) — static analysis, best practices, and suppressions
 - [Architecture](architecture.md) — how it works internally
 - [Ollama Setup](ollama-setup.md) — install and configure Ollama
 
