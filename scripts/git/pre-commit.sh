@@ -25,5 +25,5 @@ if [[ -n "${staged}" ]]; then
   echo "${staged}" | xargs git add
 fi
 
-# Verify build
-make -s || { echo "ERROR: build failed"; exit 1; }
+# Quick build + secret scan (catch secrets early)
+make build && make sast-secret || { echo "ERROR: build or secret scan failed"; exit 1; }
