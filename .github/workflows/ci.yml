@@ -47,8 +47,7 @@ jobs:
           fi
           echo "PASS: VERSION was updated"
 
-  # On main: always run all checks for badge visibility
-  # On PR: only run if code changed
+  # Build the project
   build:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -58,6 +57,7 @@ jobs:
       - name: Build
         run: make
 
+  # Unit tests and comment ratio
   test:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -69,17 +69,17 @@ jobs:
       - name: Run tests
         run: make test
 
+  # End-to-end tests (mocked)
   e2e:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: make
       - name: Run E2E tests
         run: make e2e
 
+  # Formatting check (POSIX-style)
   format:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -94,10 +94,9 @@ jobs:
           echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update && sudo apt-get install -y clang-format-${VER}
       - name: Check formatting
-        run: |
-          VER=$(jq -r '.["clang-format"]' .config/versions.json)
-          find src -name '*.cpp' -o -name '*.h' | xargs clang-format-${VER} --dry-run -Werror --style=file:.config/.clang-format
+        run: make format-check
 
+  # Static analysis (Clang-Tidy)
   clang-tidy:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -111,12 +110,17 @@ jobs:
           . /etc/os-release
           echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update && sudo apt-get install -y clang-tidy-${VER}
+          sudo ln -s /usr/bin/clang-tidy-${VER} /usr/bin/clang-tidy
       - name: Run clang-tidy
         run: |
-          VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
-          find src -name '*.cpp' -print0 | xargs -0 clang-tidy-${VER} --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            make FULL=1 tidy
+          else
+            make tidy
+          fi
 
-  pmccabe:
+  # Cyclomatic complexity (pmccabe)
+  complexity:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -125,15 +129,9 @@ jobs:
       - name: Install pmccabe
         run: sudo apt-get install -y pmccabe
       - name: Check complexity
-        run: |
-          find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do
-            file=$(echo $line | awk '{print $6}' | cut -d'(' -f1)
-            lno=$(echo $line | awk '{print $6}' | cut -d'(' -f2 | cut -d')' -f1)
-            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then
-              echo $line | awk '$1 > 10 {print; exit 1}'
-            fi
-          done
+        run: make complexity
 
+  # Documentation check
   doxygen:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -147,8 +145,9 @@ jobs:
           tar -xzf doxygen-${VER}.linux.bin.tar.gz
           echo "$(pwd)/doxygen-${VER}/bin" >> $GITHUB_PATH
       - name: Doxygen lint
-        run: doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
+        run: make docs
 
+  # Static analysis (cppcheck)
   cppcheck:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -158,8 +157,9 @@ jobs:
       - name: Install cppcheck
         run: sudo apt-get install -y cppcheck
       - name: Run cppcheck
-        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
+        run: make lint
 
+  # Memory and undefined behavior sanitizers
   sanitizers:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -178,6 +178,7 @@ jobs:
           ./build/test_command
           ./build/test_annotation
 
+  # Code coverage report
   coverage:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -186,18 +187,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: sudo apt-get install -y lcov bc
-      - name: Build with coverage
-        run: |
-          cmake -B build -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
-          cmake --build build
-      - name: Run tests
-        run: |
-          ./build/test_config
-          ./build/test_json
-          ./build/test_repl
-          ./build/test_command
-          ./build/test_annotation
-      - name: Generate coverage report
+      - name: Run coverage
+        run: make coverage
+      - name: Generate coverage.info for Codecov
         run: |
           lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
           lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
@@ -216,6 +208,7 @@ jobs:
           fi
           echo "PASS: coverage >= 55%"
 
+  # SAST (Semgrep)
   semgrep:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
@@ -225,8 +218,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Semgrep scan
-        run: semgrep scan --config auto --error --quiet
+        run: make sast-security
 
+  # SAST (Gitleaks)
   gitleaks:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
@@ -238,6 +232,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make sast-secret

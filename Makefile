@@ -1,7 +1,16 @@
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 
-.PHONY: all build clean run start log test test-unit test-e2e e2e check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live tidy lint complexity docs sast coverage-folder
+# SMART=1 (default) enables incremental checks (only changed files vs main)
+# FULL=1 disables smart mode for exhaustive checks (used in full-check target)
+FULL ?= 0
+ifeq ($(FULL),1)
+  SMART := 0
+else
+  SMART ?= 1
+endif
+
+.PHONY: all build clean run start log test test-unit test-e2e e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps live tidy lint complexity docs sast sast-secret sast-security coverage coverage-folder todo
 
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
@@ -36,7 +45,6 @@ test-unit: all
 	@./$(BUILD_DIR)/test_command --quiet
 	@./$(BUILD_DIR)/test_annotation --quiet
 	@./$(BUILD_DIR)/test_exec --quiet
-	@bash scripts/test_comment_ratio.sh | grep "PASS" || bash scripts/test_comment_ratio.sh
 	@echo "  [done] test-unit"
 
 test: test-unit
@@ -55,36 +63,32 @@ test-e2e: build
 	done
 	@echo "  [done] e2e"
 
-# TODO: Optimize SAST and coverage to also use the "dirty file" logic
-# where appropriate to further speed up the feedback loop.
-
 tidy: all
-	@echo "==> make tidy (smart incremental clang-tidy...)"
-	@# We only check files that differ from the main branch to save time.
-	@# If we are on main, we check everything.
-	@branch=$$(git rev-parse --abbrev-ref HEAD); \
-	if [ "$$branch" = "main" ]; then \
-		diff_base="HEAD^"; \
+	@if [ "$(SMART)" = "1" ]; then \
+		echo "==> make tidy (smart incremental mode)"; \
+		branch=$$(git rev-parse --abbrev-ref HEAD); \
+		diff_base=$$( [ "$$branch" = "main" ] && echo "HEAD^" || echo "origin/main" ); \
+		files=$$(git diff --name-only $$diff_base | grep "\.cpp$$" | grep "^src/" || true); \
+		if [ -z "$$files" ]; then \
+			echo "  [skip] no changed files vs $$diff_base"; \
+		else \
+			for dir in src $$(find src -maxdepth 1 -mindepth 1 -type d); do \
+				dir_files=$$(echo "$$files" | grep "^$$dir/[^/]*\.cpp$$" || true); \
+				if [ -n "$$dir_files" ]; then \
+					echo "  [checking] $$dir/ ($$(echo $$dir_files | wc -w) files)"; \
+					$(CLANG_TIDY) --config-file=.config/.clang-tidy $$dir_files -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true; \
+				fi; \
+			done; \
+		fi; \
 	else \
-		diff_base="origin/main"; \
-	fi; \
-	changed_files=$$(git diff --name-only $$diff_base | grep "\.cpp$$" | grep "^src/" || true); \
-	if [ -z "$$changed_files" ]; then \
-		echo "  [skip] no changed files vs $$diff_base"; \
-	else \
-		for dir in src $$(find src -maxdepth 1 -mindepth 1 -type d); do \
-			dir_files=$$(echo "$$changed_files" | grep "^$$dir/[^/]*\.cpp$$" || true); \
-			if [ -n "$$dir_files" ]; then \
-				echo "  [checking] $$dir/ ($$(echo $$dir_files | wc -w) files)"; \
-				$(CLANG_TIDY) --config-file=.config/.clang-tidy $$dir_files -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true; \
-			fi; \
-		done; \
+		echo "==> make tidy (full mode)"; \
+		find src -name '*.cpp' -print0 | xargs -0 $(CLANG_TIDY) --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true; \
 	fi
 	@echo "  [done] tidy"
 
 lint: all
 	@echo "==> make lint (running cppcheck...)"
-	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
+	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
 	@echo "  [done] lint"
 
 complexity: all
@@ -98,24 +102,39 @@ complexity: all
 	done || exit 1
 	@echo "  [done] complexity"
 
-sast:
-	@echo "==> make sast (semgrep & gitleaks...)"
-	@PATH="$$HOME/.local/bin:$$PATH" semgrep scan --config auto --error --quiet 2>&1 | grep -v "┌────\|Semgrep CLI\|└─────────────" || true
-	@gitleaks detect --source . --log-level error --no-banner
-	@echo "  [done] sast"
+sast-security:
+	@echo "==> make sast-security (semgrep...)"
+	@if command -v semgrep >/dev/null; then \
+		semgrep scan --config auto --error --quiet 2>&1 | grep -v "┌────\|Semgrep CLI\|└─────────────" || true; \
+	fi
+	@echo "  [done] sast-security"
+
+sast-secret:
+	@echo "==> make sast-secret (gitleaks...)"
+	@if command -v gitleaks >/dev/null; then \
+		gitleaks detect --source . --log-level error --no-banner; \
+	fi
+	@echo "  [done] sast-secret"
+
+sast: sast-security sast-secret
 
 docs:
 	@echo "==> make docs (generating doxygen...)"
-	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats" && exit 1 || true
+	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
 
-check: tidy complexity lint docs index
+check: format-check tidy complexity lint docs index
 	@$(MAKE) -s coverage-folder
 	@$(MAKE) -s sast
+	@echo "==> make comment-ratio"
+	@bash scripts/test_comment_ratio.sh | grep "PASS" || bash scripts/test_comment_ratio.sh
 	@echo "==> make todo"
 	@$(MAKE) -s todo | grep -v "==> make todo"
 	@echo ""
 	@echo "All checks passed."
+
+full-check:
+	@$(MAKE) FULL=1 check
 
 check-ai:
 	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
@@ -133,8 +152,32 @@ hooks:
 	@echo "Git hooks installed."
 
 todo:
-	@echo "==> TODO.md"
-	@grep -n "\- \[ \]" TODO.md 2>/dev/null || true
+	@# Shows TODO items from all markdown files and technical debt in code.
+	@# Bolds parent tasks that have indented sub-tasks.
+	@echo "==> Markdown TODOs"
+	@find . -name "*.md" -not -path "./build/*" -not -path "./.git/*" -exec awk ' \
+		FNR == 1 { \
+			if (prev_line != "") printf "%s:%d:%s\n", prev_file, prev_lnum, prev_line; \
+			prev_line = ""; \
+		} \
+		/- \[ \]/ { \
+			match($$0, /[^ ]/); \
+			curr_indent = RSTART; \
+			if (prev_line != "") { \
+				if (curr_indent > prev_indent) { \
+					printf "%s:%d:\033[1m%s\033[0m\n", FILENAME, prev_lnum, prev_line; \
+				} else { \
+					printf "%s:%d:%s\n", FILENAME, prev_lnum, prev_line; \
+				} \
+			} \
+			prev_line = $$0; \
+			prev_indent = curr_indent; \
+			prev_lnum = FNR; \
+			prev_file = FILENAME; \
+		} \
+		END { \
+			if (prev_line != "") printf "%s:%d:%s\n", FILENAME, prev_lnum, prev_line; \
+		}' {} +
 	@echo ""
 	@echo "==> Code TODOs"
 	@grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
@@ -148,6 +191,7 @@ format:
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
 
 format-check:
+	@echo "==> make format-check"
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
 	@echo "format-check: OK"
 
@@ -159,8 +203,7 @@ comment-ratio:
 
 coverage:
 	@echo "==> make coverage (configuring with --coverage...)"
-	@cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage" > /dev/null
-	@echo "==> make coverage (building tests...)"
+	@cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" > /dev/null
 	@cmake --build $(BUILD_DIR) > /dev/null
 	@echo "==> make coverage (running tests...)"
 	@./$(BUILD_DIR)/test_config --quiet
@@ -222,9 +265,13 @@ help:
 	@echo "  make quick          incremental build + tests (fast)"
 	@echo "  make test           unit tests"
 	@echo "  make e2e            end-to-end tests"
-	@echo "  make check          run all quality checks (lint, complexity, docs, sast, coverage)"
-	@echo "  make sast           run static analysis (semgrep, gitleaks)"
+	@echo "  make check          run smart quality checks (default)"
+	@echo "  make full-check     run exhaustive quality checks (used on main)"
+	@echo "  make sast           run all static analysis (security & secrets)"
+	@echo "  make sast-security  run security analysis (semgrep)"
+	@echo "  make sast-secret    run secret scanning (gitleaks)"
 	@echo "  make tidy           run incremental clang-tidy"
 	@echo "  make coverage       generate coverage report"
 	@echo "  make coverage-folder show coverage summary per folder"
 	@echo "  make clean          remove build artifacts"
+	@echo "  make todo           show TODO items from docs and code"

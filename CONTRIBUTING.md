@@ -43,35 +43,41 @@ Quick reference:
 - Open a pull request to merge — CI must pass before merging
 - Bump the version in `VERSION` when merging (see below)
 
-## Verifying your changes
+## Verifying your changes (Dev-First)
 
-Run the full check suite locally before pushing:
+We follow a **Dev-First** philosophy: productivity and fast feedback loops for developers take precedence over exhaustive automation on every commit.
+
+### Why Dev-First?
+- **Immediate Feedback**: You shouldn't wait 5 minutes for a full static analysis of 100 files when you only changed one.
+- **Lower Cognitive Load**: By focusing only on your changes, you can fix issues as you write them.
+- **Sustainability**: Faster local checks mean more frequent verification and fewer broken CI builds.
+
+### Check targets
 
 ```bash
-make quick   # incremental build + tests + comment ratio (fast, for dev)
-make test    # full build + all 6 test suites + comment ratio
-make check   # everything below — same as CI
-make live    # integration test with real LLM (requires running Ollama)
+make check       # SMART & FAST: Only verifies files changed vs main (default)
+make full-check  # EXHAUSTIVE: Verifies every file in the project (CI uses this on main)
+make quick       # Incremental build + unit tests + comment ratio
+make live        # Integration test with real LLM (requires running Ollama)
 ```
 
-### What `make check` verifies
+### What is verified
 
-| Check | Threshold | Fix |
-|-------|-----------|-----|
-| Unit tests | all pass | fix the failing test |
-| E2E tests | all pass | `e2e/*.sh` — needs Ollama running |
-| Live tests | PASS or SKIP | `make live` — SKIP is OK for LLM-dependent tests |
-| clang-format | zero violations | `make format` to auto-fix |
-| clang-tidy | zero warnings (excl. filtered) | fix the warning or add `NOLINTNEXTLINE` |
-| pmccabe | complexity ≤ 10 per function | split the function, or add `pmccabe:skip-complexity` |
-| cppcheck | zero errors | fix the issue |
-| doxygen | zero warnings | add missing `@param` / `@brief` |
-| coverage | ≥ 80% per file | add tests |
-| comment ratio | ≥ 20% of lines | add comments explaining *why* |
-| semgrep | zero findings | fix the security/quality issue |
-| gitleaks | zero secrets | remove the secret, rotate it |
+| Check | Tool | Smart Mode | target |
+|-------|------|------------|--------|
+| Unit tests | doctest | Always runs all | `make test` |
+| E2E tests | bash | Always runs all | `make e2e` |
+| Format | clang-format | Always runs all | `make format-check` |
+| clang-tidy | clang-tidy | Only changed files | `make tidy` |
+| pmccabe | pmccabe | Always runs all | `make complexity` |
+| cppcheck | cppcheck | Always runs all | `make lint` |
+| doxygen | doxygen | Always runs all | `make docs` |
+| coverage | gcov | Folder-level summary | `make coverage-folder` |
+| comment ratio | cloc | Always runs all | `make comment-ratio` |
+| SAST Security | semgrep | Always runs all | `make sast-security` |
+| SAST Secret | gitleaks | Always runs all | `make sast-secret` |
 
-CI runs the same checks automatically on every pull request.
+CI runs `make check` on pull requests to ensure your changes are clean, and `make full-check` on the `main` branch to maintain absolute project integrity.
 
 ### Configuration
 
