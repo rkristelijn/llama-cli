@@ -184,8 +184,7 @@ static std::string read_file(const std::string& path) {
 
 /** Emit one diff line with optional ANSI color.
  * prefix is "- " (red) or "+ " (green); reset is applied after the line when color is on. */
-static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix, const std::string& line,
-                           bool color) {
+static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix, const std::string& line, bool color) {
   if (color) {
     out << ansi << prefix << line << "\033[0m\n";
   } else {
@@ -525,8 +524,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
   bool has_followup = false;
   std::set<std::string> seen_reads;
   for (const auto& action : reads) {
-    std::string key = action.path + "|" + std::to_string(action.from_line) + "-" + std::to_string(action.to_line) +
-                      "|" + action.search;
+    std::string key = action.path + "|" + std::to_string(action.from_line) + "-" + std::to_string(action.to_line) + "|" + action.search;
     if (!seen_reads.insert(key).second) {
       continue;  // skip exact duplicate read
     }

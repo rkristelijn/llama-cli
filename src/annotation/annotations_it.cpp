@@ -15,9 +15,7 @@ SCENARIO ("Write annotation with confirm and skip") {
   std::remove(path.c_str());
 
   GIVEN ("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
-      return "Here: <write file=\"" + path + "\">integration test</write>";
-    };
+    auto write_chat = [&](const std::vector<Message>&) { return "Here: <write file=\"" + path + "\">integration test</write>"; };
 
     WHEN ("the user confirms with y") {
       std::istringstream in("write it\ny\nexit\n");
@@ -58,9 +56,7 @@ SCENARIO ("Write annotation with show then confirm") {
   std::remove(path.c_str());
 
   GIVEN ("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
-      return "Here: <write file=\"" + path + "\">show content</write>";
-    };
+    auto write_chat = [&](const std::vector<Message>&) { return "Here: <write file=\"" + path + "\">show content</write>"; };
     WHEN ("the user types s then y") {
       std::istringstream in("write it\ns\ny\nexit\n");
       std::ostringstream out;
@@ -131,9 +127,7 @@ SCENARIO ("Write annotation shows diff for existing files") {
   }
 
   GIVEN ("the LLM proposes overwriting an existing file") {
-    auto write_chat = [&](const std::vector<Message>&) {
-      return "Here: <write file=\"" + path + "\">new content</write>";
-    };
+    auto write_chat = [&](const std::vector<Message>&) { return "Here: <write file=\"" + path + "\">new content</write>"; };
 
     WHEN ("the user confirms with y (diff shown automatically)") {
       std::istringstream in("write it\ny\nexit\n");

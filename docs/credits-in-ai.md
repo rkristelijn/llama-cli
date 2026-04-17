@@ -18,6 +18,7 @@ Kiro Free gives 50 credits/month (no overages). Credits reset on the 1st.
 Credits are fractional — short prompts cost less than long, complex ones.
 
 Check your usage:
+
 ```bash
 # scripts/check-usage.sh or just look at usage.log
 cat usage.log
@@ -30,9 +31,11 @@ cat usage.log
 Before reaching for Kiro, consider:
 
 - **Local LLM via Ollama** — this project runs `gemma4:e4b` locally. Zero cost, fully private.
+
   ```bash
   make run   # starts llama-cli with local model
   ```
+
 - **Gemini CLI** (`gemini -p`) — free tier, good for design work, brainstorming, or parallel tasks while waiting on a paid tool. Use it for drafts, then refine with Kiro.
 - **`!!cat file`** inside llama-cli — feeds file content to the local LLM, no credits spent.
 
@@ -45,9 +48,10 @@ Rule of thumb: use local/free for exploration, use Kiro for precise execution.
 Every task you do manually more than twice should become a script. Scripts give idempotent, reproducible results — no need to re-explain context to an AI.
 
 Examples in this repo:
-- `scripts/build-index.sh` — regenerates INDEX.md, always consistent
-- `scripts/pipeline-status.sh` — checks CI without opening a browser
-- `scripts/pr-status.sh` — shows failed jobs with log output
+
+- `scripts/dev/build-index.sh` — regenerates INDEX.md, always consistent
+- `scripts/gh/pipeline-status.sh` — checks CI without opening a browser
+- `scripts/gh/pr-status.sh` — shows failed jobs with log output
 
 **Idempotency matters**: a script that produces the same result every time means you don't need to ask an AI "what changed?" — you just run it.
 
@@ -106,6 +110,7 @@ A well-structured `docs/` means you can say "read the architecture doc and imple
 ## 8. Parallel workflows
 
 Don't wait idle. While Kiro is working on one task:
+
 - Use `gemini -p` to draft a design or write docs
 - Run local builds or tests
 - Use the local LLM for exploration

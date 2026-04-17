@@ -243,13 +243,11 @@ inline std::vector<const char*> default_messages() { return {"thinking...", "pro
 /** BOFH spinner messages — activate with --why-so-serious */
 inline std::vector<const char*> bofh_messages() {
   return {
-      "reticulating splines...",    "consulting the oracle...",   "warming up the hamsters...",
-      "bribing the CPU...",         "asking nicely...",           "sacrificing a semicolon...",
-      "blaming the intern...",      "googling the answer...",     "rolling a d20...",
-      "compiling excuses...",       "negotiating with malloc...", "feeding the neural goats...",
-      "dividing by almost zero...", "untangling spaghetti...",    "summoning elder functions...",
-      "polishing the bits...",      "herding pointers...",        "defragmenting thoughts...",
-      "calibrating the flux...",    "rebooting common sense...",
+      "reticulating splines...",    "consulting the oracle...",   "warming up the hamsters...",   "bribing the CPU...",
+      "asking nicely...",           "sacrificing a semicolon...", "blaming the intern...",        "googling the answer...",
+      "rolling a d20...",           "compiling excuses...",       "negotiating with malloc...",   "feeding the neural goats...",
+      "dividing by almost zero...", "untangling spaghetti...",    "summoning elder functions...", "polishing the bits...",
+      "herding pointers...",        "defragmenting thoughts...",  "calibrating the flux...",      "rebooting common sense...",
   };
 }
 

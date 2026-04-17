@@ -12,9 +12,11 @@
 | **Env vars + CLI args** | Flexible, layered | Slightly more code |
 
 ## Decision
+
 Environment variables are used as the base configuration, with CLI arguments as overrides.
 
 ### Precedence (highest wins)
+
 1. CLI arguments (`--host`, `--model`, etc.)
 2. Environment variables (`OLLAMA_HOST`, `OLLAMA_MODEL`, etc.)
 3. Built-in defaults
@@ -65,6 +67,7 @@ sequenceDiagram
 ```
 
 ## Rationale
+
 - Env vars align with Ollama's own `OLLAMA_HOST` convention
 - [12-factor app](https://12factor.net/config) factor III is followed: config is stored in the environment
 - CLI args are a pragmatic addition — 12-factor targets web services, but for CLI tools `--host=x` is more natural than `OLLAMA_HOST=x`
@@ -73,6 +76,7 @@ sequenceDiagram
 - No config file dependency is introduced — the project stays lean
 
 ## Consequences
+
 - `argv` is parsed manually (no external library — `getopt` or manual parsing is used)
 - Env vars are read via `std::getenv`
 - The prompt remains hardcoded for now — it will become interactive input (phase 2)

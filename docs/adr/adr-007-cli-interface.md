@@ -3,11 +3,12 @@
 *Status*: Accepted · *Date*: 2026-04-10 · *Context*: The CLI interface is the user-facing API. It must follow POSIX conventions and support unix pipes for maximum composability.
 
 ## Decision
+
 The CLI follows POSIX conventions and unix pipe semantics:
 
 ### Interface
 
-```
+```text
 llama-cli [options] [prompt]
 ```
 
@@ -60,18 +61,21 @@ llama-cli --model=gemma4:26b "explain quantum computing"
 ```
 
 ### Output rules
+
 - Response text → stdout (clean, no decoration)
 - Status messages ("Connecting to...") → stderr
 - Errors → stderr
 - This ensures pipes only receive the actual response
 
 ## Rationale
+
 - POSIX conventions are followed so the tool behaves like any other unix tool
 - Stdin/stdout separation enables composability with `|`, `>`, `<`, `tee`, `xargs`
 - The `cat file | tool "instruction"` pattern matches how `ollama run`, `jq`, and `awk` work
 - Status on stderr keeps stdout clean for piping
 
 ## Consequences
+
 - `isatty(STDIN_FILENO)` is used to detect pipe vs interactive
 - Status/progress output must go to stderr, not stdout
 - Interactive mode needs a prompt indicator on stderr

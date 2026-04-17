@@ -1,6 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
 # Check that test coverage meets the minimum threshold per source file.
 # Uses the test binary that directly tests each source for accurate results.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 THRESHOLD=80
 BUILD_DIR=build-cov

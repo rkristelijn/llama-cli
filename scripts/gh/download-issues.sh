@@ -1,5 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Download GitHub issues and persist in ./.cache/issues/
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 REPO="${1:-$(git remote get-url origin 2>/dev/null | sed 's/.*github.com[/:]//' | sed 's/\.git$//')}"
 OWNER="${2:-${REPO%/*}}"

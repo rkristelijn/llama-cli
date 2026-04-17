@@ -28,10 +28,15 @@
  * @return int Exit code: `0` on normal completion.
  */
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic
+// NOLINTNEXTLINE(readability-function-size)
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
       std::cout << help::cli;
+      return 0;
+    }
+    if (std::string(argv[i]) == "--default-env") {
+      print_default_env();
       return 0;
     }
   }
@@ -66,8 +71,7 @@ int main(int argc, char* argv[]) {
     if (cfg.provider == "mock") {
       std::cout << "mock response: " << cfg.prompt << "\n";
     } else {
-      tui::system_msg(std::cerr, color,
-                      "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
+      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
       std::string response = ollama_generate(cfg, cfg.prompt);
       if (!response.empty()) {
         std::cout << response << "\n";

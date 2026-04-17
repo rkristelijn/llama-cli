@@ -5,16 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SKIP_DEPS: 1
+
 jobs:
-  # Detect what changed to skip unnecessary jobs
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       code: ${{ steps.filter.outputs.code }}
-      docs: ${{ steps.filter.outputs.docs }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
           filters: |
@@ -22,19 +27,14 @@ jobs:
               - 'src/**'
               - 'CMakeLists.txt'
               - 'Makefile'
-            docs:
-              - 'docs/**'
-              - 'README.md'
-              - 'INDEX.md'
-              - 'CONTRIBUTING.md'
-              - '.github/**'
+              - 'scripts/**'
               - '.config/**'
 
   version-bump:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
       - name: Fetch main
@@ -42,202 +42,190 @@ jobs:
       - name: Check VERSION was bumped
         run: |
           if ! git diff origin/main -- VERSION | grep -q '^+[^+]'; then
-            echo "FAIL: VERSION file was not changed. Bump the version before merging to main."
+            echo "FAIL: VERSION file was not changed."
             exit 1
           fi
-          echo "PASS: VERSION was updated"
 
-  # On main: always run all checks for badge visibility
-  # On PR: only run if code changed
+  # --- Lint (no build, fast) ---
+
+  lint-cpp:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh llvm
+      - run: make cpp-format
+
+  lint-yaml:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh yamllint
+      - run: make yamllint
+
+  lint-markdown:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh rumdl
+      - run: make markdownlint
+
+  lint-makefile:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make lint-makefile
+
+  lint-scripts:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make lint-scripts
+
+  lint-tidy:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh llvm
+      - run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            make FULL=1 tidy
+          else
+            make tidy
+          fi
+
+  lint-cppcheck:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh cppcheck
+      - run: make lint
+
+  lint-docs:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh doxygen
+      - run: make docs
+
+  lint-complexity:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh pmccabe
+      - run: make complexity
+
+  # --- Build ---
+
   build:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        run: make
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make build
 
-  test:
+  # --- Test ---
+
+  unit-test:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: sudo apt-get install -y cloc
-      - name: Run tests
-        run: make test
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make test
 
-  e2e:
+  e2e-test:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        run: make
-      - name: Run E2E tests
-        run: make e2e
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make e2e
 
-  format:
+  test-coverage:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install clang-format (pinned)
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh lcov bc
+      - run: make coverage
+      - name: Generate and check coverage
         run: |
-          VER=$(jq -r '.["clang-format"]' .config/versions.json)
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          . /etc/os-release
-          echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          sudo apt-get update && sudo apt-get install -y clang-format-${VER}
-      - name: Check formatting
-        run: |
-          VER=$(jq -r '.["clang-format"]' .config/versions.json)
-          find src -name '*.cpp' -o -name '*.h' | xargs clang-format-${VER} --dry-run -Werror --style=file:.config/.clang-format
-
-  clang-tidy:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install clang-tidy (pinned)
-        run: |
-          VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          . /etc/os-release
-          echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          sudo apt-get update && sudo apt-get install -y clang-tidy-${VER}
-      - name: Run clang-tidy
-        run: |
-          VER=$(jq -r '.["clang-tidy"]' .config/versions.json)
-          find src -name '*.cpp' -print0 | xargs -0 clang-tidy-${VER} --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true
-
-  pmccabe:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install pmccabe
-        run: sudo apt-get install -y pmccabe
-      - name: Check complexity
-        run: |
-          find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do
-            file=$(echo $line | awk '{print $6}' | cut -d'(' -f1)
-            lno=$(echo $line | awk '{print $6}' | cut -d'(' -f2 | cut -d')' -f1)
-            if ! head -n $lno $file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then
-              echo $line | awk '$1 > 10 {print; exit 1}'
-            fi
-          done
-
-  doxygen:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install doxygen (pinned)
-        run: |
-          VER=$(jq -r '.doxygen' .config/versions.json)
-          wget https://doxygen.nl/files/doxygen-${VER}.linux.bin.tar.gz
-          tar -xzf doxygen-${VER}.linux.bin.tar.gz
-          echo "$(pwd)/doxygen-${VER}/bin" >> $GITHUB_PATH
-      - name: Doxygen lint
-        run: doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
-
-  cppcheck:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install cppcheck
-        run: sudo apt-get install -y cppcheck
-      - name: Run cppcheck
-        run: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=useStlAlgorithm --error-exitcode=1 -I src/ src/
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
+          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
+          PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
+          echo "Total Line Coverage: $PERCENT%"
+          [ "$(echo "$PERCENT < 55" | bc -l)" -eq 0 ] || { echo "Coverage below 55%!"; exit 1; }
+      - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
+        with:
+          files: coverage.info
+          fail_ci_if_error: false
 
   sanitizers:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Build with sanitizers
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Build and test with ASan/UBSan
         run: |
           cmake -B build -DENABLE_SANITIZERS=ON
           cmake --build build
-      - name: Run tests under ASan/UBSan
-        run: |
           ./build/test_config
           ./build/test_json
           ./build/test_repl
           ./build/test_command
           ./build/test_annotation
+          ./build/test_exec
 
-  coverage:
+  # --- Security ---
+
+  sast-security:
     needs: changes
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: sudo apt-get install -y lcov bc
-      - name: Build with coverage
-        run: |
-          cmake -B build -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
-          cmake --build build
-      - name: Run tests
-        run: |
-          ./build/test_config
-          ./build/test_json
-          ./build/test_repl
-          ./build/test_command
-          ./build/test_annotation
-      - name: Generate coverage report
-        run: |
-          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
-          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: coverage.info
-          fail_ci_if_error: false
-      - name: Check coverage threshold (>= 55%)
-        run: |
-          PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
-          echo "Total Line Coverage: $PERCENT%"
-          if [ "$(echo "$PERCENT < 55" | bc -l)" -eq 1 ]; then
-            echo "Coverage is below 55%!"
-            exit 1
-          fi
-          echo "PASS: coverage >= 55%"
-
-  semgrep:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
-      - name: Semgrep scan
-        run: semgrep scan --config auto --error --quiet
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      # Run semgrep directly — the semgrep/semgrep container is Alpine-based and has no make
+      - run: semgrep scan --config auto --error --quiet
 
-  gitleaks:
-    runs-on: ubuntu-latest
+  sast-secret:
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: bash scripts/ci/install-deps.sh gitleaks
+      - run: make sast-secret
+
+  # --- Metrics ---
+
+  comment-ratio:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: bash scripts/ci/install-deps.sh cloc
+      - run: bash scripts/check/comment-ratio.sh

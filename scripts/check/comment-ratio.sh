@@ -1,6 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
 # Check that comment ratio in src/ meets the minimum threshold.
 # Uses cloc CSV output: fields are files,language,blank,comment,code
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 THRESHOLD=20
 

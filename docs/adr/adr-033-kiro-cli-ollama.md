@@ -9,6 +9,7 @@ Document kiro-cli Ollama integration options for future reference and potential 
 ### kiro-cli Current Architecture
 
 kiro-cli uses a provider-agnostic design with:
+
 - `chat.defaultModel` setting (currently `minimax-m2.1`)
 - ACP protocol with `--model` flag
 - MCP server support for extensibility

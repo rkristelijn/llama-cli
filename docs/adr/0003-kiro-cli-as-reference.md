@@ -29,8 +29,8 @@ Kiro CLI is written in **TypeScript** (primary), with some JavaScript and Shell.
 
 ## References
 
-- Repository: https://github.com/kirodotdev/Kiro
-- Docs: https://kiro.dev/docs/cli/
+- Repository: <https://github.com/kirodotdev/Kiro>
+- Docs: <https://kiro.dev/docs/cli/>
 - License: Proprietary/Commercial (source available for reference)
 
 ## Notes

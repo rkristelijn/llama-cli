@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Create a pull request for the current branch
-# Usage: ./scripts/create-pr.sh [title] [base]
+# Usage: ./scripts/gh/create-pr.sh [title] [base]
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 set -euo pipefail
 

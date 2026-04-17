@@ -1,11 +1,13 @@
 # ADR-023: Self-Documenting Processes
 
 ## Status
+
 Accepted
 
 ## Context
 
 This codebase is actively maintained with AI assistance, which means:
+
 - Bulk changes happen fast, mistakes happen silently
 - Junior devs and AI both need clear feedback to course-correct
 - A failing check with no explanation wastes a round-trip (costs credits, costs time)
@@ -21,12 +23,14 @@ Every quality gate must be self-documenting: when it fails, it explains *why* th
 **1. Error messages with rationale + tips**
 
 Bad:
-```
+
+```text
 FAIL: comment ratio 19% is below the 20% threshold
 ```
 
 Good:
-```
+
+```text
 FAIL: comment ratio 19% is below the 20% threshold
 
 Why this matters: comments help junior devs and AI understand intent,
@@ -47,6 +51,7 @@ Unit tests (`*_test.cpp`) document the contract of a module — what inputs prod
 Integration tests (`*_it.cpp`) document scenarios — what a user does and what they see.
 
 Every scenario in an integration test is a sentence:
+
 ```cpp
 SCENARIO("user runs !! command, output is added to history") { ... }
 SCENARIO("user types /set markdown, markdown is toggled off") { ... }
@@ -57,6 +62,7 @@ These are readable by anyone, including AI, without understanding the implementa
 **3. `@see` links from code to decisions**
 
 Every non-trivial implementation choice links to its ADR:
+
 ```cpp
 /**
  * @file repl.cpp
@@ -86,7 +92,7 @@ Yes, with scope limits. A full "is this comment meaningful?" check requires NLP 
 |---|---|---|
 | Missing `@file` header | `.cpp`/`.h` without `@file` | ✅ easy |
 | Missing `@brief` on public functions | `.h` function without `@brief` above | ✅ easy |
-| Script without usage comment | `.sh` without `# ` in first 5 lines | ✅ easy |
+| Script without usage comment | `.sh` without `#` in first 5 lines | ✅ easy |
 | Make target without help entry | target in Makefile not in `make help` | ✅ medium |
 | Error message without tips | `exit 1` without preceding `echo` tip | ⚠️ fragile |
 | Test without SCENARIO description | `TEST_CASE` without meaningful name | ⚠️ subjective |

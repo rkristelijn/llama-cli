@@ -1,7 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Test llama-cli sync mode with repo indexing
-# Usage: ./scripts/test-index.sh [model] [limit]
+# Usage: ./scripts/test/test-index.sh [model] [limit]
 # Logs written to: ~/git/hub/personal/tools/index-test-logs/
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 set -euo pipefail
 
 LLAMA="$HOME/git/hub/llama-cli/build/llama-cli"

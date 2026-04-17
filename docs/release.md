@@ -16,10 +16,11 @@ git push origin main --tags
 ## What Happens
 
 The [release workflow](../.github/workflows/release.yml) automatically:
+
 - Builds the binary on Ubuntu
 - Creates a GitHub Release from the tag
 - Uploads the `llama-cli` binary as a release asset
 
 ## Download
 
-Users download from: https://github.com/ollama/llama-cli/releases
+Users download from: <https://github.com/ollama/llama-cli/releases>

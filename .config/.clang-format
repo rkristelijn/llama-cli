@@ -1,5 +1,5 @@
 BasedOnStyle: Google
 IndentWidth: 2
-ColumnLimit: 120
+ColumnLimit: 140
 PointerAlignment: Left
 IfMacros: [SCENARIO, GIVEN, WHEN, THEN, TEST_SUITE, TEST_CASE, CHECK, CHECK_FALSE, REQUIRE]

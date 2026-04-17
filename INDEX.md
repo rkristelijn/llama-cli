@@ -36,53 +36,87 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
+- [`docs/adr/adr-045-fix-release-pipeline.md`](docs/adr/adr-045-fix-release-pipeline.md) — ADR-045: Fix Release Pipeline
+- [`docs/adr/adr-44-tidy-boilerplate.md`](docs/adr/adr-44-tidy-boilerplate.md) — ADR-044: Tidy Build Boilerplate
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
-- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
+- [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
 - [`docs/full-test-script.md`](docs/full-test-script.md) — Manual Test Script
+- [`docs/gh-manual.md`](docs/gh-manual.md) — GitHub CLI Manual (gh)
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
+- [`docs/release.md`](docs/release.md) — Release Process
+- [`docs/tools/clang-format.md`](docs/tools/clang-format.md) — clang-format
+- [`docs/tools/clang-tidy.md`](docs/tools/clang-tidy.md) — clang-tidy
+- [`docs/tools/cppcheck.md`](docs/tools/cppcheck.md) — cppcheck
+- [`docs/tools/doxygen.md`](docs/tools/doxygen.md) — Doxygen
+- [`docs/tools/gitleaks.md`](docs/tools/gitleaks.md) — Gitleaks
+- [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
+- [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
+- [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
+- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
+- [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
+- [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
-- [`scripts/build-index.sh`](scripts/build-index.sh) — build-index.sh — Generate INDEX.md from all project files
-- [`scripts/create-pr.sh`](scripts/create-pr.sh) — Create a pull request for the current branch
-- [`scripts/download-issues.sh`](scripts/download-issues.sh) — Download GitHub issues and persist in ./.cache/issues/
-- [`scripts/fetch-coderabbit-feedback.sh`](scripts/fetch-coderabbit-feedback.sh) — Download CodeRabbit review comments from a PR and persist in .cache/pr/
-- [`scripts/gh-create-issue.sh`](scripts/gh-create-issue.sh) — Create a GitHub issue using the gh CLI
-- [`scripts/log-viewer.sh`](scripts/log-viewer.sh) — log-viewer.sh — Read and display event logs in human-readable format
-- [`scripts/pipeline-status.sh`](scripts/pipeline-status.sh) — pipeline-status.sh — Show latest pipeline status for current branch
-- [`scripts/pr-status.sh`](scripts/pr-status.sh) — Show PR status and failed pipeline jobs with colors
-- [`scripts/setup.sh`](scripts/setup.sh) — setup.sh — Install all development dependencies
-- [`scripts/test_comment_ratio.sh`](scripts/test_comment_ratio.sh) — Check that comment ratio in src/ meets the minimum threshold.
-- [`scripts/test_coverage.sh`](scripts/test_coverage.sh) — Check that test coverage meets the minimum threshold per source file.
-- [`scripts/test-files-integration.sh`](scripts/test-files-integration.sh) — Integration test: --files flag with benchmarking
-- [`scripts/test-index.sh`](scripts/test-index.sh) — Test llama-cli sync mode with repo indexing
-- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`scripts/check/check-deps.sh`](scripts/check/check-deps.sh)
+- [`scripts/check/check-versions.sh`](scripts/check/check-versions.sh)
+- [`scripts/check/comment-ratio.sh`](scripts/check/comment-ratio.sh)
+- [`scripts/check/complexity.sh`](scripts/check/complexity.sh)
+- [`scripts/check/coverage-folder.sh`](scripts/check/coverage-folder.sh)
+- [`scripts/check/coverage.sh`](scripts/check/coverage.sh)
+- [`scripts/check/lint-makefile.sh`](scripts/check/lint-makefile.sh)
+- [`scripts/check/lint-scripts.sh`](scripts/check/lint-scripts.sh)
+- [`scripts/check/run-all.sh`](scripts/check/run-all.sh)
+- [`scripts/check/run-coverage.sh`](scripts/check/run-coverage.sh)
+- [`scripts/check/test-unit.sh`](scripts/check/test-unit.sh)
+- [`scripts/check/tidy.sh`](scripts/check/tidy.sh)
+- [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
+- [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
+- [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
+- [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
+- [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
+- [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
+- [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
+- [`scripts/gh/create-issue.sh`](scripts/gh/create-issue.sh)
+- [`scripts/gh/create-pr.sh`](scripts/gh/create-pr.sh)
+- [`scripts/gh/download-issues.sh`](scripts/gh/download-issues.sh)
+- [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
+- [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
+- [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
+- [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
+- [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
+- [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
+- [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
-- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
-- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
-- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
-- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
-- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/help.h`](src/help.h) — /**
-- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
@@ -90,13 +124,13 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
-- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_96 files indexed._
+_130 files indexed._

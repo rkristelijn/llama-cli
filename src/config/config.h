@@ -81,4 +81,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base = Config{
 // Full config resolution: defaults -> env -> cli
 Config load_config(int argc, const char* const argv[]);
 
+// Print default .env file content to stdout
+void print_default_env();
+
 #endif

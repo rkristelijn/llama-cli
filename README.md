@@ -47,26 +47,28 @@ sudo make install
 ## Usage
 
 ```bash
-> hello                          # chat with the LLM
-> !ls src/                       # run command, output to terminal
-> !!cat src/main.cpp             # run command, output as LLM context
-> what does this code do?        # LLM can now see the file
-> /set                           # show runtime options
-> /set bofh                      # toggle BOFH spinner mode
-> /version                       # show version info
-> /help                          # show available commands
-> exit                           # quit
+hello                          # chat with the LLM
+!ls src/                       # run command, output to terminal
+!!cat src/main.cpp             # run command, output as LLM context
+what does this code do?        # LLM can now see the file
+/set                           # show runtime options
+/set bofh                      # toggle BOFH spinner mode
+/version                       # show version info
+/help                          # show available commands
+exit                           # quit
 ```
 
 The LLM can also propose commands and file writes:
-```
+
+```text
 > fix the bug in main.cpp
 [proposed: write src/main.cpp]
 Write to src/main.cpp? [y/n/s]
 ```
 
 The LLM can read files and make targeted edits:
-```
+
+```text
 > what does repl.cpp do?
 [read src/repl/repl.cpp]          # LLM reads the requested file
 
@@ -90,6 +92,10 @@ Apply str_replace to src/repl/repl.cpp? [y/n]
 | No color | `--no-color` | `NO_COLOR` | auto-detect TTY |
 | BOFH mode | `--why-so-serious` | — | `false` |
 | System prompt | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
+
+CLI flags override `.env`, `.env` overrides environment variables, which override defaults. Use `--default-env > .env` to generate a template configuration file.
+
+See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 
 ## Roadmap
 

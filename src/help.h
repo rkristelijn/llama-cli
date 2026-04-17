@@ -36,6 +36,7 @@ constexpr const char* cli =
     "default: 120)\n"
     "  --no-color        Disable colored output  (env: NO_COLOR)\n"
     "  --why-so-serious  Enable BOFH spinner mode\n"
+    "  --default-env     Print .env template to stdout (use > .env to save)\n"
     "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
     "  PROMPT            Run in sync mode (non-interactive)\n"
     "\n"

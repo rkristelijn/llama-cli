@@ -1,0 +1,13 @@
+# yamllint configuration
+# @see docs/adr/adr-44-tidy-boilerplate.md
+
+extends: default
+
+rules:
+  line-length:
+    max: 140
+  truthy:
+    allowed-values: ['true', 'false', 'on']
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable

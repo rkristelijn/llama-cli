@@ -89,7 +89,8 @@ jobs:
 
       - name: Install git-cliff
         run: |
-          VER=$(jq -r '.git_cliff' .config/versions.json)
+          source .config/versions.env
+          VER="${GIT_CLIFF_VERSION}"
           wget -q "https://github.com/orhun/git-cliff/releases/download/v${VER}/git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz"
           mkdir -p temp-cliff
           tar -xzf "git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz" -C temp-cliff

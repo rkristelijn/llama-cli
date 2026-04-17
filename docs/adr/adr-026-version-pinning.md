@@ -17,7 +17,7 @@ For C/C++ there is no standard equivalent, but the pattern can be approximated:
 
 | Layer | npm | This project |
 |-------|-----|-------------|
-| Intent | `package.json` | `Makefile` / `scripts/setup.sh` |
+| Intent | `package.json` | `Makefile` / `scripts/dev/setup.sh` |
 | Pin | `package-lock.json` | Explicit version in CI + `TOOL_VERSIONS` file |
 | Install | `npm ci` | `make setup` |
 
@@ -30,7 +30,7 @@ For C/C++ there is no standard equivalent, but the pattern can be approximated:
 
 ## TOOL_VERSIONS format
 
-```
+```text
 clang-format=18
 cmake=3.28
 ```
@@ -49,4 +49,4 @@ Simple key=value, human-readable, no tooling required to parse.
 - `.github/workflows/ci.yml`: `ubuntu-latest` → `ubuntu-24.04`, `clang-format` → `clang-format-18`
 - `TOOL_VERSIONS` added to repo root
 - `Makefile`: `CLANG_FORMAT = $(shell command -v clang-format-18 2>/dev/null || command -v clang-format)`
-- `scripts/setup.sh`: install `clang-format-18` explicitly on Linux
+- `scripts/dev/setup.sh`: install `clang-format-18` explicitly on Linux

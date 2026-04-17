@@ -3,6 +3,7 @@
 *Status*: Accepted · *Date*: 2026-04-10 · *Context*: The application needs to serve different use cases — interactive chat, scripting/piping, and background batch processing. A single mode is insufficient.
 
 ## Decision
+
 Three execution modes are supported:
 
 | Mode | Trigger | Behavior |
@@ -38,12 +39,14 @@ cat main.cpp | ./llama-cli "review this code"
 ```
 
 ## Rationale
+
 - **Interactive** is the primary user-facing mode for daily use
 - **Sync** enables piping and scripting — maximum AI integration with existing unix tools
 - **Async** enables heavy tasks without blocking the terminal, and local batch processing as an alternative when cloud AI policies restrict usage
 - Mode detection is implicit (TTY/args) with an explicit override (`--async`) — no unnecessary flags for common cases
 
 ## Consequences
+
 - TTY detection is needed (`isatty(STDIN_FILENO)`)
 - Async mode requires background process management and file output
 - Interactive mode requires a REPL loop with line editing

@@ -2,6 +2,7 @@
 summary: User guide for llama-cli — installation, usage, and configuration
 tags: [user-guide, usage, configuration, examples]
 ---
+
 # User Guide
 
 ## Installation
@@ -15,6 +16,7 @@ llama-cli --help   # verify
 ```
 
 To use a different model or host:
+
 ```bash
 llama-cli --model=llama3.2
 llama-cli --host=192.168.1.10 --model=mistral
@@ -42,9 +44,9 @@ The model remembers the conversation. Type `exit`, `quit`, or Ctrl+D to stop.
 ### Run commands
 
 ```bash
-> !ls src/                    # run command, output to terminal
-> !!cat src/main.cpp          # run command, add output as LLM context
-> what does this code do?     # LLM can now see the file
+!ls src/                    # run command, output to terminal
+!!cat src/main.cpp          # run command, add output as LLM context
+what does this code do?     # LLM can now see the file
 ```
 
 - `!command` — run and show output (not sent to LLM)
@@ -54,7 +56,8 @@ The model remembers the conversation. Type `exit`, `quit`, or Ctrl+D to stop.
 ### File writes
 
 The LLM can propose file writes:
-```
+
+```text
 > fix the bug in main.cpp
 [proposed: write src/main.cpp]
 Write to src/main.cpp? [y/n/s/d]
@@ -69,7 +72,7 @@ Existing files are backed up to `.bak` before overwriting.
 
 ### REPL commands
 
-```
+```text
 /set           Show runtime options
 /set <opt>     Toggle option (markdown, color, bofh)
 /version       Show version info
@@ -106,6 +109,17 @@ llama-cli "generate a .gitignore for C++" > .gitignore
 | System prompt | — | — | `OLLAMA_SYSTEM_PROMPT` | (built-in) |
 
 CLI flags override env vars, env vars override defaults.
+
+### Local Configuration (.env)
+
+You can create a `.env` file in your project directory to persist your settings:
+
+```bash
+# Generate a template .env file
+llama-cli --default-env > .env
+```
+
+Edit the `.env` file to uncomment and change the values you need. `llama-cli` will automatically load it from the current directory.
 
 ## Prerequisites
 

@@ -2,6 +2,7 @@
 summary: Technical architecture overview — how llama-cli works internally
 tags: [architecture, technical, design, modules]
 ---
+
 # Architecture
 
 ## Overview
@@ -107,7 +108,7 @@ Both are downloaded automatically at build time. No manual installation needed.
 
 ## Directory structure
 
-```
+```text
 llama-cli/
 ├── src/                  # Source code
 │   ├── main.cpp          # Entry point, mode detection

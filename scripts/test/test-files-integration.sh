@@ -1,7 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Integration test: --files flag with benchmarking
 # Tests: single file, multiple files, stdin, error handling
 # Logs: ~/git/hub/personal/tools/index-test-logs/integration-test-*.md
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 set -euo pipefail
 

@@ -16,7 +16,7 @@ Command execution is supported in three ways:
 
 Run a command, output to terminal. Not added to conversation history.
 
-```
+```text
 > !ls src/
 annotation.cpp  command.cpp  config.cpp  json.cpp  main.cpp  ollama.cpp  repl.cpp
 ```
@@ -25,7 +25,7 @@ annotation.cpp  command.cpp  config.cpp  json.cpp  main.cpp  ollama.cpp  repl.cp
 
 Run a command, show output, and add it to conversation history as context for the next LLM interaction.
 
-```
+```text
 > !!make test 2>&1 | tail -5
 [doctest] Status: SUCCESS!
 PASS
@@ -38,7 +38,7 @@ The output is added as a user message: `[command: make test 2>&1 | tail -5]\n<ou
 
 The LLM proposes a command in its response (per ADR-014 annotation pattern). The user confirms before execution. Output is fed back to the LLM for follow-up.
 
-```
+```text
 User: "check if the tests pass"
 LLM: "Let me run the tests: <exec>make test</exec>"
 REPL: "Run: make test? [y/n]"

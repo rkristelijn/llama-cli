@@ -93,8 +93,7 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
 
   // Connection failed — Ollama is probably not running
   if (!res) {
-    tui::error(std::cerr, tui::use_color(cfg.no_color),
-               "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     LOG_EVENT("ollama", "generate", prompt, "", duration, 0, 0);
     return "";
   }
@@ -150,12 +149,10 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body =
-      R"({"model": ")" + cfg.model + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+  std::string body = R"({"model": ")" + cfg.model + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
   if (Config::instance().trace) {
-    stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(),
-                      messages.size());
+    stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
   }
 
   auto res = cli.Post("/api/chat", body, "application/json");
@@ -164,8 +161,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
 
   // Connection failed — Ollama is probably not running
   if (!res) {
-    tui::error(std::cerr, tui::use_color(cfg.no_color),
-               "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     LOG_EVENT("ollama", "chat", build_messages_json(messages), "", duration, 0, 0);
     return "";
   }
@@ -189,8 +185,8 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
 
   // Trace: show HTTP status, timing, token usage, and truncated response
   if (Config::instance().trace) {
-    stderr_trace->log("[TRACE] %d %dms tokens=%d/%d response=%.80s\n", res->status, duration, prompt_tokens,
-                      completion_tokens, response_text.c_str());
+    stderr_trace->log("[TRACE] %d %dms tokens=%d/%d response=%.80s\n", res->status, duration, prompt_tokens, completion_tokens,
+                      response_text.c_str());
   }
 
   LOG_EVENT("ollama", "chat", build_messages_json(messages), response_text, duration, prompt_tokens, completion_tokens);
