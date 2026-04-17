@@ -1,8 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
 # log-viewer.sh — Read and display event logs in human-readable format
 # Usage: ./log-viewer.sh [filter] [--context N]
 #   filter   — Show only events matching this string (default: show all)
 #   --context N — Show N lines before/after match (default: 2)
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 set -e
 

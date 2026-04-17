@@ -5,9 +5,9 @@ extends: default
 
 rules:
   line-length:
-    max: 120
+    max: 140
   truthy:
-    forbid-duplicated-merge-keys: true
+    allowed-values: ['true', 'false', 'on']
   comments:
     min-spaces-from-content: 1
   document-start: disable

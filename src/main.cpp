@@ -71,8 +71,7 @@ int main(int argc, char* argv[]) {
     if (cfg.provider == "mock") {
       std::cout << "mock response: " << cfg.prompt << "\n";
     } else {
-      tui::system_msg(std::cerr, color,
-                      "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
+      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
       std::string response = ollama_generate(cfg, cfg.prompt);
       if (!response.empty()) {
         std::cout << response << "\n";

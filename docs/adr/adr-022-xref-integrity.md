@@ -1,6 +1,7 @@
 # ADR-022: Cross-Reference Integrity Checks
 
 ## Status
+
 Proposed
 
 ## Context
@@ -23,6 +24,7 @@ Add a `make xref-check` target that validates all internal cross-references, and
 ### What to check
 
 **1. Markdown links to local files** (in `docs/`, `README.md`, `CONTRIBUTING.md`):
+
 ```sh
 grep -roh '(\./[^)]*\|[^)]*\.md)' docs/ README.md CONTRIBUTING.md \
   | grep -v 'http' \
@@ -30,6 +32,7 @@ grep -roh '(\./[^)]*\|[^)]*\.md)' docs/ README.md CONTRIBUTING.md \
 ```
 
 **2. C++ `@see` references to docs**:
+
 ```sh
 grep -rh '@see ' src/ \
   | sed 's/.*@see //' \
@@ -37,12 +40,14 @@ grep -rh '@see ' src/ \
 ```
 
 **3. Makefile script references**:
+
 ```sh
 grep -oh 'scripts/[^ ]*\.sh' Makefile \
   | while read -r ref; do [ -f "$ref" ] || echo "DEAD: $ref"; done
 ```
 
 **4. `#include` project headers** (relative, non-system):
+
 ```sh
 grep -rh '#include "' src/ \
   | sed 's/.*#include "\(.*\)".*/\1/' \

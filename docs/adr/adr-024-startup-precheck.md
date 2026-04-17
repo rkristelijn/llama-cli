@@ -12,7 +12,7 @@ Two distinct failure modes with poor UX:
 ## Options Considered
 
 | Option | Pros | Cons |
-|--------|------|------|-
+| -------- | ------ | ------ |
 | Document in README only | Zero code | Easy to miss |
 | Fail fast with actionable message | Clear, low effort | Requires guard in Makefile/main |
 | **Precheck at build + runtime** | Best UX, self-remediating | Small code addition |
@@ -31,13 +31,15 @@ check-deps:
 ### 2. Runtime precheck in `--help` and on startup
 
 When `--help` is passed (or on first run), show:
+
 - Current effective config (host, port, model)
 - How to override via CLI or env var
 - A connectivity check: can we reach Ollama?
 - Which models are available (`ollama list`)
 
 Example output:
-```
+
+```text
 llama-cli v1.x — local AI assistant
 
 Config (use --help for all options):
@@ -52,7 +54,8 @@ Type 'exit' to quit.
 ```
 
 If Ollama is unreachable:
-```
+
+```text
 Checking Ollama... FAILED
   Cannot connect to localhost:11434
   Is Ollama running? Try: ollama serve
@@ -69,6 +72,6 @@ Checking Ollama... FAILED
 ## Consequences
 
 - `Makefile`: add `check-deps` prerequisite to `all` — gives actionable error before cmake fails cryptically
-- `scripts/setup.sh`: replace `make install` with direct shell commands so setup works without cmake pre-installed
+- `scripts/dev/setup.sh`: replace `make install` with direct shell commands so setup works without cmake pre-installed
 - `src/main.cpp`: add precheck function that prints config + probes Ollama
 - ADR-011 onboarding section updated to mention `make setup` as first step when `make` fails

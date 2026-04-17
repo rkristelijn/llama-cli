@@ -10,331 +10,206 @@ else
   SMART ?= 1
 endif
 
-.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format format-check install hooks help quick index comment-ratio pipeline-status pr-status pr pr-feedback download-issues check-deps check-versions live tidy lint yamllint markdownlint complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi
+.DEFAULT_GOAL := help
 
-check-deps:
-	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
+.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format cpp-format install hooks help quick index comment-ratio check-deps check-versions live tidy lint yamllint markdownlint lint-makefile lint-scripts complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi prepush
 
-# Check installed tool versions against .config/versions.env
-check-versions:
-	@. .config/versions.env; \
-	ok=0; fail=0; \
-	check() { \
-		local name="$$1" expected="$$2" actual="$$3"; \
-		if [ -z "$$actual" ]; then \
-			printf "  %-20s MISSING (expected %s)\n" "$$name" "$$expected"; fail=$$((fail+1)); \
-		elif echo "$$actual" | grep -q "$$expected"; then \
-			printf "  %-20s %s ✓\n" "$$name" "$$actual"; ok=$$((ok+1)); \
-		else \
-			printf "  %-20s %s (expected %s)\n" "$$name" "$$actual" "$$expected"; fail=$$((fail+1)); \
-		fi; \
-	}; \
-	echo "==> Checking tool versions against .config/versions.env"; \
-	check "cmake"        "$$CMAKE_VERSION"    "$$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)"; \
-	check "clang-format" "$$LLVM_VERSION"     "$$(clang-format --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"; \
-	check "clang-tidy"   "$$LLVM_VERSION"     "$$(clang-tidy --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)"; \
-	check "cppcheck"     "$$CPPCHECK_VERSION" "$$(cppcheck --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+')"; \
-	check "doxygen"      "$$DOXYGEN_VERSION"  "$$(doxygen --version 2>/dev/null)"; \
-	check "cloc"         "$$CLOC_VERSION"     "$$(cloc --version 2>/dev/null)"; \
-	check "shellcheck"   "$$SHELLCHECK_VERSION" "$$(shellcheck --version 2>/dev/null | grep '^version:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
-	check "yamllint"     "$$YAMLLINT_VERSION"   "$$(yamllint --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
-	check "rumdl"        "$$RUMDL_VERSION"      "$$(rumdl version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"; \
-	echo ""; \
-	echo "  $$ok OK, $$fail mismatch/missing"; \
-	[ "$$fail" -eq 0 ] || echo "  Run 'make setup' to install missing tools."
+##@ Getting Started
 
-all: check-deps
-	@cmake -B $(BUILD_DIR) -S . > /dev/null
-	@cmake --build $(BUILD_DIR) --target llama-cli > /dev/null
-	@cp $(BUILD_DIR)/llama-cli .
+setup: ## Install all dependencies
+	bash scripts/dev/setup.sh
 
-build: all
+build: all ## Build the project
 
-# Shorthands
-s: start
-start: all
+start: all ## Build and run the REPL (alias: s)
 	./$(BUILD_DIR)/llama-cli $(ARGS)
+s: start
 
+run: start ## Alias for start
 r: run
-run: start
 
+install: all ## Install to /usr/local/bin
+	@cp $(BUILD_DIR)/llama-cli /usr/local/bin/llama-cli
+	@echo "Installed to /usr/local/bin/llama-cli"
+
+hooks: ## Install git hooks (pre-commit, pre-push)
+	@cp scripts/git/pre-commit.sh .git/hooks/pre-commit
+	@cp scripts/git/pre-push.sh .git/hooks/pre-push
+	@chmod +x .git/hooks/pre-commit .git/hooks/pre-push
+	@echo "Git hooks installed (pre-commit, pre-push)."
+
+clean: ## Remove build artifacts
+	rm -rf $(BUILD_DIR) llama-cli
+
+##@ Quality
+
+check: ## Run smart quality checks (shift-left order)
+	@bash scripts/check/run-all.sh
+
+full-check: ## Run exhaustive quality checks (FULL=1)
+	@$(MAKE) FULL=1 check
+
+check-ai: ## Run checks with condensed output
+	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|\[|FAIL|All|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
+
+check-deps: ## Verify required tools are installed
+	@bash scripts/check/check-deps.sh
+
+check-versions: ## Compare installed versions against versions.env
+	@bash scripts/check/check-versions.sh
+
+##@ Testing
+
+test: test-unit ## Run unit tests (alias: t)
 t: test
-test: test-unit
 
-end-to-end: e2e
-e2e: build
+test-unit: all ## Build and run unit tests
+	@bash scripts/check/test-unit.sh "$(BUILD_DIR)"
+
+e2e: build ## Run end-to-end tests (alias: e2e)
 	@echo "==> make e2e"
-	@for t in e2e/*.sh; do \
-		case "$$t" in *test_live*|*helpers*) continue;; esac; \
-		bash "$$t" $(BUILD_DIR)/llama-cli > /dev/null || { echo "FAIL: $$t"; exit 1; }; \
-	done
+	@for t in e2e/*.sh; do case "$$t" in *test_live*|*helpers*) continue;; esac; bash "$$t" $(BUILD_DIR)/llama-cli > /dev/null || { echo "FAIL: $$t"; exit 1; }; done
 	@echo "  [done] e2e"
+end-to-end: e2e
 
-log:
-	@bash scripts/log-viewer.sh $(ARGS)
-
-test-unit: all
-	@echo "==> make test-unit"
-	@cmake --build $(BUILD_DIR) --target test_config > /dev/null
-	@cmake --build $(BUILD_DIR) --target test_json > /dev/null
-	@cmake --build $(BUILD_DIR) --target test_repl > /dev/null
-	@cmake --build $(BUILD_DIR) --target test_command > /dev/null
-	@cmake --build $(BUILD_DIR) --target test_annotation > /dev/null
-	@cmake --build $(BUILD_DIR) --target test_exec > /dev/null
-	@./$(BUILD_DIR)/test_config --quiet
-	@./$(BUILD_DIR)/test_json --quiet
-	@./$(BUILD_DIR)/test_repl --quiet
-	@./$(BUILD_DIR)/test_command --quiet
-	@./$(BUILD_DIR)/test_annotation --quiet
-	@./$(BUILD_DIR)/test_exec --quiet
-	@echo "  [done] test-unit"
-
-live: all
+live: all ## Integration test with real LLM
 	@bash e2e/test_live.sh $(BUILD_DIR)/llama-cli
 
-tidy: all
-	@if [ "$(SMART)" = "1" ]; then \
-		echo "==> make tidy (smart incremental mode)"; \
-		branch=$$(git rev-parse --abbrev-ref HEAD); \
-		diff_base=$$( [ "$$branch" = "main" ] && echo "HEAD^" || echo "origin/main" ); \
-		files=$$(git diff --name-only $$diff_base | grep "\.cpp$$" | grep "^src/" || true); \
-		if [ -z "$$files" ]; then \
-			echo "  [skip] no changed files vs $$diff_base"; \
-		else \
-			for dir in src $$(find src -maxdepth 1 -mindepth 1 -type d); do \
-				dir_files=$$(echo "$$files" | grep "^$$dir/[^/]*\.cpp$$" || true); \
-				if [ -n "$$dir_files" ]; then \
-					echo "  [checking] $$dir/ ($$(echo $$dir_files | wc -w) files)"; \
-					$(CLANG_TIDY) --config-file=.config/.clang-tidy $$dir_files -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true; \
-				fi; \
-			done; \
-		fi; \
-	else \
-		echo "==> make tidy (full mode)"; \
-		find src -name '*.cpp' -print0 | xargs -0 $(CLANG_TIDY) --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 | grep "warning:" | grep -v "linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size" && exit 1 || true; \
-	fi
-	@echo "  [done] tidy"
+coverage: ## Build with coverage and run tests
+	@bash scripts/check/run-coverage.sh "$(BUILD_DIR)"
 
-lint: all
+coverage-folder: coverage ## Show coverage summary per directory
+	@bash scripts/check/coverage-folder.sh "$(BUILD_DIR)"
+
+quick: all ## Fast feedback: unit tests + comment ratio
+	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
+
+##@ Linting
+
+format: ## Auto-format C++ source files
+	@echo "==> make format"
+	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
+
+cpp-format: ## Check C++ formatting (no changes)
+	@echo "==> make cpp-format"
+	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
+	@echo "  [done] cpp-format"
+
+tidy: all ## Run clang-tidy (smart: changed files only)
+	@bash scripts/check/tidy.sh $(if $(filter 1,$(FULL)),--full)
+
+lint: all ## Run cppcheck static analysis
 	@echo "==> make lint (running cppcheck...)"
 	@cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1 | grep -v "Checking\|files checked" || true
 	@echo "  [done] lint"
 
-yamllint:
+complexity: all ## Check cyclomatic complexity (pmccabe)
+	@bash scripts/check/complexity.sh
+
+yamllint: ## Lint YAML files
 	@echo "==> make yamllint"
-	@yamllint -c .config/yamllint.yml .github/
+	@if command -v yamllint >/dev/null; then yamllint -c .config/yamllint.yml .github/; \
+	else echo "  [skip] yamllint not installed"; fi
 	@echo "  [done] yamllint"
 
-markdownlint:
+markdownlint: ## Lint Markdown files (rumdl)
 	@echo "==> make markdownlint"
-	@rumdl check .
+	@if command -v rumdl >/dev/null; then rumdl check .; \
+	else echo "  [skip] rumdl not installed"; fi
 	@echo "  [done] markdownlint"
 
-complexity: all
-	@echo "==> make complexity (running pmccabe...)"
-	@find src -name '*.cpp' | xargs pmccabe 2>/dev/null | while read line; do \
-		file=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f1); \
-		lno=$$(echo $$line | awk '{print $$6}' | cut -d'(' -f2 | cut -d')' -f1); \
-		if ! head -n $$lno $$file | tail -n 6 | grep -q "pmccabe:skip-complexity\|clang-tidy:skip-complexity"; then \
-			echo $$line | awk '$$1 > 10 {print; exit 1}'; \
-		fi; \
-	done || exit 1
-	@echo "  [done] complexity"
+lint-makefile: ## Check Makefile targets are ≤5 lines
+	@echo "==> make lint-makefile"
+	@bash scripts/check/lint-makefile.sh
+	@echo "  [done] lint-makefile"
 
-sast-security:
-	@echo "==> make sast-security (semgrep...)"
-	@if command -v semgrep >/dev/null; then \
-		semgrep scan --config auto --error --quiet 2>&1 | grep -v "┌────\|Semgrep CLI\|└─────────────" || true; \
-	fi
-	@echo "  [done] sast-security"
+lint-scripts: ## Check shell script conventions
+	@echo "==> make lint-scripts"
+	@bash scripts/check/lint-scripts.sh
+	@echo "  [done] lint-scripts"
 
-sast-secret:
-	@echo "==> make sast-secret (gitleaks...)"
-	@if command -v gitleaks >/dev/null; then \
-		gitleaks detect --source . --log-level error --no-banner; \
-	fi
-	@echo "  [done] sast-secret"
-
-sast: sast-security sast-secret
-
-docs:
+docs: ## Check doxygen warnings
 	@echo "==> make docs (generating doxygen...)"
 	@doxygen .config/Doxyfile 2>&1 | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
 
-check: format-check yamllint markdownlint tidy complexity lint docs index
-	@$(MAKE) -s coverage-folder
-	@$(MAKE) -s sast
-	@echo "==> make comment-ratio"
-	@bash scripts/test_comment_ratio.sh | grep "PASS" || bash scripts/test_comment_ratio.sh
-	@echo "==> make todo"
-	@$(MAKE) -s todo | grep -v "==> make todo"
-	@echo ""
-	@echo "All checks passed."
-
-full-check:
-	@$(MAKE) FULL=1 check
-
-check-ai:
-	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|FAIL|All checks passed|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"
-
-setup:
-	bash scripts/setup.sh
-
-install: all
-	@cp $(BUILD_DIR)/llama-cli /usr/local/bin/llama-cli
-	@echo "Installed to /usr/local/bin/llama-cli"
-
-hooks:
-	@cp .config/pre-commit .git/hooks/pre-commit
-	@chmod +x .git/hooks/pre-commit
-	@echo "Git hooks installed."
-
-todo:
-	@echo "==> Markdown TODOs"
-	@find . -name "*.md" -not -path "./build/*" -not -path "./.git/*" -exec awk ' \
-		FNR == 1 { \
-			if (prev_line != "") printf "%s:%d:%s\n", prev_file, prev_lnum, prev_line; \
-			prev_line = ""; \
-		} \
-		/- \[ \]/ { \
-			match($$0, /[^ ]/); \
-			curr_indent = RSTART; \
-			if (prev_line != "") { \
-				if (curr_indent > prev_indent) { \
-					printf "%s:%d:\033[1m%s\033[0m\n", FILENAME, prev_lnum, prev_line; \
-				} else { \
-					printf "%s:%d:%s\n", FILENAME, prev_lnum, prev_line; \
-				} \
-			} \
-			prev_line = $$0; \
-			prev_indent = curr_indent; \
-			prev_lnum = FNR; \
-			prev_file = FILENAME; \
-		} \
-		END { \
-			if (prev_line != "") printf "%s:%d:%s\n", FILENAME, prev_lnum, prev_line; \
-		}' {} +
-	@echo ""
-	@echo "==> Code TODOs"
-	@grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
-
-index:
-	@echo "==> make index"
-	@bash scripts/build-index.sh
-
-format:
-	@echo "==> make format"
-	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
-
-format-check:
-	@echo "==> make format-check"
-	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format --dry-run -Werror --style=file:.config/.clang-format
-	@echo "format-check: OK"
-
-comment-ratio:
+comment-ratio: ## Show comment ratio per file
 	@cloc src/ --not-match-f='(_test|_it)\.cpp$$' --by-file --csv --quiet \
 	  | grep -v "^language\|^SUM\|^http" \
 	  | awk -F',' 'NF==5 && $$5>0 {ratio=int($$4/($$4+$$5)*100); printf "%d%%\t%s\n", ratio, $$2}' \
 	  | sort -n
 
-gh-pipeline-status:
-	bash scripts/gh-pipeline-status.sh
+##@ Security
+
+sast: sast-security sast-secret ## Run all SAST checks
+
+sast-security: ## Run semgrep security scan
+	@echo "==> make sast-security (semgrep...)"
+	@if command -v semgrep >/dev/null; then \
+		semgrep scan --config auto --error --quiet 2>&1 | grep -v "┌────\|Semgrep CLI\|└─────────────" || true; \
+	else echo "  [skip] semgrep not installed"; fi
+	@echo "  [done] sast-security"
+
+sast-secret: ## Run gitleaks secret scan
+	@echo "==> make sast-secret (gitleaks...)"
+	@if command -v gitleaks >/dev/null; then \
+		gitleaks detect --source . --log-level error --no-banner; \
+	else echo "  [skip] gitleaks not installed"; fi
+	@echo "  [done] sast-secret"
+
+##@ Development
+
+log: ## View event logs
+	@bash scripts/dev/log-viewer.sh $(ARGS)
+
+todo: ## Show TODO items from docs and code
+	@bash scripts/dev/todo.sh
+
+index: ## Regenerate INDEX.md
+	@echo "==> make index"
+	@bash scripts/dev/build-index.sh
+
+prepush: ## Run pre-push checks (smart: code vs docs)
+	@bash scripts/dev/prepush.sh
+
+##@ GitHub
+
+gh-pipeline-status: ## Show latest pipeline status (alias: gpls)
+	bash scripts/gh/pipeline-status.sh
 gpls: gh-pipeline-status
 
-gh-pr-status:
-	bash scripts/gh-pr-status.sh $(ARGS)
+gh-pr-status: ## Show failed PR jobs (alias: gps)
+	bash scripts/gh/pr-status.sh $(ARGS)
 gps: gh-pr-status
 
-gh-create-pr:
-	bash scripts/gh-create-pr.sh
+gh-create-pr: ## Create pull request (alias: gpr)
+	bash scripts/gh/create-pr.sh
 gpr: gh-create-pr
 
-gh-download-issues:
-	bash scripts/gh-download-issues.sh
+gh-download-issues: ## Download GitHub issues (alias: gdi)
+	bash scripts/gh/download-issues.sh
 gdi: gh-download-issues
 
-gh-pr-feedback:
-	bash scripts/gh-pr-feedback.sh
+gh-pr-feedback: ## Show CodeRabbit feedback (alias: gpf)
+	bash scripts/gh/pr-feedback.sh
 gpf: gh-pr-feedback
 
-create-issue:
+create-issue: ## Create issue (TITLE="..." DESC="...")
 	@if [ -z "$(TITLE)" ] || [ -z "$(DESC)" ]; then \
 		echo "Usage: make create-issue TITLE=\"My title\" DESC=\"My description\""; \
 		exit 1; \
 	fi
-	@bash scripts/gh-create-issue.sh "$(TITLE)" "$(DESC)"
+	@bash scripts/gh/create-issue.sh "$(TITLE)" "$(DESC)"
 
-coverage:
-	@echo "==> make coverage (configuring with --coverage...)"
-	@cmake -B $(BUILD_DIR) -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" > /dev/null
-	@cmake --build $(BUILD_DIR) > /dev/null
-	@echo "==> make coverage (running tests...)"
-	@./$(BUILD_DIR)/test_config --quiet
-	@./$(BUILD_DIR)/test_json --quiet
-	@./$(BUILD_DIR)/test_repl --quiet
-	@./$(BUILD_DIR)/test_command --quiet
-	@./$(BUILD_DIR)/test_annotation --quiet
-	@./$(BUILD_DIR)/test_exec --quiet
-	@echo "  [done] coverage"
+##@ Help
 
-coverage-folder: coverage
-	@echo "==> make coverage-folder"
-	@for dir in src $$(find src -maxdepth 1 -mindepth 1 -type d); do \
-		files=$$(ls $(BUILD_DIR)/CMakeFiles/*.dir/$$dir/*.cpp.o 2>/dev/null); \
-		if [ -n "$$files" ]; then \
-			printf "  %-20s " "$$dir/"; \
-			gcov -n $$files 2>/dev/null \
-			| sed 's/,/./g' \
-			| awk '/Lines executed/ { \
-				split($$2, a, ":"); split(a[2], b, "%"); \
-				exec_lines += b[1] * $$4 / 100; \
-				total_lines += $$4; \
-			} END { \
-				if (total_lines > 0) printf "%.2f%%\n", (exec_lines / total_lines) * 100; \
-				else print "N/A"; \
-			}' || echo "N/A"; \
-		fi; \
-	done
-	@echo "  [done] coverage-folder"
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make \033[36m<target>\033[0m\n"} \
+		/^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } \
+		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) }' $(MAKEFILE_LIST)
 
-clean:
-	rm -rf $(BUILD_DIR) llama-cli
-
-quick: all
-	@./$(BUILD_DIR)/test_config --quiet
-	@./$(BUILD_DIR)/test_json --quiet
-	@./$(BUILD_DIR)/test_repl --quiet
-	@./$(BUILD_DIR)/test_command --quiet
-	@./$(BUILD_DIR)/test_annotation --quiet
-	@./$(BUILD_DIR)/test_exec --quiet
-	@bash scripts/test_comment_ratio.sh | grep "PASS" || bash scripts/test_comment_ratio.sh
-
-prepush:
-	@changed=$$(git diff --name-only origin/main...HEAD); \
-	if echo "$$changed" | grep -qE '\.(cpp|h)$$'; then \
-		echo "==> make check (code changed)"; \
-		$(MAKE) -s check; \
-	else \
-		echo "==> make index (docs only)"; \
-		$(MAKE) -s index; \
-		git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }; \
-		echo "All checks passed."; \
-	fi
-
-help:
-	@echo "Usage:"
-	@echo "  make \033[1m(m)\033[0m                    build the project"
-	@echo "  make start \033[1m(s)\033[0m              build and run the REPL"
-	@echo "  make test \033[1m(t)\033[0m               unit tests"
-	@echo "  make end-to-end \033[1m(e2e)\033[0m       end-to-end tests"
-	@echo "  make check \033[1m(c)\033[0m              run smart quality checks (default)"
-	@echo "  make full-check \033[1m(fc)\033[0m        run exhaustive quality checks"
-	@echo "  make sast \033[1m(sast)\033[0m            run all static analysis"
-	@echo "  make sast-security \033[1m(ss)\033[0m     run security analysis (semgrep)"
-	@echo "  make sast-secret \033[1m(sss)\033[0m      run secret scanning (gitleaks)"
-	@echo "  make gh-pr-status \033[1m(gps)\033[0m     show failed PR jobs"
-	@echo "  make gh-pr-feedback \033[1m(gpf)\033[0m   show CodeRabbit feedback"
-	@echo "  make todo                   show TODO items"
-	@echo "  make coverage               generate coverage report"
-	@echo "  make clean                  remove build artifacts"
+# Internal targets (no ## comment = hidden from help)
+all: check-deps
+	@cmake -B $(BUILD_DIR) -S . > /dev/null
+	@cmake --build $(BUILD_DIR) --target llama-cli > /dev/null
+	@cp $(BUILD_DIR)/llama-cli .

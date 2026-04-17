@@ -10,15 +10,15 @@ The `GeminiProvider` was implemented by invoking the `/opt/homebrew/bin/gemini` 
 
 Unlike Ollama, which used an HTTP API with a structured JSON history, the Gemini CLI was designed primarily for direct terminal interaction. To use it as an engine, we followed these steps:
 
-1.  **Format History**: We collapsed the conversation history into a single string.
-2.  **Invoke Subprocess**: We called `gemini -p "<formatted_prompt>"` using the `exec` module.
-3.  **Capture Output**: We captured the `stdout` and returned it to the REPL.
+1. **Format History**: We collapsed the conversation history into a single string.
+2. **Invoke Subprocess**: We called `gemini -p "<formatted_prompt>"` using the `exec` module.
+3. **Capture Output**: We captured the `stdout` and returned it to the REPL.
 
 ### Rationale
 
-1.  **Zero Dependency**: By calling the CLI tool, we avoided adding complex Google Cloud SDKs or managing API keys directly in C++.
-2.  **Leveraging Existing Code**: We reused the `exec` module (ADR-015), which already handled timeouts and output truncation.
-3.  **Simplicity**: This approach allowed for a "stateless" integration that was easy to implement and debug.
+1. **Zero Dependency**: By calling the CLI tool, we avoided adding complex Google Cloud SDKs or managing API keys directly in C++.
+2. **Leveraging Existing Code**: We reused the `exec` module (ADR-015), which already handled timeouts and output truncation.
+3. **Simplicity**: This approach allowed for a "stateless" integration that was easy to implement and debug.
 
 ## Implementation Details
 
@@ -60,6 +60,6 @@ To prevent "shell injection," we added a robust escaping function to ensure that
 
 ## Consequences
 
-*   **Dependency**: The user must have `gemini` installed and configured in their PATH.
-*   **Latency**: Starting a new process for every message was slightly slower than a persistent HTTP connection (Ollama), but acceptable for high-intelligence tasks.
-*   **Prompt Length**: Extremely long histories could hit OS limits for command-line arguments (though `10,000` chars was well within the `ARG_MAX` on macOS/Linux).
+* **Dependency**: The user must have `gemini` installed and configured in their PATH.
+* **Latency**: Starting a new process for every message was slightly slower than a persistent HTTP connection (Ollama), but acceptable for high-intelligence tasks.
+* **Prompt Length**: Extremely long histories could hit OS limits for command-line arguments (though `10,000` chars was well within the `ARG_MAX` on macOS/Linux).

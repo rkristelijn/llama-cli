@@ -90,6 +90,7 @@ All development tools are pinned in `versions.env` (single source of truth):
 We follow a **Dev-First** philosophy: productivity and fast feedback loops for developers take precedence over exhaustive automation on every commit.
 
 ### Why Dev-First?
+
 - **Immediate Feedback**: You shouldn't wait 5 minutes for a full static analysis of 100 files when you only changed one.
 - **Lower Cognitive Load**: By focusing only on your changes, you can fix issues as you write them.
 - **Sustainability**: Faster local checks mean more frequent verification and fewer broken CI builds.
@@ -109,7 +110,7 @@ Ordered by the [shift-left principle](https://en.wikipedia.org/wiki/Shift-left_t
 
 | Phase | Check | Tool | Smart Mode | target |
 |-------|-------|------|------------|--------|
-| Lint | Format | clang-format | Always runs all | `make format-check` |
+| Lint | Format | clang-format | Always runs all | `make cpp-format` |
 | Lint | YAML lint | yamllint | Always runs all | `make yamllint` |
 | Lint | Markdown lint | rumdl | Always runs all | `make markdownlint` |
 | Analysis | clang-tidy | clang-tidy | Only changed files | `make tidy` |
@@ -129,7 +130,7 @@ CI runs `make check` on pull requests to ensure your changes are clean, and `mak
 
 Settings are loaded in this order (last wins):
 
-```
+```text
 struct defaults → environment variables → .env file → CLI arguments
 ```
 

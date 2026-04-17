@@ -32,34 +32,34 @@ C4Component
     Container_Boundary(src, "llama-cli (C++)") {
         Component(repl, "REPL Loop", "repl.cpp", "Manages history and input dispatch.")
         Component(factory, "Provider Factory", "provider_factory.cpp", "Creates the selected provider based on Config.")
-        
+
         ComponentInterface(iprovider, "LLMProvider (Interface)", "llm_provider.h", "Defines the chat(history) contract.")
-        
+
         Component(ollama_p, "OllamaProvider", "ollama_provider.cpp", "Implements HTTP communication with Ollama.")
         Component(gemini_p, "GeminiProvider", "gemini_provider.cpp", "Implements CLI interaction via exec module.")
-        
+
         Component(exec, "Exec Module", "exec.cpp", "Handles shell command execution with timeouts.")
     }
 
     Rel(repl, factory, "Requests provider")
     Rel(factory, ollama_p, "Instantiates")
     Rel(factory, gemini_p, "Instantiates")
-    
+
     Rel(repl, iprovider, "Calls chat(history)")
-    
+
     Rel(ollama_p, iprovider, "Implements")
     Rel(gemini_p, iprovider, "Implements")
-    
+
     Rel(gemini_p, exec, "Uses to call 'gemini -p'")
 ```
 
 ## 3. The "Interface" Pattern Explained
 
-For developers new to C++, an **Interface** (or Abstract Base Class) acted as a "contract." 
+For developers new to C++, an **Interface** (or Abstract Base Class) acted as a "contract."
 
-*   **The Contract**: We defined a class called `LLMProvider` that said: "Any class that wants to be a provider MUST have a method called `chat` that takes a conversation history and returns a string."
-*   **The Implementations**: `OllamaProvider` and `GeminiProvider` "signed" this contract. They did the work in different ways (HTTP vs. Shell), but the `REPL` didn't need to know that.
-*   **Polymorphism**: This allowed the `REPL` to hold a pointer to an `LLMProvider` without knowing *which* one it was. At runtime, the "Factory" decided which one to plug in.
+* **The Contract**: We defined a class called `LLMProvider` that said: "Any class that wants to be a provider MUST have a method called `chat` that takes a conversation history and returns a string."
+* **The Implementations**: `OllamaProvider` and `GeminiProvider` "signed" this contract. They did the work in different ways (HTTP vs. Shell), but the `REPL` didn't need to know that.
+* **Polymorphism**: This allowed the `REPL` to hold a pointer to an `LLMProvider` without knowing *which* one it was. At runtime, the "Factory" decided which one to plug in.
 
 ## 4. Sequence: Calling Gemini
 

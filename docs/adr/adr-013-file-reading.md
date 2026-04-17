@@ -5,6 +5,7 @@
 ## Decision
 
 ### Sync mode — stdin pipe (ADR-007)
+
 Piped stdin is prepended as context to the prompt argument:
 
 ```bash
@@ -12,9 +13,10 @@ cat main.cpp | llama-cli "review this code"
 ```
 
 ### Interactive mode — slash commands
+
 Commands start with `/` and are handled by the REPL, not sent to the LLM:
 
-```
+```text
 > /read main.cpp
 [loaded main.cpp — 25 lines]
 > review this code
@@ -54,6 +56,7 @@ stateDiagram-v2
 | `exit` / `quit` | Exit the REPL |
 
 ### How /read works
+
 1. File contents are read from disk
 2. A user message is added to history: `[file: main.cpp]\n<contents>`
 3. The file is now part of the conversation context
@@ -71,6 +74,7 @@ graph TB
 ```
 
 ## Rationale
+
 - Slash commands follow IRC/Discord/Slack convention — universally understood
 - `/read` is explicit — no ambiguity about what's a file vs a prompt
 - Pipe support follows POSIX conventions (ADR-007)
@@ -78,6 +82,7 @@ graph TB
 - `/clear` is essential as conversation history grows and slows down responses
 
 ## Consequences
+
 - REPL needs a command parser (check if line starts with `/`)
 - File I/O is added as a dependency (just `std::ifstream`)
 - Large files may exceed model context window — no truncation for now

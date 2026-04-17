@@ -25,7 +25,7 @@ The project's build automation has grown organically across three layers — Mak
 | `make help` | Manual echo block, 13 of ~30 targets listed | Gets out of sync, missing targets |
 | Progress output | `==> make X` / `[done]` pattern | No total count, no summary on partial failure |
 | Missing tools | `check-deps` only checks cmake | Other tools fail with cryptic errors |
-| Missing tools: markup linting, dead code finder, duplication finder, unsure if there are tools out there that would fit our project |
+| Missing tools: markup linting, dead code finder, duplication finder, unsure if there are tools out there that would fit our project |  |  |
 
 ## Decisions
 
@@ -55,6 +55,7 @@ The project's build automation has grown organically across three layers — Mak
 | `format` / `format-check` | 2 lines each | keep inline |
 
 After extraction, the Makefile target becomes:
+
 ```makefile
 tidy: all
 	@bash scripts/check/tidy.sh $(if $(filter 1,$(FULL)),--full)
@@ -71,13 +72,15 @@ tidy: all
 | **C. Subdirectories with context-verb-object names** | `scripts/ci/ci-build.sh` | ✗ Redundant — the directory already provides context |
 
 **Naming rules**:
+
 - **kebab-case** for filenames (POSIX/Linux convention, used by Kubernetes, Git, Docker)
 - **verb-object** pattern: `check-format.sh`, `create-pr.sh`, `run-coverage.sh`
 - **`.sh` extension** on all scripts (aids syntax highlighting, makes language obvious)
 - **snake_case** for variables and functions inside scripts
 
 **Proposed directory structure**:
-```
+
+```text
 scripts/
 ├── check/                  # Quality gate scripts (called by make check)
 │   ├── tidy.sh
@@ -133,16 +136,19 @@ scripts/
 | **C. Thin proxy to make/scripts** | CI jobs just call `make <target>`, scripts handle deps | **✓ Recommended** — reproducible locally, CI-vendor portable |
 
 **What stays in YAML** (CI-specific concerns only):
+
 - Trigger configuration, runner/OS selection, matrix strategy
 - `actions/checkout`, `actions/cache`, `actions/upload-artifact` (GitHub-specific APIs)
 - Job dependency graph and parallelism
 - Secrets injection
 
 **What moves to scripts/make**:
+
 - Tool installation → `scripts/ci/install-deps.sh` (reads `versions.env`, installs what's missing)
 - All build/test/lint/check logic → `make <target>` (already mostly true)
 
 **Additional CI improvements**:
+
 - Pin `ubuntu-24.04` instead of `ubuntu-latest` (known CI anti-pattern; breaks without warning during migrations)
 - Pin third-party actions to commit SHA with version comment (the March 2025 `tj-actions/changed-files` supply chain attack affected 23,000 repos via mutable tags)
 - Add `concurrency` groups to cancel superseded runs on the same branch
@@ -161,6 +167,7 @@ ADR-026 established the principle; this extends it to all tools.
 | **D. Nix flakes** | Hermetic, reproducible environments | ✗ Steep learning curve, overkill for this project |
 
 **Proposed `versions.env`**:
+
 ```bash
 # .config/versions.env — single source of truth for tool versions
 # Read by: Makefile, scripts/dev/setup.sh, scripts/ci/install-deps.sh
@@ -177,6 +184,7 @@ CLOC_VERSION=2.02
 ```
 
 **Install fallback priority** (in `setup.sh`):
+
 1. Check if correct version already installed → skip
 2. Platform package manager (brew/apt) with version pin
 3. Direct download from GitHub releases / official site (for tools not in apt, e.g., gitleaks, git-cliff)
@@ -224,7 +232,7 @@ help: ## Show this help
 
 Replace the current `==> make X` / `[done]` pattern with numbered steps:
 
-```
+```text
 [1/9] format-check... ✓
 [2/9] tidy............. ✓
 [3/9] complexity....... ✓
@@ -261,7 +269,7 @@ Distinguish **required** tools (cmake — hard fail) from **optional** tools (se
 
 Each file documents: version, purpose, usage examples, troubleshooting, and what works/doesn't work in this project. This serves as a reference for contributors and AI assistants.
 
-```
+```text
 docs/tools/
 ├── clang-format.md
 ├── clang-tidy.md
@@ -279,6 +287,7 @@ note: there might be tools description already, but in docs/* like clang-tidy.md
 **Decision: Add a lint script that validates script naming and Makefile structure.**
 
 A `scripts/check/lint-conventions.sh` script that verifies:
+
 - All scripts in `scripts/` use kebab-case
 - All scripts have a header comment in the first 5 lines
 - All Makefile targets with >5 lines of shell delegate to a script
@@ -384,6 +393,7 @@ adds a file and updates `setup.sh` to read it.
 **Steps**:
 
 1. Create `versions.env` in project root:
+
    ```bash
    # versions.env — single source of truth for tool versions
    # Read by: Makefile, scripts/dev/setup.sh, scripts/ci/install-deps.sh
@@ -424,7 +434,8 @@ bugs that would be painful to debug during migration.
 **Steps**:
 
 1. Create `.shellcheckrc` in project root:
-   ```
+
+   ```text
    shell=bash
    ```
 
@@ -437,6 +448,7 @@ bugs that would be painful to debug during migration.
    - Add file header comments
 
 3. Add `make shellcheck` target:
+
    ```makefile
    shellcheck: ## Lint shell scripts
    	@find scripts e2e -name '*.sh' | xargs shellcheck
@@ -521,6 +533,7 @@ verify, commit, repeat.
 **Example — extracting `e2e`**:
 
 Makefile after:
+
 ```makefile
 e2e: build ## Run end-to-end tests
 	@bash scripts/check/e2e.sh "$(BUILD_DIR)/llama-cli"
@@ -563,6 +576,7 @@ gh-pr-status: ## Show failed PR jobs (alias: gps)
 ```
 
 Replace manual help with awk extraction:
+
 ```makefile
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make \033[36m<target>\033[0m\n"} \
@@ -573,7 +587,8 @@ help: ## Show this help
 #### 5b. Numbered progress in `make check`
 
 Create `scripts/check/run-all.sh`:
-```
+
+```text
 [1/9] format-check... ✓
 [2/9] tidy............ ✓
 ...
@@ -585,6 +600,7 @@ Quiet by default, verbose on failure (suppress output during success, dump on er
 #### 5c. Comprehensive `check-deps`
 
 Create `scripts/check/check-deps.sh` that distinguishes:
+
 - **Required** (cmake, cppcheck, pmccabe, cloc, clang-format, clang-tidy, doxygen) → hard fail
 - **Optional** (semgrep, gitleaks, shellcheck) → warn, soft skip
 
@@ -603,6 +619,7 @@ Create `scripts/check/check-deps.sh` that distinguishes:
 1. Pin `ubuntu-24.04` (replace all `ubuntu-latest`).
 
 2. Pin action SHAs with version comments:
+
    ```yaml
    - uses: actions/checkout@<sha> # v4.2.2
    ```
@@ -611,6 +628,7 @@ Create `scripts/check/check-deps.sh` that distinguishes:
    Replaces inline `apt-get install` + LLVM repo setup in each job.
 
 4. Simplify CI jobs to:
+
    ```yaml
    - name: Install dependencies
      run: bash scripts/ci/install-deps.sh clang-format clang-tidy
@@ -645,7 +663,8 @@ Create `scripts/check/check-deps.sh` that distinguishes:
 2. Add `make lint-scripts` target, include in `make check`.
 
 3. Create `docs/tools/<toolname>.md` for each pinned tool:
-   ```
+
+   ```text
    docs/tools/
    ├── shell-scripts.md     # Already exists
    ├── clang-format.md
@@ -657,6 +676,7 @@ Create `scripts/check/check-deps.sh` that distinguishes:
    ├── semgrep.md
    └── shellcheck.md
    ```
+
    Each file: version, purpose, usage, configuration, what works/doesn't, troubleshooting.
 
 4. Update `docs/README.md` to link to `docs/tools/`.
@@ -683,7 +703,7 @@ Create `scripts/check/check-deps.sh` that distinguishes:
 
 ### Dependencies
 
-```
+```text
 Phase 1 (versions.env)
   ├── Phase 2 (ShellCheck) — needs shellcheck in versions.env
   │    └── Phase 3 (reorg) — scripts must pass ShellCheck before moving
@@ -695,3 +715,43 @@ Phase 7 (enforcement) — after Phase 4 (validates final structure)
 
 Phases 1→2→3→4→5 are sequential. Phase 6 can run in parallel after Phase 1.
 Phase 7 runs last.
+
+---
+
+## Learnings (added during implementation)
+
+### Git hooks follow the same extraction pattern
+
+The `.config/pre-commit` hook was a flat shell script with inline logic — the same
+anti-pattern we're fixing in the Makefile. Git hooks now live in `scripts/git/` and
+follow the same conventions as all other scripts:
+
+| Hook | Source | Delegates to |
+|------|--------|-------------|
+| `pre-commit` | `scripts/git/pre-commit.sh` | inline (short) |
+| `pre-push` | `scripts/git/pre-push.sh` | `scripts/dev/prepush.sh` |
+
+`make hooks` and `make setup` install both hooks. The `scripts/git/` directory is a
+peer of `scripts/check/`, `scripts/dev/`, etc.
+
+### Markup linters don't need Node or Python
+
+- **yamllint**: Python-based but brew/apt handle the dependency transparently
+- **rumdl**: Rust single-binary markdown linter (71 rules, zero runtime deps)
+  - Chosen over markdownlint-cli2 (Node.js) to avoid adding Node as a project dependency
+  - Config: `.config/rumdl.toml` (rumdl natively supports the `.config/` convention)
+
+### Pipeline ordering follows shift-left principle
+
+`make check` reordered: fastest no-build checks first (format, yamllint, markdownlint,
+lint-makefile), then build-dependent analysis, then tests, then SAST, then metrics.
+
+### lint-makefile.sh enforces the extraction rule
+
+`scripts/check/lint-makefile.sh` counts physical shell lines per target (excluding
+`@echo` and `$(MAKE)` calls). Added to `make check` to prevent regression.
+
+### Phase 2 (ShellCheck) can be deferred
+
+ShellCheck hygiene is valuable but not a blocker for script reorganization or extraction.
+New scripts were written correctly from the start. ShellCheck can be a cleanup pass.

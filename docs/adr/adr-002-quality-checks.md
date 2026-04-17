@@ -3,6 +3,7 @@
 *Status*: Accepted · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
 
 ## Decision
+
 The following automated quality gates are enforced on every PR:
 
 | Tool | Purpose | Why |
@@ -38,6 +39,7 @@ The following automated quality gates are enforced on every PR:
 | MIT license | Apache 2.0, GPL | **MIT** | Most permissive, most popular, least friction for contributors |
 
 ## Rationale
+
 - **Manageable**: comment ratio + cppcheck + clang-tidy + pmccabe keep code readable, clean, and simple
 - **Documented**: doxygen lint ensures every public API is documented
 - **Secure**: semgrep + gitleaks catch vulnerabilities and leaked secrets before they reach GitHub
@@ -50,9 +52,11 @@ The following automated quality gates are enforced on every PR:
 ## CI Pipeline
 
 ### Path-based filtering
+
 CI uses `dorny/paths-filter` to detect what changed. Code jobs only run when `src/`, `CMakeLists.txt`, or `Makefile` are modified. Version-bump and gitleaks always run.
 
 ### Local equivalents
+
 | Command | When | What | Speed |
 |---------|------|------|-------|
 | `make quick` | During dev | incremental build + tests + comment ratio | ~5s |
@@ -60,6 +64,7 @@ CI uses `dorny/paths-filter` to detect what changed. Code jobs only run when `sr
 | `make check` | Full audit | all 15 quality gates | ~60s |
 
 ### Monitoring CI from terminal
+
 ```bash
 gh run list --limit 5                    # recent runs
 gh run view <id>                         # run details
@@ -69,13 +74,14 @@ gh pr checks                             # checks for current PR
 ```
 
 ## Consequences
+
 - Contributors need: `clang-tidy`, `clang-format`, `cppcheck`, `pmccabe`, `doxygen`, `cloc`, `gitleaks`, `semgrep`, `ccache`
 - Sanitizers are opt-in locally (`-DENABLE_SANITIZERS=ON`) but always-on in CI
 - The comment ratio threshold (20%) may need adjustment as the codebase grows
 
 ### Comment ratio strategy
 
-The 20% minimum is enforced by `cloc` via `scripts/test_comment_ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
+The 20% minimum is enforced by `cloc` via `scripts/check/comment-ratio.sh`. To stay structurally above the threshold (not chasing it line by line), every source file must have a `@file` doxygen header:
 
 ```cpp
 /**
@@ -86,7 +92,9 @@ The 20% minimum is enforced by `cloc` via `scripts/test_comment_ratio.sh`. To st
 ```
 
 This serves three purposes:
+
 1. Keeps comment ratio comfortably above 20% without padding
 2. Links every file to its design rationale (ADR)
 3. Makes `doxygen` output navigable with cross-references
+
 - A VERSION bump is required for every PR — no exceptions

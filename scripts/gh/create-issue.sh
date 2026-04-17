@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Create a GitHub issue using the gh CLI
-# Usage: ./scripts/gh-create-issue.sh "Issue Title" "Issue Description"
+# Usage: ./scripts/gh/create-issue.sh "Issue Title" "Issue Description"
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 TITLE="$1"
 BODY="$2"
@@ -31,9 +38,9 @@ if [ $? -eq 0 ]; then
   echo "SUCCESS: Issue created at $ISSUE_URL"
   
   # Optionally download issues to sync local cache
-  if [ -f "./scripts/download-issues.sh" ]; then
+  if [ -f "./scripts/gh/download-issues.sh" ]; then
     echo "Syncing local issue cache..."
-    ./scripts/download-issues.sh > /dev/null
+    ./scripts/gh/download-issues.sh > /dev/null
   fi
 else
   echo "ERROR: Failed to create issue."

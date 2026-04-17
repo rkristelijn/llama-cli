@@ -37,9 +37,7 @@ static int decode_escape(const std::string& json, size_t i, std::string& out) {
 }
 
 /** Check if character at position is an unescaped quote (end of JSON string) */
-static bool is_end_quote(const std::string& json, size_t i) {
-  return json[i] == '"' && (i == 0 || json[i - 1] != '\\');
-}
+static bool is_end_quote(const std::string& json, size_t i) { return json[i] == '"' && (i == 0 || json[i - 1] != '\\'); }
 
 /** Extract a JSON string value by key: "key":"value"
  * Walks the string char-by-char, decoding escape sequences */

@@ -12,9 +12,7 @@
 #include <sstream>
 
 /** Check if line is an exit keyword (exit, quit, /exit, /quit) */
-static bool is_exit(const std::string& line) {
-  return line == "exit" || line == "quit" || line == "/exit" || line == "/quit";
-}
+static bool is_exit(const std::string& line) { return line == "exit" || line == "quit" || line == "/exit" || line == "/quit"; }
 
 // Parse a slash command: extract command name and argument
 // Splits "/command arg" into {Command, "command", "arg"}

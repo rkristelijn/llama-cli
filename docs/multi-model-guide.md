@@ -6,8 +6,8 @@ This guide documented how `llama-cli` was extended to support multiple AI backen
 
 In the context of this project, a **Provider** was the engine that generated AI responses. Previously, `llama-cli` only supported **Ollama**. By introducing a provider system, the tool became "model-agnostic," meaning it could talk to different AI services through a unified interface.
 
-1.  **Ollama (Local)**: The default provider. It ran entirely on the user's machine, ensuring 100% privacy and offline capability.
-2.  **Gemini CLI (External)**: An optional provider that leveraged Google's Gemini models via an external command-line tool. It was typically faster and more capable for complex tasks but required an internet connection.
+1. **Ollama (Local)**: The default provider. It ran entirely on the user's machine, ensuring 100% privacy and offline capability.
+2. **Gemini CLI (External)**: An optional provider that leveraged Google's Gemini models via an external command-line tool. It was typically faster and more capable for complex tasks but required an internet connection.
 
 ## Why did we support both?
 
@@ -25,6 +25,7 @@ We recognized that users often faced a trade-off between privacy and performance
 The system was designed to be "zero-config" by default, falling back to Ollama. Users could switch providers using the `LLAMA_PROVIDER` environment variable.
 
 ### Using Gemini
+
 The user first ensured the Gemini CLI was installed (e.g., via `brew install gemini`).
 
 ```bash
@@ -36,6 +37,7 @@ make run
 ```
 
 ### Using Ollama (Default)
+
 If no provider was specified, the system defaulted to the local Ollama instance.
 
 ```bash
@@ -46,7 +48,8 @@ make run
 ## The "Planner/Executor" Workflow
 
 The ultimate goal of this design was to enable a hybrid workflow where:
-*   **Gemini** acted as the "Planner" (deciding what to do).
-*   **Ollama** acted as the "Executor" (performing the local file writes and terminal commands).
+
+* **Gemini** acted as the "Planner" (deciding what to do).
+* **Ollama** acted as the "Executor" (performing the local file writes and terminal commands).
 
 This allowed for high-intelligence planning without sacrificing the safety of local execution.

@@ -43,9 +43,12 @@
   - [ ] Add logging tests (Logger::log, path(), JSONL format validation)
   - [ ] Evaluate remaining 12-factor principles (#10)
   - [x] Define release process (#11) — GitHub Actions workflow, VERSION file, tag workflow
-  - [ ] scripts/test-files-integration.sh: hardcoded paths — default to repo-relative
-  - [ ] scripts/test-files-integration.sh: tests don't assert expected content — benchmark, not test
+  - [ ] scripts/test/test-files-integration.sh: hardcoded paths — default to repo-relative
+  - [ ] scripts/test/test-files-integration.sh: tests don't assert expected content — benchmark, not test
   - [ ] Optimize `make check` output — too chatty, find golden ratio of feedback
+  - [ ] Dependency outdated check — C++ deps pinned via FetchContent GIT_TAG in CMakeLists.txt, need script to compare against latest GitHub releases
+  - [ ] License audit — verify all vendored/fetched dependencies have compatible licenses (MIT/BSD/Apache)
+  - [ ] Local CI testing — run CI pipeline locally via `act` or Docker to catch YAML issues before pushing
 
 - [ ] Documentation
   - [ ] Getting-started guide with golden path flow diagram (#44)
@@ -65,3 +68,4 @@
   - [ ] Various
     - [ ] Would like to understand if documentation coverage is possible to calculate and linking code, so that all code is backed with documentation is possible
     - [ ] All Markdown file, except for INDEX.md and README.md (maybe others) should have numbered headers and table of contents and linting with auto fix
+    - [ ] check, document and uphold the default cpp style guide to write consistent code, is it <https://google.github.io/styleguide/cppguide.html>? unsure

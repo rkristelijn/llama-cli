@@ -3,6 +3,7 @@
 *Status*: Accepted · *Date*: 2026-04-10 · *Context*: A structured way of working is needed to ensure quality from idea to release. This workflow combines proven practices: define before build (V-model), tests before code (TDD), document decisions (ADRs), and no waste (Lean).
 
 ## Decision
+
 The following workflow is followed for every feature:
 
 ### Level 1 — Overview
@@ -71,18 +72,21 @@ graph LR
 | 14 | | Release | Version is bumped, tag and changelog are created (TBD) |
 
 ## Rationale
+
 - **Left side first**: thinking before coding prevents wasted effort
 - **TDD**: tests define the contract before implementation
 - **Right side mirrors left**: each verification level corresponds to a definition level
 - **Discipline over speed**: structure matters — this is a code-flex
 
 ## Influences
+
 - [V-model](https://en.wikipedia.org/wiki/V-model) — define left, verify right
 - [TDD](https://en.wikipedia.org/wiki/Test-driven_development) — tests before code (Kent Beck)
 - [ADRs](https://adr.github.io/) — document decisions (Michael Nygard)
 - [Lean](https://en.wikipedia.org/wiki/Lean_software_development) — no waste, only what adds value
 
 ## Consequences
+
 - Features take longer to start but are higher quality
 - Documentation exists before code is written
 - Test coverage grows naturally with every feature

@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Show PR status and failed pipeline jobs with colors
 # 
 # Activity Diagram:
@@ -11,6 +12,12 @@
 #                                       |--(No)--> [Check In-Progress] --(Yes)--> [Exit 0]
 #                                       |                                   |
 #                                       |                                 --(No)--> [Exit 0 (Success)]
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 export GH_PAGER=cat
 

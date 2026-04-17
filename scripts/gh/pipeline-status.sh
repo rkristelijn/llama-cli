@@ -1,6 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # pipeline-status.sh — Show latest pipeline status for current branch
 # GH_PAGER=cat prevents gh from opening an interactive pager
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 export GH_PAGER=cat
 

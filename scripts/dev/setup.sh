@@ -7,7 +7,7 @@
 #
 # Usage:
 #   make setup              # from project root
-#   bash scripts/setup.sh   # direct invocation
+#   bash scripts/dev/setup.sh   # direct invocation
 #
 # @see .config/versions.env — pinned tool versions
 # @see docs/adr/adr-026-version-pinning.md — version pinning rationale
@@ -18,8 +18,8 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-# Navigate to project root (setup.sh lives in scripts/)
-cd "$(dirname "$0")/.."
+# Navigate to project root (setup.sh lives in scripts/dev/)
+cd "$(dirname "$0")/../.."
 
 # Load pinned versions
 # shellcheck source=../.config/versions.env
@@ -109,7 +109,8 @@ install_llvm_tools() {
         | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
       # shellcheck source=/dev/null
       source /etc/os-release
-      echo "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME} main" \
+      local codename="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
+      echo "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main" \
         | sudo tee /etc/apt/sources.list.d/llvm.list > /dev/null
       sudo apt-get update -qq
       sudo apt-get install -y "clang-format-${ver}" "clang-tidy-${ver}"
@@ -133,14 +134,13 @@ install_llvm_tools() {
 install_doxygen() {
   local ver="${DOXYGEN_VERSION}"
   local current
-  current="$(doxygen --version 2>/dev/null || echo "0")"
+  current="$(doxygen --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0")"
 
   # Check if installed version is >= required
   if [[ "${current}" != "0" ]]; then
     local min
     min="$(printf '%s\n%s' "${ver}" "${current}" | sort -V | head -n1)"
     if [[ "${min}" == "${ver}" ]]; then
-      echo "  doxygen ${current} >= ${ver} ✓"
       return 0
     fi
   fi
@@ -166,7 +166,6 @@ install_doxygen() {
 #######################################
 install_semgrep() {
   if has semgrep; then
-    echo "  semgrep ✓"
     return 0
   fi
 
@@ -191,7 +190,6 @@ install_semgrep() {
 #######################################
 install_git_cliff() {
   if has git-cliff; then
-    echo "  git-cliff ✓"
     return 0
   fi
 
@@ -225,7 +223,6 @@ install_git_cliff() {
 #######################################
 install_rumdl() {
   if has rumdl; then
-    echo "  rumdl ✓"
     return 0
   fi
 
@@ -238,7 +235,7 @@ install_rumdl() {
     echo "  Installing rumdl ${ver} (direct download from GitHub)..."
     local arch
     arch="$(uname -m)"
-    local url="https://github.com/rvben/rumdl/releases/download/v${ver}/rumdl-linux-${arch}.tar.gz"
+    local url="https://github.com/rvben/rumdl/releases/download/v${ver}/rumdl-v${ver}-${arch}-unknown-linux-gnu.tar.gz"
     wget -q "${url}" -O "/tmp/rumdl-${ver}.tar.gz"
     tar -xzf "/tmp/rumdl-${ver}.tar.gz" -C /tmp
     sudo mv /tmp/rumdl /usr/local/bin/rumdl
@@ -250,7 +247,6 @@ install_rumdl() {
 #######################################
 install_ollama() {
   if has ollama; then
-    echo "  ollama ✓"
     return 0
   fi
 
@@ -268,7 +264,7 @@ install_ollama() {
 #######################################
 main() {
   detect_platform
-  echo "==> Installing dependencies..."
+  echo "==> Checking tools..."
 
   # Build tools (available in both brew and apt)
   has jq      || install_pkg "jq"      "jq"      "jq"
@@ -302,13 +298,28 @@ main() {
   install_ollama
 
   echo ""
-  echo "==> All dependencies installed."
+  echo "==> All tools:"
+  printf "  %-20s %s\n" "cmake"        "$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "clang-format" "$(clang-format --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "clang-tidy"   "$(clang-tidy --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo 'missing')"
+  printf "  %-20s %s\n" "cppcheck"     "$(cppcheck --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "pmccabe"      "$(dpkg -s pmccabe 2>/dev/null | grep '^Version:' | grep -oE '[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "doxygen"      "$(doxygen --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "cloc"         "$(cloc --version 2>/dev/null || echo 'missing')"
+  printf "  %-20s %s\n" "shellcheck"   "$(shellcheck --version 2>/dev/null | grep '^version:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "yamllint"     "$(yamllint --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "rumdl"        "$(rumdl version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "semgrep"      "$(semgrep --version 2>/dev/null || echo 'missing')"
+  printf "  %-20s %s\n" "gitleaks"     "$(dpkg -s gitleaks 2>/dev/null | grep '^Version:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "$(has gitleaks && echo 'installed' || echo 'missing')")"
+  printf "  %-20s %s\n" "git-cliff"    "$(git-cliff --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "ollama"       "$(ollama --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
 
   # Install git hooks (without requiring make/cmake)
   if [[ -d .git ]]; then
     echo "==> Installing git hooks..."
-    cp .config/pre-commit .git/hooks/pre-commit
-    chmod +x .git/hooks/pre-commit
+    cp scripts/git/pre-commit.sh .git/hooks/pre-commit
+    cp scripts/git/pre-push.sh .git/hooks/pre-push
+    chmod +x .git/hooks/pre-commit .git/hooks/pre-push
   fi
 
   echo "==> Setup complete. Run 'make check' to verify."

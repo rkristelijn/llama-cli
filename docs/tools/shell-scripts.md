@@ -95,15 +95,15 @@ main "$@"
 - **verb-object** pattern: the name describes what the script does
 - **`.sh` extension** on all scripts (aids syntax highlighting, makes language obvious)
 
-```
+```text
 # Good
 scripts/check/tidy.sh
 scripts/gh/create-pr.sh
 scripts/dev/setup.sh
 
 # Bad
-scripts/test_comment_ratio.sh   # snake_case
-scripts/ghCreatePr.sh           # camelCase
+scripts/check/comment-ratio.sh   # snake_case
+scripts/gh/createPr.sh           # camelCase
 scripts/setup                   # no extension
 ```
 
@@ -111,7 +111,7 @@ scripts/setup                   # no extension
 
 Scripts are organized by purpose in subdirectories:
 
-```
+```text
 scripts/
 ├── check/    # Quality gate scripts (called by make check)
 ├── ci/       # CI-specific scripts (install deps, CI-only logic)
@@ -121,6 +121,7 @@ scripts/
 ```
 
 Why subdirectories over flat prefixes (like `ci-build.sh`, `gh-create-pr.sh`)?
+
 - Tab completion works better: type `scripts/gh/` then tab
 - Scales past 15+ scripts without becoming noisy
 - Matches Kubernetes (`hack/`), Git (`ci/`), Docker (`hack/`) patterns
@@ -346,7 +347,7 @@ shellcheck --shell=bash scripts/check/tidy.sh
 
 **Configuration** (`.shellcheckrc` in project root):
 
-```
+```text
 # .shellcheckrc — ShellCheck configuration
 # @see docs/tools/shell-scripts.md
 
@@ -434,6 +435,7 @@ echo "${my_var}"
 ### Script works locally but fails in CI
 
 Common causes:
+
 1. **Different bash version** — macOS ships bash 3.2 (2007!), Linux has bash 5.x.
    Avoid bash 4+ features (associative arrays, `readarray`, `${var,,}`) or ensure
    CI and local both use bash 4+.

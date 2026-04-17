@@ -85,6 +85,7 @@ The current implementation has no limit on follow-up calls. This can result in:
 Enable with `--trace` for debug output:
 
 ```
+
 [TRACE] dispatch: prompt "run the tests"
 [TRACE] send_prompt: iteration=1
 [TRACE] handle_response: needs_followup=true
@@ -93,6 +94,7 @@ Enable with `--trace` for debug output:
 [TRACE] send_prompt: iteration=3
 ...
 [TRACE] max_iterations reached (50), stopping
+
 ```text
 
 ## Debugging with Event Logs
@@ -106,6 +108,7 @@ make log exec --context 5   # show exec events with 5 lines context
 ```
 
 Output format:
+
 ```text
 [18:25:03] planner   exec         |  120ms | 150 45
   input:  make test
@@ -113,7 +116,7 @@ Output format:
 ---
 ```
 
-See `scripts/log-viewer.sh` and ADR-027 for details.
+See `scripts/dev/log-viewer.sh` and ADR-027 for details.
 
 ## Related
 

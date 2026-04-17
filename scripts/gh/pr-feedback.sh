@@ -1,5 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
 # Download CodeRabbit review comments from a PR and persist in .cache/pr/
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
 
 REPO="${1:-$(git remote get-url origin 2>/dev/null | sed 's/.*github.com[/:]//' | sed 's/\.git$//')}"
 BRANCH="$(git branch --show-current 2>/dev/null)"

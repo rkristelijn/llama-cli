@@ -23,6 +23,7 @@ Add configurable execution limits.
 ### Behavior
 
 When a limit is reached:
+
 1. Log the event with context
 2. Show a clear message to the user
 3. Stop execution gracefully (not a crash)
@@ -30,6 +31,7 @@ When a limit is reached:
 ### Trace mode
 
 Add `--trace` flag for debug output:
+
 ```text
 [TRACE] enter: handle_exec
 [TRACE] exit: handle_exec (duration_ms=12)

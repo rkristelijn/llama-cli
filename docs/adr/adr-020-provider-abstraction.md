@@ -22,9 +22,9 @@ We considered three patterns for this abstraction:
 
 ### Rationale for Abstract Base Classes
 
-1.  **Readability**: A header file `llm_provider.h` clearly defined the "contract" for what a provider did.
-2.  **Extensibility**: Adding a new provider (e.g., OpenAI) only required inheriting from the base class.
-3.  **Testability**: We could easily inject a "MockProvider" into the REPL for integration tests without needing a real LLM.
+1. **Readability**: A header file `llm_provider.h` clearly defined the "contract" for what a provider did.
+2. **Extensibility**: Adding a new provider (e.g., OpenAI) only required inheriting from the base class.
+3. **Testability**: We could easily inject a "MockProvider" into the REPL for integration tests without needing a real LLM.
 
 ## Implementation Details
 
@@ -34,10 +34,10 @@ The core interface was defined as follows:
 class LLMProvider {
 public:
     virtual ~LLMProvider() = default;
-    
+
     // The main entry point for conversation
     virtual std::string chat(const std::vector<Message>& history) = 0;
-    
+
     // Optional: for one-shot prompts
     virtual std::string generate(const std::string& prompt) = 0;
 };
@@ -56,6 +56,6 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
 
 ## Consequences
 
-*   **Decoupling**: The REPL became backend-agnostic.
-*   **Encapsulation**: Ollama-specific logic (HTTP, JSON parsing) and Gemini-specific logic (CLI calls) were confined to their respective classes.
-*   **Migration**: Existing tests required updates to use the new provider interface.
+* **Decoupling**: The REPL became backend-agnostic.
+* **Encapsulation**: Ollama-specific logic (HTTP, JSON parsing) and Gemini-specific logic (CLI calls) were confined to their respective classes.
+* **Migration**: Existing tests required updates to use the new provider interface.
