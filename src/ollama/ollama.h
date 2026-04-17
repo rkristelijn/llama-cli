@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "config/config.h"
+#include "trace/trace.h"
 
 /// A single message in a conversation
 struct Message {
@@ -20,6 +21,7 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt);
 
 // Send a conversation to Ollama. Uses /api/chat.
 // Returns the assistant's response text.
-std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages);
+// Pass a non-null trace to log HTTP request/response details.
+std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages, Trace* trace = nullptr);
 
 #endif

@@ -15,6 +15,7 @@
 
 #include "json/json.h"
 #include "logging/logger.h"
+#include "trace/trace.h"
 #include "tui/tui.h"
 
 // Build an HTTP client for the configured Ollama instance
@@ -108,36 +109,47 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
 
 /** Conversation via /api/chat (with message history)
  * Returns the assistant's response text, or empty string on error */
-std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages) {
+// NOLINTNEXTLINE(readability-function-size) — trace logging adds lines but not complexity
+std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages, Trace* trace) {
   auto start = std::chrono::high_resolution_clock::now();
   auto cli = make_client(cfg);
+  std::string url = "http://" + cfg.host + ":" + cfg.port + "/api/chat";
   std::string body =
       R"({"model": ")" + cfg.model + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+
+  if (trace) {
+    trace->log("[TRACE] http POST %s model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
+  }
 
   auto res = cli.Post("/api/chat", body, "application/json");
   auto end = std::chrono::high_resolution_clock::now();
   int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   if (!res) {
+    if (trace) {
+      trace->log("[TRACE] http error: no response from %s (connection refused or timeout after %dms)\n", url.c_str(),
+                 duration);
+    }
     tui::error(std::cerr, tui::use_color(cfg.no_color),
                "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     LOG_EVENT("ollama", "chat", build_messages_json(messages), "", duration, 0, 0);
     return "";
   }
 
-  // Rationale: The Ollama API's chat completion response structure nests the assistant's
-  // reply within a "message" object. The original code attempted to directly extract
-  // "content" from the top-level `res->body`, which is incorrect as "content" is not
-  // a direct child of the root JSON object in this context.
-  //
-  // To correctly retrieve the assistant's response, we first extract the "message" object
-  // (which itself is a JSON string representation) from `res->body`. Then, we use
-  // `json_extract_string` again on this intermediate `message_json_string` to get the
-  // actual "content" field. This ensures we are parsing the nested structure as expected.
+  if (trace) {
+    trace->log("[TRACE] http status=%d duration=%dms\n", res->status, duration);
+  }
+
   std::string message_json_string = json_extract_string(res->body, "message");
   std::string response_text = json_extract_string(message_json_string, "content");
   int prompt_tokens = json_extract_int(res->body, "prompt_eval_count");
   int completion_tokens = json_extract_int(res->body, "eval_count");
+
+  if (trace) {
+    trace->log("[TRACE] tokens prompt=%d completion=%d response_len=%zu\n", prompt_tokens, completion_tokens,
+               response_text.size());
+  }
+
   LOG_EVENT("ollama", "chat", build_messages_json(messages), response_text, duration, prompt_tokens, completion_tokens);
   return response_text;
 }

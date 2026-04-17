@@ -12,7 +12,7 @@
 
 SCENARIO("Markdown rendering on vs off in REPL") {
   GIVEN("the LLM responds with markdown") {
-    auto md_chat = [](const std::vector<Message>&) { return "# Title\n**bold** and *italic*\n- item one"; };
+    auto md_chat = [](const std::vector<Message>&, Trace*) { return "# Title\n**bold** and *italic*\n- item one"; };
 
     WHEN("markdown is off via /set") {
       std::istringstream in("/set markdown\nrender\nexit\n");

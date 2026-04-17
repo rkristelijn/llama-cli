@@ -80,11 +80,11 @@ int main(int argc, char* argv[]) {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }
     tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
-    auto generate = [&cfg](const std::vector<Message>& msgs) {
+    auto generate = [&cfg](const std::vector<Message>& msgs, Trace* trace) {
       if (cfg.provider == "mock") {
         return "mock response: " + msgs.back().content;
       }
-      return ollama_chat(cfg, msgs);
+      return ollama_chat(cfg, msgs, trace);
     };
     run_repl(generate, cfg);
   }

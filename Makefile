@@ -1,3 +1,33 @@
+# ==============================================================================
+# LINUX MINT / UBUNTU NOBLE INSTALLATION NOTES (AI-FIX LOG)
+# ==============================================================================
+# 1. DOXYGEN:
+#    - System 'apt' version (1.9.8) is TOO OLD for llama-cli (needs 1.16.1+).
+#    - Manual build is located in /usr/local/bin/doxygen.
+#    - FIX: setup.sh must check `which doxygen` before running `apt install`.
+#
+# 2. SEMGREP:
+#    - Not available in Mint/Ubuntu apt repos.
+#    - FIX: Install via `python3 -m pip install semgrep --break-system-packages`.
+#
+# 3. OLLAMA:
+#    - Not available in apt repos.
+#    - FIX: Install via `curl -fsSL https://ollama.com/install.sh | sh`.
+#
+# 4. PYTHON3:
+#    - If 'python3' command is missing but 'apt' says it's installed:
+#    - FIX: `sudo ln -sf /usr/bin/python3.12 /usr/bin/python3`
+#
+# 5. NEOVIM / NVCHAD:
+#    - Needs Neovim 0.10+ (AppImage or Unstable PPA) for `vim.uv` support.
+#    - Needs a Nerd Font (e.g., 3270 or JetBrainsMono) set in Terminal
+#      Preferences (NOT the 'Mono' variant) for icons.
+#
+# 6. PATH:
+#    - Ensure /usr/local/bin and ~/.local/bin are in the Makefile PATH:
+#    - `export PATH := /usr/local/bin:$(HOME)/.local/bin:$(PATH)`
+# ==============================================================================
+
 BUILD_DIR = build
 CLANG_TIDY = $(shell command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)
 

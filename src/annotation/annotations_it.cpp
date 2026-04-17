@@ -15,7 +15,7 @@ SCENARIO("Write annotation with confirm and skip") {
   std::remove(path.c_str());
 
   GIVEN("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message>&, Trace*) {
       return "Here: <write file=\"" + path + "\">integration test</write>";
     };
 
@@ -52,7 +52,7 @@ SCENARIO("Write annotation with show then confirm") {
   std::remove(path.c_str());
 
   GIVEN("the LLM responds with a write annotation") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message>&, Trace*) {
       return "Here: <write file=\"" + path + "\">show content</write>";
     };
     WHEN("the user types s then y") {
@@ -109,7 +109,7 @@ SCENARIO("Write annotation shows diff for existing files") {
   }
 
   GIVEN("the LLM proposes overwriting an existing file") {
-    auto write_chat = [&](const std::vector<Message>&) {
+    auto write_chat = [&](const std::vector<Message>&, Trace*) {
       return "Here: <write file=\"" + path + "\">new content</write>";
     };
 

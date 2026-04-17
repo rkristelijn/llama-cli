@@ -483,8 +483,9 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 static std::string interruptible_chat(ReplState& s) {
   std::string result;
   std::atomic<bool> done{false};
+  Trace* trace = s.trace ? stderr_trace : nullptr;
   std::thread t([&] {
-    result = s.chat(s.history);
+    result = s.chat(s.history, trace);
     done = true;
   });
   while (!done && !g_interrupted) {
@@ -534,10 +535,20 @@ static void send_prompt(const std::string& line, ReplState& s) {
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
+    if (s.trace) {
+      stderr_trace->log("[TRACE] interrupted\n");
+    }
     s.out << "\n[interrupted]\n";
     s.history.pop_back();
     g_interrupted = 0;
     return;
+  }
+  if (s.trace) {
+    if (response.empty()) {
+      stderr_trace->log("[TRACE] response=empty (connection error?)\n");
+    } else {
+      stderr_trace->log("[TRACE] response_len=%zu preview=%.80s\n", response.size(), response.c_str());
+    }
   }
   s.history.push_back({"assistant", response});
   bool needs_followup = handle_response(response, s);

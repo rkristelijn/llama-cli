@@ -18,7 +18,7 @@ struct MockLLM {
   std::string fixed_response;         ///< Response to return if not empty
 
   /** Mock chat function: echoes the last user message */
-  std::string operator()(const std::vector<Message>& msgs) {
+  std::string operator()(const std::vector<Message>& msgs, Trace* = nullptr) {
     calls++;
     last_history = msgs;
     if (!fixed_response.empty()) {

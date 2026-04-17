@@ -11,7 +11,7 @@
 
 SCENARIO("Version and help commands") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/version\n/help\nexit\n");
   std::ostringstream out;
   WHEN("the user runs /version and /help") {
@@ -27,7 +27,7 @@ SCENARIO("Version and help commands") {
 
 SCENARIO("Unknown command shows error") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/foobar\nexit\n");
   std::ostringstream out;
   WHEN("the user runs /foobar") {
@@ -39,7 +39,7 @@ SCENARIO("Unknown command shows error") {
 
 SCENARIO("Shell command with ! and !!") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
 
   GIVEN("user runs ! command") {
     std::istringstream in("!echo direct\nexit\n");
@@ -68,7 +68,7 @@ SCENARIO("Shell command with ! and !!") {
 
 SCENARIO("Empty lines are skipped") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("\n\n\nhello\n\nexit\n");
   std::ostringstream out;
   WHEN("the user sends empty lines between prompts") {
@@ -79,7 +79,7 @@ SCENARIO("Empty lines are skipped") {
 
 SCENARIO("Quit exits the REPL") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("quit\n");
   std::ostringstream out;
   WHEN("the user types quit") {

@@ -12,9 +12,10 @@
 
 #include "config/config.h"
 #include "ollama/ollama.h"
+#include "trace/trace.h"
 
 // Injectable function type for chat with history
-using ChatFn = std::function<std::string(const std::vector<Message>&)>;
+using ChatFn = std::function<std::string(const std::vector<Message>&, Trace*)>;
 
 // Run the REPL loop with conversation memory.
 // system_prompt is added as first message if non-empty.

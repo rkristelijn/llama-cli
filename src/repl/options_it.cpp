@@ -11,7 +11,7 @@
 
 SCENARIO("Set shows all options") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN("the user runs /set") {
@@ -26,7 +26,7 @@ SCENARIO("Set shows all options") {
 
 SCENARIO("Set toggles color and bofh") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/set color\n/set bofh\n/set\nexit\n");
   std::ostringstream out;
   Config cfg = test_cfg();
@@ -42,7 +42,7 @@ SCENARIO("Set toggles color and bofh") {
 
 SCENARIO("Set unknown option shows error") {
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/set foobar\nexit\n");
   std::ostringstream out;
   WHEN("the user runs /set foobar") {
@@ -54,7 +54,7 @@ SCENARIO("Set unknown option shows error") {
 SCENARIO("Runtime options persist across prompts") {
   GIVEN("the LLM echoes user messages") {
     MockLLM llm;
-    auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+    auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
     std::istringstream in("/set markdown\n**bold text**\nexit\n");
     std::ostringstream out;
     WHEN("the user disables markdown then sends bold text") {
@@ -69,7 +69,7 @@ SCENARIO("BOFH mode via --why-so-serious") {
   Config cfg = test_cfg();
   cfg.bofh = true;
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN("the REPL starts with bofh config") {
@@ -82,7 +82,7 @@ SCENARIO("No-color config flag") {
   Config cfg = test_cfg();
   cfg.no_color = true;
   MockLLM llm;
-  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN("the REPL starts with no_color config") {

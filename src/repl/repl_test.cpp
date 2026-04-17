@@ -14,7 +14,9 @@
 #include "config/config.h"
 
 // Mock chat: returns last user message prefixed with "echo: "
-static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }
+static std::string echo_chat(const std::vector<Message>& messages, Trace*) {
+  return "echo: " + messages.back().content;
+}
 
 // Config with empty system prompt for simpler test assertions
 static Config test_cfg() {
@@ -79,7 +81,7 @@ SCENARIO("REPL basic flow") {
 SCENARIO("REPL conversation history") {
   GIVEN("two prompts are sent") {
     int call_count = 0;
-    auto history_chat = [&](const std::vector<Message>& msgs) {
+    auto history_chat = [&](const std::vector<Message>& msgs, Trace*) {
       call_count++;
       if (call_count == 1) {
         CHECK(msgs.size() == 1);
@@ -98,7 +100,7 @@ SCENARIO("REPL conversation history") {
   }
 
   GIVEN("a system prompt is provided") {
-    auto sys_chat = [](const std::vector<Message>& msgs) {
+    auto sys_chat = [](const std::vector<Message>& msgs, Trace*) {
       CHECK(msgs[0].role == "system");
       CHECK(msgs[0].content == "be helpful");
       return "ok";
@@ -128,7 +130,7 @@ SCENARIO("REPL slash commands") {
   }
 
   GIVEN("user types /clear") {
-    auto clear_chat = [](const std::vector<Message>& msgs) {
+    auto clear_chat = [](const std::vector<Message>& msgs, Trace*) {
       CHECK(msgs.size() == 1);  // only the new message, history was cleared
       return "ok";
     };
@@ -152,7 +154,7 @@ SCENARIO("REPL slash commands") {
 
 SCENARIO("REPL write annotations") {
   // Mock that returns a <write> annotation
-  auto write_chat = [](const std::vector<Message>&) {
+  auto write_chat = [](const std::vector<Message>&, Trace*) {
     return "Here:\n<write file=\"/tmp/llama-repl-test.txt\">test "
            "content</write>\nDone.";
   };
@@ -214,7 +216,7 @@ SCENARIO("REPL command execution") {
 
   GIVEN("user runs !!echo context") {
     int call_count = 0;
-    auto ctx_chat = [&](const std::vector<Message>& msgs) {
+    auto ctx_chat = [&](const std::vector<Message>& msgs, Trace*) {
       call_count++;
       // History should contain the command output before the user prompt
       bool has_cmd = false;
@@ -235,7 +237,7 @@ SCENARIO("REPL command execution") {
   }
 
   GIVEN("LLM responds with an <exec> annotation and user confirms") {
-    auto exec_chat = [](const std::vector<Message>&) { return "Let me check: <exec>echo test123</exec>"; };
+    auto exec_chat = [](const std::vector<Message>&, Trace*) { return "Let me check: <exec>echo test123</exec>"; };
     std::istringstream in("run it\ny\nexit\n");
     std::ostringstream out;
     WHEN("the REPL runs") {
@@ -246,7 +248,7 @@ SCENARIO("REPL command execution") {
   }
 
   GIVEN("LLM responds with an <exec> annotation and user declines") {
-    auto exec_chat = [](const std::vector<Message>&) { return "Let me run: <exec>echo nope</exec>"; };
+    auto exec_chat = [](const std::vector<Message>&, Trace*) { return "Let me run: <exec>echo nope</exec>"; };
     std::istringstream in("run it\nn\nexit\n");
     std::ostringstream out;
     WHEN("the REPL runs") {

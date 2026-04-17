@@ -12,7 +12,7 @@
 SCENARIO("Full conversation with history") {
   GIVEN("the LLM echoes user messages") {
     MockLLM llm;
-    auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+    auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
     std::istringstream in("hello\nwhat did I say?\nexit\n");
     std::ostringstream out;
     WHEN("the user sends two messages") {
@@ -30,7 +30,7 @@ SCENARIO("Full conversation with history") {
 SCENARIO("Command chaining — read file then ask about it") {
   GIVEN("the LLM echoes user messages") {
     MockLLM llm;
-    auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+    auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
     std::istringstream in("!!echo file content here\nwhat was in the file?\nexit\n");
     std::ostringstream out;
     WHEN("the user runs !! then asks about it") {
@@ -51,7 +51,7 @@ SCENARIO("Command chaining — read file then ask about it") {
 SCENARIO("Clear history resets conversation") {
   GIVEN("the LLM echoes user messages") {
     MockLLM llm;
-    auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+    auto chat = [&](const std::vector<Message>& m, Trace*) { return llm(m); };
     std::istringstream in("remember this\n/clear\nwhat did I say?\nexit\n");
     std::ostringstream out;
     WHEN("the user sends a message, clears, then asks") {
