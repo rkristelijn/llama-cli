@@ -98,6 +98,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/check/tidy.sh`](scripts/check/tidy.sh)
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
+- [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Bump the project version in VERSION file.
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
@@ -154,4 +155,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_151 files indexed._
+_152 files indexed._
