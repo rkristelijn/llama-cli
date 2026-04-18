@@ -54,6 +54,8 @@ struct ReplState {
   bool interactive = false;       ///< Whether running on a real TTY (for spinner)
   bool markdown = true;           ///< Whether to render markdown in LLM output
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
+  std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
+  std::string ai_color = "";       ///< ANSI code for AI response (none=default)
 };
 
 /** Get version string from compile-time definition. */
@@ -122,6 +124,120 @@ static void handle_set(const std::string& arg, ReplState& s) {
   std::string opt = (space != std::string::npos) ? arg.substr(0, space) : arg;
   if (!toggle_option(opt, s)) {
     s.out << "Unknown option: " << arg << ". Type /set to see available options.\n";
+  }
+}
+
+// Map color name to ANSI code
+static std::string color_name_to_ansi(const std::string& name) {
+  if (name == "black") return "30";
+  if (name == "red") return "31";
+  if (name == "green") return "32";
+  if (name == "yellow") return "33";
+  if (name == "blue") return "34";
+  if (name == "magenta") return "35";
+  if (name == "cyan") return "36";
+  if (name == "white") return "37";
+  if (name == "bright-red") return "91";
+  if (name == "bright-green") return "92";
+  if (name == "bright-yellow") return "93";
+  if (name == "bright-blue") return "94";
+  if (name == "bright-magenta") return "95";
+  if (name == "bright-cyan") return "96";
+  if (name == "bright-white") return "97";
+  if (name == "orange") return "38;5;208";
+  if (name == "pink") return "38;5;213";
+  if (name == "purple") return "38;5;129";
+  if (name == "lime") return "38;5;118";
+  if (name == "none" || name == "default") return "";
+  return "";
+}
+
+// Map ANSI code back to color name for display
+static std::string ansi_to_name(const std::string& code) {
+  if (code == "30") return "black";
+  if (code == "31") return "red";
+  if (code == "32") return "green";
+  if (code == "33") return "yellow";
+  if (code == "34") return "blue";
+  if (code == "35") return "magenta";
+  if (code == "36") return "cyan";
+  if (code == "37") return "white";
+  if (code == "91") return "bright-red";
+  if (code == "92") return "bright-green";
+  if (code == "93") return "bright-yellow";
+  if (code == "94") return "bright-blue";
+  if (code == "95") return "bright-magenta";
+  if (code == "96") return "bright-cyan";
+  if (code == "97") return "bright-white";
+  if (code == "38;5;208") return "orange";
+  if (code == "38;5;213") return "pink";
+  if (code == "38;5;129") return "purple";
+  if (code == "38;5;118") return "lime";
+  return "none";
+}
+
+// Save or update a key=value in .env file
+static void save_to_dotenv(const std::string& key, const std::string& value) {
+  std::string path = ".env";
+  std::vector<std::string> lines;
+  bool found = false;
+  std::ifstream in(path);
+  if (in.is_open()) {
+    std::string line;
+    while (std::getline(in, line)) {
+      if (line.find(key + "=") == 0) {
+        line = key + "=" + value;
+        found = true;
+      }
+      lines.push_back(line);
+    }
+    in.close();
+  }
+  if (!found) {
+    lines.push_back(key + "=" + value);
+  }
+  std::ofstream out(path);
+  for (const auto& l : lines) {
+    out << l << "\n";
+  }
+}
+
+// Handle /color command: /color prompt <name>, /color ai <name>
+static void handle_color(const std::string& arg, ReplState& s) {
+  static const char* names =
+      "black, red, green, yellow, blue, magenta, cyan, white,\n"
+      "         bright-red, bright-green, bright-yellow, bright-blue,\n"
+      "         bright-magenta, bright-cyan, bright-white,\n"
+      "         orange, pink, purple, lime, none";
+  if (arg.empty()) {
+    s.out << "Usage: /color prompt <color>  or  /color ai <color>\n";
+    s.out << "Colors: " << names << "\n";
+    s.out << "Current: prompt=" << ansi_to_name(s.prompt_color)
+           << ", ai=" << ansi_to_name(s.ai_color) << "\n";
+    return;
+  }
+  auto space = arg.find(' ');
+  if (space == std::string::npos) {
+    s.out << "Usage: /color prompt <color>  or  /color ai <color>\n";
+    return;
+  }
+  std::string target = arg.substr(0, space);
+  std::string cname = arg.substr(space + 1);
+  std::string code = color_name_to_ansi(cname);
+  if (code.empty() && cname != "none" && cname != "default") {
+    s.out << "Unknown color: " << cname << ". Options: " << names << "\n";
+    return;
+  }
+  if (target == "prompt") {
+    s.prompt_color = code;
+    save_to_dotenv("LLAMA_PROMPT_COLOR", cname);
+    s.out << "[prompt color set to " << cname << " (saved)]\n";
+  } else if (target == "ai") {
+    s.ai_color = code;
+    save_to_dotenv("LLAMA_AI_COLOR", cname);
+    s.out << "[ai color set to " << cname << " (saved)]\n";
+  } else {
+    s.out << "Unknown target: " << target << ". Use 'prompt' or 'ai'.\n";
   }
 }
 
@@ -205,11 +321,13 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.out << "[history cleared]\n";
   } else if (input.command == "set" || input.command == "options") {
     handle_set(input.arg, s);
+  } else if (input.command == "color") {
+    handle_color(input.arg, s);
   } else if (input.command == "model") {
     handle_model_selection(s);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
-  } else if (input.command == "help") {
+  } else if (input.command == "help" || input.command.empty()) {
     s.out << help::repl;
   } else {
     s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
@@ -551,6 +669,12 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  * @return true if any exec command produced output that was appended to the conversation history; false otherwise.
  */
 // todo: reduce complexity of handle_response
+// Wrap rendered AI text with the configured AI color
+static std::string colorize_ai(const std::string& text, const ReplState& s) {
+  if (!s.color || s.ai_color.empty()) return text;
+  return "\033[" + s.ai_color + "m" + text + "\033[0m";
+}
+
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 static bool handle_response(const std::string& response, ReplState& s) {
@@ -560,12 +684,12 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto execs = parse_exec_annotations(response);
 
   if (writes.empty() && str_replaces.empty() && reads.empty() && execs.empty()) {
-    s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
+    s.out << colorize_ai(tui::render_markdown(response, s.color && s.markdown), s) << "\n";
     return false;
   }
 
   // Strip all annotations and display clean text
-  s.out << tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown) << "\n";
+  s.out << colorize_ai(tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown), s) << "\n";
 
   for (const auto& action : writes) {
     process_write(action, s.in, s.out, s.color);
@@ -612,7 +736,8 @@ static bool handle_response(const std::string& response, ReplState& s) {
  * @param color When true and reading from `std::cin`, the prompt is colorized.
  * @return bool `false` on EOF or user-initiated quit, `true` if a line was successfully read.
  */
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color) {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color,
+                      const std::string& prompt_ansi = "32") {
   // Use std::getline for non-stdin streams (tests, pipes)
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
@@ -622,7 +747,9 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
     return static_cast<bool>(std::getline(in, line));
   }
   // Interactive mode: use linenoise with colored prompt
-  std::string prompt_str = color ? "\033[1;32m> \033[0m" : "> ";
+  std::string prompt_str = (color && !prompt_ansi.empty())
+                               ? "\033[1;" + prompt_ansi + "m> \033[0m"
+                               : "> ";
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
     return false;
@@ -727,7 +854,7 @@ static void send_prompt(const std::string& line, ReplState& s) {
   if (needs_followup) {
     std::string followup = chat_with_spinner(s);
     if (!g_interrupted) {
-      s.out << tui::render_markdown(followup, s.color && s.markdown) << "\n";
+      s.out << colorize_ai(tui::render_markdown(followup, s.color && s.markdown), s) << "\n";
       s.history.push_back({"assistant", followup});
     } else {
       s.out << "\n[interrupted]\n";
@@ -771,6 +898,24 @@ static bool dispatch(const std::string& line, ReplState& s) {
 
 /** Main REPL loop: read → parse → dispatch → respond
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
+// Tab-completion for slash commands
+static void slash_completion(const char* buf, std::vector<std::string>& completions) {
+  static const std::vector<std::string> cmds = {
+      "/clear", "/color", "/model", "/set", "/version", "/help"};
+  std::string input(buf);
+  if (input.empty()) {
+    return;
+  }
+  if (input[0] != '/') {
+    return;
+  }
+  for (const auto& cmd : cmds) {
+    if (cmd.compare(0, input.size(), input) == 0) {
+      completions.push_back(cmd);
+    }
+  }
+}
+
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
   std::string line;
   std::vector<Message> history;
@@ -778,9 +923,11 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     history.push_back({"system", cfg.system_prompt});
   }
   bool is_tty = tui::use_color(cfg.no_color);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh};
+  linenoise::SetCompletionCallback(slash_completion);
+  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh,
+                     color_name_to_ansi(cfg.prompt_color), color_name_to_ansi(cfg.ai_color)};
 
-  while (read_line(in, out, line, state.color)) {
+  while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {
       continue;
     }

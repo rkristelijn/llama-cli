@@ -45,6 +45,8 @@ struct Config {
   bool trace = false;                ///< Trace mode: show HTTP calls and debug info
   bool force_repl = false;           ///< Force REPL mode even when stdin is not a TTY (--repl)
   Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
+  std::string prompt_color = "yellow"; ///< Prompt color name (LLAMA_PROMPT_COLOR)
+  std::string ai_color = "purple";     ///< AI response color name (LLAMA_AI_COLOR)
   std::string prompt;                ///< One-shot prompt for sync mode
   std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
   std::string system_prompt =        ///< System prompt for conversation context

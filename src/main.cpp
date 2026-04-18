@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
+    tui::banner(std::cerr, color);
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
       if (cfg.provider == "mock") {
         return "mock response: " + msgs.back().content;
       }
-      return ollama_chat(cfg, msgs);
+      return ollama_chat(Config::instance(), msgs);
     };
     run_repl(generate, cfg);
   }

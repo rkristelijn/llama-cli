@@ -127,6 +127,10 @@ void load_dotenv(const std::string& path, Config& c) {
       c.system_prompt = val;
     } else if (key == "LLAMA_PROVIDER") {
       c.provider = val;
+    } else if (key == "LLAMA_PROMPT_COLOR") {
+      c.prompt_color = val;
+    } else if (key == "LLAMA_AI_COLOR") {
+      c.ai_color = val;
     } else if (key == "NO_COLOR") {
       c.no_color = true;
     } else if (key == "TRACE") {
@@ -209,6 +213,12 @@ Config load_env(const Config& defaults) {
   if (std::getenv("TRACE")) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
     c.trace = true;
+  }
+  if (env_get("LLAMA_PROMPT_COLOR", val)) {
+    c.prompt_color = val;
+  }
+  if (env_get("LLAMA_AI_COLOR", val)) {
+    c.ai_color = val;
   }
   return c;
 }

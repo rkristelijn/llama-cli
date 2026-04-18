@@ -29,6 +29,21 @@ inline bool use_color(bool no_color_flag = false) {
   return isatty(STDOUT_FILENO) != 0;
 }
 
+/** Print ASCII art banner at startup */
+inline void banner(std::ostream& out, bool color) {
+  const char* art =
+      "    __    __    ___    __  ___  ___           ________    ____\n"
+      "   / /   / /   /   |  /  |/  / /   |         / ____/ /   /  _/\n"
+      "  / /   / /   / /| | / /|_/ / / /| | ______ / /   / /    / /  \n"
+      " / /___/ /___/ ___ |/ /  / / / ___ |/_____// /___/ /____/ /   \n"
+      "/_____/_____/_/  |_/_/  /_/ /_/  |_|       \\____/_____/___/   \n";
+  if (color) {
+    out << "\033[1;33m" << art << "\033[0m\n";
+  } else {
+    out << art << "\n";
+  }
+}
+
 /** Print colored prompt marker */
 inline void prompt(std::ostream& out, bool color) { out << (color ? "\033[1;32m> \033[0m" : "> "); }
 
