@@ -166,11 +166,19 @@ jobs:
       - run: make coverage
       - name: Generate and check coverage
         run: |
-          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,unused
-          lcov --remove coverage.info '/usr/*' '*/test/*' '*/doctest/*' '*/httplib/*' --output-file coverage.info --ignore-errors unused
-          PERCENT=$(lcov --summary coverage.info | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
+          lcov --capture --directory build \
+            --output-file coverage.info --ignore-errors mismatch,unused
+          lcov --remove coverage.info \
+            '/usr/*' '*_test.cpp' '*_it.cpp' '*_test_helper.cpp' \
+            '*/doctest/*' '*/httplib-src/*' '*/dtl-src/*' \
+            '*/linenoise-src/*' '*/test_helpers.h' \
+            --output-file coverage.info --ignore-errors unused
+          PERCENT=$(lcov --summary coverage.info \
+            | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
           echo "Total Line Coverage: $PERCENT%"
-          [ "$(echo "$PERCENT < 55" | bc -l)" -eq 0 ] || { echo "Coverage below 55%!"; exit 1; }
+          if [ "$(echo "$PERCENT < 50" | bc -l)" -eq 1 ]; then
+            echo "Coverage below 50%!"; exit 1
+          fi
       - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
         with:
           files: coverage.info

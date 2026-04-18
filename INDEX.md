@@ -136,6 +136,7 @@ Auto-generated overview of all files in this repo.
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
@@ -147,7 +148,8 @@ Auto-generated overview of all files in this repo.
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_147 files indexed._
+_149 files indexed._

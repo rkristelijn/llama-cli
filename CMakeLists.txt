@@ -137,3 +137,11 @@ target_link_libraries(test_annotations PRIVATE doctest::doctest httplib::httplib
 add_executable(test_markdown src/tui/markdown_it.cpp ${REPL_LIBS})
 target_include_directories(test_markdown PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_markdown PRIVATE doctest::doctest httplib::httplib)
+
+add_executable(test_trace src/trace/trace_test.cpp src/trace/trace.cpp)
+target_include_directories(test_trace PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_trace PRIVATE doctest::doctest)
+
+add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
+target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_logger PRIVATE doctest::doctest)

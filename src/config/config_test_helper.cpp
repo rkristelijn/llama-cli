@@ -61,7 +61,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       continue;
     }
 
-    // --files=FILE or --files FILE
+    // --files=FILE or --files FILE [FILE...]
     std::string files_val = match_long(arg, "--files=");
     if (!files_val.empty() || arg == "--files") {
       if (files_val.empty() && i + 1 < argc) {
@@ -73,8 +73,18 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
         while (iss >> path) {
           c.files.push_back(path);
         }
-        c.mode = Mode::Sync;
       }
+      // Consume subsequent args that look like file paths
+      while (i + 1 < argc && argv[i + 1][0] != '-') {
+        std::string next(argv[i + 1]);
+        // Stop if next arg doesn't look like a path (no / or .)
+        if (next.find('/') == std::string::npos && next.find('.') == std::string::npos) {
+          break;
+        }
+        c.files.push_back(next);
+        i++;
+      }
+      c.mode = Mode::Sync;
       continue;
     }
 
