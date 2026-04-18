@@ -68,6 +68,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/prompts/11-streaming-tests.md`](docs/prompts/11-streaming-tests.md) — Prompt 11: Add streaming tests
 - [`docs/prompts/README.md`](docs/prompts/README.md) — AI Agent Task Prompts
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
+- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/testing.md`](docs/testing.md) — Testing & Coverage Guide
@@ -155,4 +156,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_152 files indexed._
+_153 files indexed._
