@@ -74,6 +74,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/cppcheck.md`](docs/tools/cppcheck.md) — cppcheck
 - [`docs/tools/doxygen.md`](docs/tools/doxygen.md) — Doxygen
 - [`docs/tools/gitleaks.md`](docs/tools/gitleaks.md) — Gitleaks
+- [`docs/tools/ollama.md`](docs/tools/ollama.md) — Ollama API & CLI
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
@@ -148,4 +149,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_145 files indexed._
+_146 files indexed._

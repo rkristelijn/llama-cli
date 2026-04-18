@@ -65,6 +65,15 @@ set(LIB_SOURCES
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
+# Read version from VERSION file (or use default)
+if(EXISTS "${CMAKE_SOURCE_DIR}/VERSION")
+  file(READ "${CMAKE_SOURCE_DIR}/VERSION" LLAMA_CLI_VERSION)
+  string(STRIP "${LLAMA_CLI_VERSION}" LLAMA_CLI_VERSION)
+else()
+  set(LLAMA_CLI_VERSION "0.0.0")
+endif()
+add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
+
 # Inject build timezone at compile time (portable CMake-only)
 string(TIMESTAMP BUILD_TZ "%z")
 if(BUILD_TZ STREQUAL "")

@@ -55,15 +55,10 @@ struct ReplState {
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
-/** Get version string from VERSION file + git dirty status.
- * Returns "unknown" if VERSION file is missing.
+/** Get version string from compile-time definition + git dirty status.
  * Appends "-dirty" if there are uncommitted changes. */
 static std::string get_version() {
-  std::string ver = "unknown";
-  std::ifstream vf("VERSION");
-  if (vf.is_open()) {
-    std::getline(vf, ver);
-  }
+  std::string ver = LLAMA_CLI_VERSION;
   // Check if working tree is dirty
   if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
     ver += "-dirty";
