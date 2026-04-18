@@ -149,7 +149,8 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+  std::string body =
+      R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());

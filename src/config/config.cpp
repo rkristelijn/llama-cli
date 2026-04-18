@@ -36,7 +36,9 @@ static void parse_host_port(const std::string& val, std::string& host, std::stri
         port = val.substr(bracket + 2);
       }
     } else {
-      host = val;
+      // Missing closing bracket - strip leading '[' and warn
+      host = val.substr(1);
+      std::cerr << "Warning: malformed IPv6 address '" << val << "', missing ']'\n";
     }
   } else {
     // IPv4 or hostname: only split on colon if there's exactly one

@@ -38,6 +38,48 @@ SCENARIO ("json string extraction") {
           ;
       }
     }
+    WHEN ("it contains a tab") {
+      std::string json = "{\"response\":\"col1\\tcol2\"}";
+      THEN ("the tab is unescaped") {
+        CHECK (json_extract_string(json, "response") == "col1\tcol2")
+          ;
+      }
+    }
+    WHEN ("it contains a carriage return") {
+      std::string json = "{\"response\":\"line1\\rline2\"}";
+      THEN ("the carriage return is unescaped") {
+        CHECK (json_extract_string(json, "response") == "line1\rline2")
+          ;
+      }
+    }
+    WHEN ("it contains a backspace") {
+      std::string json = "{\"response\":\"ab\\bc\"}";
+      THEN ("the backspace is unescaped") {
+        CHECK (json_extract_string(json, "response") == "ab\bc")
+          ;
+      }
+    }
+    WHEN ("it contains a form feed") {
+      std::string json = "{\"response\":\"page1\\fpage2\"}";
+      THEN ("the form feed is unescaped") {
+        CHECK (json_extract_string(json, "response") == "page1\fpage2")
+          ;
+      }
+    }
+    WHEN ("it contains an escaped backslash") {
+      std::string json = "{\"response\":\"a\\\\b\"}";
+      THEN ("the backslash is unescaped") {
+        CHECK (json_extract_string(json, "response") == "a\\b")
+          ;
+      }
+    }
+    WHEN ("it contains an escaped forward slash") {
+      std::string json = "{\"response\":\"a\\/b\"}";
+      THEN ("the forward slash is unescaped") {
+        CHECK (json_extract_string(json, "response") == "a/b")
+          ;
+      }
+    }
   }
 
   GIVEN ("a JSON string with unicode escapes") {
