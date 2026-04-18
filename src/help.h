@@ -58,6 +58,7 @@ constexpr const char* repl =
     "  !command      Run command, output to terminal\n"
     "  !!command     Run command, output as LLM context\n"
     "  /clear        Clear conversation history\n"
+    "  /model        Select a model from the server\n"
     "  /set          Show options\n"
     "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
     "  /version      Show version info\n"

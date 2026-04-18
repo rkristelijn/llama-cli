@@ -22,4 +22,8 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt);
 // Returns the assistant's response text.
 std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages);
 
+// Fetch list of available models from Ollama server.
+// Returns vector of model names. Empty on error.
+std::vector<std::string> get_available_models(const Config& cfg);
+
 #endif

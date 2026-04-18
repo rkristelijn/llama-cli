@@ -40,6 +40,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-046-kiro-cli-as-reference.md`](docs/adr/adr-046-kiro-cli-as-reference.md) — ADR-003: Use Kiro CLI as Reference Implementation
 - [`docs/adr/adr-047-ai-guided-development-qa.md`](docs/adr/adr-047-ai-guided-development-qa.md) — AI Guided development
 - [`docs/adr/adr-048-quality-framework.md`](docs/adr/adr-048-quality-framework.md) — ADR-048: AI-Guided Quality Framework
+- [`docs/adr/adr-049-model-selection-command.md`](docs/adr/adr-049-model-selection-command.md) — ADR-049: Interactive Model Selection Command
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -149,4 +150,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_146 files indexed._
+_147 files indexed._

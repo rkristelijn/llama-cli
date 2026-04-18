@@ -121,3 +121,21 @@ SCENARIO ("Quit exits the REPL") {
     }
   }
 }
+
+SCENARIO ("/model command with no server") {
+  MockLLM llm;
+  auto chat = [&](const std::vector<Message>& m) { return llm(m); };
+  std::istringstream in("/model\nexit\n");
+  std::ostringstream out;
+  WHEN ("the user runs /model without Ollama server") {
+    run_repl(chat, test_cfg(), in, out);
+    THEN ("no models message is shown") {
+      CHECK (out.str().find("No models available") != std::string::npos)
+        ;
+    }
+    THEN ("no LLM calls") {
+      CHECK (llm.calls == 0)
+        ;
+    }
+  }
+}

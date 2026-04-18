@@ -132,6 +132,61 @@ static void handle_set(const std::string& arg, ReplState& s) {
 // Handle a slash command (/help, /clear, /set, /version, /unknown)
 // Returns true always — slash commands never exit the REPL loop.
 /**
+ * @brief Interactive model selection menu with numbered list.
+ *
+ * Fetches available models from Ollama server, displays them with numbers,
+ * and prompts user to select one by entering its number. Updates Config
+ * with the selected model. Shows error message if no models available.
+ *
+ * @param s REPL state used for I/O and config access.
+ */
+static void handle_model_selection(ReplState& s) {
+  // Fetch available models from server
+  std::vector<std::string> models = get_available_models(s.cfg);
+
+  if (models.empty()) {
+    s.out << "No models available on " << s.cfg.host << ":" << s.cfg.port << "\n";
+    return;
+  }
+
+  // Display numbered list of models
+  s.out << "Available models:\n";
+  for (size_t i = 0; i < models.size(); i++) {
+    s.out << "  " << (i + 1) << ". " << models[i] << "\n";
+  }
+
+  // Prompt user to select by number
+  s.out << "Select model (1-" << models.size() << "): ";
+  s.out.flush();
+
+  std::string input;
+  if (!std::getline(s.in, input)) {
+    s.out << "\n[cancelled]\n";
+    return;
+  }
+
+  // Parse selection number
+  int choice = 0;
+  try {
+    choice = std::stoi(input);
+  } catch (...) {
+    s.out << "[invalid input]\n";
+    return;
+  }
+
+  // Validate range (1-indexed for user, 0-indexed for vector)
+  if (choice < 1 || choice > static_cast<int>(models.size())) {
+    s.out << "[out of range]\n";
+    return;
+  }
+
+  // Update config with selected model
+  std::string selected = models[choice - 1];
+  Config::instance().model = selected;
+  s.out << "[model set to " << selected << "]\n";
+}
+
+/**
  * @brief Handle a slash command and perform its associated REPL action.
  *
  * Processes recognized commands and writes output to the provided REPL streams
@@ -139,6 +194,7 @@ static void handle_set(const std::string& arg, ReplState& s) {
  * - `clear`: clears the conversation history and notifies the user.
  * - `set` / `options`: toggles or shows configurable REPL options via handle_set.
  * - `version`: prints the running program version.
+ * - `model`: interactive model selection menu.
  * - `help`: prints the REPL help text.
  * Unknown commands produce an informational "Unknown command" message.
  *
@@ -153,6 +209,8 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     s.out << "[history cleared]\n";
   } else if (input.command == "set" || input.command == "options") {
     handle_set(input.arg, s);
+  } else if (input.command == "model") {
+    handle_model_selection(s);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help") {

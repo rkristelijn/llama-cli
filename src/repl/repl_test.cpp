@@ -418,3 +418,18 @@ SCENARIO ("REPL /version command") {
     }
   }
 }
+
+SCENARIO ("REPL /model command") {
+  GIVEN ("user types /model when no server is available") {
+    // Without a running Ollama server, get_available_models() returns empty
+    std::istringstream in("/model\nexit\n");
+    std::ostringstream out;
+    WHEN ("the REPL runs") {
+      run_repl(echo_chat, test_cfg(), in, out);
+      THEN ("no models message is shown") {
+        CHECK (out.str().find("No models available") != std::string::npos)
+          ;
+      }
+    }
+  }
+}

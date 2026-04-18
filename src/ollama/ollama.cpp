@@ -192,3 +192,32 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   LOG_EVENT("ollama", "chat", build_messages_json(messages), response_text, duration, prompt_tokens, completion_tokens);
   return response_text;
 }
+
+/** Fetch list of available models from Ollama /api/tags endpoint.
+ * Parses the JSON response and extracts model names.
+ * Returns empty vector on connection error or invalid response. */
+std::vector<std::string> get_available_models(const Config& cfg) {
+  std::vector<std::string> models;
+  auto cli = make_client(cfg);
+
+  // GET /api/tags returns {"models":[{"name":"model1"},{"name":"model2"},...]}
+  auto res = cli.Get("/api/tags");
+  if (!res) {
+    return models;  // Connection failed
+  }
+
+  // Parse models array from response
+  // Simple extraction: find all "name":"..." pairs in the models array
+  std::string body = res->body;
+  size_t pos = 0;
+  while ((pos = body.find("\"name\":\"", pos)) != std::string::npos) {
+    pos += 8;  // Skip past "name":"
+    size_t end = body.find("\"", pos);
+    if (end != std::string::npos) {
+      models.push_back(body.substr(pos, end - pos));
+      pos = end;
+    }
+  }
+
+  return models;
+}
