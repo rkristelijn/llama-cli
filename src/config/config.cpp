@@ -7,6 +7,7 @@
 
 #include "config/config.h"
 
+#include <cctype>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -44,9 +45,29 @@ void load_dotenv(const std::string& path, Config& c) {
     }
     std::string key = line.substr(0, eq);
     std::string val = line.substr(eq + 1);
+
+    // Strip inline comments (# outside of quotes) BEFORE removing quotes
+    bool in_quotes = false;
+    char quote_char = 0;
+    for (size_t i = 0; i < val.size(); ++i) {
+      if (!in_quotes && (val[i] == '"' || val[i] == '\'')) {
+        in_quotes = true;
+        quote_char = val[i];
+      } else if (in_quotes && val[i] == quote_char) {
+        in_quotes = false;
+      } else if (!in_quotes && val[i] == '#') {
+        val.erase(i);
+        break;
+      }
+    }
+
     // Strip optional surrounding quotes from value
     if (val.size() >= 2 && ((val.front() == '"' && val.back() == '"') || (val.front() == '\'' && val.back() == '\''))) {
       val = val.substr(1, val.size() - 2);
+    }
+    // Trim trailing whitespace
+    while (!val.empty() && std::isspace(static_cast<unsigned char>(val.back()))) {
+      val.pop_back();
     }
     if (key == "OLLAMA_HOST") {
       // Support host:port format (e.g. OLLAMA_HOST=0.0.0.0:11434)

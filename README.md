@@ -115,6 +115,14 @@ See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 - [ ] Streaming responses
 - [ ] Inline code rendering in markdown
 
+## Quality Framework
+
+This project follows [ADR-048](docs/adr/adr-048-quality-framework.md), a lean quality framework designed so that **any AI agent — including small local models — can execute development tasks** by following self-contained prompts with exact file paths, code, and verification commands.
+
+The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 0** (working toward CMMI 1). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-18) for the live audit.
+
+Task prompts for AI agents live in [`docs/prompts/`](docs/prompts/) — each prompt is copy-paste ready for a local Ollama model.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and [docs/](docs/README.md) for architecture decisions.

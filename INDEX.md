@@ -2,7 +2,6 @@
 
 Auto-generated overview of all files in this repo.
 
-- [`docs/adr/0003-kiro-cli-as-reference.md`](docs/adr/0003-kiro-cli-as-reference.md) — ADR-003: Use Kiro CLI as Reference Implementation
 - [`docs/adr/adr-001-http-library.md`](docs/adr/adr-001-http-library.md) — ADR-001: HTTP Library — cpp-httplib
 - [`docs/adr/adr-002-quality-checks.md`](docs/adr/adr-002-quality-checks.md) — ADR-002: Quality Checks & CI Pipeline
 - [`docs/adr/adr-003-v-model-workflow.md`](docs/adr/adr-003-v-model-workflow.md) — ADR-003: Development Workflow
@@ -36,8 +35,12 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-031-tgpt-provider.md`](docs/adr/adr-031-tgpt-provider.md) — ADR-031: tgpt Provider Integration
 - [`docs/adr/adr-032-e2e-test-improvements.md`](docs/adr/adr-032-e2e-test-improvements.md) — ADR-032: E2E Test Improvements
 - [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
+- [`docs/adr/adr-044-tidy-boilerplate.md`](docs/adr/adr-044-tidy-boilerplate.md) — ADR-044: Tidy Build Boilerplate
 - [`docs/adr/adr-045-fix-release-pipeline.md`](docs/adr/adr-045-fix-release-pipeline.md) — ADR-045: Fix Release Pipeline
-- [`docs/adr/adr-44-tidy-boilerplate.md`](docs/adr/adr-44-tidy-boilerplate.md) — ADR-044: Tidy Build Boilerplate
+- [`docs/adr/adr-046-kiro-cli-as-reference.md`](docs/adr/adr-046-kiro-cli-as-reference.md) — ADR-003: Use Kiro CLI as Reference Implementation
+- [`docs/adr/adr-047-ai-guided-development-qa.md`](docs/adr/adr-047-ai-guided-development-qa.md) — AI Guided development
+- [`docs/adr/adr-048-quality-framework.md`](docs/adr/adr-048-quality-framework.md) — ADR-048: AI-Guided Quality Framework
+- [`docs/adr/adr-049-model-selection-command.md`](docs/adr/adr-049-model-selection-command.md) — ADR-049: Interactive Model Selection Command
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -49,8 +52,21 @@ Auto-generated overview of all files in this repo.
 - [`docs/gh-manual.md`](docs/gh-manual.md) — GitHub CLI Manual (gh)
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
+- [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
+- [`docs/prompts/01-commit-msg-hook.md`](docs/prompts/01-commit-msg-hook.md) — Prompt 01: Add commit message validation hook
+- [`docs/prompts/02-branch-naming.md`](docs/prompts/02-branch-naming.md) — Prompt 02: Add branch naming validation
+- [`docs/prompts/03-env-example.md`](docs/prompts/03-env-example.md) — Prompt 03: Add .env.example configuration template
+- [`docs/prompts/04-changelog.md`](docs/prompts/04-changelog.md) — Prompt 04: Add CHANGELOG.md
+- [`docs/prompts/05-coverage-bump.md`](docs/prompts/05-coverage-bump.md) — Prompt 05: Bump test coverage threshold from 55% to 60%
+- [`docs/prompts/06-todo-scraping.md`](docs/prompts/06-todo-scraping.md) — Prompt 06: Automate TODO scraping to TECHDEBT.md
+- [`docs/prompts/07-branch-protection.md`](docs/prompts/07-branch-protection.md) — Prompt 07: Enable GitHub branch protection (peer review required)
+- [`docs/prompts/08-doc-change-ci.md`](docs/prompts/08-doc-change-ci.md) — Prompt 08: Add doc-change enforcement CI job
+- [`docs/prompts/09-streaming-ollama.md`](docs/prompts/09-streaming-ollama.md) — Prompt 09: Add streaming support — Ollama API layer
+- [`docs/prompts/10-streaming-repl.md`](docs/prompts/10-streaming-repl.md) — Prompt 10: Add streaming support — REPL integration
+- [`docs/prompts/11-streaming-tests.md`](docs/prompts/11-streaming-tests.md) — Prompt 11: Add streaming tests
+- [`docs/prompts/README.md`](docs/prompts/README.md) — AI Agent Task Prompts
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
@@ -59,6 +75,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/cppcheck.md`](docs/tools/cppcheck.md) — cppcheck
 - [`docs/tools/doxygen.md`](docs/tools/doxygen.md) — Doxygen
 - [`docs/tools/gitleaks.md`](docs/tools/gitleaks.md) — Gitleaks
+- [`docs/tools/ollama.md`](docs/tools/ollama.md) — Ollama API & CLI
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
@@ -119,6 +136,7 @@ Auto-generated overview of all files in this repo.
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
@@ -130,7 +148,8 @@ Auto-generated overview of all files in this repo.
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_130 files indexed._
+_149 files indexed._

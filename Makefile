@@ -86,9 +86,9 @@ quick: all ## Fast feedback: unit tests + comment ratio
 
 ##@ Linting
 
-format: format-cpp format-yaml format-markdown format-scripts ## Auto-format all
+format: format-code format-yaml format-markdown format-scripts ## Auto-format all
 
-format-cpp: ## Auto-format C++ source files
+format-code: ## Auto-format C++ source files
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
 
 format-yaml: ## Auto-format YAML files
@@ -108,34 +108,28 @@ cpp-format: ## Check C++ formatting (no changes)
 tidy: all ## Run clang-tidy (smart: changed files only)
 	@bash scripts/check/tidy.sh $(if $(filter 1,$(FULL)),--full)
 
-lint: all ## Run cppcheck static analysis
-	@echo "==> make lint (running cppcheck...)"
+lint-cpp: all ## Run cppcheck static analysis
+	@echo "==> make lint-cpp (running cppcheck...)"
 	@output=$$(cppcheck --enable=all --suppress=missingIncludeSystem --suppress=missingInclude --suppress=unusedFunction --suppress=unmatchedSuppression --suppress=normalCheckLevelMaxBranches --suppress=checkersReport --suppress=useStlAlgorithm --suppress=knownConditionTrueFalse:*_it.cpp --suppress=knownConditionTrueFalse:*_test.cpp --error-exitcode=1 -I src/ src/ 2>&1) || { echo "$$output" | grep -v "Checking\|files checked"; exit 1; }; \
 	echo "$$output" | grep -v "Checking\|files checked" || true
-	@echo "  [done] lint"
+	@echo "  [done] lint-cpp"
+
+lint-code: cpp-format lint-cpp ## Lint C++ code (format check + cppcheck)
 
 complexity: all ## Check cyclomatic complexity (pmccabe)
 	@bash scripts/check/complexity.sh
 
-yamllint: ## Lint YAML files
-	@echo "==> make yamllint"
+lint-yaml: ## Lint YAML files
+	@echo "==> make lint-yaml"
 	@if command -v yamllint >/dev/null; then yamllint -c .config/yamllint.yml .github/; \
 	else echo "  [skip] yamllint not installed"; fi
-	@echo "  [done] yamllint"
+	@echo "  [done] lint-yaml"
 
-markdownlint: ## Lint Markdown files (rumdl)
-	@echo "==> make markdownlint"
+lint-markdown: ## Lint Markdown files (rumdl)
+	@echo "==> make lint-markdown"
 	@if command -v rumdl >/dev/null; then rumdl check .; \
 	else echo "  [skip] rumdl not installed"; fi
-	@echo "  [done] markdownlint"
-
-lint-code: cpp-format lint ## Alias: lint C++ code (format check + cppcheck)
-
-lint-yaml: yamllint ## Alias: lint YAML files
-
-lint-markdown: markdownlint ## Alias: lint Markdown files
-
-lint-all: lint-code lint-yaml lint-markdown lint-makefile lint-scripts ## Run all linting checks
+	@echo "  [done] lint-markdown"
 
 lint-makefile: ## Check Makefile targets are ≤5 lines
 	@echo "==> make lint-makefile"
@@ -146,6 +140,8 @@ lint-scripts: ## Check shell script conventions
 	@echo "==> make lint-scripts"
 	@bash scripts/check/lint-scripts.sh
 	@echo "  [done] lint-scripts"
+
+lint: lint-code lint-yaml lint-markdown lint-makefile lint-scripts ## Run all linting checks
 
 docs: ## Check doxygen warnings
 	@echo "==> make docs (generating doxygen...)"
@@ -188,6 +184,9 @@ todo: ## Show TODO items from docs and code
 index: ## Regenerate INDEX.md
 	@echo "==> make index"
 	@bash scripts/dev/build-index.sh
+
+precommit: ## Run pre-commit checks (format + build + secrets)
+	@bash scripts/git/precommit-check.sh
 
 prepush: ## Run pre-push checks (smart: code vs docs)
 	@bash scripts/dev/prepush.sh

@@ -4,7 +4,7 @@ Best practices, conventions, and compliance checking for shell scripts in this p
 
 > **Conventions are enforced by ShellCheck and `scripts/check/lint-scripts.sh`.**
 > See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the summary rules.
-> See [ADR-044](../adr/adr-44-tidy-boilerplate.md) for the rationale.
+> See [ADR-044](../adr/adr-044-tidy-boilerplate.md) for the rationale.
 
 ## Quick reference
 
@@ -472,6 +472,6 @@ fi
 - [Bash FAQ](http://tiswww.case.edu/php/chet/bash/FAQ) — official bash FAQ
 - [r/devops shell scripting](https://www.reddit.com/r/devops/comments/7baj4c/shell_scripting_best_practices/) —
   community discussion on best practices
-- [ADR-044](../adr/adr-44-tidy-boilerplate.md) — architecture decision for build boilerplate
+- [ADR-044](../adr/adr-044-tidy-boilerplate.md) — architecture decision for build boilerplate
 - [ADR-023](../adr/adr-023-self-documenting-processes.md) — self-documenting processes
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — project contribution rules

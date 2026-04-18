@@ -35,6 +35,10 @@ int main(int argc, char* argv[]) {
       std::cout << help::cli;
       return 0;
     }
+    if (std::string(argv[i]) == "--version") {
+      std::cout << "llama-cli " << LLAMA_CLI_VERSION << " (built " << __DATE__ << " " << __TIME__ << " " << BUILD_TIMEZONE << ")\n";
+      return 0;
+    }
     if (std::string(argv[i]) == "--default-env") {
       print_default_env();
       return 0;

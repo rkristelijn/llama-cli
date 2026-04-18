@@ -324,6 +324,58 @@ SCENARIO ("config from .env file") {
     }
     clean_env();
   }
+
+  GIVEN (".env with inline comments") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test6.env", "OLLAMA_HOST=localhost # comment\nOLLAMA_MODEL=gemma4:e4b # another comment\n");
+    Config c;
+    load_dotenv("/tmp/llama-test6.env", c);
+    THEN ("inline comments are stripped") {
+      CHECK (c.host == "localhost")
+        ;
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
+
+  GIVEN (".env with quoted value containing #") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test7.env", "OLLAMA_SYSTEM_PROMPT=\"Use # headings\"\n");
+    Config c;
+    load_dotenv("/tmp/llama-test7.env", c);
+    THEN ("# inside quoted value is preserved") {
+      CHECK (c.system_prompt == "Use # headings")
+        ;
+    }
+    clean_env();
+  }
+
+  GIVEN (".env with literal # in unquoted value") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test8.env", "OLLAMA_MODEL=gemma4:e4b # with comment\n");
+    Config c;
+    load_dotenv("/tmp/llama-test8.env", c);
+    THEN ("# with space is treated as comment marker") {
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
+
+  GIVEN (".env with trailing whitespace") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test9.env", "OLLAMA_HOST=localhost   \nOLLAMA_MODEL=gemma4:e4b\t\n");
+    Config c;
+    load_dotenv("/tmp/llama-test9.env", c);
+    THEN ("trailing whitespace is trimmed") {
+      CHECK (c.host == "localhost")
+        ;
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
 }
 
 SCENARIO ("print default env template") {

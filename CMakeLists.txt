@@ -65,6 +65,15 @@ set(LIB_SOURCES
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
+# Read version from VERSION file (or use default)
+if(EXISTS "${CMAKE_SOURCE_DIR}/VERSION")
+  file(READ "${CMAKE_SOURCE_DIR}/VERSION" LLAMA_CLI_VERSION)
+  string(STRIP "${LLAMA_CLI_VERSION}" LLAMA_CLI_VERSION)
+else()
+  set(LLAMA_CLI_VERSION "0.0.0")
+endif()
+add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
+
 # Inject build timezone at compile time (portable CMake-only)
 string(TIMESTAMP BUILD_TZ "%z")
 if(BUILD_TZ STREQUAL "")
@@ -98,24 +107,24 @@ add_executable(test_exec src/exec/exec_test.cpp src/exec/exec.cpp)
 target_include_directories(test_exec PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_exec PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/trace/trace.cpp src/logging/logger.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_repl PRIVATE doctest::doctest)
+target_link_libraries(test_repl PRIVATE doctest::doctest httplib::httplib)
 
 # Integration tests
 add_executable(test_conversation src/repl/conversation_it.cpp ${REPL_LIBS})
 target_include_directories(test_conversation PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_conversation PRIVATE doctest::doctest)
+target_link_libraries(test_conversation PRIVATE doctest::doctest httplib::httplib)
 
 add_executable(test_commands src/command/commands_it.cpp ${REPL_LIBS})
 target_include_directories(test_commands PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_commands PRIVATE doctest::doctest)
+target_link_libraries(test_commands PRIVATE doctest::doctest httplib::httplib)
 
 add_executable(test_options src/repl/options_it.cpp ${REPL_LIBS})
 target_include_directories(test_options PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_options PRIVATE doctest::doctest)
+target_link_libraries(test_options PRIVATE doctest::doctest httplib::httplib)
 
 add_executable(test_config_it src/config/config_it.cpp src/config/config_test_helper.cpp)
 target_include_directories(test_config_it PRIVATE ${SRC_INCLUDE})
@@ -123,8 +132,16 @@ target_link_libraries(test_config_it PRIVATE doctest::doctest)
 
 add_executable(test_annotations src/annotation/annotations_it.cpp ${REPL_LIBS})
 target_include_directories(test_annotations PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_annotations PRIVATE doctest::doctest)
+target_link_libraries(test_annotations PRIVATE doctest::doctest httplib::httplib)
 
 add_executable(test_markdown src/tui/markdown_it.cpp ${REPL_LIBS})
 target_include_directories(test_markdown PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_markdown PRIVATE doctest::doctest)
+target_link_libraries(test_markdown PRIVATE doctest::doctest httplib::httplib)
+
+add_executable(test_trace src/trace/trace_test.cpp src/trace/trace.cpp)
+target_include_directories(test_trace PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_trace PRIVATE doctest::doctest)
+
+add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
+target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_logger PRIVATE doctest::doctest)
