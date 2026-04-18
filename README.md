@@ -20,10 +20,16 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 ### One-liner (recommended)
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/v0.18.1/install.sh | bash
+```
+
+For the latest (non-pinned) installer:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash
 ```
 
-This auto-detects your OS and architecture (Linux x64/arm64, macOS arm64), downloads the latest release, and installs to `/usr/local/bin`.
+This auto-detects your OS and architecture (Linux x64/arm64, macOS arm64), downloads the release, verifies the checksum, and installs to `/usr/local/bin`.
 
 Options:
 
