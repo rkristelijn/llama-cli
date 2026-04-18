@@ -424,5 +424,7 @@ void print_default_env() {
             << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
+            << "# LLAMA_PROMPT_COLOR=" << c.prompt_color << " # Prompt color (yellow, cyan, etc.)\n"
+            << "# LLAMA_AI_COLOR=" << c.ai_color << " # AI response color (purple, green, etc.)\n"
             << "# OLLAMA_SYSTEM_PROMPT=\"" << flat_prompt << "\" # System prompt\n";
 }

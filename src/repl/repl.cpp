@@ -177,7 +177,7 @@ static std::string ansi_to_name(const std::string& code) {
 }
 
 // Save or update a key=value in .env file
-static void save_to_dotenv(const std::string& key, const std::string& value) {
+static bool save_to_dotenv(const std::string& key, const std::string& value) {
   std::string path = ".env";
   std::vector<std::string> lines;
   bool found = false;
@@ -197,9 +197,13 @@ static void save_to_dotenv(const std::string& key, const std::string& value) {
     lines.push_back(key + "=" + value);
   }
   std::ofstream out(path);
+  if (!out.is_open()) {
+    return false;
+  }
   for (const auto& l : lines) {
     out << l << "\n";
   }
+  return true;
 }
 
 // Handle /color command: /color prompt <name>, /color ai <name>
@@ -230,12 +234,12 @@ static void handle_color(const std::string& arg, ReplState& s) {
   }
   if (target == "prompt") {
     s.prompt_color = code;
-    save_to_dotenv("LLAMA_PROMPT_COLOR", cname);
-    s.out << "[prompt color set to " << cname << " (saved)]\n";
+    bool ok = save_to_dotenv("LLAMA_PROMPT_COLOR", cname);
+    s.out << "[prompt color set to " << cname << (ok ? " (saved)" : " (save failed)") << "]\n";
   } else if (target == "ai") {
     s.ai_color = code;
-    save_to_dotenv("LLAMA_AI_COLOR", cname);
-    s.out << "[ai color set to " << cname << " (saved)]\n";
+    bool ok = save_to_dotenv("LLAMA_AI_COLOR", cname);
+    s.out << "[ai color set to " << cname << (ok ? " (saved)" : " (save failed)") << "]\n";
   } else {
     s.out << "Unknown target: " << target << ". Use 'prompt' or 'ai'.\n";
   }
@@ -669,10 +673,21 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
  * @return true if any exec command produced output that was appended to the conversation history; false otherwise.
  */
 // todo: reduce complexity of handle_response
-// Wrap rendered AI text with the configured AI color
+// Wrap rendered AI text with the configured AI color.
+// Re-applies AI color after any ANSI reset inside markdown rendering.
 static std::string colorize_ai(const std::string& text, const ReplState& s) {
   if (!s.color || s.ai_color.empty()) return text;
-  return "\033[" + s.ai_color + "m" + text + "\033[0m";
+  std::string color_code = "\033[" + s.ai_color + "m";
+  std::string result = color_code;
+  std::string reset = "\033[0m";
+  size_t pos = 0;
+  size_t found;
+  while ((found = text.find(reset, pos)) != std::string::npos) {
+    result += text.substr(pos, found - pos + reset.size()) + color_code;
+    pos = found + reset.size();
+  }
+  result += text.substr(pos) + "\033[0m";
+  return result;
 }
 
 // pmccabe:skip-complexity
