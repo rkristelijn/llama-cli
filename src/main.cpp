@@ -83,7 +83,9 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
-    tui::banner(std::cerr, color);
+    if (!cfg.no_banner) {
+      tui::banner(std::cerr, color);
+    }
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");

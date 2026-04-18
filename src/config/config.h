@@ -33,23 +33,24 @@ struct Config {
     return cfg;
   }
 
-  std::string provider = "ollama";   ///< LLM provider name (ollama, mock, etc.)
-  std::string host = "localhost";    ///< Ollama server hostname
-  std::string port = "11434";        ///< Ollama server port
-  std::string model = "gemma4:e4b";  ///< LLM model name
-  int timeout = 120;                 ///< HTTP request timeout in seconds
-  int exec_timeout = 30;             ///< Max seconds for command execution
-  int max_output = 10000;            ///< Max chars of command output for LLM context
-  bool no_color = false;             ///< Disable colored output (--no-color, NO_COLOR)
-  bool bofh = false;                 ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
-  bool trace = false;                ///< Trace mode: show HTTP calls and debug info
-  bool force_repl = false;           ///< Force REPL mode even when stdin is not a TTY (--repl)
-  Mode mode = Mode::Interactive;     ///< Execution mode (interactive or sync)
-  std::string prompt_color = "yellow"; ///< Prompt color name (LLAMA_PROMPT_COLOR)
-  std::string ai_color = "purple";     ///< AI response color name (LLAMA_AI_COLOR)
-  std::string prompt;                ///< One-shot prompt for sync mode
-  std::vector<std::string> files;    ///< Input files for sync mode (--files, ADR-030)
-  std::string system_prompt =        ///< System prompt for conversation context
+  std::string provider = "ollama";      ///< LLM provider name (ollama, mock, etc.)
+  std::string host = "localhost";       ///< Ollama server hostname
+  std::string port = "11434";           ///< Ollama server port
+  std::string model = "gemma4:e4b";     ///< LLM model name
+  int timeout = 120;                    ///< HTTP request timeout in seconds
+  int exec_timeout = 30;                ///< Max seconds for command execution
+  int max_output = 10000;               ///< Max chars of command output for LLM context
+  bool no_color = false;                ///< Disable colored output (--no-color, NO_COLOR)
+  bool no_banner = false;               ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
+  bool bofh = false;                    ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
+  bool trace = false;                   ///< Trace mode: show HTTP calls and debug info
+  bool force_repl = false;              ///< Force REPL mode even when stdin is not a TTY (--repl)
+  Mode mode = Mode::Interactive;        ///< Execution mode (interactive or sync)
+  std::string prompt_color = "yellow";  ///< Prompt color name (LLAMA_PROMPT_COLOR)
+  std::string ai_color = "purple";      ///< AI response color name (LLAMA_AI_COLOR)
+  std::string prompt;                   ///< One-shot prompt for sync mode
+  std::vector<std::string> files;       ///< Input files for sync mode (--files, ADR-030)
+  std::string system_prompt =           ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. Always respond in the same "
       "language as the user's message. "

@@ -133,6 +133,8 @@ void load_dotenv(const std::string& path, Config& c) {
       c.ai_color = val;
     } else if (key == "NO_COLOR") {
       c.no_color = true;
+    } else if (key == "LLAMA_NO_BANNER") {
+      c.no_banner = (val == "true" || val == "1");
     } else if (key == "TRACE") {
       // TRACE=true or TRACE=1 enables trace output (HTTP calls, timing)
       c.trace = (val == "true" || val == "1");
@@ -209,6 +211,9 @@ Config load_env(const Config& defaults) {
   }
   if (std::getenv("NO_COLOR")) {
     c.no_color = true;
+  }
+  if (std::getenv("LLAMA_NO_BANNER")) {
+    c.no_banner = true;
   }
   if (std::getenv("TRACE")) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
@@ -364,6 +369,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       c.no_color = true;
       continue;
     }
+    if (arg == "--no-banner") {
+      c.no_banner = true;
+      continue;
+    }
     if (arg == "--why-so-serious") {
       c.bofh = true;
       continue;
@@ -423,6 +432,7 @@ void print_default_env() {
             << "# LLAMA_EXEC_TIMEOUT=" << c.exec_timeout << " # Max seconds for shell command execution\n"
             << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"
             << "# NO_COLOR=1 # Disable colored terminal output\n"
+            << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
             << "# LLAMA_PROMPT_COLOR=" << c.prompt_color << " # Prompt color (yellow, cyan, etc.)\n"
             << "# LLAMA_AI_COLOR=" << c.ai_color << " # AI response color (purple, green, etc.)\n"

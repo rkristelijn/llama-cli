@@ -44,18 +44,18 @@ static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
-  ChatFn& chat;                   ///< Chat function for LLM interaction
-  const Config& cfg;              ///< Configuration (timeouts, etc.)
-  std::vector<Message>& history;  ///< Conversation history
-  std::istream& in;               ///< Input stream
-  std::ostream& out;              ///< Output stream
-  int count = 0;                  ///< Number of prompts processed
-  bool color = false;             ///< Whether to use ANSI colors (TTY detect)
-  bool interactive = false;       ///< Whether running on a real TTY (for spinner)
-  bool markdown = true;           ///< Whether to render markdown in LLM output
-  bool bofh = false;              ///< BOFH mode: sarcastic spinner
+  ChatFn& chat;                     ///< Chat function for LLM interaction
+  const Config& cfg;                ///< Configuration (timeouts, etc.)
+  std::vector<Message>& history;    ///< Conversation history
+  std::istream& in;                 ///< Input stream
+  std::ostream& out;                ///< Output stream
+  int count = 0;                    ///< Number of prompts processed
+  bool color = false;               ///< Whether to use ANSI colors (TTY detect)
+  bool interactive = false;         ///< Whether running on a real TTY (for spinner)
+  bool markdown = true;             ///< Whether to render markdown in LLM output
+  bool bofh = false;                ///< BOFH mode: sarcastic spinner
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
-  std::string ai_color = "";       ///< ANSI code for AI response (none=default)
+  std::string ai_color = "";        ///< ANSI code for AI response (none=default)
 };
 
 /** Get version string from compile-time definition. */
@@ -65,6 +65,8 @@ static std::string get_version() {
   return ver;
 }
 
+static std::string ansi_to_name(const std::string& code);
+
 /** Show current options state — lists all toggleable runtime settings.
  * Called by /set without arguments, similar to `env` or `set` in bash. */
 static void show_options(ReplState& s) {
@@ -73,6 +75,9 @@ static void show_options(ReplState& s) {
   s.out << "  color     " << (s.color ? "on" : "off") << "\n";
   s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
   s.out << "  trace     " << (Config::instance().trace ? "on" : "off") << "\n";
+  s.out << "Colors (/color prompt|ai <name>):\n";
+  s.out << "  prompt    " << ansi_to_name(s.prompt_color) << "\n";
+  s.out << "  ai        " << ansi_to_name(s.ai_color) << "\n";
 }
 
 /** Toggle a named option, return true if recognized.
@@ -185,7 +190,8 @@ static bool save_to_dotenv(const std::string& key, const std::string& value) {
   if (in.is_open()) {
     std::string line;
     while (std::getline(in, line)) {
-      if (line.find(key + "=") == 0) {
+      std::string prefix = key + "=";
+      if (line.compare(0, prefix.size(), prefix) == 0) {
         line = key + "=" + value;
         found = true;
       }
@@ -216,8 +222,7 @@ static void handle_color(const std::string& arg, ReplState& s) {
   if (arg.empty()) {
     s.out << "Usage: /color prompt <color>  or  /color ai <color>\n";
     s.out << "Colors: " << names << "\n";
-    s.out << "Current: prompt=" << ansi_to_name(s.prompt_color)
-           << ", ai=" << ansi_to_name(s.ai_color) << "\n";
+    s.out << "Current: prompt=" << ansi_to_name(s.prompt_color) << ", ai=" << ansi_to_name(s.ai_color) << "\n";
     return;
   }
   auto space = arg.find(' ');
@@ -751,8 +756,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
  * @param color When true and reading from `std::cin`, the prompt is colorized.
  * @return bool `false` on EOF or user-initiated quit, `true` if a line was successfully read.
  */
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color,
-                      const std::string& prompt_ansi = "32") {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& prompt_ansi = "32") {
   // Use std::getline for non-stdin streams (tests, pipes)
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
@@ -762,9 +766,7 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
     return static_cast<bool>(std::getline(in, line));
   }
   // Interactive mode: use linenoise with colored prompt
-  std::string prompt_str = (color && !prompt_ansi.empty())
-                               ? "\033[1;" + prompt_ansi + "m> \033[0m"
-                               : "> ";
+  std::string prompt_str = (color && !prompt_ansi.empty()) ? "\033[1;" + prompt_ansi + "m> \033[0m" : "> ";
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
     return false;
@@ -915,8 +917,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
 // Tab-completion for slash commands
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {
-      "/clear", "/color", "/model", "/set", "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/clear", "/color", "/model", "/set", "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
@@ -931,6 +932,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
   }
 }
 
+/** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
   std::string line;
   std::vector<Message> history;
@@ -939,8 +941,18 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   }
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
-  ReplState state = {chat, cfg, history, in, out, 0, is_tty, is_tty, true, cfg.bofh,
-                     color_name_to_ansi(cfg.prompt_color), color_name_to_ansi(cfg.ai_color)};
+  ReplState state = {chat,
+                     cfg,
+                     history,
+                     in,
+                     out,
+                     0,
+                     is_tty,
+                     is_tty,
+                     true,
+                     cfg.bofh,
+                     color_name_to_ansi(cfg.prompt_color),
+                     color_name_to_ansi(cfg.ai_color)};
 
   while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {

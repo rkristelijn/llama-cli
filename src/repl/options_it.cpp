@@ -24,6 +24,12 @@ SCENARIO ("Set shows all options") {
       CHECK (out.str().find("bofh") != std::string::npos)
         ;
     }
+    THEN ("color settings are shown") {
+      CHECK (out.str().find("prompt") != std::string::npos)
+        ;
+      CHECK (out.str().find("ai") != std::string::npos)
+        ;
+    }
   }
 }
 
