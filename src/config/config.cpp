@@ -289,7 +289,7 @@ static bool match_int_opts(const std::string& arg, int& i, int argc, const char*
       val = argv[++i];
     }
     if (!val.empty()) {
-      c.*opt.field = std::stoi(val);
+      c.*opt.field = safe_stoi(val, c.*opt.field);
       return true;
     }
   }

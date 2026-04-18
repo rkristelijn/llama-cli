@@ -663,15 +663,15 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
  * Uses shared_ptr for result to avoid use-after-free on detach. */
 static std::string interruptible_chat(ReplState& s) {
   auto result = std::make_shared<std::string>();
-  std::atomic<bool> done{false};
-  std::thread t([&s, result, &done] {
+  auto done = std::make_shared<std::atomic<bool>>(false);
+  std::thread t([&s, result, done] {
     *result = s.chat(s.history);
-    done = true;
+    *done = true;
   });
-  while (!done && !g_interrupted) {
+  while (!*done && !g_interrupted) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
-  if (done) {
+  if (*done) {
     t.join();
     return *result;
   }
