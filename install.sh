@@ -126,9 +126,7 @@ ensure_install_dir() {
   USE_SUDO=""
 
   if [[ ! -d "$INSTALL_DIR" ]]; then
-    if [[ -w "$(dirname "$INSTALL_DIR")" ]]; then
-      mkdir -p "$INSTALL_DIR"
-    else
+    if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
       command -v sudo >/dev/null 2>&1 || die "sudo is required to create $INSTALL_DIR"
       USE_SUDO="sudo"
       $USE_SUDO mkdir -p "$INSTALL_DIR"
