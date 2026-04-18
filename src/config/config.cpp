@@ -66,7 +66,7 @@ void load_dotenv(const std::string& path, Config& c) {
       val = val.substr(1, val.size() - 2);
     }
     // Trim trailing whitespace
-    while (!val.empty() && std::isspace(val.back())) {
+    while (!val.empty() && std::isspace(static_cast<unsigned char>(val.back()))) {
       val.pop_back();
     }
     if (key == "OLLAMA_HOST") {

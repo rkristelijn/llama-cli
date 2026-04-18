@@ -362,6 +362,20 @@ SCENARIO ("config from .env file") {
     }
     clean_env();
   }
+
+  GIVEN (".env with trailing whitespace") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test9.env", "OLLAMA_HOST=localhost   \nOLLAMA_MODEL=gemma4:e4b\t\n");
+    Config c;
+    load_dotenv("/tmp/llama-test9.env", c);
+    THEN ("trailing whitespace is trimmed") {
+      CHECK (c.host == "localhost")
+        ;
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
 }
 
 SCENARIO ("print default env template") {

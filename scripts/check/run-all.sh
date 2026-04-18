@@ -23,8 +23,8 @@ FAILED_NAMES=()
 # Phase definitions: "phase|name|command"
 STEPS=(
   "Lint|lint-code|make -s lint-code"
-  "Lint|yamllint|make -s yamllint"
-  "Lint|markdownlint|make -s markdownlint"
+  "Lint|lint-yaml|make -s lint-yaml"
+  "Lint|lint-markdown|make -s lint-markdown"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
   "Analysis|tidy|make -s tidy"
@@ -42,8 +42,8 @@ TOTAL="${#STEPS[@]}"
 # Autofix hints per step name
 declare -A HINTS=(
   ["lint-code"]="fix: make format-code, recheck: make lint-code"
-  ["yamllint"]="fix: edit .github/*.yml, recheck: make yamllint"
-  ["markdownlint"]="fix: rumdl fmt ., recheck: make markdownlint"
+  ["lint-yaml"]="fix: edit .github/*.yml, recheck: make lint-yaml"
+  ["lint-markdown"]="fix: rumdl fmt ., recheck: make lint-markdown"
   ["lint-makefile"]="fix: extract target to scripts/, recheck: make lint-makefile"
   ["lint-scripts"]="fix: see docs/tools/shell-scripts.md, recheck: make lint-scripts"
   ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
