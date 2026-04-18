@@ -12,7 +12,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format cpp-format install hooks help quick index comment-ratio check-deps check-versions live tidy lint yamllint markdownlint lint-makefile lint-scripts complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi prepush
+.PHONY: all build clean run start s log test t test-unit test-e2e end-to-end e2e check full-check check-ai format cpp-format install hooks help quick index comment-ratio check-deps check-versions live tidy lint yamllint markdownlint lint-makefile lint-scripts complexity docs sast sast-secret sast-security coverage coverage-folder todo create-issue gh-pr-status gps gh-pipeline-status gpls gh-create-pr gpr gh-pr-feedback gpf gh-download-issues gdi prepush bump
 
 ##@ Getting Started
 
@@ -174,6 +174,9 @@ sast-secret: ## Run gitleaks secret scan
 	@echo "  [done] sast-secret"
 
 ##@ Development
+
+bump: ## Bump version (PART=major|minor|patch)
+	@bash scripts/dev/bump.sh "$(PART)"
 
 log: ## View event logs
 	@bash scripts/dev/log-viewer.sh $(ARGS)

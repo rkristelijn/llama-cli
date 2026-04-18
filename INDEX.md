@@ -70,6 +70,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
+- [`docs/testing.md`](docs/testing.md) — Testing & Coverage Guide
 - [`docs/tools/clang-format.md`](docs/tools/clang-format.md) — clang-format
 - [`docs/tools/clang-tidy.md`](docs/tools/clang-tidy.md) — clang-tidy
 - [`docs/tools/cppcheck.md`](docs/tools/cppcheck.md) — cppcheck
@@ -97,6 +98,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/check/tidy.sh`](scripts/check/tidy.sh)
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
+- [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Bump the project version in VERSION file.
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
@@ -108,6 +110,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
+- [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
 - [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
 - [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
@@ -152,4 +155,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_149 files indexed._
+_152 files indexed._
