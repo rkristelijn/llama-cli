@@ -2,7 +2,9 @@
 
 Auto-generated overview of all files in this repo.
 
+- [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/adr/0003-kiro-cli-as-reference.md`](docs/adr/0003-kiro-cli-as-reference.md) — ADR-003: Use Kiro CLI as Reference Implementation
+- [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/adr/adr-001-http-library.md`](docs/adr/adr-001-http-library.md) — ADR-001: HTTP Library — cpp-httplib
 - [`docs/adr/adr-002-quality-checks.md`](docs/adr/adr-002-quality-checks.md) — ADR-002: Quality Checks & CI Pipeline
 - [`docs/adr/adr-003-v-model-workflow.md`](docs/adr/adr-003-v-model-workflow.md) — ADR-003: Development Workflow
@@ -38,9 +40,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-033-kiro-cli-ollama.md`](docs/adr/adr-033-kiro-cli-ollama.md) — ADR-033: kiro-cli Ollama Integration Reference
 - [`docs/adr/adr-045-fix-release-pipeline.md`](docs/adr/adr-045-fix-release-pipeline.md) — ADR-045: Fix Release Pipeline
 - [`docs/adr/adr-44-tidy-boilerplate.md`](docs/adr/adr-44-tidy-boilerplate.md) — ADR-044: Tidy Build Boilerplate
-- [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
-- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
+- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
@@ -52,7 +53,6 @@ Auto-generated overview of all files in this repo.
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
-- [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/tools/clang-format.md`](docs/tools/clang-format.md) — clang-format
 - [`docs/tools/clang-tidy.md`](docs/tools/clang-tidy.md) — clang-tidy
@@ -62,8 +62,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
-- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
+- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
 - [`scripts/check/check-deps.sh`](scripts/check/check-deps.sh)
@@ -91,20 +91,20 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
-- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
-- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
-- [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
-- [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
 - [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
 - [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**

@@ -27,3 +27,4 @@ Summary of all decisions made in this project.
 | [031](adr-031-tgpt-provider.md) | tgpt Provider Integration | Free CLI-based alternative to Ollama/Gemini | 2026-04-13 |
 | [032](adr-032-e2e-test-improvements.md) | E2E Test Improvements | Shared helpers, table-driven tests, cleanup traps | 2026-04-13 |
 | [033](adr-033-kiro-cli-ollama.md) | kiro-cli Ollama Integration | Research on connecting kiro-cli to local Ollama | 2026-04-15 |
+| [048](adr-048-quality-framework.md) | Lean Quality Framework | CMMI maturity levels, automation stacking, Operational/Tactical/Strategic pillars | 2026-04-18 |
