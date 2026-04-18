@@ -17,21 +17,22 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 
 ## Install
 
-### Pre-built binary (recommended)
-
-Download the latest release from [GitHub Releases](https://github.com/ollama/llama-cli/releases):
+### One-liner (recommended)
 
 ```bash
-# Linux/macOS
-curl -L https://github.com/ollama/llama-cli/releases/latest/download/llama-cli -o llama-cli
-chmod +x llama-cli
-./llama-cli
+curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash
 ```
 
-Or move it to your PATH:
+This auto-detects your OS and architecture (Linux x64/arm64, macOS arm64), downloads the latest release, and installs to `/usr/local/bin`.
+
+Options:
 
 ```bash
-sudo mv llama-cli /usr/local/bin/
+# Install to a custom directory
+curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | INSTALL_DIR=~/.local/bin bash
+
+# Install a specific version
+curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | VERSION=0.18.1 bash
 ```
 
 ### From source
