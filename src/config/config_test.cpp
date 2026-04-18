@@ -338,6 +338,30 @@ SCENARIO ("config from .env file") {
     }
     clean_env();
   }
+
+  GIVEN (".env with quoted value containing #") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test7.env", "OLLAMA_SYSTEM_PROMPT=\"Use # headings\"\n");
+    Config c;
+    load_dotenv("/tmp/llama-test7.env", c);
+    THEN ("# inside quoted value is preserved") {
+      CHECK (c.system_prompt == "Use # headings")
+        ;
+    }
+    clean_env();
+  }
+
+  GIVEN (".env with literal # in unquoted value") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test8.env", "OLLAMA_MODEL=gemma4:e4b # with comment\n");
+    Config c;
+    load_dotenv("/tmp/llama-test8.env", c);
+    THEN ("# with space is treated as comment marker") {
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
 }
 
 SCENARIO ("print default env template") {

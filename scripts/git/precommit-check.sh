@@ -33,7 +33,7 @@ run_step() {
 
 echo ""
 echo "── Format ──"
-run_step "format-cpp" make -s format-cpp
+run_step "format-code" make -s format-code
 run_step "format-yaml" make -s format-yaml
 run_step "format-markdown" make -s format-markdown
 run_step "format-scripts" make -s format-scripts

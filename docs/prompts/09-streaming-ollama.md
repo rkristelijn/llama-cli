@@ -108,6 +108,25 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
             completion_tokens = json_extract_int(line, "eval_count");
           }
         }
+        // Process any remaining buffered data (final chunk without newline)
+        if (!line_buffer.empty()) {
+          std::string line = line_buffer;
+          line_buffer.clear();
+          std::string msg = json_extract_object(line, "message");
+          std::string token = json_extract_string(msg, "content");
+          if (!token.empty()) {
+            full_response += token;
+            if (!on_token(token)) {
+              aborted = true;
+              return false;  // abort stream
+            }
+          }
+          std::string done = json_extract_string(line, "done");
+          if (done == "true") {
+            prompt_tokens = json_extract_int(line, "prompt_eval_count");
+            completion_tokens = json_extract_int(line, "eval_count");
+          }
+        }
         return true;  // continue receiving
       });
 
