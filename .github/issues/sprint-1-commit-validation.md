@@ -26,6 +26,7 @@ Then the commit succeeds
 ## Implementation
 
 Add `scripts/git/commit-msg.sh`:
+
 - Validate against regex: `^(feat|fix|chore|refactor|docs|test|ci|style|perf|build)(\(.+\))?: .{1,72}$`
 - Print example on failure
 - Install via `make hooks` (symlink to `.git/hooks/commit-msg`)

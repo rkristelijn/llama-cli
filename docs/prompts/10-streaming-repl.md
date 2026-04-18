@@ -258,7 +258,7 @@ grep -c "stream_fn" src/main.cpp && echo "PASS: stream_fn in main" || echo "FAIL
 
 ## Expected output
 
-```
+```text
 PASS: build succeeds
 PASS: tests pass
 PASS: streaming_chat exists
@@ -276,6 +276,6 @@ PASS: stream_fn in main
 
 ## Commit message
 
-```
+```text
 feat: integrate streaming into REPL with token-by-token output
 ```

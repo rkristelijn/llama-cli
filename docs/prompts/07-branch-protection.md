@@ -33,7 +33,7 @@ EOF
 
 ## Alternative: If you prefer the GitHub web UI
 
-1. Go to https://github.com/rkristelijn/llama-cli/settings/branches
+1. Go to <https://github.com/rkristelijn/llama-cli/settings/branches>
 2. Click "Add branch protection rule"
 3. Branch name pattern: `main`
 4. Check: "Require a pull request before merging"
@@ -53,7 +53,7 @@ gh api repos/rkristelijn/llama-cli/branches/main/protection \
 
 ## Expected output
 
-```
+```text
 1
 PASS: branch protection enabled
 ```

@@ -66,7 +66,7 @@ Which model for which job? A practical guide for this project.
 
 ## Decision Flowchart
 
-```
+```text
 Is the task in docs/prompts/?
   ├─ YES → Use gemma4:e4b (the Junior follows instructions)
   └─ NO

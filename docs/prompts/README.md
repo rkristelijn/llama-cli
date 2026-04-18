@@ -15,6 +15,7 @@ Self-contained prompts for executing development tasks with a local Ollama model
 ## Format
 
 Every prompt contains:
+
 - **Context**: what files exist, what they currently contain
 - **Task**: exactly what to create or change
 - **Code**: copy-paste ready code blocks

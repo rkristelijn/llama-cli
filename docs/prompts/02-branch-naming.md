@@ -80,7 +80,7 @@ grep -c "BRANCH_PATTERN" scripts/git/pre-commit.sh && echo "PASS: pattern found 
 
 ## Expected output
 
-```
+```text
 PASS: accepted feat/42-add-streaming
 PASS: rejected my-feature
 PASS: accepted fix/15-empty-input
@@ -89,6 +89,6 @@ PASS: pattern found in pre-commit.sh
 
 ## Commit message
 
-```
+```text
 chore: add branch naming validation to pre-commit hook
 ```

@@ -67,7 +67,7 @@ grep -c "Semantic Versioning" CHANGELOG.md && echo "PASS: has semver reference"
 
 ## Expected output
 
-```
+```text
 PASS: CHANGELOG.md exists
 PASS: has Unreleased section
 PASS: has format reference
@@ -76,6 +76,6 @@ PASS: has semver reference
 
 ## Commit message
 
-```
+```text
 chore: add CHANGELOG.md
 ```

@@ -161,7 +161,7 @@ make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
 
 ## Expected output
 
-```
+```text
 PASS: declaration in header
 PASS: implementation exists
 PASS: functional included
@@ -171,6 +171,6 @@ PASS: tests pass
 
 ## Commit message
 
-```
+```text
 feat: add streaming support to Ollama API layer
 ```

@@ -106,7 +106,7 @@ rm /tmp/test-msg.txt
 
 ## Expected output
 
-```
+```text
 Git hooks installed (pre-commit, pre-push, commit-msg).
 PASS: rejected bad message
 PASS: accepted good message
@@ -115,6 +115,6 @@ PASS: accepted scoped message
 
 ## Commit message
 
-```
+```text
 chore: add commit message validation hook
 ```

@@ -63,7 +63,7 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" && ec
 
 ## Expected output
 
-```
+```text
 PASS: doc-check job exists
 PASS: ADR reference found
 PASS: valid YAML
@@ -71,6 +71,6 @@ PASS: valid YAML
 
 ## Commit message
 
-```
+```text
 ci: add doc-change enforcement check
 ```

@@ -30,6 +30,7 @@ Then they see a template with: summary, changes, checklist, decisions section
 ## Implementation
 
 Already created in this sprint:
+
 - `.github/ISSUE_TEMPLATE/feature.md` — feat template with DoR
 - `.github/ISSUE_TEMPLATE/bug.md` — fix template with reproduction steps
 - `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist with decision catch

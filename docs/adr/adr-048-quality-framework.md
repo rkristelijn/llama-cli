@@ -90,6 +90,7 @@ Every code change follows this collapsed V-model loop, regardless of CMMI level:
 | 0.8 | Value statement on task/issue | 📝 Manual | → Traces to strategic "Why" | issue template |
 
 **Process at CMMI 0**:
+
 1. Create branch from issue → `feat/123-short-name`
 2. Code with basic lint + secret scan on pre-commit
 3. Manual test, document what you tested
@@ -116,6 +117,7 @@ Inherits all CMMI 0 checks, plus:
 | 1.10 | Comment ratio ≥ 20% | ✅ Easy | → Self-documenting code metric | cloc |
 
 **Process at CMMI 1**:
+
 1. Task passes Definition of Ready (value statement, AC in Given-When-Then, RAID reviewed)
 2. Create branch → Justify phase: draft ADR if architectural, write ghost E2E test
 3. Design: update Mermaid diagrams if structure changes
@@ -146,6 +148,7 @@ Inherits all CMMI 0+1 checks, plus:
 | 2.12 | IaC for environments | 🔶 Medium | → Reproducible deploys, DR readiness | terraform, docker-compose |
 
 **Process at CMMI 2**:
+
 1. Sprint planning: set CMMI dial, allocate 70/20/10 (delivery/cross-training/innovation)
 2. Full Thin-V per task with all CMMI 0+1+2 gates
 3. Feature environments auto-provisioned per branch
@@ -196,7 +199,7 @@ The "chess principle" — every check serves ≥ 2 purposes:
 
 ## 5. Git-Triggered Process Flow
 
-```
+```text
 Issue "In Progress"
   │
   ├─► Branch created: feat/123-short-name
@@ -388,6 +391,7 @@ The framework is designed so that **any AI agent can execute tasks** — but mat
 Use this to determine your current CMMI level:
 
 ### CMMI 0 — Essentials
+
 - [ ] Conventional commits enforced
 - [ ] Branch naming convention in place
 - [ ] Basic linting runs on commit
@@ -396,6 +400,7 @@ Use this to determine your current CMMI level:
 - [ ] README with setup instructions exists
 
 ### CMMI 1 — Managed
+
 - [ ] All CMMI 0 checks pass
 - [ ] Unit test coverage ≥ 60%
 - [ ] SAST scan in CI
@@ -407,6 +412,7 @@ Use this to determine your current CMMI level:
 - [ ] Complexity limit enforced (≤ 10)
 
 ### CMMI 2 — Defined
+
 - [ ] All CMMI 1 checks pass
 - [ ] Coverage ≥ 80%
 - [ ] Mutation testing in CI
@@ -419,6 +425,7 @@ Use this to determine your current CMMI level:
 - [ ] Sprint delta reports generated
 
 ### CMMI 3 — Optimizing
+
 - [ ] All CMMI 2 checks pass
 - [ ] DORA metrics tracked (lead time, MTTR, deploy freq, change failure rate)
 - [ ] Predictive defect analysis active
@@ -458,7 +465,7 @@ Every element in this framework must survive the "5× Why" drill. If you can't a
 
 Think of the framework as nested boxes. From the outside, you see a label. The label links to what's inside. What's inside can be verified. Inside that, there may be another box.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │ STRATEGIC: "Why are we building this?"                  │
 │ Label: Product Vision, ADRs                             │
@@ -485,6 +492,7 @@ Think of the framework as nested boxes. From the outside, you see a label. The l
 ```
 
 Every box is:
+
 - **Labelled** — you know what it is without opening it
 - **Linked** — the label references what's inside (ADR → task → commit → test)
 - **Verifiable** — you can check it from outside (CI status, checklist, metric)
@@ -616,7 +624,7 @@ The framework passes this test because:
 
 **Prompt format** (standardized in `docs/prompts/`):
 
-```
+```text
 # Prompt NN: Title
 ## Context     — what exists, what it looks like
 ## Task        — what to do

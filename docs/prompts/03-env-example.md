@@ -53,7 +53,7 @@ grep -c "LLAMA_MAX_OUTPUT" .env.example && echo "PASS: has LLAMA_MAX_OUTPUT"
 
 ## Expected output
 
-```
+```text
 PASS: .env.example exists
 PASS: has OLLAMA_HOST
 PASS: has OLLAMA_PORT
@@ -65,6 +65,6 @@ PASS: has LLAMA_MAX_OUTPUT
 
 ## Commit message
 
-```
+```text
 chore: add .env.example configuration template
 ```

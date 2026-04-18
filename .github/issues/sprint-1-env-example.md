@@ -26,6 +26,7 @@ Then the tool starts with sensible defaults
 ## Implementation
 
 Create `.env.example` from the Configuration table in README.md:
+
 ```bash
 # Ollama connection
 OLLAMA_HOST=localhost

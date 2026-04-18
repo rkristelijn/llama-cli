@@ -26,6 +26,7 @@ Then it contains all feat/fix/chore entries since the last release
 ## Implementation
 
 Create `CHANGELOG.md` following [Keep a Changelog](https://keepachangelog.com/) format:
+
 - Group by version tag
 - Categories: Added, Fixed, Changed
 - Link to GitHub releases

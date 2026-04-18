@@ -26,6 +26,7 @@ Then the pre-commit hook allows it
 ## Implementation
 
 Add branch name check to `scripts/git/pre-commit.sh` (after the existing `main` block):
+
 - Regex: `^(feat|fix|chore|spike|refactor|docs|test)/[0-9]+-[a-z0-9-]+$`
 - Allow `main` (read-only, already blocked for commits)
 - Print expected format on failure

@@ -40,7 +40,7 @@ make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
 
 ## Expected output
 
-```
+```text
 PASS: threshold is 60%
 PASS: old threshold removed
 PASS: tests pass
@@ -52,6 +52,6 @@ If CI fails after this change because coverage is between 55-60%, you need to ad
 
 ## Commit message
 
-```
+```text
 chore: bump CI coverage threshold from 55% to 60%
 ```

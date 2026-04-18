@@ -11,6 +11,7 @@ answer: The leanest process for picking up a code change is the "Thin-V" Cycle. 
 --- iteration 1
 
 ## The "Thin-V" Change Process
+
 This process is designed to be executed in a single iteration (e.g., a Jira ticket or Pull Request).
 
 | Phase [1, 2, 3, 4] | Action | "Borrowed" Logic |
@@ -22,7 +23,9 @@ This process is designed to be executed in a single iteration (e.g., a Jira tick
 | 5. Release (Transition) | Deploy and monitor for Incidents. If it fails, it triggers the Incident Management loop immediately. | ITIL (Change Enablement) |
 
 ------------------------------
+
 ## Step 1: Categorize the Change (Plan) [4]
+
 Identify the change type using Conventional Commits to auto-map it to ITIL practices:
 
 * feat: Change Management. Adding new value.
@@ -31,27 +34,32 @@ Identify the change type using Conventional Commits to auto-map it to ITIL pract
 * ISO 9126 Mapping: Explicitly state which quality characteristic this change improves (e.g., Efficiency for performance fixes or Portability for environment chores). [1, 5, 6, 7]
 
 ## Step 2: Set the Value "Anchor" (Design)
+
 Borrowing from Prince2's "Focus on Products," define exactly what the "Product" of this change is before writing code. Use the V-Model logic: [8]
 
 * Top-Down: Requirement $\rightarrow$ Functional Design $\rightarrow$ Technical Design.
 * Lean Twist: Only document the "Acceptance Criteria" for these levels. If the AC isn't clear, the "Value" isn't clear.
 
 ## Step 3: Minimal Build & Test (Build/Verify)
+
 Follow the Agile principle of "Iterative Delivery". [9]
 
-   1. Build: Smallest possible change to satisfy the AC.
-   2. Verify: Perform the bottom-up climb of the V-model.
-   * Unit Test (Validates Tech Design)
+1. Build: Smallest possible change to satisfy the AC.
+2. Verify: Perform the bottom-up climb of the V-model.
+
+* Unit Test (Validates Tech Design)
       * Integration/Peer Review (Validates Functional Design)
       * UAT/Manual Check (Validates Requirement/Value)
 
 ## Step 4: The "Standard Change" Fast-Track (Release)
+
 In ITIL 4, "Standard Changes" are pre-authorized, low-risk, and frequent. [4, 10]
 
 * If your build passes automated tests (the V-model validation), it bypasses the Change Advisory Board (CAB).
 * This is the "Lean" bridge between governance and speed.
 
 ------------------------------
+
 ## Process Summary Table
 
 | Step [8] | Method | ITIL/ISO Alignment |
@@ -75,7 +83,6 @@ Should we dive deeper into how to automate the ISO 9126 quality checks within a 
 [9] [https://medium.com](https://medium.com/@marketing_87354/prince2-agile-principles-blending-governance-with-flexible-project-delivery-efa3fe3af202)
 [10] [https://www.itil.org.uk](https://www.itil.org.uk/blog/what-is-itil-change-management)
 
-
 -- iteration 2:
 
 yes, and every step has an automation to validate and guide, we have at least these events:
@@ -83,7 +90,7 @@ yes, and every step has an automation to validate and guide, we have at least th
 1. justify/plan, thinking about writing an adr, would it here take value definition (start with why, simon sinek), write a rough end to end test, to already envision how you are going to test it?
 2. design/model, read existing designs, identify impact, before/after ist/soll? diagramming, we should have diagrams, uml, c4, archimate? are we writing tests here of in build?
 3. build phase, enforcing tdd, to write the unit test first. of course the boilerplate should enforce/support this. unsure how to deal with projects that don't have test, so there must be a minimal criteria if code is ready for this process, just like togaf, a startup phase before you start looping to ensure code and team readiness for this approach. then you code, then you run/adopt the test. make it work, make it better, so last step is to refactor here?
-4. verify test. i don't think unit tests or even integration tests belong here, this is the internal review process  maybe, so end to end tests run here, preferably on a real system after deployment, e.g. a feature environment. so deployment should be all automatic. we should enforce peer reviews, but only after all automatic tests have run and no critical (and high?) issues are found, quality is met. so we must have the minimum iso9126 things documented upfront
+4. verify test. i don't think unit tests or even integration tests belong here, this is the internal review process maybe, so end to end tests run here, preferably on a real system after deployment, e.g. a feature environment. so deployment should be all automatic. we should enforce peer reviews, but only after all automatic tests have run and no critical (and high?) issues are found, quality is met. so we must have the minimum iso9126 things documented upfront
 5. deploy/release, only after all the checks have passed, we need to plan the release, unsure if there is still post-release checks to be done, e.g. running the e2e test on production with isolated data, or in case of a tool, close the loop with a download and install script. if issues are found, it needs to loop back into automated checks
 
 I'm thinking of triggers for this processes,
@@ -106,29 +113,30 @@ also thinking about the minimum cmmi checks, so all projects have cmmi level wit
 
 e.g. cmmi 0: essentials, cmmi 0.1 [x] basic sast, [ ] basic sast (chose to disable for now, we are in first deploy), - [x] process in place: justify, execute, validate, transition) and also for cmmi-1, cmmi-2 and cmmi-3 etc. when checked the additional automations run.
 
-
-
 please continue keeping references of the borrowed ideas
 
 result:
 
 This is a high-velocity Software Factory model. You are effectively merging ITIL 4’s Value Streams with CMMI’s process maturity and ISO 9126’s quality characteristics, all triggered by GitOps events.
 Here is the refined automation flow, incorporating your "borrowed" ideas from Sinek, TOGAF, and CMMI.
+
 ## 0. The Bootstrap (The "TOGAF Preliminary" Phase)
+
 Before the loop starts, we need Team & Code Readiness.
 
 * Borrowed Idea: TOGAF ADM Preliminary Phase & CMMI Level 1.
 * Automation: A check-readiness script. It verifies the repo has a .lintrc, a defined architecture.md, and a baseline test suite. If the project has "zero tests," the automation forces a "Test Baseline" task before any feat branch can be merged.
 
 ------------------------------
+
 ## 1. Justify/Plan (The "Why" & The "Contract")
 
 * Trigger: Move issue to "In Progress" $\rightarrow$ Local CLI/Hook creates branch feat/123-value-name.
 * The "Why" (Simon Sinek): The developer creates an ADR (Architectural Decision Record).
 * Automation (The Contract):
 * Template forces a "Value Statement" (Start with Why).
-   * E2E "Ghost" Test: You write a failing Playwright/Cypress test before code exists.
-   * Gate: A pre-commit hook ensures the ADR exists and the E2E test is committed in a "Draft/Pending" state.
+  * E2E "Ghost" Test: You write a failing Playwright/Cypress test before code exists.
+  * Gate: A pre-commit hook ensures the ADR exists and the E2E test is committed in a "Draft/Pending" state.
 * Borrowed Idea: Behavior Driven Development (BDD) & Prince2 Business Case.
 
 ## 2. Design/Model (The "Ist vs. Soll")
@@ -136,8 +144,8 @@ Before the loop starts, we need Team & Code Readiness.
 * Action: Update diagrams (C4/Mermaid) within the repo.
 * Automation:
 * Diagram Linting: Use mermaid-cli or structurizr to validate the C4 model.
-   * Impact Analysis: Automation scans the code imports to show what the change "touches" (The ISO 9126 Maintainability check).
-   * Commit Hook: A commit with message design(scope): update c4 diagrams triggers a check: "Does the design match the ADR value?"
+  * Impact Analysis: Automation scans the code imports to show what the change "touches" (The ISO 9126 Maintainability check).
+  * Commit Hook: A commit with message design(scope): update c4 diagrams triggers a check: "Does the design match the ADR value?"
 * Borrowed Idea: V-Model (High-Level Design) & ArchiMate/C4.
 
 ## 3. Build (The "TDD & Clean Code" Loop)
@@ -145,11 +153,11 @@ Before the loop starts, we need Team & Code Readiness.
 * Action: Code the change.
 * Automation (The Guardrails):
 * TDD Enforcer: The pre-commit hook runs tests. If coverage decreases or no new unit tests are found for a feat, it warns/blocks.
-   * The "Jazz" Checkers:
-   * cspell for name conventions.
-      * eslint/sonar for SOLID and Cognitive Complexity (ISO 9126 Efficiency).
-      * Refactor Trigger: If complexity > 10, the CLI suggests: "Extract function to new file?"
-   * Tech Debt Log: Any // TODO: reason is scraped and added to a TECHDEBT.md or a GitHub Issue automatically.
+  * The "Jazz" Checkers:
+  * cspell for name conventions.
+    * eslint/sonar for SOLID and Cognitive Complexity (ISO 9126 Efficiency).
+    * Refactor Trigger: If complexity > 10, the CLI suggests: "Extract function to new file?"
+  * Tech Debt Log: Any // TODO: reason is scraped and added to a TECHDEBT.md or a GitHub Issue automatically.
 * Borrowed Idea: Lean (Continuous Improvement/Kaizen) & XP (Extreme Programming).
 
 ## 4. Verify (The "Quality Gate")
@@ -157,9 +165,9 @@ Before the loop starts, we need Team & Code Readiness.
 * Trigger: git push.
 * Automation (The Feature Environment):
 * Ephemeral Deploy: Automatically spin up a containerized version of the app.
-   * E2E Validation: Run the "Ghost" test from Step 1. It must pass now.
-   * Mutation Testing: Run Stryker or similar to see if your tests are actually "meaningful" (checking if they fail when code is mutated).
-   * Peer Review: Only after all [x] Auto-checks pass, the PR is moved from Draft to Ready.
+  * E2E Validation: Run the "Ghost" test from Step 1. It must pass now.
+  * Mutation Testing: Run Stryker or similar to see if your tests are actually "meaningful" (checking if they fail when code is mutated).
+  * Peer Review: Only after all [x] Auto-checks pass, the PR is moved from Draft to Ready.
 * Borrowed Idea: ITIL Change Enablement (Standard Change) & ISO 9126 Reliability.
 
 ## 5. Deploy & Transition (The "Loop Closer")
@@ -167,12 +175,14 @@ Before the loop starts, we need Team & Code Readiness.
 * Action: Merge to Main $\rightarrow$ Production.
 * Automation:
 * Smoke Test: Run the E2E tests in Production with "test-tenant" data.
-   * Closure: The automation closes the GitHub Issue and updates the Technical Debt Log.
-   * Incident Loop: If Sentry or New Relic detects an error within 10 mins, it auto-triggers an ITIL Incident and links it to the fix branch.
+  * Closure: The automation closes the GitHub Issue and updates the Technical Debt Log.
+  * Incident Loop: If Sentry or New Relic detects an error within 10 mins, it auto-triggers an ITIL Incident and links it to the fix branch.
 * Borrowed Idea: ITIL Service Transition & Prince2 Closing a Project.
 
 ------------------------------
+
 ## The CMMI Maturity Levels (The "Dial")
+
 You can "tune" the automation intensity based on the project phase:
 
 | Level | Name | Automated Checks Enabled |
@@ -184,12 +194,14 @@ You can "tune" the automation intensity based on the project phase:
 | 4.0 | Sunset | Archive script, Dependency check for external callers. |
 
 ------------------------------
+
 ## The "Universal Trigger" (The Markdown Task)
+
 I love your idea of the Markdown Task as the lead.
 
-   1. You edit a tasks.md locally.
-   2. A background process (or save hook) syncs this to GitHub/Jira.
-   3. The side effect creates the branch and sets the CMMI Level for that specific task.
+1. You edit a tasks.md locally.
+2. A background process (or save hook) syncs this to GitHub/Jira.
+3. The side effect creates the branch and sets the CMMI Level for that specific task.
 
 Would you like to define the specific "Red/Amber/Green" rules for the ISO 9126 metrics (e.g., what specific complexity number triggers a "Refactor" warning)?
 
@@ -199,29 +211,38 @@ ok, before we pick up tasks, there must be a minimum quality to the tasks and th
 
 To handle the "pre-work" and the shift from individual flow to team-based bulk delivery, we layer Prince2’s "Directing a Project" and Agile’s "Backlog Refinement" onto your automation.
 The "Maturity Dial" now applies to the Task before it ever becomes a Branch.
+
 ## 1. The Pre-Sprint Funnel: Discovery & Refinement
+
 Before a task is "Ready" (the Definition of Ready - DoR), it undergoes automated and peer-driven validation.
 
 * Discovery (The "Justify" Draft):
 * Automation: A bot monitors your tasks.md or backlog. If a task lacks a "Why" (Sinek) or an ISO 9126 Quality Target, it’s tagged status: exploratory.
-   * Borrowed Idea: Prince2 "Starting up a Project"—ensuring the justification exists before spending resources.
+  * Borrowed Idea: Prince2 "Starting up a Project"—ensuring the justification exists before spending resources.
 * Refinement (The "RAID" Check):
 * Automation: A "Dependency Graph" tool scans tasks. If Task B depends on Task A, and Task A isn't "Ready," Task B is blocked.
-   * RAID Log: Risks, Assumptions, Issues, and Dependencies are tracked in the task metadata.
-   * The "Sign-off": A peer must check the Acceptance Criteria. The automation ensures the AC is written in a "Testable" format (Gherkin/Given-When-Then).
+  * RAID Log: Risks, Assumptions, Issues, and Dependencies are tracked in the task metadata.
+  * The "Sign-off": A peer must check the Acceptance Criteria. The automation ensures the AC is written in a "Testable" format (Gherkin/Given-When-Then).
 
 ------------------------------
+
 ## 2. Sprint Planning: The "Bulk" Decision
+
 Whether it’s a Single-Task-Sprint (Lean/Kanban) or a Multi-Task-Sprint (Scrum), the "Gate" is the same.
 
 * The "Ready" Gate: You cannot move a task to "In Progress" (triggering branch creation) unless:
+
 1. Justification is finalized (ADR draft exists).
+
    2. RAID is reviewed (no "High" risks without mitigation).
    3. CMMI Level for the sprint is set (e.g., "This sprint is CMMI 2.0/Stable mode").
+
 * Borrowed Idea: Agile Sprint Planning & TOGAF Architecture Governance.
 
 ------------------------------
+
 ## 3. The Sprinting Phase: Focus vs. Ad-Hoc
+
 Once the "Go" is given, the "Thin-V" process we discussed earlier kicks in for every task. However, we now manage the Work Mix using ITIL categories:
 
 | Work Type | Trigger | Priority | Process Path |
@@ -232,24 +253,29 @@ Once the "Go" is given, the "Thin-V" process we discussed earlier kicks in for e
 | Ritual (Chore) | Calendar/Cycle | Fixed | Automation updates (dependency patches, etc.) |
 
 ------------------------------
+
 ## 4. Modified Multi-Person Flow
+
 When multiple people are involved, the Automation handles the friction of "Dependent Tasks":
 
-   1. Branch Strategy: If Task B depends on Task A, the automation suggests branching feat/task-B off feat/task-A instead of main.
-   2. Integration Testing: The Verify Phase now runs "Cross-Branch" integration tests to ensure that bulk changes don't collide.
-   3. The "Sync" Hook: When Task A’s branch is updated, Task B’s developer gets an automated notification/rebase prompt.
+1. Branch Strategy: If Task B depends on Task A, the automation suggests branching feat/task-B off feat/task-A instead of main.
+2. Integration Testing: The Verify Phase now runs "Cross-Branch" integration tests to ensure that bulk changes don't collide.
+3. The "Sync" Hook: When Task A’s branch is updated, Task B’s developer gets an automated notification/rebase prompt.
 
 ------------------------------
+
 ## 5. Closing the Loop: The Sprint Review
+
 At the end of the "Bulk" cycle, we don't just release code; we update the Knowledge Management System.
 
 * Post-Sprint Automation:
 * Generates a "Delta Report": What ISO 9126 metrics actually improved?
-   * Updates the C4 Diagrams to the "Soll" (future state) which is now the "Ist" (current state).
-   * Archives the RAID items into a "Lessons Learned" log.
+  * Updates the C4 Diagrams to the "Soll" (future state) which is now the "Ist" (current state).
+  * Archives the RAID items into a "Lessons Learned" log.
 * Borrowed Idea: Prince2 "Closing a Stage" & Scrum Retrospective.
 
 ------------------------------
+
 ## How to Tweak the Process per Sprint "Mode"
 
 * "Speed Mode" (CMMI 0.5): Refinement is just a 5-min check. RAID is ignored. Peer review is post-merge.
@@ -263,7 +289,9 @@ Yes, but the sprint leaves the situation stable, so decisions are logged, enough
 
 To ensure the sprint leaves a stable, self-documenting legacy, you need to treat Knowledge Management (KM) as a first-class build artifact, just like code. Detecting "implicit decisions" isn't over the top—it’s the difference between a project that stays "Stable" and one that decays into "Legacy" early.
 Here is the Definition of Ready (DoR) checklist and the mechanism for catching those "hidden" decisions.
+
 ## 1. The Automated "Definition of Ready" (DoR)
+
 The automation prevents a branch from being "Active" until these metadata fields are populated in your task (Markdown/Issue):
 
 * The "Why" (Sinek): Clear value statement.
@@ -273,7 +301,9 @@ The automation prevents a branch from being "Active" until these metadata fields
 * Knowledge Gap: Does this task require a new How-To or an update to an ADR? (Flagged for the "Verify" phase).
 
 ------------------------------
+
 ## 2. Detecting Implicit Decisions (The "Hindsight" Catch)
+
 Implicit decisions are choices made during the Build Phase (e.g., choosing a specific library, a regex pattern, or a naming convention) that weren't in the original ADR.
 The Automation/Process Fix:
 
@@ -282,15 +312,18 @@ The Automation/Process Fix:
 * The "Hindsight ADR": Borrowed from Agile's Retrospective, if a decision was made "at the keyboard," it must be back-ported to the documentation before the PR can be merged. This ensures ITIL Service Knowledge Management (SKMS) stays updated.
 
 ------------------------------
+
 ## 3. "Stable Mode" Exit Criteria (Sprint End)
+
 To leave the situation stable, the Verify/Transition phase must satisfy these Prince2 "Product-Based" checks:
 
-   1. How-To Update: If the UI or API changed, the automation checks if the corresponding .md file in /docs was touched. No doc change = Build Fail.
-   2. KT via Documentation: The "Demo" is simply a walkthrough of the updated documentation and the E2E test results. If the team can't understand it from the doc, the doc is "Buggy."
-   3. C4 Delta: The "Soll" diagram from the Design phase is merged into the "Ist" (Current State) diagram.
-   4. Decision Log Closure: All temporary "TODO" decisions are either resolved or moved to the Technical Debt Log (CMMI Level tracker).
+1. How-To Update: If the UI or API changed, the automation checks if the corresponding .md file in /docs was touched. No doc change = Build Fail.
+2. KT via Documentation: The "Demo" is simply a walkthrough of the updated documentation and the E2E test results. If the team can't understand it from the doc, the doc is "Buggy."
+3. C4 Delta: The "Soll" diagram from the Design phase is merged into the "Ist" (Current State) diagram.
+4. Decision Log Closure: All temporary "TODO" decisions are either resolved or moved to the Technical Debt Log (CMMI Level tracker).
 
 ------------------------------
+
 ## 4. Borrowed Ideas Summary
 
 * Implicit Discovery: Lean's "Genba" (Go to the source). By scanning comments, you are going to where the decisions actually happen.
@@ -298,6 +331,7 @@ To leave the situation stable, the Verify/Transition phase must satisfy these Pr
 * Knowledge Transfer: ITIL 4's "Service Configuration Management"—maintaining a live map of the system's state.
 
 ## Proactive Follow-up
+
 Should we define a "Micro-ADR" template that takes less than 2 minutes to fill out, ensuring developers actually log those implicit decisions without breaking their flow?
 
 --- iteration 5
@@ -318,7 +352,9 @@ learning/understanding should be part of the loop... skill matrix? what about in
 
 Integrating Innovation and Just-In-Time (JIT) Learning into a rigid framework is actually what separates a "Process Prison" from a "High-Performance Culture." You aren't just building software; you're building a Learning Organization (borrowed from Peter Senge).
 Here is how we bake your rules into the "Thin-V" loop and handle the human element.
+
 ## 1. The "Innovation Sandbox" (The Prototype Phase)
+
 Innovation often breaks RTFM and YAGNI initially. To respect the framework while allowing "play," we use a Spike (Agile) or Prototype (ISO 9241) track.
 
 * Process: Create a spike/ branch.
@@ -327,6 +363,7 @@ Innovation often breaks RTFM and YAGNI initially. To respect the framework while
 * JIT Learning: This is where the dev learns the new lib/pattern. The "Cost" of this learning is a dedicated task in the sprint.
 
 ## 2. Automating Your Rules (The "Code as Mentor")
+
 You can bake your acronyms into the Verify Phase to provide Continuous Feedback without a manager hovering:
 
 * NBI (Naming by Intention) & C4C: Use LLM-powered linters or custom regex dictionaries to flag generic names like data, handle, or temp. The bot comments: "NBI Rule: Does 'data' express the purpose here?"
@@ -334,15 +371,17 @@ You can bake your acronyms into the Verify Phase to provide Continuous Feedback 
 * KISS/YAGNI: If a PR adds 500 lines of code for a task justified as "Simple Fix," the automation flags it for Over-Engineering.
 
 ## 3. The Skill Matrix & Continuous Feedback
+
 Is a Skill Matrix over the top? No, but it should be Low-Friction.
 
 * CMMI Level 2 (Managed): Feedback is purely peer-to-peer in PRs.
 * CMMI Level 3 (Defined): We introduce the Skill Matrix.
 * Automation: Every time a dev completes a task with a specific ISO 9126 target (e.g., "Performance Tuning"), their "XP" in that skill increases in a markdown-based SKILLS.md.
-   * JIT Learning: When a dev picks up a task tagged with a tech they haven't used, the automation suggests: "You're new to React Hooks. [RTFM Link] to the official docs here."
+  * JIT Learning: When a dev picks up a task tagged with a tech they haven't used, the automation suggests: "You're new to React Hooks. [RTFM Link] to the official docs here."
 * C4I (Code for Inclusivity): This is the ultimate feedback loop. If a new member can't get the environment running or understand the code, the onboarding documentation has a "bug." The feedback is on the process, not the person.
 
 ## 4. The "Learning Loop" within the Sprint
+
 In ITIL, this is Continual Service Improvement (CSI).
 
 | Event | Learning/Innovation Outcome |
@@ -367,7 +406,9 @@ very nice, but what about detecting peter principle and succession planning? eve
 
 To avoid the Peter Principle (promoting people to their level of incompetence) while ensuring everyone is replaceable (succession planning), we move from "Roles as Titles" to "Roles as Competency Profiles."
 In a high-performing "Software Factory," the goal is Functional Redundancy. If a developer is the only one who understands the Auth logic, they are a "Single Point of Failure" (ITIL Risk).
+
 ## 1. Detecting the Peter Principle & Growth
+
 The Peter Principle happens when we promote a great "Builder" to a "Manager" role they aren't wired for.
 
 * The Solution: Dual-Ladder Growth. Allow growth in Depth (Staff Engineer) or Breadth (Architect/Lead) without forcing people into people management.
@@ -376,6 +417,7 @@ The Peter Principle happens when we promote a great "Builder" to a "Manager" rol
 * The Golden Ratio: Aim for 70/20/10: 70% core delivery, 20% cross-training (succession planning), 10% innovation/spikes.
 
 ## 2. Team Topologies & Roles
+
 We avoid rigid silos but use Team Topologies to define focus:
 
 | Role | V-Model Alignment | Primary Responsibility |
@@ -387,6 +429,7 @@ We avoid rigid silos but use Team Topologies to define focus:
 | Scrum Master | RAID / Process | The "Wiper" of impediments. Guards the Agile Rituals and process health. |
 
 ## 3. Succession Planning via "The Shadow Rotation"
+
 To ensure replaceability, we borrow from Lean’s "Standardized Work":
 
 * Rotation: Every 3rd sprint, a BE-dev "shadows" a DevSecOps task.
@@ -401,6 +444,7 @@ To ensure replaceability, we borrow from Lean’s "Standardized Work":
 * T-Shaped Skills (David Guest): For the balance of deep expertise vs. enough breadth to be replaceable.
 
 ## 5. Tailored V-Model Checks by Role
+
 The automation "guides" the role:
 
 * PO: Prompted to validate the Value Statement vs. the UAT results.
@@ -416,6 +460,7 @@ Create an ADR: docs/adr/adr-nextnr-title, incorporating all ideas in /Users/nlrx
 
 The third pillar is Strategic.
 In a lean, ITIL-inspired framework, these three levels form the hierarchy of how decisions and value flow through the organization:
+
 ## 1. Operational (The "How" – Doing things right)
 
 * Focus: Day-to-day execution, the "Thin-V" loop, and immediate service stability.
@@ -438,11 +483,13 @@ In a lean, ITIL-inspired framework, these three levels form the hierarchy of how
 * Borrowed Idea: TOGAF Architecture Vision / ITIL Service Strategy.
 
 ------------------------------
+
 ## The "Golden Thread" Connection
+
 To keep your process lean, you ensure the Strategic intent (the ADR/Why) is visible at the Tactical level (the Task/Requirement) and enforced at the Operational level (the Commit/Test).
 
-
 ------------------------------
+
 ## Model Selection: The Missing Piece
 
 The framework above describes the *process* — but who executes it? In an AI-guided workflow, the model IS the developer. Matching model capability to task complexity is as important as matching a developer's seniority to a task.
@@ -465,9 +512,9 @@ This was the missing piece: without model guidance, a junior developer (or a sma
 
 ### How This Connects to the Framework
 
-- **Operational** (Thin-V loop): gemma4:e4b executes prompts from `docs/prompts/`. The Junior follows instructions.
-- **Tactical** (Sprint planning): Gemini CLI or kiro-cli helps break down tasks, write AC, estimate.
-- **Strategic** (ADRs, architecture): kiro-cli only. Architecture decisions need the Architect.
+* **Operational** (Thin-V loop): gemma4:e4b executes prompts from `docs/prompts/`. The Junior follows instructions.
+* **Tactical** (Sprint planning): Gemini CLI or kiro-cli helps break down tasks, write AC, estimate.
+* **Strategic** (ADRs, architecture): kiro-cli only. Architecture decisions need the Architect.
 
 ### The Self-Building Tool
 

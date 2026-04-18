@@ -122,7 +122,7 @@ grep -c "streaming" src/repl/repl_test.cpp && echo "PASS: streaming tests found"
 
 ## Expected output
 
-```
+```text
 PASS: build succeeds
 PASS: tests pass
 PASS: streaming tests found
@@ -130,6 +130,6 @@ PASS: streaming tests found
 
 ## Commit message
 
-```
+```text
 test: add streaming chat tests for REPL
 ```

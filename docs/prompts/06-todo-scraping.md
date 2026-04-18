@@ -103,7 +103,7 @@ grep -c "Total code TODOs" TECHDEBT.md && echo "PASS: has count"
 
 ## Expected output
 
-```
+```text
 ==> Markdown TODOs
 ...
 ==> Code TODOs
@@ -117,6 +117,6 @@ PASS: has count
 
 ## Commit message
 
-```
+```text
 chore: automate TODO scraping to TECHDEBT.md
 ```
