@@ -22,14 +22,13 @@ FAILED_NAMES=()
 
 # Phase definitions: "phase|name|command"
 STEPS=(
-  "Lint|cpp-format|make -s cpp-format"
+  "Lint|lint-code|make -s lint-code"
   "Lint|yamllint|make -s yamllint"
   "Lint|markdownlint|make -s markdownlint"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
   "Analysis|tidy|make -s tidy"
   "Analysis|complexity|make -s complexity"
-  "Analysis|lint|make -s lint"
   "Analysis|docs|make -s docs"
   "Analysis|index|make -s index"
   "Test|coverage|make -s coverage-folder"
@@ -42,14 +41,13 @@ TOTAL="${#STEPS[@]}"
 
 # Autofix hints per step name
 declare -A HINTS=(
-  ["cpp-format"]="fix: make format, recheck: make cpp-format"
+  ["lint-code"]="fix: make format-code, recheck: make lint-code"
   ["yamllint"]="fix: edit .github/*.yml, recheck: make yamllint"
   ["markdownlint"]="fix: rumdl fmt ., recheck: make markdownlint"
   ["lint-makefile"]="fix: extract target to scripts/, recheck: make lint-makefile"
   ["lint-scripts"]="fix: see docs/tools/shell-scripts.md, recheck: make lint-scripts"
   ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
   ["complexity"]="fix: refactor or add pmccabe:skip-complexity, recheck: make complexity"
-  ["lint"]="fix: address cppcheck warnings, recheck: make lint"
   ["docs"]="fix: address doxygen warnings in source, recheck: make docs"
   ["index"]="fix: make index, recheck: make index"
   ["coverage"]="fix: add tests, recheck: make coverage-folder"
