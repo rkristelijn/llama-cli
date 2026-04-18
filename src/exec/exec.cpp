@@ -58,8 +58,12 @@ ExecResult cmd_exec(const std::string& command, int timeout_secs, int max_chars)
   if (result.timed_out) {
     result.output += "\n[killed: timeout after " + std::to_string(timeout_secs) + "s]";
     result.exit_code = -1;
-  } else {
+  } else if (WIFEXITED(status)) {
     result.exit_code = WEXITSTATUS(status);
+  } else if (WIFSIGNALED(status)) {
+    result.exit_code = 128 + WTERMSIG(status);
+  } else {
+    result.exit_code = -1;
   }
   return result;
 }

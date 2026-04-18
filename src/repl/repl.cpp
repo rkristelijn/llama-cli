@@ -11,6 +11,7 @@
 
 #include <csignal>
 #include <fstream>
+#include <memory>
 #include <set>
 #include <sstream>
 
@@ -55,14 +56,9 @@ struct ReplState {
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
 };
 
-/** Get version string from compile-time definition + git dirty status.
- * Appends "-dirty" if there are uncommitted changes. */
+/** Get version string from compile-time definition. */
 static std::string get_version() {
   std::string ver = LLAMA_CLI_VERSION;
-  // Check if working tree is dirty
-  if (std::system("git diff --quiet HEAD 2>/dev/null") != 0) {
-    ver += "-dirty";
-  }
   ver += " (built " __DATE__ " " __TIME__ " " BUILD_TIMEZONE ")";
   return ver;
 }
@@ -295,9 +291,10 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
 // todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
-  std::string existing = read_file(action.path);
   std::ifstream check(action.path);
   bool file_exists = check.good();
+  check.close();
+  std::string existing = file_exists ? read_file(action.path) : "";
 
   // Always show diff / content before prompting
   if (file_exists) {
@@ -341,8 +338,10 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
   if (confirm_write(action, in, out, color)) {
     // Backup existing file before overwriting
-    std::string existing = read_file(action.path);
-    if (!existing.empty()) {
+    std::ifstream exists_check(action.path);
+    if (exists_check.good()) {
+      exists_check.close();
+      std::string existing = read_file(action.path);
       std::ofstream bak(action.path + ".bak");
       if (bak.is_open()) {
         bak << existing;
@@ -661,13 +660,12 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 /** Run chat on a thread, interruptible by Ctrl+C.
  * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
  * so the user gets their prompt back immediately.
- * The abandoned thread will finish in the background.
- * Returns empty string if interrupted, response text otherwise. */
+ * Uses shared_ptr for result to avoid use-after-free on detach. */
 static std::string interruptible_chat(ReplState& s) {
-  std::string result;
+  auto result = std::make_shared<std::string>();
   std::atomic<bool> done{false};
-  std::thread t([&] {
-    result = s.chat(s.history);
+  std::thread t([&s, result, &done] {
+    *result = s.chat(s.history);
     done = true;
   });
   while (!done && !g_interrupted) {
@@ -675,7 +673,7 @@ static std::string interruptible_chat(ReplState& s) {
   }
   if (done) {
     t.join();
-    return result;
+    return *result;
   }
   t.detach();
   return "";

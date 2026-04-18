@@ -81,7 +81,7 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   std::string escaped_prompt = escape_json_string(prompt);
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body = R"({"model": ")" + cfg.model + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
+  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/generate model=%s\n", url.c_str(), cfg.model.c_str());
@@ -149,7 +149,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body = R"({"model": ")" + cfg.model + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
@@ -207,14 +207,19 @@ std::vector<std::string> get_available_models(const Config& cfg) {
   }
 
   // Parse models array from response
-  // Simple extraction: find all "name":"..." pairs in the models array
+  // Extract the "models" array first, then find names within it
   std::string body = res->body;
+  auto models_start = body.find("\"models\":");
+  if (models_start == std::string::npos) {
+    return models;
+  }
+  std::string models_section = body.substr(models_start);
   size_t pos = 0;
-  while ((pos = body.find("\"name\":\"", pos)) != std::string::npos) {
+  while ((pos = models_section.find("\"name\":\"", pos)) != std::string::npos) {
     pos += 8;  // Skip past "name":"
-    size_t end = body.find("\"", pos);
+    size_t end = models_section.find("\"", pos);
     if (end != std::string::npos) {
-      models.push_back(body.substr(pos, end - pos));
+      models.push_back(models_section.substr(pos, end - pos));
       pos = end;
     }
   }

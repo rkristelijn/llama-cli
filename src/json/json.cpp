@@ -7,25 +7,21 @@
 #include "json/json.h"
 
 /** Decode a single JSON escape sequence starting at backslash position
- * Supports \n, \", \\, and \uXXXX (ASCII range only)
+ * Supports \n, \t, \r, \b, \f, \", \\, \/, and \uXXXX (ASCII range only)
  * Returns number of extra chars consumed (beyond the backslash) */
 static int decode_escape(const std::string& json, size_t i, std::string& out) {
   if (i + 1 >= json.size()) {
     return 0;
   }
   char next = json[i + 1];
-  if (next == 'n') {
-    out += '\n';
-    return 1;
-  }
-  if (next == '"') {
-    out += '"';
-    return 1;
-  }
-  if (next == '\\') {
-    out += '\\';
-    return 1;
-  }
+  if (next == 'n') { out += '\n'; return 1; }
+  if (next == 't') { out += '\t'; return 1; }
+  if (next == 'r') { out += '\r'; return 1; }
+  if (next == 'b') { out += '\b'; return 1; }
+  if (next == 'f') { out += '\f'; return 1; }
+  if (next == '"') { out += '"'; return 1; }
+  if (next == '\\') { out += '\\'; return 1; }
+  if (next == '/') { out += '/'; return 1; }
   if (next == 'u' && i + 5 < json.size()) {
     unsigned long cp = std::stoul(json.substr(i + 2, 4), nullptr, 16);
     if (cp < 128) {
@@ -36,19 +32,38 @@ static int decode_escape(const std::string& json, size_t i, std::string& out) {
   return 0;
 }
 
-/** Check if character at position is an unescaped quote (end of JSON string) */
-static bool is_end_quote(const std::string& json, size_t i) { return json[i] == '"' && (i == 0 || json[i - 1] != '\\'); }
+/** Check if character at position is an unescaped quote (end of JSON string).
+ * Counts consecutive backslashes before the quote — an even count means
+ * the quote is real, an odd count means it is escaped. */
+static bool is_end_quote(const std::string& json, size_t i) {
+  if (json[i] != '"') return false;
+  // Count consecutive backslashes before this quote
+  int backslashes = 0;
+  while (i >= static_cast<size_t>(backslashes + 1) && json[i - 1 - backslashes] == '\\') {
+    backslashes++;
+  }
+  // Even number of backslashes = real quote, odd = escaped quote
+  return (backslashes % 2) == 0;
+}
 
-/** Extract a JSON string value by key: "key":"value"
+/** Extract a JSON string value by key: "key":"value" or "key": "value"
  * Walks the string char-by-char, decoding escape sequences */
 std::string json_extract_string(const std::string& json, const std::string& key) {
-  std::string needle = "\"" + key + "\":\"";
+  std::string needle = "\"" + key + "\":";
   auto pos = json.find(needle);
   if (pos == std::string::npos) {
     return "";
   }
 
   pos += needle.size();
+  // Skip whitespace between colon and opening quote
+  while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n' || json[pos] == '\r')) {
+    pos++;
+  }
+  if (pos >= json.size() || json[pos] != '"') {
+    return "";
+  }
+  pos++;  // skip opening quote
   std::string result;
   for (size_t i = pos; i < json.size(); i++) {
     if (is_end_quote(json, i)) {
@@ -75,13 +90,20 @@ std::string json_extract_string(const std::string& json, const std::string& key)
 // NOLINTNEXTLINE(readability-function-size)
 // pmccabe:skip-complexity
 std::string json_extract_object(const std::string& json, const std::string& key) {
-  // Look for "key":{ pattern
-  std::string needle = "\"" + key + "\":{";
+  // Look for "key":{ or "key": { pattern
+  std::string needle = "\"" + key + "\":";
   auto pos = json.find(needle);
   if (pos == std::string::npos) {
     return "";
   }
-  pos += needle.size() - 1;  // point at opening {
+  pos += needle.size();
+  // Skip whitespace between colon and opening brace
+  while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n' || json[pos] == '\r')) {
+    pos++;
+  }
+  if (pos >= json.size() || json[pos] != '{') {
+    return "";
+  }
   // Walk forward, tracking { and } depth until we find the matching close
   int depth = 0;
   bool in_string = false;

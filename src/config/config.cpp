@@ -14,6 +14,45 @@
 #include <sstream>
 #include <string>
 
+/** Safe string-to-int conversion. Returns fallback on invalid input. */
+static int safe_stoi(const std::string& val, int fallback) {
+  try {
+    return std::stoi(val);
+  } catch (...) {
+    std::cerr << "Warning: invalid integer '" << val << "', using default " << fallback << "\n";
+    return fallback;
+  }
+}
+
+/** Parse host:port string, handling IPv6 bracket notation.
+ * Supports: "host:port", "[::1]:port", "host", "[::1]" */
+static void parse_host_port(const std::string& val, std::string& host, std::string& port) {
+  if (!val.empty() && val[0] == '[') {
+    // IPv6 bracket notation: [::1]:port
+    auto bracket = val.find(']');
+    if (bracket != std::string::npos) {
+      host = val.substr(1, bracket - 1);
+      if (bracket + 2 < val.size() && val[bracket + 1] == ':') {
+        port = val.substr(bracket + 2);
+      }
+    } else {
+      host = val;
+    }
+  } else {
+    // IPv4 or hostname: only split on colon if there's exactly one
+    auto first = val.find(':');
+    auto last = val.rfind(':');
+    if (first != std::string::npos && first == last) {
+      // Exactly one colon: host:port
+      host = val.substr(0, first);
+      port = val.substr(first + 1);
+    } else {
+      // No colon or multiple colons (bare IPv6): treat as host only
+      host = val;
+    }
+  }
+}
+
 /** Read an environment variable into a string, return true if set */
 static bool env_get(const char* name, std::string& out) {
   const char* val = std::getenv(name);
@@ -70,25 +109,18 @@ void load_dotenv(const std::string& path, Config& c) {
       val.pop_back();
     }
     if (key == "OLLAMA_HOST") {
-      // Support host:port format (e.g. OLLAMA_HOST=0.0.0.0:11434)
-      // Split on last colon to separate host from port
-      auto colon = val.rfind(':');
-      if (colon != std::string::npos) {
-        c.host = val.substr(0, colon);
-        c.port = val.substr(colon + 1);
-      } else {
-        c.host = val;
-      }
+      // Support host:port format, including IPv6 bracket notation
+      parse_host_port(val, c.host, c.port);
     } else if (key == "OLLAMA_PORT") {
       c.port = val;
     } else if (key == "OLLAMA_MODEL") {
       c.model = val;
     } else if (key == "OLLAMA_TIMEOUT") {
-      c.timeout = std::stoi(val);
+      c.timeout = safe_stoi(val, 120);
     } else if (key == "LLAMA_EXEC_TIMEOUT") {
-      c.exec_timeout = std::stoi(val);
+      c.exec_timeout = safe_stoi(val, 30);
     } else if (key == "LLAMA_MAX_OUTPUT") {
-      c.max_output = std::stoi(val);
+      c.max_output = safe_stoi(val, 10000);
     } else if (key == "OLLAMA_SYSTEM_PROMPT") {
       c.system_prompt = val;
     } else if (key == "LLAMA_PROVIDER") {
@@ -148,15 +180,8 @@ Config load_env(const Config& defaults) {
     c.provider = val;
   }
   if (env_get("OLLAMA_HOST", val)) {
-    // Support OLLAMA_HOST=host:port (Ollama's own convention)
-    // Split on last colon to separate host from port
-    auto colon = val.rfind(':');
-    if (colon != std::string::npos) {
-      c.host = val.substr(0, colon);
-      c.port = val.substr(colon + 1);
-    } else {
-      c.host = val;
-    }
+    // Support host:port format, including IPv6 bracket notation
+    parse_host_port(val, c.host, c.port);
   }
   if (env_get("OLLAMA_PORT", val)) {
     c.port = val;
@@ -165,13 +190,13 @@ Config load_env(const Config& defaults) {
     c.model = val;
   }
   if (env_get("OLLAMA_TIMEOUT", val)) {
-    c.timeout = std::stoi(val);
+    c.timeout = safe_stoi(val, 120);
   }
   if (env_get("LLAMA_EXEC_TIMEOUT", val)) {
-    c.exec_timeout = std::stoi(val);
+    c.exec_timeout = safe_stoi(val, 30);
   }
   if (env_get("LLAMA_MAX_OUTPUT", val)) {
-    c.max_output = std::stoi(val);
+    c.max_output = safe_stoi(val, 10000);
   }
   if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
     c.system_prompt = val;
