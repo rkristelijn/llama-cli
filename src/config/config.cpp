@@ -52,7 +52,7 @@ void load_dotenv(const std::string& path, Config& c) {
     // Strip inline comments (# outside of quotes)
     auto hash = val.find('#');
     if (hash != std::string::npos) {
-      val = val.substr(0, hash);
+      val.erase(hash);
     }
     // Trim trailing whitespace
     while (!val.empty() && std::isspace(val.back())) {
