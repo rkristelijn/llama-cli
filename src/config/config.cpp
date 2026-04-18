@@ -7,6 +7,7 @@
 
 #include "config/config.h"
 
+#include <cctype>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -47,6 +48,15 @@ void load_dotenv(const std::string& path, Config& c) {
     // Strip optional surrounding quotes from value
     if (val.size() >= 2 && ((val.front() == '"' && val.back() == '"') || (val.front() == '\'' && val.back() == '\''))) {
       val = val.substr(1, val.size() - 2);
+    }
+    // Strip inline comments (# outside of quotes)
+    auto hash = val.find('#');
+    if (hash != std::string::npos) {
+      val = val.substr(0, hash);
+    }
+    // Trim trailing whitespace
+    while (!val.empty() && std::isspace(val.back())) {
+      val.pop_back();
     }
     if (key == "OLLAMA_HOST") {
       // Support host:port format (e.g. OLLAMA_HOST=0.0.0.0:11434)

@@ -324,6 +324,20 @@ SCENARIO ("config from .env file") {
     }
     clean_env();
   }
+
+  GIVEN (".env with inline comments") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test6.env", "OLLAMA_HOST=localhost # comment\nOLLAMA_MODEL=gemma4:e4b # another comment\n");
+    Config c;
+    load_dotenv("/tmp/llama-test6.env", c);
+    THEN ("inline comments are stripped") {
+      CHECK (c.host == "localhost")
+        ;
+      CHECK (c.model == "gemma4:e4b")
+        ;
+    }
+    clean_env();
+  }
 }
 
 SCENARIO ("print default env template") {
