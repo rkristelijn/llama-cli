@@ -167,6 +167,12 @@ todo: ## Show TODO items from docs and code
 index: ## Regenerate INDEX.md
 	@bash scripts/dev/build-index.sh
 
+precommit: ## Run pre-commit checks
+	@bash scripts/git/precommit-check.sh
+
+prepush: ## Run pre-push checks
+	@bash scripts/git/prepush-check.sh
+
 ##@ GitHub
 
 gh-pipeline-status: ## Show latest pipeline status (alias: gpls)
