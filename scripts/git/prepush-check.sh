@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
-#
-# prepush-check.sh — Validate all checks before pushing (15 checks).
-#
-# Names match CI workflow jobs exactly.
-#
-# Usage:
-#   bash scripts/git/prepush-check.sh
-#
-# @see docs/adr/adr-44-tidy-boilerplate.md
+# prepush-check.sh — Validate all checks before pushing.
 
 set -o errexit
 set -o nounset
@@ -20,40 +12,40 @@ STEP=0
 FAILED_NAMES=()
 
 STEPS=(
-  "Lint|lint-cpp|make -s cpp-format"
-  "Lint|lint-yaml|make -s yamllint"
-  "Lint|lint-markdown|make -s markdownlint"
+  "Lint|lint-format-code|make -s lint-format-code"
+  "Lint|lint-cppcheck|make -s lint-cppcheck"
+  "Lint|lint-yaml|make -s lint-yaml"
+  "Lint|lint-md|make -s lint-md"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
-  "Lint|lint-tidy|make -s tidy"
-  "Lint|lint-cppcheck|make -s lint"
-  "Lint|lint-docs|make -s docs"
-  "Lint|lint-complexity|make -s complexity"
+  "Lint|tidy|make -s tidy"
+  "Lint|complexity|make -s complexity"
   "Build|build|make -s build"
-  "Test|unit-test|make -s test"
-  "Test|e2e-test|make -s e2e"
-  "Test|test-coverage|make -s coverage-folder"
+  "Test|test-unit|make -s test-unit"
+  "Test|e2e|make -s e2e"
+  "Test|coverage-report|make -s coverage-report"
   "Security|sast-security|make -s sast-security"
-  "Metrics|comment-ratio|bash scripts/check/comment-ratio.sh"
+  "Security|sast-secret|make -s sast-secret"
+  "Metrics|comment-ratio|make -s comment-ratio"
 )
 
 TOTAL="${#STEPS[@]}"
 
 declare -A HINTS=(
-  ["lint-cpp"]="fix: make format-cpp, recheck: make cpp-format"
-  ["lint-yaml"]="fix: make format-yaml, recheck: make yamllint"
-  ["lint-markdown"]="fix: make format-markdown, recheck: make markdownlint"
-  ["lint-makefile"]="fix: extract target to scripts/, recheck: make lint-makefile"
-  ["lint-scripts"]="fix: make format-scripts, recheck: make lint-scripts"
-  ["lint-tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
-  ["lint-cppcheck"]="fix: address cppcheck warnings, recheck: make lint"
-  ["lint-docs"]="fix: address doxygen warnings, recheck: make docs"
-  ["lint-complexity"]="fix: refactor complex functions, recheck: make complexity"
+  ["lint-format-code"]="fix: make format-code"
+  ["lint-cppcheck"]="fix: address cppcheck warnings"
+  ["lint-yaml"]="fix: make format-yaml"
+  ["lint-md"]="fix: make format-md"
+  ["lint-makefile"]="fix: follow Makefile conventions"
+  ["lint-scripts"]="fix: follow shell script conventions"
+  ["tidy"]="fix: address clang-tidy warnings"
+  ["complexity"]="fix: refactor complex functions"
   ["build"]="fix: resolve build errors"
-  ["unit-test"]="fix: failing tests, recheck: make test"
-  ["e2e-test"]="fix: failing e2e tests, recheck: make e2e"
-  ["test-coverage"]="fix: add tests, recheck: make coverage-folder"
-  ["sast-security"]="fix: address semgrep findings, recheck: make sast-security"
+  ["test-unit"]="fix: failing unit tests"
+  ["e2e"]="fix: failing e2e tests"
+  ["coverage-report"]="fix: add tests for better coverage"
+  ["sast-security"]="fix: address semgrep findings"
+  ["sast-secret"]="fix: remove secrets from code"
   ["comment-ratio"]="fix: add comments to source"
 )
 

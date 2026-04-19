@@ -297,11 +297,16 @@ main() {
   # Runtime
   install_ollama
 
+  local clang_tidy="clang-tidy"
+  if ! has clang-tidy && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
+    clang_tidy="/opt/homebrew/opt/llvm/bin/clang-tidy"
+  fi
+
   echo ""
   echo "==> All tools:"
   printf "  %-20s %s\n" "cmake"        "$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
   printf "  %-20s %s\n" "clang-format" "$(clang-format --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
-  printf "  %-20s %s\n" "clang-tidy"   "$(clang-tidy --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo 'missing')"
+  printf "  %-20s %s\n" "clang-tidy"   "$("${clang_tidy}" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo 'missing')"
   printf "  %-20s %s\n" "cppcheck"     "$(cppcheck --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' || echo 'missing')"
   printf "  %-20s %s\n" "pmccabe"      "$(dpkg -s pmccabe 2>/dev/null | grep '^Version:' | grep -oE '[0-9]+\.[0-9]+' || echo 'missing')"
   printf "  %-20s %s\n" "doxygen"      "$(doxygen --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"

@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
-#
-# precommit-check.sh — Auto-fix formatting + secret scan (5 checks).
-#
-# Usage:
-#   bash scripts/git/precommit-check.sh
-#
-# @see docs/adr/adr-44-tidy-boilerplate.md
+# precommit-check.sh — Auto-fix formatting + secret scan (6 checks).
 
 set -o errexit
 set -o nounset
 set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 STEP=0
 TOTAL=6
@@ -17,31 +12,30 @@ TOTAL=6
 run_step() {
   local name="$1"; shift
   (( STEP++ )) || true
-  local output start elapsed
   printf "  [%d/%d] %s... " "${STEP}" "${TOTAL}" "${name}"
-  start="$(date +%s)"
-  if output="$("$@" 2>&1)"; then
-    elapsed="$(( $(date +%s) - start ))"
-    printf "✓ (%ds)\n" "${elapsed}"
+  if output=$("$@" 2>&1); then
+    printf "✓\n"
   else
-    elapsed="$(( $(date +%s) - start ))"
-    printf "✗ (%ds)\n" "${elapsed}"
+    printf "✗\n"
     printf '%s\n' "${output}" | sed 's/^/    /'
     exit 1
   fi
 }
 
 echo ""
-echo "── Format ──"
+echo "── Formatting ──"
 run_step "format-code" make -s format-code
 run_step "format-yaml" make -s format-yaml
-run_step "format-markdown" make -s format-markdown
+run_step "format-md" make -s format-md
 run_step "format-scripts" make -s format-scripts
+
 echo ""
-echo "── Docs ──"
+echo "── Documentation ──"
 run_step "index" make -s index
+
 echo ""
 echo "── Security ──"
 run_step "sast-secret" make -s sast-secret
+
 echo ""
 echo "All ${TOTAL} checks passed."

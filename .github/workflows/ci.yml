@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh llvm
-      - run: make cpp-format
+      - run: make lint-format-code
 
   lint-yaml:
     runs-on: ubuntu-24.04
@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh yamllint
-      - run: make yamllint
+      - run: make lint-yaml
 
   lint-markdown:
     runs-on: ubuntu-24.04
@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh rumdl
-      - run: make markdownlint
+      - run: make lint-md
 
   lint-makefile:
     runs-on: ubuntu-24.04
@@ -108,7 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh cppcheck
-      - run: make lint
+      - run: make lint-cppcheck
 
   lint-docs:
     needs: changes
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make test
+      - run: make test-unit
 
   e2e-test:
     needs: changes
@@ -236,4 +236,4 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh cloc
-      - run: bash scripts/check/comment-ratio.sh
+      - run: make comment-ratio

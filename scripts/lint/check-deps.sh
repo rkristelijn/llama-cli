@@ -22,10 +22,24 @@ OPTIONAL=(clang-tidy pmccabe semgrep gitleaks shellcheck yamllint rumdl)
 missing=0
 warnings=0
 
+find_tool() {
+  local tool="$1"
+  if command -v "${tool}" >/dev/null 2>&1; then
+    echo "$(command -v "${tool}")"
+    return 0
+  fi
+  # macOS Homebrew LLVM path fallback
+  if [[ "${tool}" == "clang-tidy" && -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
+    echo "/opt/homebrew/opt/llvm/bin/clang-tidy"
+    return 0
+  fi
+  return 1
+}
+
 main() {
   echo "==> Checking required tools..."
   for tool in "${REQUIRED[@]}"; do
-    if command -v "${tool}" >/dev/null 2>&1; then
+    if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"
     else
       printf "  %-20s MISSING\n" "${tool}"
@@ -36,7 +50,7 @@ main() {
   echo ""
   echo "==> Checking optional tools..."
   for tool in "${OPTIONAL[@]}"; do
-    if command -v "${tool}" >/dev/null 2>&1; then
+    if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"
     else
       printf "  %-20s not installed (optional)\n" "${tool}"
