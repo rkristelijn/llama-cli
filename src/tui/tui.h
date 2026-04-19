@@ -271,6 +271,106 @@ inline std::vector<const char*> bofh_messages() {
 /** RAII spinner — shows animation while LLM is processing, stops on
  * destruction. Only active when active=true (interactive TTY). Construct before
  * a blocking call, destructor cleans up automatically. */
+/** Streaming markdown renderer — processes tokens as they arrive.
+ * Maintains state across tokens to apply ANSI formatting:
+ * - **bold**, *italic*, `code` (inline)
+ * - ``` code blocks (dimmed)
+ * - ## headings (bold+underline)
+ * - bullet lists (• prefix) */
+class StreamRenderer {
+ public:
+  explicit StreamRenderer(std::ostream& out, bool color) : out_(out), color_(color) {}
+
+  /// Process a token (may contain partial lines, newlines, etc.)
+  void write(const std::string& token) {
+    for (char c : token) {
+      buf_ += c;
+      if (c == '\n') {
+        flush_line();
+      }
+    }
+  }
+
+  /// Flush any remaining buffered content
+  void finish() {
+    if (!buf_.empty()) {
+      emit(buf_);
+      buf_.clear();
+    }
+    if (in_bold_ || in_code_block_) {
+      out_ << "\033[0m";
+    }
+  }
+
+ private:
+  void flush_line() {
+    // buf_ includes the trailing \n
+    std::string line = buf_;
+    buf_.clear();
+
+    if (!color_) {
+      out_ << line;
+      return;
+    }
+
+    // Code fence toggle
+    if (line.size() >= 4 && line.substr(0, 3) == "```") {
+      in_code_block_ = !in_code_block_;
+      if (in_code_block_) {
+        out_ << "\033[2m" << line;  // dim on
+      } else {
+        out_ << line << "\033[0m";  // dim off
+      }
+      return;
+    }
+
+    if (in_code_block_) {
+      out_ << line;  // already dim from fence open
+      return;
+    }
+
+    // Strip trailing \n for processing, add back after
+    std::string content = line.substr(0, line.size() - 1);
+
+    // Heading
+    if (!content.empty() && content[0] == '#') {
+      std::string h = tui::try_heading(content);
+      if (!h.empty()) {
+        out_ << h;
+        return;
+      }
+    }
+
+    // List item
+    std::string li = tui::try_list(content, color_);
+    if (!li.empty()) {
+      out_ << li;
+      return;
+    }
+
+    // Regular line with inline formatting
+    out_ << tui::render_inline(content, color_) << "\n";
+  }
+
+  void emit(const std::string& s) {
+    if (!color_) {
+      out_ << s;
+      return;
+    }
+    if (in_code_block_) {
+      out_ << s;
+      return;
+    }
+    out_ << tui::render_inline(s, color_);
+  }
+
+  std::ostream& out_;
+  bool color_;
+  std::string buf_;
+  bool in_code_block_ = false;
+  bool in_bold_ = false;
+};
+
 class Spinner {
  public:
   /** Start spinner with custom messages. No-op if active=false. */
@@ -280,12 +380,16 @@ class Spinner {
       thread_ = std::thread([this] { run(); });
     }
   }
-  ~Spinner() {
-    running_ = false;
+  ~Spinner() { stop(); }
+  /// Stop the spinner and clear its line (safe to call multiple times)
+  void stop() {
+    bool was_running = running_.exchange(false);
     if (thread_.joinable()) {
       thread_.join();
     }
-    out_ << "\r\033[K" << std::flush;
+    if (was_running) {
+      out_ << "\r\033[K" << std::flush;
+    }
   }
   Spinner(const Spinner&) = delete;
   Spinner& operator=(const Spinner&) = delete;

@@ -47,6 +47,7 @@ static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
   ChatFn& chat;                     ///< Injected chat function (real or mock)
+  StreamChatFn stream_chat;         ///< Streaming chat function (nullable)
   ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
@@ -728,12 +729,16 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto execs = parse_exec_annotations(response);
 
   if (writes.empty() && str_replaces.empty() && reads.empty() && execs.empty()) {
-    s.out << colorize_ai(tui::render_markdown(response, s.color && s.markdown), s) << "\n";
+    if (!s.stream_chat) {
+      s.out << colorize_ai(tui::render_markdown(response, s.color && s.markdown), s) << "\n";
+    }
     return false;
   }
 
   // Strip all annotations and display clean text
-  s.out << colorize_ai(tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown), s) << "\n";
+  if (!s.stream_chat) {
+    s.out << colorize_ai(tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown), s) << "\n";
+  }
 
   for (const auto& action : writes) {
     process_write(action, s.in, s.out, s.color);
@@ -837,6 +842,43 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 static std::string interruptible_chat(ReplState& s) {
   auto result = std::make_shared<std::string>();
   auto done = std::make_shared<std::atomic<bool>>(false);
+
+  if (s.stream_chat) {
+    // Streaming: spinner runs until first token, then live output
+    auto first_token = std::make_shared<std::atomic<bool>>(false);
+    auto renderer = std::make_shared<StreamRenderer>(s.out, s.color && s.markdown);
+    Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+    std::thread t([&s, result, done, first_token, &spin, renderer] {
+      *result = s.stream_chat(s.history, [first_token, &spin, renderer](const std::string& token) {
+        if (g_interrupted) {
+          return false;
+        }
+        if (!first_token->exchange(true)) {
+          spin.stop();
+        }
+        renderer->write(token);
+        return true;
+      });
+      renderer->finish();
+      *done = true;
+    });
+    while (!*done && !g_interrupted) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    spin.stop();
+    if (*done) {
+      t.join();
+      if (!result->empty()) {
+        s.out << "\n";
+      }
+      return *result;
+    }
+    t.detach();
+    s.out << "\n";
+    return "";
+  }
+
+  // Buffered mode (mock/fallback): use spinner
   std::thread t([&s, result, done] {
     *result = s.chat(s.history);
     *done = true;
@@ -858,7 +900,9 @@ static std::string interruptible_chat(ReplState& s) {
 static std::string chat_with_spinner(ReplState& s) {
   g_interrupted = 0;
   auto prev = std::signal(SIGINT, sigint_handler);
-  Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+  // Streaming mode: spinner managed inside interruptible_chat
+  // Buffered mode: spinner shows activity while waiting
+  Spinner spin(s.out, s.interactive && !s.stream_chat, s.bofh ? tui::bofh_messages() : tui::default_messages());
   std::string result = interruptible_chat(s);
   std::signal(SIGINT, prev);
   return result;
@@ -900,7 +944,9 @@ static void send_prompt(const std::string& line, ReplState& s) {
   if (needs_followup) {
     std::string followup = chat_with_spinner(s);
     if (!g_interrupted) {
-      s.out << colorize_ai(tui::render_markdown(followup, s.color && s.markdown), s) << "\n";
+      if (!s.stream_chat) {
+        s.out << colorize_ai(tui::render_markdown(followup, s.color && s.markdown), s) << "\n";
+      }
       s.history.push_back({"assistant", followup});
     } else {
       s.out << "\n[interrupted]\n";
@@ -962,7 +1008,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 }
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
-int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn) {
+int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -971,6 +1017,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
   ReplState state = {chat,
+                     stream_chat,
                      models_fn,
                      cfg,
                      history,
