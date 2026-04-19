@@ -1,108 +1,62 @@
 #!/usr/bin/env bash
 #
-# log-viewer.sh — Read and display event logs in human-readable format
-# Usage: ./log-viewer.sh [filter] [--context N]
-#   filter   — Show only events matching this string (default: show all)
-#   --context N — Show N lines before/after match (default: 2)
+# log-viewer.sh — Display event logs as a clean table
+# Usage: ./log-viewer.sh [pattern] [-n COUNT]
+#   pattern  — grep filter on raw JSONL lines (default: show all)
+#   -n COUNT — number of recent events to show (default: 50)
 
 set -o errexit
 set -o nounset
 set -o pipefail
-if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
-
-
-set -e
 
 LOG_FILE="${LLAMA_LOG_FILE:-$HOME/.llama-cli/events.jsonl}"
-CONTEXT=2
-FILTER=""
+COUNT=50
+PATTERN=""
 
-# Parse args
 while [ $# -gt 0 ]; do
-    case "$1" in
-        --context)
-            CONTEXT="$2"
-            shift 2
-            ;;
-        --context=*)
-            CONTEXT="${1#*=}"
-            shift
-            ;;
-        --help|-h)
-            echo "Usage: $0 [filter] [--context N]"
-            echo ""
-            echo "Read and display event logs in human-readable format."
-            echo ""
-            echo "Environment:"
-            echo "  LLAMA_LOG_FILE  — Path to log file (default: ~/.llama-cli/events.jsonl)"
-            echo ""
-            echo "Options:"
-            echo "  filter          — Show only events matching this string"
-            echo "  --context N     — Show N lines before/after match (default: 2)"
-            exit 0
-            ;;
-        *)
-            FILTER="$1"
-            shift
-            ;;
-    esac
+  case "$1" in
+    -n) COUNT="$2"; shift 2 ;;
+    -h|--help)
+      echo "Usage: $0 [pattern] [-n COUNT]"
+      echo "  pattern   Show only events matching this string"
+      echo "  -n COUNT  Number of recent events (default: 50)"
+      echo "  LLAMA_LOG_FILE env var overrides default log path"
+      exit 0 ;;
+    *) PATTERN="$1"; shift ;;
+  esac
 done
 
 if [ ! -f "$LOG_FILE" ]; then
-    echo "No log file found: $LOG_FILE"
-    echo "Set LLAMA_LOG_FILE or ensure events are being logged."
-    exit 1
+  echo "No log file: $LOG_FILE"
+  exit 1
 fi
 
-# Format a single JSON line to human-readable
-format_line() {
-    line="$1"
-    ts=""
-    agent=""
-    action=""
-    duration=""
-    tokens=""
-
-    # Extract fields using grep/sed (portable, no jq dependency)
-    ts=$(echo "$line" | grep -o '"timestamp":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -d'T' -f2 | cut -d'.' -f1)
-    agent=$(echo "$line" | grep -o '"agent":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/')
-    action=$(echo "$line" | grep -o '"action":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/')
-    duration=$(echo "$line" | grep -o '"duration_ms":[0-9]*' | sed 's/.*://')
-    tokens=$(echo "$line" | grep -o '"tokens_[a-z]*":[0-9]*' | sed 's/.*://' | tr '\n' ' ')
-
-    # Format: [HH:MM:SS] AGENT ACTION | DURATION | TOKENS
-    printf "[%s] %-10s %-12s" "$ts" "$agent" "$action"
-    if [ -n "$duration" ]; then
-        printf " | %4sms" "$duration"
-    fi
-    if [ -n "$tokens" ]; then
-        printf " | %s" "$tokens"
-    fi
-    echo ""
-
-    # Show input/output truncated
-    input=$(echo "$line" | grep -o '"input":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -c1-60)
-    output=$(echo "$line" | grep -o '"output":"[^"]*"' | sed 's/.*:"\([^"]*\)"/\1/' | cut -c1-60)
-
-    if [ -n "$input" ]; then
-        echo "  input:  $input"
-    fi
-    if [ -n "$output" ]; then
-        echo "  output: $output"
-    fi
+# Extract field value from JSON line (no jq dependency)
+field() {
+  echo "$1" | sed -n "s/.*\"$2\":\"\{0,1\}\([^,\"}]*\)\"\{0,1\}.*/\1/p"
 }
 
-# Main: filter and display
-if [ -z "$FILTER" ]; then
-    # Show all, last 50 lines
-    tail -50 "$LOG_FILE" | while IFS= read -r line; do
-        format_line "$line"
-        echo "---"
-    done
+# Header
+printf "%-10s %-10s %-18s %8s %6s %6s  %s\n" "TIME" "AGENT" "ACTION" "DURATION" "IN" "OUT" "SUMMARY"
+printf "%-10s %-10s %-18s %8s %6s %6s  %s\n" "----------" "----------" "------------------" "--------" "------" "------" "-------"
+
+# Select lines
+if [ -n "$PATTERN" ]; then
+  data=$(grep -- "$PATTERN" "$LOG_FILE" | tail -"$COUNT")
 else
-    # Filter with context using grep -B -A
-    grep -- "$FILTER" "$LOG_FILE" | while IFS= read -r line; do
-        format_line "$line"
-        echo "---"
-    done
+  data=$(tail -"$COUNT" "$LOG_FILE")
 fi
+
+echo "$data" | while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  ts=$(field "$line" timestamp | sed 's/.*T//;s/\..*//')
+  agent=$(field "$line" agent)
+  action=$(field "$line" action)
+  dur=$(field "$line" duration_ms)
+  tp=$(field "$line" tokens_prompt)
+  tc=$(field "$line" tokens_completion)
+  input=$(echo "$line" | sed -n 's/.*"input":"\([^"]*\)".*/\1/p' | cut -c1-50)
+
+  printf "%-10s %-10s %-18s %6sms %6s %6s  %s\n" \
+    "$ts" "$agent" "$action" "${dur:-0}" "${tp:-0}" "${tc:-0}" "$input"
+done

@@ -33,3 +33,8 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [ ] The Makefile is a mess again, need to generate a tree view with what is calling what and verify the functionality is clean, maybe we should think about subcommands or grouping things
 - [ ] add !p and !c commands to copy the result or paste or should it be /copy /paste to keep it in line, should have a user/developer interaction design to keep things consistent and logic/intuitive
+- [ ] version should be bumped in pipeline not in merge request and it should bump properly feat/fix/breaking
+- [ ] we should have /private to avoid logging
+- [ ] Logger should detect dev vs installed context: log to `./events.jsonl` (repo-local) when running from source, `~/.llama-cli/events.jsonl` when installed — keeps dev and production logs separate
+- [ ] Log viewer: configurable columns and column order (env var or config file) — e.g. `LLAMA_LOG_COLUMNS="time,agent,action,duration"`
+- [ ] up doesn't include ! and !!, when in private mode, /private commands, prompts are not added to the history

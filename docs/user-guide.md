@@ -270,9 +270,19 @@ All actions are logged to `~/.llama-cli/events.jsonl` as structured JSON (one ev
 ### Viewing logs
 
 ```bash
-make log                    # last 50 events, human-readable
-make log exec               # filter to exec events only
-make log --context 5        # show 5 lines of context around matches
+make log                        # last 50 events as table
+make log ARGS="exec"            # filter to exec events only
+make log ARGS="chat -n 10"     # last 10 chat events
+```
+
+Example output:
+
+```text
+TIME       AGENT      ACTION               DURATION     IN    OUT  SUMMARY
+---------- ---------- ------------------ -------- ------ ------  -------
+06:27:14   repl       session_start           0ms      0      0  gemma4:26b
+06:28:48   ollama     chat                15086ms    252    192  [{"role":"user"...
+06:35:26   repl       exec_context           41ms      0      0  cat ~/.llama-cli/events.jsonl
 ```
 
 ### Example log entry
