@@ -200,6 +200,7 @@ jobs:
           ./build/test_command
           ./build/test_annotation
           ./build/test_exec
+          ./build/test_markdown
 
   # --- Security ---
 

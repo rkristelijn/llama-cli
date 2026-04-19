@@ -43,6 +43,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-049-model-selection-command.md`](docs/adr/adr-049-model-selection-command.md) — ADR-049: Interactive Model Selection Command
 - [`docs/adr/adr-050-reality-check-roadmap.md`](docs/adr/adr-050-reality-check-roadmap.md) — ADR-050: Reality Check — Positioning and Roadmap
 - [`docs/adr/adr-051-kiro-agent-config.md`](docs/adr/adr-051-kiro-agent-config.md) — ADR-051: Kiro Agent Configuration for llama-cli Development
+- [`docs/adr/adr-052-markdown-renderer.md`](docs/adr/adr-052-markdown-renderer.md) — ADR-052: Markdown Renderer
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -212,4 +213,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_209 files indexed._
+_210 files indexed._

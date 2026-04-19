@@ -107,7 +107,10 @@ int main(int argc, char* argv[]) {
     };
     auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
       if (cfg.provider == "mock") {
-        return "mock response: " + msgs.back().content;
+        // Simulate streaming by sending the response through the callback
+        std::string response = "mock response: " + msgs.back().content;
+        on_token(response);
+        return response;
       }
       return ollama_chat_stream(Config::instance(), msgs, on_token);
     };

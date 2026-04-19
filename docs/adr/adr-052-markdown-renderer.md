@@ -35,7 +35,7 @@ We need a renderer that:
 | Code block | ` ``` ` fences | dim (`\033[2m`) |
 | Bullet list | `- item` / `* item` | `•` prefix, 2-space indent |
 | Ordered list | `1. item` | preserved number, 2-space indent |
-| Nested list | `  - sub` | additional indent per nesting level |
+| Nested list | `- sub` | additional indent per nesting level |
 | Blockquote | `> text` | dim `│` prefix |
 | Horizontal rule | `---` / `***` / `___` | dim `────────────────────` |
 | Table | `\| col \| col \|` | terminal-width-aware column padding |

@@ -344,6 +344,76 @@ inline std::vector<std::string> parse_table_cells(const std::string& line) {
   return cells;
 }
 
+/** Compute visible text length after markdown markers are stripped.
+ * Removes bold, italic, strikethrough, code delimiters and link syntax
+ * to match what render_inline produces visually. */
+inline size_t visible_length(const std::string& text) {
+  size_t len = 0;
+  size_t i = 0;
+  while (i < text.size()) {
+    // ***bold+italic***
+    if (i + 2 < text.size() && text[i] == '*' && text[i + 1] == '*' && text[i + 2] == '*') {
+      auto end = text.find("***", i + 3);
+      if (end != std::string::npos) {
+        len += end - i - 3;
+        i = end + 3;
+        continue;
+      }
+    }
+    // **bold**
+    if (i + 1 < text.size() && text[i] == '*' && text[i + 1] == '*') {
+      auto end = text.find("**", i + 2);
+      if (end != std::string::npos) {
+        len += end - i - 2;
+        i = end + 2;
+        continue;
+      }
+    }
+    // ~~strikethrough~~
+    if (i + 1 < text.size() && text[i] == '~' && text[i + 1] == '~') {
+      auto end = text.find("~~", i + 2);
+      if (end != std::string::npos) {
+        len += end - i - 2;
+        i = end + 2;
+        continue;
+      }
+    }
+    // `code`
+    if (text[i] == '`' && (i + 1 >= text.size() || text[i + 1] != '`')) {
+      auto end = text.find('`', i + 1);
+      if (end != std::string::npos) {
+        len += end - i - 1;
+        i = end + 1;
+        continue;
+      }
+    }
+    // [text](url) → "text (url)"
+    if (text[i] == '[') {
+      auto cb = text.find(']', i + 1);
+      if (cb != std::string::npos && cb + 1 < text.size() && text[cb + 1] == '(') {
+        auto cp = text.find(')', cb + 2);
+        if (cp != std::string::npos) {
+          len += (cb - i - 1) + 1 + (cp - cb - 2) + 1;  // "text (url)"
+          i = cp + 1;
+          continue;
+        }
+      }
+    }
+    // *italic* — single star not part of ** pair
+    if (text[i] == '*' && (i == 0 || text[i - 1] != '*') && i + 1 < text.size() && text[i + 1] != '*') {
+      auto end = text.find('*', i + 1);
+      if (end != std::string::npos && (end + 1 >= text.size() || text[end + 1] != '*')) {
+        len += end - i - 1;
+        i = end + 1;
+        continue;
+      }
+    }
+    len++;
+    i++;
+  }
+  return len;
+}
+
 /** Render a collected table block with terminal-width-aware column padding.
  * Distributes available width proportionally across columns.
  * Separator rows become thin dim lines. */
@@ -366,11 +436,14 @@ inline std::string render_table(const std::vector<std::string>& rows, bool color
     return "";
   }
 
-  // Find max content width per column
+  // Find max visible width per column
+  // With color: use visible_length (markdown markers stripped by render_inline)
+  // Without color: use raw size (markers stay in output)
   std::vector<size_t> max_widths(num_cols, 0);
   for (const auto& cells : parsed) {
     for (size_t c = 0; c < cells.size(); c++) {
-      max_widths[c] = std::max(max_widths[c], cells[c].size());
+      size_t w = color ? visible_length(cells[c]) : cells[c].size();
+      max_widths[c] = std::max(max_widths[c], w);
     }
   }
 
@@ -411,13 +484,15 @@ inline std::string render_table(const std::vector<std::string>& rows, bool color
       continue;
     }
 
-    // Data row: pad cells to column width
+    // Data row: pad based on visible length (after markdown stripping)
     std::string row_line = "| ";
     for (size_t c = 0; c < num_cols; c++) {
       std::string cell = (c < parsed[r].size()) ? parsed[r][c] : "";
       std::string rendered = color ? render_inline(cell, color) : cell;
-      // Pad based on raw cell length (not ANSI-escaped length)
-      size_t pad = (cell.size() < col_widths[c]) ? col_widths[c] - cell.size() : 0;
+      // With color: markdown markers are stripped, so pad by visible length
+      // Without color: markers stay, so pad by raw cell length
+      size_t vis_len = color ? visible_length(cell) : cell.size();
+      size_t pad = (vis_len < col_widths[c]) ? col_widths[c] - vis_len : 0;
       row_line += rendered + std::string(pad, ' ');
       row_line += " | ";
     }
@@ -452,16 +527,11 @@ inline std::string render_line(const std::string& line, bool color) {
   return render_inline(line, color) + "\n";
 }
 
-/**
- * Render a single line that is either inside a code block or at a code-fence boundary.
- *
- * If `line` starts with a triple-backtick fence (```), toggles `in_code_block` to enter or
- * exit a code block before returning the rendered output.
- *
+/** Render a single line inside a code block or at a code-fence boundary.
+ * Toggles in_code_block when a triple-backtick fence is encountered.
  * @param line The input line to render.
- * @param in_code_block Reference to the current code-block state; toggled when a fence is encountered.
- * @returns The input line wrapped with cyan ANSI styling and terminated with a newline.
- */
+ * @param in_code_block Current code-block state; toggled on fence lines.
+ * @returns The line wrapped with cyan ANSI styling and a newline. */
 inline std::string render_code_block_line(const std::string& line, bool& in_code_block) {
   if (line.rfind("```", 0) == 0) {
     in_code_block = !in_code_block;
@@ -470,19 +540,15 @@ inline std::string render_code_block_line(const std::string& line, bool& in_code
   return "\033[36m" + line + "\033[0m\n";
 }
 
-/** Render a full markdown text block to ANSI.
- * Handles: # headings, **bold**, *italic*, `code`, ```code blocks```, -
- * lists, 1. lists. Pluggable: replace this function to use a different
- * renderer. */
-/**
- * Render multiline Markdown-like text into an ANSI-styled string.
+/** Render multiline Markdown-like text into an ANSI-styled string.
  *
  * Splits the input on newline boundaries and renders each line using block
  * and inline renderers; lines that start or are inside a triple-backtick code
- * fence are rendered as code block lines.
+ * fence are rendered as code block lines. Table rows are buffered and
+ * rendered as a block when the table ends.
  *
  * @param text Input text that may contain multiple lines and Markdown-like constructs.
- * @param color If `true`, apply ANSI styling to rendered output; if `false`, return content without styling.
+ * @param color If true, apply ANSI styling to rendered output; if false, return content without styling.
  * @returns The concatenated rendered output with per-line rendering and preserved line breaks.
  */
 inline std::string render_lines(const std::string& text, bool color) {
@@ -557,17 +623,19 @@ inline std::vector<const char*> bofh_messages() {
 
 }  // namespace tui
 
-/** RAII spinner — shows animation while LLM is processing, stops on
- * destruction. Only active when active=true (interactive TTY). Construct before
- * a blocking call, destructor cleans up automatically. */
 /** Streaming markdown renderer — processes tokens as they arrive.
  * Maintains state across tokens to apply ANSI formatting:
  * - **bold**, *italic*, `code` (inline)
  * - ``` code blocks (dimmed)
  * - ## headings (bold+underline)
- * - bullet lists (• prefix) */
+ * - bullet lists (• prefix)
+ * - tables (buffered until block ends)
+ * Falls back to raw text on any exception — never loses output. */
 class StreamRenderer {
  public:
+  /** Construct a streaming renderer.
+   * @param out Output stream to write rendered tokens to.
+   * @param color If true, apply ANSI styling; if false, pass through raw text. */
   explicit StreamRenderer(std::ostream& out, bool color) : out_(out), color_(color) {}
 
   /// Process a token (may contain partial lines, newlines, etc.)
@@ -589,15 +657,13 @@ class StreamRenderer {
   void finish() {
     try {
       // Flush any pending table rows
-      if (!table_buf_.empty()) {
-        out_ << tui::render_table(table_buf_, color_);
-        table_buf_.clear();
-      }
+      flush_table_buf();
       if (!buf_.empty()) {
-        emit(buf_);
-        buf_.clear();
+        // Add newline so flush_line can process block-level elements
+        buf_ += '\n';
+        flush_line();
       }
-      if (in_bold_ || in_code_block_) {
+      if (in_code_block_) {
         out_ << "\033[0m";
       }
     } catch (...) {
@@ -612,53 +678,54 @@ class StreamRenderer {
     // buf_ includes the trailing \n
     std::string line = buf_;
     buf_.clear();
+    std::string content = line.substr(0, line.size() - 1);
 
     if (!color_) {
-      // Still buffer tables for alignment even without color
-      std::string content = line.substr(0, line.size() - 1);
-      if (tui::is_table_row(content)) {
-        table_buf_.push_back(content);
-        return;
-      }
-      if (!table_buf_.empty()) {
-        out_ << tui::render_table(table_buf_, false);
-        table_buf_.clear();
-      }
-      out_ << line;
+      flush_line_plain(content, line);
       return;
     }
-
-    // Strip trailing \n for table detection
-    std::string content = line.substr(0, line.size() - 1);
 
     // Buffer table rows until the block ends
     if (!in_code_block_ && tui::is_table_row(content)) {
       table_buf_.push_back(content);
       return;
     }
-
-    // Non-table line: flush any pending table first
-    if (!table_buf_.empty()) {
-      out_ << tui::render_table(table_buf_, color_);
-      table_buf_.clear();
-    }
+    flush_table_buf();
 
     // Code fence toggle
     if (line.size() >= 4 && line.substr(0, 3) == "```") {
       in_code_block_ = !in_code_block_;
-      if (in_code_block_) {
-        out_ << "\033[2m" << line;  // dim on
-      } else {
-        out_ << line << "\033[0m";  // dim off
-      }
+      out_ << (in_code_block_ ? "\033[2m" : "") << line << (in_code_block_ ? "" : "\033[0m");
       return;
     }
-
     if (in_code_block_) {
-      out_ << line;  // already dim from fence open
+      out_ << line;
       return;
     }
 
+    render_content_line(content);
+  }
+
+  /// Flush a line when color is off — still buffers tables for alignment
+  void flush_line_plain(const std::string& content, const std::string& line) {
+    if (tui::is_table_row(content)) {
+      table_buf_.push_back(content);
+      return;
+    }
+    flush_table_buf();
+    out_ << line;
+  }
+
+  /// Flush any pending table rows
+  void flush_table_buf() {
+    if (!table_buf_.empty()) {
+      out_ << tui::render_table(table_buf_, color_);
+      table_buf_.clear();
+    }
+  }
+
+  /// Render a non-code, non-table content line with markdown formatting
+  void render_content_line(const std::string& content) {
     // Heading
     if (!content.empty() && content[0] == '#') {
       std::string h = tui::try_heading(content);
@@ -667,41 +734,25 @@ class StreamRenderer {
         return;
       }
     }
-
-    // Horizontal rule (---, ***, ___)
+    // Horizontal rule
     if (tui::is_horizontal_rule(content)) {
       out_ << "\033[2m────────────────────\033[0m\n";
       return;
     }
-
-    // Blockquote (> text)
+    // Blockquote
     if (!content.empty() && content[0] == '>') {
       std::string bq = (content.size() > 1 && content[1] == ' ') ? content.substr(2) : content.substr(1);
       out_ << "\033[2m│\033[0m " << tui::render_inline(bq, color_) << "\n";
       return;
     }
-
     // List item
     std::string li = tui::try_list(content, color_);
     if (!li.empty()) {
       out_ << li;
       return;
     }
-
     // Regular line with inline formatting
     out_ << tui::render_inline(content, color_) << "\n";
-  }
-
-  void emit(const std::string& s) {
-    if (!color_) {
-      out_ << s;
-      return;
-    }
-    if (in_code_block_) {
-      out_ << s;
-      return;
-    }
-    out_ << tui::render_inline(s, color_);
   }
 
   std::ostream& out_;
@@ -709,9 +760,11 @@ class StreamRenderer {
   std::string buf_;
   std::vector<std::string> table_buf_;  // buffered table rows for block rendering
   bool in_code_block_ = false;
-  bool in_bold_ = false;
 };
 
+/** RAII spinner — shows animated dots while waiting for LLM response.
+ * Only active when constructed with active=true (interactive TTY).
+ * Destructor stops the animation and clears the line automatically. */
 class Spinner {
  public:
   /** Start spinner with custom messages. No-op if active=false. */
