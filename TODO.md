@@ -31,8 +31,5 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] Optimize `make check` output — too chatty, find golden ratio of feedback
 - [ ] Add logging tests (Logger::log, path(), JSONL format validation)
 - [ ] Evaluate remaining 12-factor principles (#10)
-
-## Done
-
-- [x] Pin all tool versions in `.config/versions.env`
-- [x] Define release process (#11) — GitHub Actions workflow, VERSION file, tag workflow
+- [ ] The Makefile is a mess again, need to generate a tree view with what is calling what and verify the functionality is clean, maybe we should think about subcommands or grouping things
+- [ ] add !p and !c commands to copy the result or paste or should it be /copy /paste to keep it in line, should have a user/developer interaction design to keep things consistent and logic/intuitive
