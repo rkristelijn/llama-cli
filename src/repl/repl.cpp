@@ -46,7 +46,8 @@ static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
-  ChatFn& chat;                     ///< Chat function for LLM interaction
+  ChatFn& chat;                     ///< Injected chat function (real or mock)
+  ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
   std::istream& in;                 ///< Input stream
@@ -264,8 +265,9 @@ static void handle_color(const std::string& arg, ReplState& s) {
  * @param s REPL state used for I/O and config access.
  */
 static void handle_model_selection(ReplState& s) {
-  // Fetch available models from server
-  std::vector<std::string> models = get_available_models(s.cfg);
+  // Use injected models_fn so unit tests can provide a mock model list
+  // without needing a running Ollama server
+  std::vector<std::string> models = s.models_fn(s.cfg);
 
   if (models.empty()) {
     s.out << "No models available on " << s.cfg.host << ":" << s.cfg.port << "\n";
@@ -960,7 +962,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 }
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
-int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
+int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -969,6 +971,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
   ReplState state = {chat,
+                     models_fn,
                      cfg,
                      history,
                      in,

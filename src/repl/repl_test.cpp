@@ -419,15 +419,69 @@ SCENARIO ("REPL /version command") {
   }
 }
 
-SCENARIO ("REPL /model command") {
-  GIVEN ("user types /model when no server is available") {
-    // Without a running Ollama server, get_available_models() returns empty
+// /model tests — uses injected ModelsFn so no HTTP calls needed.
+// The real get_available_models is replaced with a lambda returning a fixed list.
+
+SCENARIO ("REPL /model with no models available") {
+  GIVEN ("a model fetcher that returns an empty list") {
+    ModelsFn no_models = [](const Config&) { return std::vector<std::string>{}; };
     std::istringstream in("/model\nexit\n");
     std::ostringstream out;
-    WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+    WHEN ("the user runs /model") {
+      run_repl(echo_chat, test_cfg(), in, out, no_models);
       THEN ("no models message is shown") {
         CHECK (out.str().find("No models available") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("REPL /model select from list") {
+  GIVEN ("a model fetcher that returns 5 models") {
+    ModelsFn five_models = [](const Config&) {
+      return std::vector<std::string>{"gemma4:e4b", "gemma4:26b", "llama3:8b", "mistral:7b", "phi3:mini"};
+    };
+    WHEN ("the user picks model 2") {
+      std::istringstream in("/model\n2\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      THEN ("all 5 models are listed") {
+        CHECK (out.str().find("1. gemma4:e4b") != std::string::npos)
+          ;
+        CHECK (out.str().find("5. phi3:mini") != std::string::npos)
+          ;
+      }
+      THEN ("model is set to the selected one") {
+        CHECK (out.str().find("[model set to gemma4:26b]") != std::string::npos)
+          ;
+      }
+    }
+    WHEN ("the user picks model 1 from a single-model list") {
+      ModelsFn one_model = [](const Config&) { return std::vector<std::string>{"gemma4:e4b"}; };
+      std::istringstream in("/model\n1\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, one_model);
+      THEN ("model is set") {
+        CHECK (out.str().find("[model set to gemma4:e4b]") != std::string::npos)
+          ;
+      }
+    }
+    WHEN ("the user enters an out-of-range number") {
+      std::istringstream in("/model\n99\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      THEN ("out of range message is shown") {
+        CHECK (out.str().find("[out of range]") != std::string::npos)
+          ;
+      }
+    }
+    WHEN ("the user enters invalid input") {
+      std::istringstream in("/model\nabc\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      THEN ("invalid input message is shown") {
+        CHECK (out.str().find("[invalid input]") != std::string::npos)
           ;
       }
     }
