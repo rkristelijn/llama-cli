@@ -69,5 +69,65 @@ SCENARIO ("Logger writes JSONL events") {
           ;
       }
     }
+    WHEN ("LOG_EVENT macro is used") {
+      // The macro is the primary API for logging throughout the codebase.
+      // Verify it writes the correct fields to the JSONL file.
+      LOG_EVENT("repl", "session_start", "gemma4:e4b", "localhost:11434", 0, 0, 0);
+      THEN ("the event appears in the log with correct fields") {
+        std::ifstream f(logger.path());
+        std::string last_line;
+        std::string line;
+        while (std::getline(f, line)) {
+          last_line = line;
+        }
+        CHECK (last_line.find("\"agent\":\"repl\"") != std::string::npos)
+          ;
+        CHECK (last_line.find("\"action\":\"session_start\"") != std::string::npos)
+          ;
+        CHECK (last_line.find("\"input\":\"gemma4:e4b\"") != std::string::npos)
+          ;
+        CHECK (last_line.find("\"output\":\"localhost:11434\"") != std::string::npos)
+          ;
+      }
+    }
+    WHEN ("LOG_EVENT logs an exec with duration") {
+      // Exec events carry timing data for performance analysis
+      LOG_EVENT("repl", "exec", "ls -la", "file1\nfile2", 150, 0, 0);
+      THEN ("duration_ms is recorded") {
+        std::ifstream f(logger.path());
+        std::string last_line;
+        std::string line;
+        while (std::getline(f, line)) {
+          last_line = line;
+        }
+        CHECK (last_line.find("\"action\":\"exec\"") != std::string::npos)
+          ;
+        CHECK (last_line.find("\"duration_ms\":150") != std::string::npos)
+          ;
+      }
+    }
+    WHEN ("LOG_EVENT logs a file operation") {
+      // File write/read events form an audit trail
+      LOG_EVENT("repl", "file_write", "/tmp/test.txt", "ok", 0, 0, 0);
+      LOG_EVENT("repl", "file_read", "/tmp/test.txt", "", 0, 0, 0);
+      THEN ("both events are in the log") {
+        std::ifstream f(logger.path());
+        bool found_write = false;
+        bool found_read = false;
+        std::string line;
+        while (std::getline(f, line)) {
+          if (line.find("\"action\":\"file_write\"") != std::string::npos) {
+            found_write = true;
+          }
+          if (line.find("\"action\":\"file_read\"") != std::string::npos) {
+            found_read = true;
+          }
+        }
+        CHECK (found_write)
+          ;
+        CHECK (found_read)
+          ;
+      }
+    }
   }
 }

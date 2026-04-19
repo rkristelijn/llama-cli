@@ -42,8 +42,49 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-048-quality-framework.md`](docs/adr/adr-048-quality-framework.md) — ADR-048: AI-Guided Quality Framework
 - [`docs/adr/adr-049-model-selection-command.md`](docs/adr/adr-049-model-selection-command.md) — ADR-049: Interactive Model Selection Command
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
-- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
+- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/backlog/001-log-optimization.md`](docs/backlog/001-log-optimization.md) — 001: Log Optimization for Usage Analysis
+- [`docs/backlog/002-wingman-command-tips.md`](docs/backlog/002-wingman-command-tips.md) — 002: Wingman — Command Tips
+- [`docs/backlog/003-wingman-preflight.md`](docs/backlog/003-wingman-preflight.md) — 003: Wingman — Prompt Preflight
+- [`docs/backlog/004-smart-confirmation.md`](docs/backlog/004-smart-confirmation.md) — 004: Smart Confirmation Prompt
+- [`docs/backlog/005-streaming.md`](docs/backlog/005-streaming.md) — 005: Streaming Responses
+- [`docs/backlog/006-distributed-ollama.md`](docs/backlog/006-distributed-ollama.md) — 006: Distributed Ollama
+- [`docs/backlog/007-exec-output-tuning.md`](docs/backlog/007-exec-output-tuning.md) — 007: Exec Output Tuning
+- [`docs/backlog/008-project-rename.md`](docs/backlog/008-project-rename.md) — 008: Project Rename
+- [`docs/backlog/009-package-distribution.md`](docs/backlog/009-package-distribution.md) — 009: Package Distribution
+- [`docs/backlog/010-command-permissions.md`](docs/backlog/010-command-permissions.md) — 010: Command Permissions
+- [`docs/backlog/011-model-switching.md`](docs/backlog/011-model-switching.md) — 011: Runtime Model Switching
+- [`docs/backlog/012-nick-prompt.md`](docs/backlog/012-nick-prompt.md) — 012: Nick / Custom Prompt
+- [`docs/backlog/013-diff-preview.md`](docs/backlog/013-diff-preview.md) — 013: Diff Preview Before Overwrite
+- [`docs/backlog/014-provider-abstraction.md`](docs/backlog/014-provider-abstraction.md) — 014: Provider Abstraction
+- [`docs/backlog/015-planner-executor.md`](docs/backlog/015-planner-executor.md) — 015: Planner / Executor Separation
+- [`docs/backlog/016-execution-sandbox.md`](docs/backlog/016-execution-sandbox.md) — 016: Execution Sandbox
+- [`docs/backlog/017-multi-agent.md`](docs/backlog/017-multi-agent.md) — 017: Multi-Agent Support
+- [`docs/backlog/018-reduce-complexity.md`](docs/backlog/018-reduce-complexity.md) — 018: Reduce Complexity
+- [`docs/backlog/019-context-compression.md`](docs/backlog/019-context-compression.md) — 019: Context Compression
+- [`docs/backlog/020-temperature-tuning.md`](docs/backlog/020-temperature-tuning.md) — 020: Temperature Tuning
+- [`docs/backlog/021-prompt-templates.md`](docs/backlog/021-prompt-templates.md) — 021: Prompt Templates
+- [`docs/backlog/022-fix-make-setup.md`](docs/backlog/022-fix-make-setup.md) — 022: Fix `make setup` — Missing Tools
+- [`docs/backlog/023-commit-msg-hook.md`](docs/backlog/023-commit-msg-hook.md) — 023: Commit Message Validation
+- [`docs/backlog/024-branch-naming.md`](docs/backlog/024-branch-naming.md) — 024: Branch Naming Validation
+- [`docs/backlog/025-issue-pr-templates.md`](docs/backlog/025-issue-pr-templates.md) — 025: Issue and PR Templates
+- [`docs/backlog/026-changelog.md`](docs/backlog/026-changelog.md) — 026: CHANGELOG.md
+- [`docs/backlog/027-coverage-bump.md`](docs/backlog/027-coverage-bump.md) — 027: Coverage Bump 55% → 60%
+- [`docs/backlog/028-todo-scraping.md`](docs/backlog/028-todo-scraping.md) — 028: TODO Scraping → TECHDEBT.md
+- [`docs/backlog/029-branch-protection.md`](docs/backlog/029-branch-protection.md) — 029: Branch Protection (Peer Review)
+- [`docs/backlog/030-doc-change-ci.md`](docs/backlog/030-doc-change-ci.md) — 030: Doc-Change CI Enforcement
+- [`docs/backlog/031-inline-code-rendering.md`](docs/backlog/031-inline-code-rendering.md) — 031: Inline Code Rendering
+- [`docs/backlog/032-mermaid-rendering.md`](docs/backlog/032-mermaid-rendering.md) — 032: Mermaid Diagram Rendering
+- [`docs/backlog/033-tab-autocompletion.md`](docs/backlog/033-tab-autocompletion.md) — 033: Tab Autocompletion
+- [`docs/backlog/034-fix-release.md`](docs/backlog/034-fix-release.md) — 034: Fix Release Pipeline
+- [`docs/backlog/035-code-spell-check.md`](docs/backlog/035-code-spell-check.md) — 035: Code Spell Check
+- [`docs/backlog/036-documentation-coverage.md`](docs/backlog/036-documentation-coverage.md) — 036: Documentation Coverage
+- [`docs/backlog/037-dependency-check.md`](docs/backlog/037-dependency-check.md) — 037: Dependency Outdated Check
+- [`docs/backlog/038-license-audit.md`](docs/backlog/038-license-audit.md) — 038: License Audit
+- [`docs/backlog/039-local-ci.md`](docs/backlog/039-local-ci.md) — 039: Local CI Testing
+- [`docs/backlog/040-ci-caching.md`](docs/backlog/040-ci-caching.md) — 040: CI Check Caching
+- [`docs/backlog/README.md`](docs/backlog/README.md) — Backlog
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
@@ -55,6 +96,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
+- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/prompts/01-commit-msg-hook.md`](docs/prompts/01-commit-msg-hook.md) — Prompt 01: Add commit message validation hook
 - [`docs/prompts/02-branch-naming.md`](docs/prompts/02-branch-naming.md) — Prompt 02: Add branch naming validation
 - [`docs/prompts/03-env-example.md`](docs/prompts/03-env-example.md) — Prompt 03: Add .env.example configuration template
@@ -68,9 +110,10 @@ Auto-generated overview of all files in this repo.
 - [`docs/prompts/11-streaming-tests.md`](docs/prompts/11-streaming-tests.md) — Prompt 11: Add streaming tests
 - [`docs/prompts/README.md`](docs/prompts/README.md) — AI Agent Task Prompts
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
-- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
+- [`docs/roadmap/README.md`](docs/roadmap/README.md) — Roadmap
+- [`docs/task-status.md`](docs/task-status.md) — Task Status Convention
 - [`docs/testing.md`](docs/testing.md) — Testing & Coverage Guide
 - [`docs/tools/clang-format.md`](docs/tools/clang-format.md) — clang-format
 - [`docs/tools/clang-tidy.md`](docs/tools/clang-tidy.md) — clang-tidy
@@ -81,10 +124,10 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
-- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
+- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
-- [`docs/user-guide.md`](docs/user-guide.md) — User guide for llama-cli — installation, usage, and configuration
+- [`docs/user-guide.md`](docs/user-guide.md) — User Guide
 - [`scripts/check/check-deps.sh`](scripts/check/check-deps.sh)
 - [`scripts/check/check-versions.sh`](scripts/check/check-versions.sh)
 - [`scripts/check/comment-ratio.sh`](scripts/check/comment-ratio.sh)
@@ -111,49 +154,50 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
+- [`scripts/gh/sync-backlog.sh`](scripts/gh/sync-backlog.sh)
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
-- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
-- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
-- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
-- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
-- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
-- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
-- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
-- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/help.h`](src/help.h) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — /**
-- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
-- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
-- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
-- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_153 files indexed._
+_197 files indexed._

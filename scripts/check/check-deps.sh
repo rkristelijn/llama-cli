@@ -14,8 +14,10 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-REQUIRED=(cmake clang-format clang-tidy cppcheck pmccabe cloc doxygen)
-OPTIONAL=(semgrep gitleaks shellcheck yamllint rumdl)
+# TODO: !! move clang-tidy and pmccabe back to REQUIRED after brew install llvm
+# See docs/backlog/022-fix-make-setup.md for install instructions
+REQUIRED=(cmake clang-format cppcheck cloc doxygen)
+OPTIONAL=(clang-tidy pmccabe semgrep gitleaks shellcheck yamllint rumdl)
 
 missing=0
 warnings=0

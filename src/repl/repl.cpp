@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 
+#include <chrono>
 #include <csignal>
 #include <fstream>
 #include <memory>
@@ -19,6 +20,7 @@
 #include "command/command.h"
 #include "exec/exec.h"
 #include "help.h"
+#include "logging/logger.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
 
@@ -44,7 +46,8 @@ static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
 
 /// REPL session state — groups related data to reduce parameter passing
 struct ReplState {
-  ChatFn& chat;                     ///< Chat function for LLM interaction
+  ChatFn& chat;                     ///< Injected chat function (real or mock)
+  ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
   std::istream& in;                 ///< Input stream
@@ -262,8 +265,9 @@ static void handle_color(const std::string& arg, ReplState& s) {
  * @param s REPL state used for I/O and config access.
  */
 static void handle_model_selection(ReplState& s) {
-  // Fetch available models from server
-  std::vector<std::string> models = get_available_models(s.cfg);
+  // Use injected models_fn so unit tests can provide a mock model list
+  // without needing a running Ollama server
+  std::vector<std::string> models = s.models_fn(s.cfg);
 
   if (models.empty()) {
     s.out << "No models available on " << s.cfg.host << ":" << s.cfg.port << "\n";
@@ -478,11 +482,16 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
     if (file.is_open()) {
       file << action.content << "\n";
       out << "[wrote " << action.path << "]\n";
+      // Log successful file write for audit trail
+      LOG_EVENT("repl", "file_write", action.path, "ok", 0, 0, 0);
     } else {
       tui::error(out, color, "Error: could not write to " + action.path);
+      LOG_EVENT("repl", "file_write", action.path, "error: could not write", 0, 0, 0);
     }
   } else {
     out << "[skipped]\n";
+    // Log declined write so we can see rejection patterns
+    LOG_EVENT("repl", "file_write_declined", action.path, "", 0, 0, 0);
   }
 }
 
@@ -511,6 +520,8 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
   std::string answer;
   if (!std::getline(in, answer) || (answer != "y" && answer != "yes")) {
     out << "[skipped]\n";
+    // Log declined str_replace for rejection pattern analysis
+    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
     return;
   }
 
@@ -523,8 +534,11 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
   if (f.is_open()) {
     f << updated;
     out << "[wrote " << action.path << "]\n";
+    // Log successful str_replace for audit trail
+    LOG_EVENT("repl", "str_replace", action.path, "ok", 0, 0, 0);
   } else {
     tui::error(out, color, "Error: could not write to " + action.path);
+    LOG_EVENT("repl", "str_replace", action.path, "error: could not write", 0, 0, 0);
   }
 }
 
@@ -541,6 +555,7 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   std::ifstream check(action.path);
   if (!check.good()) {
     tui::error(out, color, "read: file not found: " + action.path);
+    LOG_EVENT("repl", "file_read", action.path, "error: not found", 0, 0, 0);
     return "";
   }
   std::string content = read_file(action.path);
@@ -583,6 +598,8 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   }
 
   std::string r = result.str();
+  // Log file read so we can track which files the LLM accesses
+  LOG_EVENT("repl", "file_read", action.path, "", 0, 0, 0);
   return r;
 }
 
@@ -657,10 +674,17 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
     return "";
   }
   if (answer != "y" && answer != "yes") {
+    // Log declined exec so we can see rejection patterns
+    LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
     out << "[skipped]\n";
     return "";
   }
+  auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
+  // Log confirmed LLM-proposed exec with duration
+  LOG_EVENT("repl", "exec_confirmed", cmd, r.output, static_cast<int>(ms), 0, 0);
   out << r.output;
   return r.output;
 }
@@ -791,7 +815,12 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
  * @param s The REPL state providing execution configuration, input/output streams, and history.
  */
 static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
+  auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
+  // Log user-initiated exec (! or !!) with duration for performance analysis
+  LOG_EVENT("repl", add_to_history ? "exec_context" : "exec", cmd, r.output, static_cast<int>(ms), 0, 0);
   tui::cmd_output(s.out, s.color, r.output);
   if (r.exit_code != 0 && !r.timed_out) {
     tui::error(s.out, s.color, "[exit code: " + std::to_string(r.exit_code) + "]");
@@ -933,7 +962,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 }
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
-int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
+int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -942,6 +971,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
   ReplState state = {chat,
+                     models_fn,
                      cfg,
                      history,
                      in,
@@ -954,6 +984,9 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color)};
 
+  // Log session start so we can track session duration and model usage
+  LOG_EVENT("repl", "session_start", cfg.model, cfg.host + ":" + cfg.port, 0, 0, 0);
+
   while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {
       continue;
@@ -962,5 +995,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
       break;
     }
   }
+  // Log session end with total prompt count for usage analysis
+  LOG_EVENT("repl", "session_end", std::to_string(state.count) + " prompts", "", 0, 0, 0);
   return state.count;
 }

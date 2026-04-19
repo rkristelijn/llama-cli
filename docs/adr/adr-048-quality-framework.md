@@ -570,31 +570,30 @@ The framework passes this test because:
 | Sanitizers | ASan + UBSan in CI (`sanitizers` job) |
 | Low tech debt | Only 3 TODO markers in entire source |
 
-### Sprint 1 Plan — Reach CMMI 0 (estimated: 1 afternoon)
+### Sprint 1 Plan — Reach CMMI 0
 
-| Issue | What | Stacking Effect |
-|-------|------|-----------------|
-| Commit message validation | Add `commit-msg` hook checking conventional commit format | → Auto-changelog, release notes, CI routing |
-| Branch naming validation | Add regex check to `pre-commit.sh` | → Issue linking, traceability |
-| Issue template (feat) | `.github/ISSUE_TEMPLATE/feature.md` with value statement + AC | → Definition of Ready baseline, sprint planning |
-| Issue template (fix) | `.github/ISSUE_TEMPLATE/bug.md` with reproduction steps | → Incident tracking, regression test input |
-| PR template | `.github/PULL_REQUEST_TEMPLATE.md` with checklist | → Review consistency, implicit decision catch |
-| `.env.example` | Config template for new contributors | → Onboarding, C4I compliance |
-| `CHANGELOG.md` | Initial changelog from existing releases | → User trust, release transparency |
+Migrated to backlog. See:
 
-### Sprint 2 Plan — Reach CMMI 1 + Streaming (estimated: 1-2 days)
+| Backlog | Task | CMMI |
+|---------|------|------|
+| [023](../backlog/023-commit-msg-hook.md) | Commit message validation | 0.1 |
+| [024](../backlog/024-branch-naming.md) | Branch naming validation | 0.2 |
+| [025](../backlog/025-issue-pr-templates.md) | Issue/PR templates | 0.8 |
+| [026](../backlog/026-changelog.md) | CHANGELOG.md | 0 |
 
-| # | Ticket | Type | Prompt | CMMI Check |
-|---|--------|------|--------|------------|
-| 1 | Coverage bump 55%→60% | chore | [`05-coverage-bump.md`](../prompts/05-coverage-bump.md) | 1.1 |
-| 2 | TODO scraping → TECHDEBT.md | chore | [`06-todo-scraping.md`](../prompts/06-todo-scraping.md) | 1.3 |
-| 3 | Branch protection (peer review) | chore | [`07-branch-protection.md`](../prompts/07-branch-protection.md) | 1.6 |
-| 4 | Doc-change CI enforcement | ci | [`08-doc-change-ci.md`](../prompts/08-doc-change-ci.md) | 1.8 |
-| 5 | Streaming: Ollama API layer | feat | [`09-streaming-ollama.md`](../prompts/09-streaming-ollama.md) | Feature |
-| 6 | Streaming: REPL integration | feat | [`10-streaming-repl.md`](../prompts/10-streaming-repl.md) | Feature |
-| 7 | Streaming: tests | test | [`11-streaming-tests.md`](../prompts/11-streaming-tests.md) | Feature |
+### Sprint 2 Plan — Reach CMMI 1 + Streaming
 
-**Execution order**: 1-4 are independent (any order). 5→6→7 must be sequential.
+Migrated to backlog. See:
+
+| Backlog | Task | CMMI |
+|---------|------|------|
+| [027](../backlog/027-coverage-bump.md) | Coverage bump 55%→60% | 1.1 |
+| [028](../backlog/028-todo-scraping.md) | TODO scraping → TECHDEBT.md | 1.3 |
+| [029](../backlog/029-branch-protection.md) | Branch protection (peer review) | 1.6 |
+| [030](../backlog/030-doc-change-ci.md) | Doc-change CI enforcement | 1.8 |
+| [005](../backlog/005-streaming.md) | Streaming responses | Feature |
+
+AI agent prompts for these tasks live in [`docs/prompts/`](../prompts/).
 
 ### AI Agent Gap Analysis
 
