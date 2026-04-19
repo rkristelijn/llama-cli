@@ -37,4 +37,8 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] we should have /private to avoid logging
 - [ ] Logger should detect dev vs installed context: log to `./events.jsonl` (repo-local) when running from source, `~/.llama-cli/events.jsonl` when installed — keeps dev and production logs separate
 - [ ] Log viewer: configurable columns and column order (env var or config file) — e.g. `LLAMA_LOG_COLUMNS="time,agent,action,duration"`
+- [ ] Add a dead code checker: detect unused scripts, unreferenced Makefile targets, orphaned files in `scripts/`
+- [ ] Add a duplication checker: detect duplicate logic across scripts and source files (e.g. cpd, jscpd, or custom)
 - [ ] up doesn't include ! and !!, when in private mode, /private commands, prompts are not added to the history
+- [ ] commit and push hooks should keep absolute time, not only the indicudual tasks
+- [ ] issue numbers online and local should be the same. issues should have proper body, not only a reference
