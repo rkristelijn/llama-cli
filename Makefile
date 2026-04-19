@@ -92,7 +92,7 @@ format-code: ## Auto-format C++ source files
 	@find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i --style=file:.config/.clang-format
 
 format-yaml: ## Auto-format YAML files
-	@if command -v yamllint >/dev/null; then yamllint -d relaxed -f parsable .github/ | awk -F: '{print $$1}' | sort -u | xargs -r sed -i 's/[[:space:]]*$$//'; fi
+	@if command -v yamllint >/dev/null; then yamllint -d relaxed -f parsable .github/ | awk -F: '{print $$1}' | sort -u | while read -r f; do sed -i.bak 's/[[:space:]]*$$//' "$$f" && rm -f "$$f.bak"; done; fi
 
 format-markdown: ## Auto-format Markdown files
 	@if command -v rumdl >/dev/null; then rumdl fmt .; fi
