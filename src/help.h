@@ -5,6 +5,10 @@
  */
 #pragma once
 
+#include <string>
+
+#include "config/config.h"
+
 /**
  * CLI help text shown for `--help`.
  *
@@ -21,36 +25,41 @@
 namespace help {
 
 /// CLI usage shown by --help
-constexpr const char* cli =
-    "Usage: llama-cli [OPTIONS] [PROMPT]\n"
-    "\n"
-    "Options:\n"
-    "  --provider=NAME   LLM provider (ollama, mock) (env: LLAMA_PROVIDER, default: ollama)\n"
-    "  --host=HOST       Ollama server hostname  (env: OLLAMA_HOST,    "
-    "default: localhost)\n"
-    "  --port=PORT       Ollama server port      (env: OLLAMA_PORT,    "
-    "default: 11434)\n"
-    "  --model=MODEL     LLM model name          (env: OLLAMA_MODEL,   "
-    "default: gemma4:e4b)\n"
-    "  --timeout=SECS    HTTP timeout in seconds (env: OLLAMA_TIMEOUT, "
-    "default: 120)\n"
-    "  --no-color        Disable colored output  (env: NO_COLOR)\n"
-    "  --why-so-serious  Enable BOFH spinner mode\n"
-    "  --default-env     Print .env template to stdout (use > .env to save)\n"
-    "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
-    "  PROMPT            Run in sync mode (non-interactive)\n"
-    "\n"
-    "Examples:\n"
-    "  llama-cli                        # interactive REPL\n"
-    "  llama-cli --model=llama3.2       # use a different model\n"
-    "  llama-cli --host=192.168.1.10    # remote Ollama server\n"
-    "  OLLAMA_MODEL=mistral llama-cli   # via environment variable\n"
-    "  llama-cli \"explain this error\"   # one-shot sync mode\n"
-    "  llama-cli --files doc.md \"summarize\"  # file as context\n"
-    "  cat log.txt | llama-cli \"explain\"     # stdin as context\n"
-    "\n"
-    "To list available models: ollama list\n"
-    "To pull a model:          ollama pull llama3.2\n";
+inline std::string cli() {
+  return std::string(
+             "Usage: llama-cli [OPTIONS] [PROMPT]\n"
+             "\n"
+             "Options:\n"
+             "  --provider=NAME   LLM provider (ollama, mock) (env: LLAMA_PROVIDER, default: ollama)\n"
+             "  --host=HOST       Ollama server hostname  (env: OLLAMA_HOST,    "
+             "default: localhost)\n"
+             "  --port=PORT       Ollama server port      (env: OLLAMA_PORT,    "
+             "default: 11434)\n"
+             "  --model=MODEL     LLM model name          (env: OLLAMA_MODEL,   "
+             "default: ") +
+         DEFAULT_MODEL +
+         std::string(
+             ")\n"
+             "  --timeout=SECS    HTTP timeout in seconds (env: OLLAMA_TIMEOUT, "
+             "default: 120)\n"
+             "  --no-color        Disable colored output  (env: NO_COLOR)\n"
+             "  --why-so-serious  Enable BOFH spinner mode\n"
+             "  --default-env     Print .env template to stdout (use > .env to save)\n"
+             "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
+             "  PROMPT            Run in sync mode (non-interactive)\n"
+             "\n"
+             "Examples:\n"
+             "  llama-cli                        # interactive REPL\n"
+             "  llama-cli --model=llama3.2       # use a different model\n"
+             "  llama-cli --host=192.168.1.10    # remote Ollama server\n"
+             "  OLLAMA_MODEL=mistral llama-cli   # via environment variable\n"
+             "  llama-cli \"explain this error\"   # one-shot sync mode\n"
+             "  llama-cli --files doc.md \"summarize\"  # file as context\n"
+             "  cat log.txt | llama-cli \"explain\"     # stdin as context\n"
+             "\n"
+             "To list available models: ollama list\n"
+             "To pull a model:          ollama pull llama3.2\n");
+}
 
 /// REPL commands shown by /help
 constexpr const char* repl =

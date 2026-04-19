@@ -25,6 +25,9 @@
  */
 enum class Mode { Interactive, Sync };
 
+/// Default model name — single source of truth for all code and tests
+constexpr const char* DEFAULT_MODEL = "gemma4:26b";
+
 /// Application configuration (singleton — use Config::instance() for global access)
 struct Config {
   /// Get the global config instance
@@ -36,7 +39,7 @@ struct Config {
   std::string provider = "ollama";      ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";       ///< Ollama server hostname
   std::string port = "11434";           ///< Ollama server port
-  std::string model = "gemma4:e4b";     ///< LLM model name
+  std::string model = DEFAULT_MODEL;    ///< LLM model name
   int timeout = 120;                    ///< HTTP request timeout in seconds
   int exec_timeout = 30;                ///< Max seconds for command execution
   int max_output = 10000;               ///< Max chars of command output for LLM context
