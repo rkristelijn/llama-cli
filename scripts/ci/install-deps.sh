@@ -39,7 +39,7 @@ install_llvm() {
 }
 
 install_doxygen() {
-  wget -q "https://doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
+  wget -q --tries=3 --waitretry=5 "https://doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
   tar -xzf "doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
   sudo cp "doxygen-${DOXYGEN_VERSION}/bin/doxygen" /usr/local/bin/doxygen
   rm -rf "doxygen-${DOXYGEN_VERSION}" "doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"

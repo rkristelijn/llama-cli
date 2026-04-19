@@ -58,7 +58,7 @@ namespace tui {
 
 ### Also implemented in this PR
 
-- Markdown rendering: headings (bold+underline), **bold**, *italic*, `code` (cyan), ```code blocks``` (cyan), bullet/numbered lists
+- Markdown rendering: headings (bold+underline), **bold**, *italic*, `code` (cyan), ```code blocks``` (cyan), bullet/numbered lists — see [ADR-052](adr-052-markdown-renderer.md) for full renderer design
 - Loading spinner (RAII, only on TTY) with BOFH mode (`--why-so-serious`)
 - Arrow key history via cpp-linenoise
 - `/set` command: toggle markdown, color, bofh at runtime

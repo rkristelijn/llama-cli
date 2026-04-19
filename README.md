@@ -9,6 +9,26 @@
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
 
+```text
+> what is the eisenhower matrix?
+
+The Eisenhower Matrix helps prioritize tasks by urgency and importance:
+
+|                 | Urgent              | Not Urgent                  |
+|-----------------|---------------------|-----------------------------|
+| Important       | DO — crisis, deadlines | PLAN — growth, strategy  |
+| Not Important   | DELEGATE — interrupts  | ELIMINATE — distractions |
+
+> !!cat src/main.cpp
+> explain this code and fix the bug on line 42
+[proposed: str_replace src/main.cpp]
+- old code
++ fixed code
+Apply? [y/n]
+```
+
+Streaming responses, markdown rendering (tables, code blocks, bold, links), file I/O, command execution — all running locally on your hardware.
+
 ## Why
 
 - **Private**: everything runs locally, no data leaves your machine
@@ -100,21 +120,45 @@ See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 
 ## Roadmap
 
-- [x] Connect to Ollama
-- [x] Configurable host, port, model, timeout
-- [x] Interactive chat with conversation memory
-- [x] Write files from response (`<write>`)
-- [x] Targeted edits (`<str_replace>`)
-- [x] Smart file reading (`<read>` with line ranges and search)
-- [x] Run commands (`!`, `!!`, `<exec>`)
-- [x] TUI: ANSI colors, markdown rendering, spinner
-- [x] Arrow key history (linenoise)
-- [x] Runtime options (`/set markdown`, `/set color`, `/set bofh`)
-- [x] Ctrl+C interrupt during LLM calls
-- [x] Stdin pipe support (`--files`)
-- [x] Auto-diff preview before file writes
-- [ ] Streaming responses
-- [ ] Inline code rendering in markdown
+Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by usability and differentiation.
+
+### Priority 1 — Core UX
+
+| # | Feature | Status | Backlog |
+|---|---------|--------|---------|
+| 1 | Streaming responses | ✅ Done | [005](docs/backlog/005-streaming.md) |
+| 2 | Inline code / markdown rendering | ✅ Done | [031](docs/backlog/031-inline-code-rendering.md) |
+| 3 | Fix release pipeline | 🔧 In progress | [034](docs/backlog/034-fix-release.md) |
+| 4 | Tab autocompletion | ⬚ Planned | [033](docs/backlog/033-tab-autocompletion.md) |
+
+### Priority 2 — Developer Experience
+
+| # | Feature | Backlog |
+|---|---------|---------|
+| 5 | Context compression | [019](docs/backlog/019-context-compression.md) |
+| 6 | Prompt templates | [021](docs/backlog/021-prompt-templates.md) |
+| 7 | Exec output tuning | [007](docs/backlog/007-exec-output-tuning.md) |
+| 8 | Smart confirmation | [004](docs/backlog/004-smart-confirmation.md) |
+
+### Priority 3 — Robustness
+
+| # | Feature | Backlog |
+|---|---------|---------|
+| 9 | Execution sandbox | [016](docs/backlog/016-execution-sandbox.md) |
+| 10 | Command permissions | [010](docs/backlog/010-command-permissions.md) |
+| 11 | Coverage bump 55→60% | [027](docs/backlog/027-coverage-bump.md) |
+| 12 | Reduce complexity | [018](docs/backlog/018-reduce-complexity.md) |
+
+### Priority 4 — Future Differentiation
+
+| # | Feature | Backlog |
+|---|---------|---------|
+| 13 | Provider abstraction | [014](docs/backlog/014-provider-abstraction.md) |
+| 14 | Planner/executor | [015](docs/backlog/015-planner-executor.md) |
+| 15 | Distributed Ollama | [006](docs/backlog/006-distributed-ollama.md) |
+| 16 | Multi-agent | [017](docs/backlog/017-multi-agent.md) |
+
+> **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 
 ## Quality Framework
 

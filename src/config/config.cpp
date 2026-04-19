@@ -249,6 +249,7 @@ static const OptDef opts[] = {
     {"--host=", "-h", &Config::host},
     {"--port=", "-p", &Config::port},
     {"--model=", "-m", &Config::model},
+    {"--system-prompt=", nullptr, &Config::system_prompt},
 };
 
 /** Pointer-to-member type for Config int fields */
@@ -427,7 +428,7 @@ void print_default_env() {
             << "# LLAMA_PROVIDER=" << c.provider << " # LLM provider (ollama, mock)\n"
             << "# OLLAMA_HOST=" << c.host << " # Ollama server hostname (localhost, 127.0.0.1)\n"
             << "# OLLAMA_PORT=" << c.port << " # Ollama server port (11434)\n"
-            << "# OLLAMA_MODEL=" << c.model << " # LLM model name (llama3.2, gemma4:e4b)\n"
+            << "# OLLAMA_MODEL=" << c.model << " # LLM model name (e.g. gemma4:26b, llama3.2)\n"
             << "# OLLAMA_TIMEOUT=" << c.timeout << " # HTTP timeout in seconds for LLM generation\n"
             << "# LLAMA_EXEC_TIMEOUT=" << c.exec_timeout << " # Max seconds for shell command execution\n"
             << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"

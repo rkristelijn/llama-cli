@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-#
-# Check that test coverage meets the minimum threshold per source file.
-# Uses the test binary that directly tests each source for accurate results.
+# DEPRECATED: use 'make coverage' instead. See ADR-044.
+echo "DEPRECATED: scripts/check/coverage.sh — use 'make coverage' instead" >&2; exit 1
 
 set -o errexit
 set -o nounset

@@ -41,6 +41,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-047-ai-guided-development-qa.md`](docs/adr/adr-047-ai-guided-development-qa.md) — AI Guided development
 - [`docs/adr/adr-048-quality-framework.md`](docs/adr/adr-048-quality-framework.md) — ADR-048: AI-Guided Quality Framework
 - [`docs/adr/adr-049-model-selection-command.md`](docs/adr/adr-049-model-selection-command.md) — ADR-049: Interactive Model Selection Command
+- [`docs/adr/adr-050-reality-check-roadmap.md`](docs/adr/adr-050-reality-check-roadmap.md) — ADR-050: Reality Check — Positioning and Roadmap
+- [`docs/adr/adr-051-kiro-agent-config.md`](docs/adr/adr-051-kiro-agent-config.md) — ADR-051: Kiro Agent Configuration for llama-cli Development
+- [`docs/adr/adr-052-markdown-renderer.md`](docs/adr/adr-052-markdown-renderer.md) — ADR-052: Markdown Renderer
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -84,6 +87,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/backlog/038-license-audit.md`](docs/backlog/038-license-audit.md) — 038: License Audit
 - [`docs/backlog/039-local-ci.md`](docs/backlog/039-local-ci.md) — 039: Local CI Testing
 - [`docs/backlog/040-ci-caching.md`](docs/backlog/040-ci-caching.md) — 040: CI Check Caching
+- [`docs/backlog/041-tree-sitter-highlighting.md`](docs/backlog/041-tree-sitter-highlighting.md) — 041: Syntax Highlighting via tree-sitter
 - [`docs/backlog/README.md`](docs/backlog/README.md) — Backlog
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
@@ -93,6 +97,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/gh-manual.md`](docs/gh-manual.md) — GitHub CLI Manual (gh)
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
+- [`docs/make.md`](docs/make.md) — Make Command Tree
 - [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -128,18 +133,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User Guide
-- [`scripts/check/check-deps.sh`](scripts/check/check-deps.sh)
-- [`scripts/check/check-versions.sh`](scripts/check/check-versions.sh)
-- [`scripts/check/comment-ratio.sh`](scripts/check/comment-ratio.sh)
-- [`scripts/check/complexity.sh`](scripts/check/complexity.sh)
-- [`scripts/check/coverage-folder.sh`](scripts/check/coverage-folder.sh)
-- [`scripts/check/coverage.sh`](scripts/check/coverage.sh)
-- [`scripts/check/lint-makefile.sh`](scripts/check/lint-makefile.sh)
-- [`scripts/check/lint-scripts.sh`](scripts/check/lint-scripts.sh)
-- [`scripts/check/run-all.sh`](scripts/check/run-all.sh)
-- [`scripts/check/run-coverage.sh`](scripts/check/run-coverage.sh)
-- [`scripts/check/test-unit.sh`](scripts/check/test-unit.sh)
-- [`scripts/check/tidy.sh`](scripts/check/tidy.sh)
+- [`scripts/check/coverage.sh`](scripts/check/coverage.sh) — DEPRECATED: use 'make coverage' instead. See ADR-044.
+- [`scripts/check/run-all.sh`](scripts/check/run-all.sh) — DEPRECATED: use 'make check' instead. See ADR-044.
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Bump the project version in VERSION file.
@@ -148,6 +143,10 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
 - [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
+- [`scripts/fmt/format-code.sh`](scripts/fmt/format-code.sh) — format-code.sh — Auto-format C++ source files using clang-format.
+- [`scripts/fmt/format-md.sh`](scripts/fmt/format-md.sh) — format-md.sh — Auto-format Markdown files using rumdl.
+- [`scripts/fmt/format-scripts.sh`](scripts/fmt/format-scripts.sh) — format-scripts.sh — Auto-format shell scripts using shfmt.
+- [`scripts/fmt/format-yaml.sh`](scripts/fmt/format-yaml.sh) — format-yaml.sh — Auto-format YAML files (strip trailing whitespace).
 - [`scripts/gh/create-issue.sh`](scripts/gh/create-issue.sh)
 - [`scripts/gh/create-pr.sh`](scripts/gh/create-pr.sh)
 - [`scripts/gh/download-issues.sh`](scripts/gh/download-issues.sh)
@@ -158,8 +157,22 @@ Auto-generated overview of all files in this repo.
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
-- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh)
-- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (6 checks).
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing.
+- [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
+- [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
+- [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
+- [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
+- [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
+- [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
+- [`scripts/lint/lint-code.sh`](scripts/lint/lint-code.sh) — lint-code.sh — Run cppcheck static analysis on C++ code.
+- [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
+- [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
+- [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
+- [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
+- [`scripts/test/run-coverage.sh`](scripts/test/run-coverage.sh)
+- [`scripts/test/run-e2e.sh`](scripts/test/run-e2e.sh) — run-e2e.sh — Run all end-to-end tests.
+- [`scripts/test/run-unit.sh`](scripts/test/run-unit.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
@@ -200,4 +213,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_197 files indexed._
+_210 files indexed._

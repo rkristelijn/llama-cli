@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-#
-# run-all.sh — Run all quality checks with numbered progress and phase headers.
-#
-# Quiet by default: suppresses tool output on success, dumps it on failure.
+# DEPRECATED: use 'make check' instead. See ADR-044.
+echo "DEPRECATED: scripts/check/run-all.sh — use 'make check' instead" >&2; exit 1
 #
 # Usage:
 #   bash scripts/check/run-all.sh

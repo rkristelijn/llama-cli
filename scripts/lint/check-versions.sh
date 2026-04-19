@@ -35,9 +35,15 @@ check() {
 
 main() {
   echo "==> Checking tool versions against .config/versions.env"
+
+  local clang_tidy="clang-tidy"
+  if ! command -v clang-tidy >/dev/null 2>&1 && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
+    clang_tidy="/opt/homebrew/opt/llvm/bin/clang-tidy"
+  fi
+
   check "cmake"        "${CMAKE_VERSION}"      "$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)"
   check "clang-format" "${LLVM_VERSION}"        "$(clang-format --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
-  check "clang-tidy"   "${LLVM_VERSION}"        "$(clang-tidy --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)"
+  check "clang-tidy"   "${LLVM_VERSION}"        "$("${clang_tidy}" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)"
   check "cppcheck"     "${CPPCHECK_VERSION}"    "$(cppcheck --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+')"
   check "doxygen"      "${DOXYGEN_VERSION}"     "$(doxygen --version 2>/dev/null)"
   check "cloc"         "${CLOC_VERSION}"        "$(cloc --version 2>/dev/null)"

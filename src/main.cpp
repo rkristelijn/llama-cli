@@ -32,7 +32,7 @@
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
-      std::cout << help::cli;
+      std::cout << help::cli();
       return 0;
     }
     if (std::string(argv[i]) == "--version") {
@@ -76,9 +76,17 @@ int main(int argc, char* argv[]) {
       std::cout << "mock response: " << cfg.prompt << "\n";
     } else {
       tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-      std::string response = ollama_generate(cfg, cfg.prompt);
+      std::vector<Message> messages;
+      if (!cfg.system_prompt.empty()) {
+        messages.push_back({"system", cfg.system_prompt});
+      }
+      messages.push_back({"user", cfg.prompt});
+      std::string response = ollama_chat_stream(cfg, messages, [](const std::string& token) {
+        std::cout << token << std::flush;
+        return true;
+      });
       if (!response.empty()) {
-        std::cout << response << "\n";
+        std::cout << "\n";
       }
     }
   } else {
@@ -97,7 +105,16 @@ int main(int argc, char* argv[]) {
       }
       return ollama_chat(Config::instance(), msgs);
     };
-    run_repl(generate, cfg);
+    auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
+      if (cfg.provider == "mock") {
+        // Simulate streaming by sending the response through the callback
+        std::string response = "mock response: " + msgs.back().content;
+        on_token(response);
+        return response;
+      }
+      return ollama_chat_stream(Config::instance(), msgs, on_token);
+    };
+    run_repl(generate, cfg, std::cin, std::cout, get_available_models, stream);
   }
   return 0;
 }

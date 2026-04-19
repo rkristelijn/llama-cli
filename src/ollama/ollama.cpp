@@ -194,6 +194,93 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   return response_text;
 }
 
+/** Stream a conversation via /api/chat with chunked response.
+ * Each chunk from Ollama is a JSON object with {"message":{"content":"token"}}.
+ * The final chunk has "done":true and includes token counts.
+ * Calls on_token for each token; return false from callback to abort. */
+// NOLINTNEXTLINE(readability-function-size)
+std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& messages, StreamCallback on_token) {
+  auto start = std::chrono::high_resolution_clock::now();
+  auto cli = make_client(cfg);
+  std::string url = "http://" + cfg.host + ":" + cfg.port;
+  // stream:true (default) — Ollama sends newline-delimited JSON chunks
+  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] POST %s/api/chat (stream) model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
+  }
+
+  std::string full_response;
+  std::string buffer;  // partial line buffer for chunked reads
+  int prompt_tokens = 0;
+  int completion_tokens = 0;
+  bool aborted = false;
+
+  // Build request with content_receiver for streaming
+  httplib::Request req;
+  req.method = "POST";
+  req.path = "/api/chat";
+  req.set_header("Content-Type", "application/json");
+  req.body = body;
+  req.content_receiver = [&](const char* data, size_t len, uint64_t, uint64_t) {
+    buffer.append(data, len);
+    // Process complete lines (Ollama sends one JSON object per line)
+    size_t pos = 0;
+    while ((pos = buffer.find('\n')) != std::string::npos) {
+      std::string line = buffer.substr(0, pos);
+      buffer.erase(0, pos + 1);
+      if (line.empty()) {
+        continue;
+      }
+      // Extract token from {"message":{"content":"..."}}
+      std::string msg = json_extract_object(line, "message");
+      std::string token = json_extract_string(msg, "content");
+      if (!token.empty()) {
+        full_response += token;
+        if (on_token && !on_token(token)) {
+          aborted = true;
+          return false;  // abort stream
+        }
+      }
+      // Final chunk has token counts
+      if (line.find("\"done\":true") != std::string::npos) {
+        prompt_tokens = json_extract_int(line, "prompt_eval_count");
+        completion_tokens = json_extract_int(line, "eval_count");
+      }
+    }
+    return true;
+  };
+
+  auto res = cli.send(req);
+
+  auto end = std::chrono::high_resolution_clock::now();
+  int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+  if (!res && !aborted) {
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
+    LOG_EVENT("ollama", "chat_stream", build_messages_json(messages), "", duration, 0, 0);
+    return "";
+  }
+
+  if (res && (res->status < 200 || res->status >= 300)) {
+    std::string err = json_extract_string(res->body, "error");
+    if (err.empty()) {
+      err = "HTTP " + std::to_string(res->status);
+    }
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    LOG_EVENT("ollama", "chat_stream", build_messages_json(messages), err, duration, 0, 0);
+    return "";
+  }
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] stream %dms tokens=%d/%d response=%.80s\n", duration, prompt_tokens, completion_tokens,
+                      full_response.c_str());
+  }
+
+  LOG_EVENT("ollama", "chat_stream", build_messages_json(messages), full_response, duration, prompt_tokens, completion_tokens);
+  return full_response;
+}
+
 /** Fetch list of available models from Ollama /api/tags endpoint.
  * Parses the JSON response and extracts model names.
  * Returns empty vector on connection error or invalid response. */
