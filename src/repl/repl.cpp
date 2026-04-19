@@ -868,6 +868,7 @@ static std::string interruptible_chat(ReplState& s) {
     spin.stop();
     if (*done) {
       t.join();
+      // cppcheck-suppress knownConditionTrueFalse
       if (!result->empty()) {
         s.out << "\n";
       }

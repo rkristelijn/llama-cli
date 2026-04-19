@@ -12,14 +12,13 @@ STEP=0
 FAILED_NAMES=()
 
 STEPS=(
-  "Lint|lint-format-code|make -s lint-format-code"
-  "Lint|lint-cppcheck|make -s lint-cppcheck"
+  "Lint|lint-code|make -s lint-code"
   "Lint|lint-yaml|make -s lint-yaml"
   "Lint|lint-md|make -s lint-md"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
-  "Lint|tidy|make -s tidy"
-  "Lint|complexity|make -s complexity"
+  "Analysis|tidy|make -s tidy"
+  "Analysis|complexity|make -s complexity"
   "Build|build|make -s build"
   "Test|test-unit|make -s test-unit"
   "Test|e2e|make -s e2e"
@@ -32,21 +31,20 @@ STEPS=(
 TOTAL="${#STEPS[@]}"
 
 declare -A HINTS=(
-  ["lint-format-code"]="fix: make format-code"
-  ["lint-cppcheck"]="fix: address cppcheck warnings"
-  ["lint-yaml"]="fix: make format-yaml"
-  ["lint-md"]="fix: make format-md"
-  ["lint-makefile"]="fix: follow Makefile conventions"
-  ["lint-scripts"]="fix: follow shell script conventions"
-  ["tidy"]="fix: address clang-tidy warnings"
-  ["complexity"]="fix: refactor complex functions"
-  ["build"]="fix: resolve build errors"
-  ["test-unit"]="fix: failing unit tests"
-  ["e2e"]="fix: failing e2e tests"
-  ["coverage-report"]="fix: add tests for better coverage"
-  ["sast-security"]="fix: address semgrep findings"
-  ["sast-secret"]="fix: remove secrets from code"
-  ["comment-ratio"]="fix: add comments to source"
+  ["lint-code"]="fix: make format-code, recheck: make lint-code"
+  ["lint-yaml"]="fix: make format-yaml, recheck: make lint-yaml"
+  ["lint-md"]="fix: make format-md, recheck: make lint-md"
+  ["lint-makefile"]="fix: follow Makefile conventions, recheck: make lint-makefile"
+  ["lint-scripts"]="fix: follow shell script conventions, recheck: make lint-scripts"
+  ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
+  ["complexity"]="fix: refactor complex functions, recheck: make complexity"
+  ["build"]="fix: resolve build errors, recheck: make build"
+  ["test-unit"]="fix: failing unit tests, recheck: make test-unit"
+  ["e2e"]="fix: failing e2e tests, recheck: make e2e"
+  ["coverage-report"]="fix: add tests for better coverage, recheck: make coverage-report"
+  ["sast-security"]="fix: address semgrep findings, recheck: make sast-security"
+  ["sast-secret"]="fix: remove secrets from code, recheck: make sast-secret"
+  ["comment-ratio"]="fix: add comments to source, recheck: make comment-ratio"
 )
 
 run_step() {

@@ -14,6 +14,7 @@ fi
 echo "==> running cppcheck..."
 # Use cppcheck with specific suppressions for tests and internal libraries
 output=$(cppcheck --enable=all \
+  --inline-suppr \
   --suppress=missingIncludeSystem \
   --suppress=missingInclude \
   --suppress=unusedFunction \
