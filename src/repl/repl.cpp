@@ -950,17 +950,16 @@ static void send_prompt(const std::string& line, ReplState& s) {
   bool needs_followup = handle_response(response, s);
   s.count++;
 
-  if (needs_followup) {
+  // Keep following up while the model produces annotations (exec, read, etc.)
+  while (needs_followup) {
     std::string followup = chat_with_spinner(s);
-    if (!g_interrupted) {
-      if (!s.stream_chat) {
-        s.out << colorize_ai(tui::render_markdown(followup, s.color && s.markdown), s) << "\n";
-      }
-      s.history.push_back({"assistant", followup});
-    } else {
+    if (g_interrupted) {
       s.out << "\n[interrupted]\n";
       g_interrupted = 0;
+      break;
     }
+    s.history.push_back({"assistant", followup});
+    needs_followup = handle_response(followup, s);
   }
 }
 
