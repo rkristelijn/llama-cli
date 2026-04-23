@@ -198,6 +198,89 @@ SCENARIO ("str_replace annotation applies targeted replacement") {
   std::remove((path + ".bak").c_str());
 }
 
+SCENARIO ("str_replace diff shows hunk headers and context") {
+  const std::string path = "/tmp/llama-int-diff-hunk.txt";
+  {
+    std::ofstream f(path);
+    // 10 lines: change only line 5 — diff should NOT show all 10 lines
+    f << "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\n";
+  }
+
+  GIVEN ("a str_replace changes one line in a large file") {
+    auto chat = [&](const std::vector<Message>&) {
+      return "<str_replace path=\"" + path + "\"><old>line 5</old><new>LINE FIVE</new></str_replace>";
+    };
+
+    WHEN ("the user confirms") {
+      std::istringstream in("fix\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("hunk header is shown") {
+        CHECK (out.str().find("@@") != std::string::npos)
+          ;
+      }
+      THEN ("changed lines are shown with -/+") {
+        CHECK (out.str().find("- line 5") != std::string::npos)
+          ;
+        CHECK (out.str().find("+ LINE FIVE") != std::string::npos)
+          ;
+      }
+      THEN ("nearby context is shown") {
+        CHECK (out.str().find("line 4") != std::string::npos)
+          ;
+        CHECK (out.str().find("line 6") != std::string::npos)
+          ;
+      }
+      THEN ("distant lines are NOT shown") {
+        CHECK (out.str().find("line 1") == std::string::npos)
+          ;
+        CHECK (out.str().find("line 10") == std::string::npos)
+          ;
+      }
+    }
+  }
+  std::remove(path.c_str());
+  std::remove((path + ".bak").c_str());
+}
+
+SCENARIO ("write diff shows hunk headers for existing file") {
+  const std::string path = "/tmp/llama-int-diff-write.txt";
+  {
+    std::ofstream f(path);
+    f << "L01\nL02\nL03\nL04\nL05\nL06\nL07\nL08\nL09\nL10\n";
+  }
+
+  GIVEN ("the LLM proposes overwriting with one line changed") {
+    auto chat = [&](const std::vector<Message>&) {
+      return "<write file=\"" + path + "\">L01\nL02\nL03\nL04\nL05\nL06\nNEW7\nL08\nL09\nL10</write>";
+    };
+
+    WHEN ("the user confirms") {
+      std::istringstream in("write\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("hunk header is present") {
+        CHECK (out.str().find("@@") != std::string::npos)
+          ;
+      }
+      THEN ("only the changed line is shown as -/+") {
+        CHECK (out.str().find("- L07") != std::string::npos)
+          ;
+        CHECK (out.str().find("+ NEW7") != std::string::npos)
+          ;
+      }
+      THEN ("distant unchanged lines are not shown") {
+        CHECK (out.str().find("L01") == std::string::npos)
+          ;
+        CHECK (out.str().find("L02") == std::string::npos)
+          ;
+      }
+    }
+  }
+  std::remove(path.c_str());
+  std::remove((path + ".bak").c_str());
+}
+
 SCENARIO ("read annotation injects file content into context") {
   const std::string path = "/tmp/llama-int-read.txt";
   {
@@ -235,4 +318,203 @@ SCENARIO ("read annotation injects file content into context") {
     }
   }
   std::remove(path.c_str());
+}
+
+SCENARIO ("trust mode auto-approves subsequent writes") {
+  const std::string p1 = "/tmp/llama-int-trust-w1.txt";
+  const std::string p2 = "/tmp/llama-int-trust-w2.txt";
+  std::remove(p1.c_str());
+  std::remove(p2.c_str());
+
+  GIVEN ("the LLM proposes two writes and user trusts on the first") {
+    int call_count = 0;
+    auto chat = [&](const std::vector<Message>&) -> std::string {
+      call_count++;
+      if (call_count == 1) {
+        return "<write file=\"" + p1 + "\">one</write>\n<write file=\"" + p2 + "\">two</write>";
+      }
+      return "done";
+    };
+
+    WHEN ("user answers t on first write") {
+      // 't' for first write, no prompt expected for second
+      std::istringstream in("go\nt\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("both files are written") {
+        std::ifstream f1(p1);
+        CHECK (f1.is_open())
+          ;
+        std::ifstream f2(p2);
+        CHECK (f2.is_open())
+          ;
+      }
+    }
+  }
+  std::remove(p1.c_str());
+  std::remove(p2.c_str());
+  std::remove((p1 + ".bak").c_str());
+  std::remove((p2 + ".bak").c_str());
+}
+
+SCENARIO ("trust mode auto-approves subsequent str_replaces") {
+  const std::string path = "/tmp/llama-int-trust-sr.txt";
+  {
+    std::ofstream f(path);
+    f << "aaa\nbbb\nccc\n";
+  }
+
+  GIVEN ("the LLM proposes a str_replace and user trusts") {
+    auto chat = [&](const std::vector<Message>&) {
+      return "<str_replace path=\"" + path + "\"><old>bbb</old><new>BBB</new></str_replace>";
+    };
+
+    WHEN ("user answers t") {
+      std::istringstream in("fix\nt\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("replacement is applied") {
+        std::ifstream f(path);
+        std::string content((std::istreambuf_iterator<char>(f)), {});
+        CHECK (content.find("BBB") != std::string::npos)
+          ;
+      }
+      THEN ("[wrote] is shown") {
+        CHECK (out.str().find("[wrote") != std::string::npos)
+          ;
+      }
+    }
+  }
+  std::remove(path.c_str());
+  std::remove((path + ".bak").c_str());
+}
+
+SCENARIO ("trust mode auto-approves subsequent execs") {
+  GIVEN ("the LLM proposes two execs") {
+    int call_count = 0;
+    auto chat = [&](const std::vector<Message>&) -> std::string {
+      call_count++;
+      if (call_count == 1) {
+        return "<exec>echo first</exec>";
+      }
+      if (call_count == 2) {
+        return "<exec>echo second</exec>";
+      }
+      return "all done";
+    };
+
+    WHEN ("user trusts on first exec") {
+      std::istringstream in("go\nt\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("both commands execute") {
+        CHECK (out.str().find("first") != std::string::npos)
+          ;
+        CHECK (out.str().find("second") != std::string::npos)
+          ;
+      }
+      THEN ("no second prompt is shown") {
+        // Only one "Run:" prompt should appear (the first one)
+        auto s = out.str();
+        auto first = s.find("Run:");
+        auto second = s.find("Run:", first + 1);
+        CHECK (second == std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("copy to clipboard for str_replace skips apply") {
+  const std::string path = "/tmp/llama-int-copy-sr.txt";
+  {
+    std::ofstream f(path);
+    f << "old line\n";
+  }
+
+  GIVEN ("the LLM proposes a str_replace") {
+    auto chat = [&](const std::vector<Message>&) {
+      return "<str_replace path=\"" + path + "\"><old>old line</old><new>new line</new></str_replace>";
+    };
+
+    WHEN ("user answers c") {
+      std::istringstream in("fix\nc\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("file is NOT modified") {
+        std::ifstream f(path);
+        std::string content((std::istreambuf_iterator<char>(f)), {});
+        CHECK (content.find("old line") != std::string::npos)
+          ;
+      }
+      THEN ("[copied to clipboard] is shown") {
+        CHECK (out.str().find("[copied") != std::string::npos)
+          ;
+      }
+    }
+  }
+  std::remove(path.c_str());
+}
+
+SCENARIO ("followup loop continues until model stops producing annotations") {
+  GIVEN ("the LLM produces exec on first two calls, then stops") {
+    int call_count = 0;
+    auto chat = [&](const std::vector<Message>&) -> std::string {
+      call_count++;
+      if (call_count == 1) {
+        return "<exec>echo step1</exec>";
+      }
+      if (call_count == 2) {
+        return "<exec>echo step2</exec>";
+      }
+      return "all done";
+    };
+
+    WHEN ("user trusts on first exec so followups auto-approve") {
+      std::istringstream in("go\nt\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("model is called 3 times (initial + 2 followups)") {
+        CHECK (call_count == 3)
+          ;
+      }
+      THEN ("both exec outputs appear") {
+        CHECK (out.str().find("step1") != std::string::npos)
+          ;
+        CHECK (out.str().find("step2") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("reminder nudge injected after iteration 2") {
+  GIVEN ("the user sends 3 prompts") {
+    int call_count = 0;
+    bool saw_reminder = false;
+    auto chat = [&](const std::vector<Message>& msgs) -> std::string {
+      call_count++;
+      // On the 3rd call (iteration 2, 0-indexed), check for reminder
+      if (call_count == 3) {
+        for (const auto& m : msgs) {
+          if (m.role == "system" && m.content.find("Reminder:") != std::string::npos) {
+            saw_reminder = true;
+          }
+        }
+      }
+      return "ok";
+    };
+
+    WHEN ("the REPL runs 3 prompts") {
+      std::istringstream in("first\nsecond\nthird\nexit\n");
+      std::ostringstream out;
+      run_repl(chat, test_cfg(), in, out);
+      THEN ("reminder is present on the 3rd call") {
+        CHECK (call_count == 3)
+          ;
+        CHECK (saw_reminder)
+          ;
+      }
+    }
+  }
 }

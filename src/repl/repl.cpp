@@ -385,14 +385,14 @@ static void emit_diff_line(std::ostream& out, const char* ansi, const char* pref
 }
 
 /**
- * @brief Print a git-style LCS diff between two text blobs using dtl.
+ * @brief Print a git-style unified diff with 3 lines of context and @@ hunk headers.
  *
- * Uses Myers diff (via dtl) for accurate change detection — inserted/deleted
- * blocks are shown with +/- prefixes; unchanged lines with two spaces.
- * ANSI colors applied when color is true.
+ * Uses Myers diff (via dtl) for accurate change detection. Only changed lines
+ * and their surrounding context are shown — unchanged regions are skipped.
  */
+// pmccabe:skip-complexity
+// NOLINTNEXTLINE(readability-function-size)
 static void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
-  // Split into lines
   auto split = [](const std::string& s) {
     std::vector<std::string> lines;
     std::istringstream ss(s);
@@ -408,18 +408,85 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
   dtl::Diff<std::string> diff(old_lines, new_lines);
   diff.compose();
 
+  // Build flat list with old/new line numbers
+  struct Entry {
+    dtl::edit_t type;
+    std::string text;
+    int old_ln;
+    int new_ln;
+  };
+  std::vector<Entry> entries;
+  int oln = 1, nln = 1;
   for (const auto& elem : diff.getSes().getSequence()) {
-    const auto& line = elem.first;
-    switch (elem.second.type) {
-      case dtl::SES_DELETE:
-        emit_diff_line(out, "\033[1;31m", "- ", line, color);
-        break;
-      case dtl::SES_ADD:
-        emit_diff_line(out, "\033[1;32m", "+ ", line, color);
-        break;
-      default:
-        out << "  " << line << "\n";
-        break;
+    Entry e;
+    e.type = elem.second.type;
+    e.text = elem.first;
+    e.old_ln = oln;
+    e.new_ln = nln;
+    if (e.type == dtl::SES_DELETE) {
+      ++oln;
+    } else if (e.type == dtl::SES_ADD) {
+      ++nln;
+    } else {
+      ++oln;
+      ++nln;
+    }
+    entries.push_back(e);
+  }
+
+  // Mark which entries to show (changed lines + 3 lines context)
+  const int ctx = 3;
+  std::vector<bool> show(entries.size(), false);
+  for (size_t i = 0; i < entries.size(); ++i) {
+    if (entries[i].type != dtl::SES_COMMON) {
+      size_t lo = (i >= static_cast<size_t>(ctx)) ? i - ctx : 0;
+      size_t hi = std::min(i + ctx, entries.size() - 1);
+      for (size_t j = lo; j <= hi; ++j) {
+        show[j] = true;
+      }
+    }
+  }
+
+  // Emit hunks
+  bool in_hunk = false;
+  for (size_t i = 0; i < entries.size(); ++i) {
+    if (!show[i]) {
+      in_hunk = false;
+      continue;
+    }
+    if (!in_hunk) {
+      // Find hunk extent to compute header
+      size_t end = i;
+      while (end < entries.size() && show[end]) {
+        ++end;
+      }
+      int o_start = entries[i].old_ln, o_count = 0;
+      int n_start = entries[i].new_ln, n_count = 0;
+      for (size_t j = i; j < end; ++j) {
+        if (entries[j].type != dtl::SES_ADD) {
+          ++o_count;
+        }
+        if (entries[j].type != dtl::SES_DELETE) {
+          ++n_count;
+        }
+      }
+      if (color) {
+        out << "\033[36m";
+      }
+      out << "@@ -" << o_start << "," << o_count << " +" << n_start << "," << n_count << " @@";
+      if (color) {
+        out << "\033[0m";
+      }
+      out << "\n";
+      in_hunk = true;
+    }
+    const auto& e = entries[i];
+    if (e.type == dtl::SES_DELETE) {
+      emit_diff_line(out, "\033[1;31m", "- ", e.text, color);
+    } else if (e.type == dtl::SES_ADD) {
+      emit_diff_line(out, "\033[1;32m", "+ ", e.text, color);
+    } else {
+      out << "  " << e.text << "\n";
     }
   }
 }
@@ -1152,8 +1219,9 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color)};
 
-  // Log session start so we can track session duration and model usage
-  LOG_EVENT("repl", "session_start", cfg.model, cfg.host + ":" + cfg.port, 0, 0, 0);
+  // Log session start with version, commit, model, and host for traceability
+  std::string version_info = std::string(LLAMA_CLI_VERSION) + " (" + GIT_COMMIT + ")";
+  LOG_EVENT("repl", "session_start", cfg.model, version_info + " " + cfg.host + ":" + cfg.port, 0, 0, 0);
 
   while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {
