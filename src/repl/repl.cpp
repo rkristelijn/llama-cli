@@ -943,8 +943,10 @@ static std::string interruptible_chat(ReplState& s) {
     auto first_token = std::make_shared<std::atomic<bool>>(false);
     auto renderer = std::make_shared<StreamRenderer>(s.out, s.color && s.markdown);
     Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
-    std::thread t([&s, result, done, first_token, &spin, renderer] {
-      *result = s.stream_chat(s.history, [first_token, &spin, renderer](const std::string& token) {
+    // Copy history so the thread owns its data — safe to detach after interrupt
+    auto history_copy = std::make_shared<std::vector<Message>>(s.history);
+    std::thread t([&s, result, done, first_token, &spin, renderer, history_copy] {
+      *result = s.stream_chat(*history_copy, [first_token, &spin, renderer](const std::string& token) {
         if (g_interrupted) {
           return false;
         }
@@ -961,9 +963,12 @@ static std::string interruptible_chat(ReplState& s) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     spin.stop();
-    // Always join — detaching causes use-after-free on s.history
-    // when the user sends a new prompt while HTTP thread is still running
-    t.join();
+    if (*done) {
+      t.join();
+    } else {
+      // Safe to detach: thread owns history_copy, result, done, renderer
+      t.detach();
+    }
     // cppcheck-suppress knownConditionTrueFalse
     if (!g_interrupted && !result->empty()) {
       s.out << "\n";
@@ -972,14 +977,19 @@ static std::string interruptible_chat(ReplState& s) {
   }
 
   // Buffered mode (mock/fallback): use spinner
-  std::thread t([&s, result, done] {
-    *result = s.chat(s.history);
+  auto history_copy2 = std::make_shared<std::vector<Message>>(s.history);
+  std::thread t([&s, result, done, history_copy2] {
+    *result = s.chat(*history_copy2);
     *done = true;
   });
   while (!*done && !g_interrupted) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
-  t.join();
+  if (*done) {
+    t.join();
+  } else {
+    t.detach();
+  }
   return g_interrupted ? "" : *result;
 }
 
