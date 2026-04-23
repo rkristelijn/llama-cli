@@ -1,27 +1,52 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'VERSION'
+  workflow_dispatch:
 
 jobs:
-  # Read version once and pass to all build jobs
   version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.version.outputs.VERSION }}
+      version: ${{ steps.calc.outputs.VERSION }}
+      tag: ${{ steps.calc.outputs.TAG }}
     steps:
       - uses: actions/checkout@v4
-      - name: Read version
-        id: version
+        with:
+          fetch-depth: 0
+      - name: Calculate next version from commits
+        id: calc
         run: |
-          VER=$(tr -d '[:space:]' < VERSION)
-          echo "VERSION=$VER" >> $GITHUB_OUTPUT
+          # Get latest tag or default to v0.0.0
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Last tag: $LAST_TAG"
 
-  # Build for multiple platforms
+          # Parse current version
+          VER="${LAST_TAG#v}"
+          IFS='.' read -r major minor patch <<< "$VER"
+
+          # Analyze commits since last tag
+          COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+          echo "Commits since $LAST_TAG:"
+          echo "$COMMITS"
+
+          BUMP="patch"
+          if echo "$COMMITS" | grep -qiE '^feat(\(.*\))?!:|BREAKING CHANGE'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE '^feat(\(.*\))?:'; then
+            BUMP="minor"
+          fi
+
+          case "$BUMP" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+
+          NEW="${major}.${minor}.${patch}"
+          echo "Bump: $BUMP -> $NEW"
+          echo "VERSION=$NEW" >> "$GITHUB_OUTPUT"
+          echo "TAG=v$NEW" >> "$GITHUB_OUTPUT"
+
   build:
     needs: version
     runs-on: ${{ matrix.runner }}
@@ -66,7 +91,6 @@ jobs:
           path: ${{ matrix.binary }}
           retention-days: 1
 
-  # Create tag and release after all builds complete
   release:
     needs: [version, build]
     runs-on: ubuntu-latest
@@ -93,11 +117,10 @@ jobs:
           sudo find temp-cliff -name "git-cliff" -type f -exec mv {} /usr/local/bin/ \;
           sudo chmod +x /usr/local/bin/git-cliff
           rm -rf temp-cliff "git-cliff-${VER}-x86_64-unknown-linux-gnu.tar.gz"
-          git-cliff --version
 
       - name: Create tag
         run: |
-          TAG="v${{ needs.version.outputs.version }}"
+          TAG="${{ needs.version.outputs.tag }}"
           git fetch --tags
           if git rev-parse -q --verify "refs/tags/$TAG"; then
             echo "Tag $TAG already exists, skipping"
@@ -107,15 +130,14 @@ jobs:
           fi
 
       - name: Generate CHANGELOG.md
-        run: |
-          git-cliff --config .config/cliff.toml --output CHANGELOG.md
+        run: git-cliff --config .config/cliff.toml --output CHANGELOG.md
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: release/*
-          tag_name: v${{ needs.version.outputs.version }}
-          name: Release v${{ needs.version.outputs.version }}
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: Release ${{ needs.version.outputs.tag }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: false

@@ -1,31 +1,36 @@
 #!/usr/bin/env bash
-# Bump the project version in VERSION file.
-# Usage: bump.sh <major|minor|patch>
+# Auto-bump version based on conventional commits since last tag.
+# Creates a local git tag. Usage: bump.sh [major|minor|patch]
+# Without argument, analyzes commits to determine bump type.
 set -o errexit
 set -o nounset
 set -o pipefail
 
+LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+VER="${LAST_TAG#v}"
+IFS='.' read -r major minor patch <<< "$VER"
+
 PART="${1:-}"
-VERSION_FILE="VERSION"
-
-if [[ ! "$PART" =~ ^(major|minor|patch)$ ]]; then
-  echo "Usage: make bump PART=<major|minor|patch>"
-  exit 1
+if [[ -z "$PART" ]]; then
+  COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+  PART="patch"
+  if echo "$COMMITS" | grep -qiE '^feat(\(.*\))?!:|BREAKING CHANGE'; then
+    PART="major"
+  elif echo "$COMMITS" | grep -qiE '^feat(\(.*\))?:'; then
+    PART="minor"
+  fi
 fi
-
-OLD=$(tr -d '[:space:]' < "$VERSION_FILE")
-IFS='.' read -r major minor patch <<< "$OLD"
 
 case "$PART" in
   major) major=$((major + 1)); minor=0; patch=0 ;;
   minor) minor=$((minor + 1)); patch=0 ;;
   patch) patch=$((patch + 1)) ;;
+  *) echo "Usage: bump.sh [major|minor|patch]"; exit 1 ;;
 esac
 
 NEW="${major}.${minor}.${patch}"
-printf '%s\n' "$NEW" > "$VERSION_FILE"
+TAG="v${NEW}"
 
-# Clean CMake cache so the new version is picked up
-rm -rf build/CMakeFiles/llama-cli.dir/flags.make 2>/dev/null || true
-
-echo "$OLD -> $NEW"
+git tag "$TAG"
+echo "${VER} -> ${NEW} (tagged ${TAG})"
+echo "Push with: git push origin ${TAG}"

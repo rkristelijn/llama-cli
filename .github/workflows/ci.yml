@@ -30,22 +30,6 @@ jobs:
               - 'scripts/**'
               - '.config/**'
 
-  version-bump:
-    runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          fetch-depth: 0
-      - name: Fetch main
-        run: git fetch origin main
-      - name: Check VERSION was bumped
-        run: |
-          if ! git diff origin/main -- VERSION | grep -q '^+[^+]'; then
-            echo "FAIL: VERSION file was not changed."
-            exit 1
-          fi
-
   # --- Lint (no build, fast) ---
 
   lint-cpp:
