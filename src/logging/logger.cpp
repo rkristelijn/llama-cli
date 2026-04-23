@@ -17,12 +17,18 @@
 #include <sstream>
 
 Logger::Logger() {
-  const char* home = getenv("HOME");
-  log_path_ = std::string(home ? home : ".") + "/.llama-cli/events.jsonl";
-
-  // Ensure directory exists
-  std::string dir = log_path_.substr(0, log_path_.rfind('/'));
-  mkdir(dir.c_str(), 0755);
+  // Dev mode: if Makefile exists in cwd, we're running from the repo — log to .tmp/
+  // Installed mode: log to ~/.llama-cli/ so user logs are separate from dev logs.
+  struct stat st;
+  if (stat("Makefile", &st) == 0) {
+    mkdir(".tmp", 0755);
+    log_path_ = ".tmp/events.jsonl";
+  } else {
+    const char* home = getenv("HOME");
+    log_path_ = std::string(home ? home : ".") + "/.llama-cli/events.jsonl";
+    std::string dir = log_path_.substr(0, log_path_.rfind('/'));
+    mkdir(dir.c_str(), 0755);
+  }
 }
 
 Logger& Logger::instance() {

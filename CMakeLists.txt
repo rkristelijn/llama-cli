@@ -65,12 +65,18 @@ set(LIB_SOURCES
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
-# Read version from VERSION file (or use default)
-if(EXISTS "${CMAKE_SOURCE_DIR}/VERSION")
-  file(READ "${CMAKE_SOURCE_DIR}/VERSION" LLAMA_CLI_VERSION)
-  string(STRIP "${LLAMA_CLI_VERSION}" LLAMA_CLI_VERSION)
-else()
-  set(LLAMA_CLI_VERSION "0.0.0")
+# Get version from git tags (e.g. v0.19.0 → 0.19.0)
+execute_process(
+  COMMAND git describe --tags --abbrev=0
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE LLAMA_CLI_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+# Strip leading 'v' if present
+string(REGEX REPLACE "^v" "" LLAMA_CLI_VERSION "${LLAMA_CLI_VERSION}")
+if(LLAMA_CLI_VERSION STREQUAL "")
+  set(LLAMA_CLI_VERSION "0.0.0-dev")
 endif()
 add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
 
@@ -80,6 +86,19 @@ if(BUILD_TZ STREQUAL "")
   set(BUILD_TZ "+0000")
 endif()
 add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
+
+# Inject git commit SHA at compile time for session logging
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(GIT_COMMIT STREQUAL "")
+  set(GIT_COMMIT "unknown")
+endif()
+add_compile_definitions(GIT_COMMIT="${GIT_COMMIT}")
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
