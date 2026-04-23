@@ -60,6 +60,7 @@ struct ReplState {
   bool bofh = false;                ///< BOFH mode: sarcastic spinner
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
+  bool trust = false;               ///< Trust mode: auto-approve all actions
 };
 
 /** Get version string from compile-time definition. */
@@ -422,7 +423,10 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  */
 // todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
-static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (trust) {
+    return true;
+  }
   std::ifstream check(action.path);
   bool file_exists = check.good();
   check.close();
@@ -435,7 +439,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     out << action.content << "\n";
   }
 
-  std::string opts = "[y/n/s]";
+  std::string opts = "[y/n/s/t/c]";
   out << "Write to " << action.path << "? " << opts << " " << std::flush;
   std::string answer;
   while (std::getline(in, answer)) {
@@ -447,6 +451,19 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+      return true;
+    }
+    if (answer == "c" || answer == "copy") {
+      // Copy content to clipboard (macOS: pbcopy, Linux: xclip)
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(action.content.c_str(), 1, action.content.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
     }
     out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
@@ -467,8 +484,8 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
  * @param out Output stream used for prompts and status messages.
  * @param color If true, enable ANSI-colored output where supported.
  */
-static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
-  if (confirm_write(action, in, out, color)) {
+static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (confirm_write(action, in, out, color, trust)) {
     // Backup existing file before overwriting
     std::ifstream exists_check(action.path);
     if (exists_check.good()) {
@@ -499,7 +516,36 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
 /**
  * @brief Apply a <str_replace> action: show diff, prompt, then do targeted replacement.
  */
-static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color) {
+static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (trust) {
+    // Auto-approve in trust mode — skip confirmation
+    std::ifstream check(action.path);
+    if (!check.good()) {
+      tui::error(out, color, "str_replace: file not found: " + action.path);
+      return;
+    }
+    std::string existing = read_file(action.path);
+    if (existing.find(action.old_str) == std::string::npos) {
+      tui::error(out, color, "str_replace: old string not found in " + action.path);
+      return;
+    }
+    std::string updated = existing;
+    auto replace_pos = updated.find(action.old_str);
+    updated.replace(replace_pos, action.old_str.size(), action.new_str);
+    show_diff(existing, updated, out, color);
+    // fall through to write
+    std::ofstream bak(action.path + ".bak");
+    if (bak.is_open()) {
+      bak << existing;
+    }
+    std::ofstream file(action.path);
+    if (file.is_open()) {
+      file << updated;
+      out << "[wrote " << action.path << "]\n";
+      LOG_EVENT("repl", "str_replace", action.path, "", 0, 0, 0);
+    }
+    return;
+  }
   std::ifstream check(action.path);
   if (!check.good()) {
     tui::error(out, color, "str_replace: file not found: " + action.path);
@@ -517,11 +563,25 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
   updated.replace(replace_pos, action.old_str.size(), action.new_str);
   show_diff(existing, updated, out, color);
 
-  out << "Apply str_replace to " << action.path << "? [y/n] " << std::flush;
+  out << "Apply str_replace to " << action.path << "? [y/n/t/c] " << std::flush;
   std::string answer;
-  if (!std::getline(in, answer) || (answer != "y" && answer != "yes")) {
+  if (!std::getline(in, answer)) {
     out << "[skipped]\n";
-    // Log declined str_replace for rejection pattern analysis
+    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+    return;
+  }
+  if (answer == "t" || answer == "trust") {
+    trust = true;
+  } else if (answer == "c" || answer == "copy") {
+    FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+    if (pipe) {
+      fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
+      pclose(pipe);
+      out << "[copied to clipboard]\n";
+    }
+    return;
+  } else if (answer != "y" && answer != "yes") {
+    out << "[skipped]\n";
     LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
     return;
   }
@@ -660,7 +720,23 @@ static std::string strip_exec_annotations(const std::string& text) {
       break;
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, "[proposed: exec " + cmd + "]");
+    result.replace(start, end + close.size() - start, "\033[1;37m[proposed: exec " + cmd + "]\033[0m");
+  }
+  // Render any remaining unmatched annotation tags as bold white
+  // so they stand out instead of appearing as raw XML
+  for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read "}) {
+    size_t pos = 0;
+    std::string needle(tag);
+    while ((pos = result.find(needle, pos)) != std::string::npos) {
+      auto end = result.find('>', pos);
+      if (end == std::string::npos) {
+        break;
+      }
+      std::string raw = result.substr(pos, end - pos + 1);
+      std::string bold = "\033[1;37m" + raw + "\033[0m";
+      result.replace(pos, raw.size(), bold);
+      pos += bold.size();
+    }
   }
   return result;
 }
@@ -668,17 +744,28 @@ static std::string strip_exec_annotations(const std::string& text) {
 /** Confirm and execute an LLM-proposed command (ADR-015)
  * Prompts user with y/n, executes on confirmation
  * Returns output if confirmed, empty string if declined */
-static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out) {
-  out << "Run: " << cmd << "? [y/n] " << std::flush;
-  std::string answer;
-  if (!std::getline(in, answer)) {
-    return "";
-  }
-  if (answer != "y" && answer != "yes") {
-    // Log declined exec so we can see rejection patterns
-    LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
-    out << "[skipped]\n";
-    return "";
+static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
+  if (!trust) {
+    out << "Run: " << cmd << "? [y/n/t/c] " << std::flush;
+    std::string answer;
+    if (!std::getline(in, answer)) {
+      return "";
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+    } else if (answer == "c" || answer == "copy") {
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(cmd.c_str(), 1, cmd.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
+      return "";
+    } else if (answer != "y" && answer != "yes") {
+      LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
+      out << "[skipped]\n";
+      return "";
+    }
   }
   auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
@@ -741,10 +828,10 @@ static bool handle_response(const std::string& response, ReplState& s) {
   }
 
   for (const auto& action : writes) {
-    process_write(action, s.in, s.out, s.color);
+    process_write(action, s.in, s.out, s.color, s.trust);
   }
   for (const auto& action : str_replaces) {
-    process_str_replace(action, s.in, s.out, s.color);
+    process_str_replace(action, s.in, s.out, s.color, s.trust);
   }
   bool has_followup = false;
   std::set<std::string> seen_reads;
@@ -760,7 +847,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
     }
   }
   for (const auto& cmd : execs) {
-    std::string output = confirm_exec(cmd, s.cfg, s.in, s.out);
+    std::string output = confirm_exec(cmd, s.cfg, s.in, s.out, s.trust);
     if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
       has_followup = true;

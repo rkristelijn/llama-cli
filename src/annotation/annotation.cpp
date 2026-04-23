@@ -195,7 +195,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 8 - start, "[proposed: write " + path + "]");
+    result.replace(start, end + 8 - start, "\033[1;37m[proposed: write " + path + "]\033[0m");
   }
 
   // strip <str_replace path="...">...</str_replace>
@@ -218,7 +218,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 14 - start, "[proposed: str_replace " + path + "]");
+    result.replace(start, end + 14 - start, "\033[1;37m[proposed: str_replace " + path + "]\033[0m");
   }
 
   // strip <read ...>
@@ -233,7 +233,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 1);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 1 - start, "[read " + path + "]");
+    result.replace(start, end + 1 - start, "\033[1;37m[read " + path + "]\033[0m");
   }
 
   return result;
