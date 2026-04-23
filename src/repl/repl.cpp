@@ -283,13 +283,21 @@ static void handle_model_selection(ReplState& s) {
   }
 
   // Prompt user to select by number
-  s.out << "Select model (1-" << models.size() << "): ";
-  s.out.flush();
-
   std::string input;
-  if (!std::getline(s.in, input)) {
-    s.out << "\n[cancelled]\n";
-    return;
+  if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
+    std::string prompt = "Select model (1-" + std::to_string(models.size()) + "): ";
+    auto quit = linenoise::Readline(prompt.c_str(), input);
+    if (quit) {
+      s.out << "[cancelled]\n";
+      return;
+    }
+  } else {
+    s.out << "Select model (1-" << models.size() << "): ";
+    s.out.flush();
+    if (!std::getline(s.in, input)) {
+      s.out << "\n[cancelled]\n";
+      return;
+    }
   }
 
   // Parse selection number
