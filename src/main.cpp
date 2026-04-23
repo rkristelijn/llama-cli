@@ -5,6 +5,7 @@
  * @see docs/adr/adr-007-cli-interface.md
  */
 
+#include <dirent.h>
 #include <unistd.h>
 
 #include <fstream>
@@ -14,9 +15,68 @@
 
 #include "config/config.h"
 #include "help.h"
+#include "json/json.h"
 #include "ollama/ollama.h"
 #include "repl/repl.h"
 #include "tui/tui.h"
+
+/// Extract "file://path" entries from a JSON resources array.
+/// Minimal parser — just finds "file://" strings between quotes.
+static std::vector<std::string> extract_resources(const std::string& json) {
+  std::vector<std::string> paths;
+  const std::string prefix = "\"file://";
+  size_t pos = 0;
+  while ((pos = json.find(prefix, pos)) != std::string::npos) {
+    size_t start = pos + prefix.size();
+    size_t end = json.find('"', start);
+    if (end != std::string::npos) {
+      paths.push_back(json.substr(start, end - start));
+    }
+    pos = (end != std::string::npos) ? end + 1 : start;
+  }
+  return paths;
+}
+
+/// Load .kiro/agents/*.json: append agent prompt to system prompt,
+/// read resource files into initial context string.
+static std::string load_kiro_context(Config& cfg, bool color) {
+  DIR* dir = opendir(".kiro/agents");
+  if (!dir) {
+    return "";
+  }
+  std::string context;
+  const struct dirent* entry = nullptr;
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
+  while ((entry = readdir(dir)) != nullptr) {
+    std::string name(entry->d_name);
+    if (name.size() < 6 || name.substr(name.size() - 5) != ".json") {
+      continue;
+    }
+    std::ifstream f(".kiro/agents/" + name);
+    if (!f) {
+      continue;
+    }
+    std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    // Append agent prompt to system prompt
+    std::string prompt = json_extract_string(json, "prompt");
+    if (!prompt.empty()) {
+      cfg.system_prompt += "\n\n" + prompt;
+    }
+    // Read resource files into context
+    for (const auto& path : extract_resources(json)) {
+      std::ifstream rf(path);
+      if (!rf) {
+        continue;
+      }
+      context += "--- " + path + " ---\n";
+      context += std::string((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
+      context += "\n";
+    }
+    tui::system_msg(std::cerr, color, "[loaded .kiro/agents/" + name + "]\n");
+  }
+  closedir(dir);
+  return context;
+}
 
 /**
  * @brief Program entry point that loads configuration and runs either a one-shot sync request or an interactive REPL.
@@ -99,6 +159,11 @@ int main(int argc, char* argv[]) {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }
     tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
+    // Load .kiro/agents/ context if present in cwd
+    std::string kiro_ctx = load_kiro_context(cfg, color);
+    if (!kiro_ctx.empty()) {
+      cfg.system_prompt += "\n\n## Project context\n" + kiro_ctx;
+    }
     auto generate = [&cfg](const std::vector<Message>& msgs) {
       if (cfg.provider == "mock") {
         return "mock response: " + msgs.back().content;
