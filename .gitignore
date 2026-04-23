@@ -12,3 +12,4 @@ compile_commands.json
 .env
 /llama-cli
 coverage.info
+events.jsonl

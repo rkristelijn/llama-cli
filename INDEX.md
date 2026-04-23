@@ -46,6 +46,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-052-markdown-renderer.md`](docs/adr/adr-052-markdown-renderer.md) — ADR-052: Markdown Renderer
 - [`docs/adr/adr-053-cpp-static-analysis.md`](docs/adr/adr-053-cpp-static-analysis.md) — ADR-053: C++ Static Analysis Coverage
 - [`docs/adr/adr-054-gemma4-31b-second-chance.md`](docs/adr/adr-054-gemma4-31b-second-chance.md) — ADR-054: gemma4:31b — Second Chance with Tweaks
+- [`docs/adr/adr-055-layered-test-strategy.md`](docs/adr/adr-055-layered-test-strategy.md) — ADR-055: Layered Test Strategy — From Unit Tests to Fuzzing
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -140,7 +141,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/check/run-all.sh`](scripts/check/run-all.sh) — DEPRECATED: use 'make check' instead. See ADR-044.
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
-- [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Bump the project version in VERSION file.
+- [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
@@ -183,6 +184,7 @@ Auto-generated overview of all files in this repo.
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
+- [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
 - [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
@@ -217,4 +219,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_214 files indexed._
+_216 files indexed._
