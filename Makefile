@@ -10,7 +10,7 @@ FULL ?= 0
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
 	tidy complexity comment-ratio docs sast sast-secret sast-security \
-	coverage coverage-report todo quick index setup install hooks bench \
+	coverage coverage-report todo quick index setup install hooks bench features fuzz \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch
@@ -135,6 +135,17 @@ coverage-report: coverage ## Show coverage summary per directory
 quick: ## Fast feedback: build + unit tests + comment ratio
 	@$(MAKE) build
 	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
+
+features: ## List all test scenarios (feature spec)
+	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace; do \
+		[ -f "$(BUILD_DIR)/$$bin" ] && ./$(BUILD_DIR)/$$bin --list-test-cases 2>/dev/null | grep "Scenario:" | sed 's/^    //'; \
+	done
+
+fuzz: ## Run annotation fuzzer (60s, requires clang)
+	@cmake -B $(BUILD_DIR) -DENABLE_FUZZ=ON > /dev/null
+	@cmake --build $(BUILD_DIR) --target fuzz_annotation > /dev/null
+	@echo "==> fuzzing annotation parser (60s)..."
+	@./$(BUILD_DIR)/fuzz_annotation -max_total_time=60 -print_final_stats=1
 
 ##@ Security
 
