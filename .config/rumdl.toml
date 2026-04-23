@@ -5,6 +5,7 @@
 [global]
 exclude = ["build", "node_modules"]
 respect-gitignore = true
+cache-dir = ".tmp/rumdl"
 # MD013: line length — too many existing violations in ADRs/docs
 # MD033: inline HTML — used in some docs
 # MD036: emphasis as heading — used in ADR-023

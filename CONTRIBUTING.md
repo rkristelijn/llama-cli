@@ -146,17 +146,17 @@ See `src/config/config.h` for all available settings.
 
 ## Versioning
 
-This project uses [Semantic Versioning](https://semver.org/):
+This project uses [Semantic Versioning](https://semver.org/) derived from git tags and conventional commits:
 
-- `MAJOR.MINOR.PATCH`
-- Bump `PATCH` for bug fixes
-- Bump `MINOR` for new features
-- Bump `MAJOR` for breaking changes
+- `fix:` commits → patch bump
+- `feat:` commits → minor bump
+- `feat!:` or `BREAKING CHANGE` → major bump
 
-When merging a PR, update the `VERSION` file:
+Releases are triggered manually via GitHub Actions → Release → "Run workflow". The pipeline analyzes commits since the last tag and auto-determines the version.
+
+To preview or create a tag locally:
 
 ```bash
-echo "0.2.0" > VERSION
-git add VERSION
-git commit -m "chore: bump version to 0.2.0"
+make bump            # auto-detect from commits
+make bump PART=minor # force a specific bump
 ```

@@ -1,11 +1,13 @@
 # Llama CLI
 
-[![Release](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/release.yml?branch=main&label=Release)](https://github.com/rkristelijn/llama-cli/releases)
-[![Build](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&label=Build)](https://github.com/rkristelijn/llama-cli/actions)
-[![Tests](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=test&label=Tests)](https://github.com/rkristelijn/llama-cli/actions)
-[![Coverage](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=coverage&label=Coverage)](https://github.com/rkristelijn/llama-cli/actions)
-[![Semgrep](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=semgrep&label=Semgrep)](https://github.com/rkristelijn/llama-cli/actions)
-[![Gitleaks](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=gitleaks&label=Gitleaks)](https://github.com/rkristelijn/llama-cli/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&label=CI)](https://github.com/rkristelijn/llama-cli/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/rkristelijn/llama-cli?label=Coverage)](https://codecov.io/gh/rkristelijn/llama-cli)
+[![Release](https://img.shields.io/github/v/release/rkristelijn/llama-cli?label=Release)](https://github.com/rkristelijn/llama-cli/releases/latest)
+[![License](https://img.shields.io/github/license/rkristelijn/llama-cli)](LICENSE)
+[![Semgrep](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-security&label=SAST)](https://github.com/rkristelijn/llama-cli/actions)
+[![Gitleaks](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-secret&label=Secrets)](https://github.com/rkristelijn/llama-cli/actions)
+[![Tests](https://img.shields.io/badge/Tests-48_scenarios-blue)](https://github.com/rkristelijn/llama-cli)
+[![CMMI](https://img.shields.io/badge/CMMI-Level_0.6-yellow)](docs/adr/adr-048-quality-framework.md)
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
 
@@ -14,8 +16,8 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 
 The Eisenhower Matrix helps prioritize tasks by urgency and importance:
 
-|                 | Urgent              | Not Urgent                  |
-|-----------------|---------------------|-----------------------------|
+|                 | Urgent                 | Not Urgent               |
+|-----------------|------------------------|--------------------------|
 | Important       | DO — crisis, deadlines | PLAN — growth, strategy  |
 | Not Important   | DELEGATE — interrupts  | ELIMINATE — distractions |
 

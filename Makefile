@@ -10,7 +10,7 @@ FULL ?= 0
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
 	tidy complexity comment-ratio docs sast sast-secret sast-security \
-	coverage coverage-report todo quick index setup install hooks \
+	coverage coverage-report todo quick index setup install hooks bench features fuzz \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch
@@ -48,9 +48,9 @@ format: format-code format-md format-yaml format-scripts ## Auto-format all file
 
 lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs ## Run all passive checks
 
-test: test-unit e2e ## Run all tests
+test: build test-unit e2e ## Run all tests (builds first)
 
-check: lint test sast ## Full quality gate (CI/pre-push)
+check: build lint test sast ## Full quality gate (CI/pre-push)
 
 full-check: ## Run exhaustive quality checks (FULL=1)
 	@$(MAKE) FULL=1 check
@@ -96,10 +96,10 @@ lint-makefile: ## Check Makefile conventions
 lint-scripts: ## Check shell script conventions (shellcheck)
 	@bash scripts/lint/check-scripts.sh
 
-tidy: all ## Run clang-tidy (smart: changed files only)
+tidy: ## Run clang-tidy (smart: changed files only)
 	@bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
 
-complexity: all ## Check cyclomatic complexity (pmccabe)
+complexity: ## Check cyclomatic complexity (pmccabe)
 	@bash scripts/lint/check-complexity.sh
 
 comment-ratio: ## Show comment ratio per file
@@ -113,15 +113,18 @@ docs: ## Check doxygen warnings
 
 ##@ Testing
 
-test-unit: all ## Run unit tests
+test-unit: ## Run unit tests
 	@bash scripts/test/run-unit.sh "$(BUILD_DIR)"
 t: test-unit
 
-e2e: all ## Run end-to-end tests
+e2e: ## Run end-to-end tests
 	@bash scripts/test/run-e2e.sh "$(BUILD_DIR)" "$(BINARY)"
 
-live: all ## Integration test with real LLM
+live: ## Integration test with real LLM
 	@bash e2e/test_live.sh $(BINARY)
+
+bench: ## Benchmark local Ollama models (see docs/model-bench.md)
+	@bash scripts/test/bench-models.sh $(ARGS)
 
 coverage: ## Build with coverage and run tests
 	@bash scripts/test/run-coverage.sh "$(BUILD_DIR)"
@@ -129,8 +132,21 @@ coverage: ## Build with coverage and run tests
 coverage-report: coverage ## Show coverage summary per directory
 	@bash scripts/test/report-coverage.sh "$(BUILD_DIR)"
 
-quick: all ## Fast feedback: unit tests + comment ratio
+quick: ## Fast feedback: build + unit tests + comment ratio
+	@$(MAKE) build
 	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
+
+features: ## List all test scenarios (feature spec)
+	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace; do \
+		[ -f "$(BUILD_DIR)/$$bin" ] && ./$(BUILD_DIR)/$$bin --list-test-cases 2>/dev/null | grep "Scenario:" | sed 's/^    //'; \
+	done
+
+fuzz: ## Run annotation fuzzer (60s, requires llvm)
+	@LLVM=$$(brew --prefix llvm 2>/dev/null || echo /usr/bin); \
+	cmake -B build-fuzz -DENABLE_FUZZ=ON -DCMAKE_C_COMPILER="$$LLVM/bin/clang" -DCMAKE_CXX_COMPILER="$$LLVM/bin/clang++" > /dev/null && \
+	cmake --build build-fuzz --target fuzz_annotation > /dev/null
+	@echo "==> fuzzing annotation parser (60s)..."
+	@./build-fuzz/fuzz_annotation -max_total_time=60 -print_final_stats=1
 
 ##@ Security
 

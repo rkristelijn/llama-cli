@@ -192,3 +192,40 @@ SCENARIO ("parsing read annotations") {
     }
   }
 }
+
+SCENARIO ("stripped annotations contain bold white ANSI codes") {
+  GIVEN ("a write annotation") {
+    std::string text = R"(<write file="test.cpp">content</write>)";
+    WHEN ("stripped") {
+      auto clean = strip_annotations(text);
+      THEN ("output contains bold white escape and reset") {
+        CHECK (clean.find("\033[1;37m") != std::string::npos)
+          ;
+        CHECK (clean.find("\033[0m") != std::string::npos)
+          ;
+      }
+    }
+  }
+
+  GIVEN ("a str_replace annotation") {
+    std::string text = R"(<str_replace path="x.cpp"><old>a</old><new>b</new></str_replace>)";
+    WHEN ("stripped") {
+      auto clean = strip_annotations(text);
+      THEN ("output contains bold white escape") {
+        CHECK (clean.find("\033[1;37m") != std::string::npos)
+          ;
+      }
+    }
+  }
+
+  GIVEN ("a read annotation") {
+    std::string text = R"(<read path="x.cpp" lines="1-5"/>)";
+    WHEN ("stripped") {
+      auto clean = strip_annotations(text);
+      THEN ("output contains bold white escape") {
+        CHECK (clean.find("\033[1;37m") != std::string::npos)
+          ;
+      }
+    }
+  }
+}

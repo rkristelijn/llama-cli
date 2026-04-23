@@ -48,3 +48,27 @@ scripts/
 - **Transparency**: `make help` is auto-generated and clearly categorized.
 - **Maintainability**: Tool-specific complexity is isolated in scripts, while the project-wide workflow is visible in the `Makefile`.
 - **Consistency**: Local development hooks run the same targets as the CI pipeline.
+
+## Addendum (2026-04-23): Leaf Target Rule
+
+Leaf targets (e.g., `test-unit`, `e2e`, `tidy`, `complexity`) must not depend on
+`all` or `build`. They do exactly one thing: run their tool.
+
+Aggregators (`test`, `check`, `quick`) own the build dependency.
+
+```text
+# GOOD — leaf does one thing, aggregator orchestrates
+test: build test-unit e2e
+test-unit:                    # ← no dependency on build
+    @bash scripts/test/run-unit.sh
+
+# BAD — hidden build inside a leaf
+test-unit: all                # ← surprise cmake + cp on every test run
+    @bash scripts/test/run-unit.sh
+```
+
+Why this matters:
+
+- `make test-unit` after a manual `cmake --build` should just run tests, not rebuild
+- Hidden dependencies make failures hard to trace (a build error looks like a test error)
+- Aggregators are the single place where ordering is defined — no implicit chains

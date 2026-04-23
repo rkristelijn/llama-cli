@@ -80,7 +80,7 @@ if [ -n "$FAILED_JOBS" ]; then
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"
     # Anchor grep to job name at start of line (log format: "JOBNAME\tSTEP\tLINE")
-    snippet=$(grep -P "^${JOB_NAME}\t" "$LOG_FILE" | grep -i "error\|fail\|missing\|warning\|\#\#\[error\]" | tail -n 30 || true)
+    snippet=$(grep "^${JOB_NAME}	" "$LOG_FILE" | grep -i "error\|fail\|missing\|warning\|\#\#\[error\]" | tail -n 30 || true)
     if [ -n "$snippet" ]; then
       # Strip job name prefix and timestamps for readability
       printf '%s\n' "$snippet" | sed "s/^${JOB_NAME}\t//" | sed 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //'

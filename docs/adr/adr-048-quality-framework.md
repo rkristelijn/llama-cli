@@ -550,7 +550,7 @@ The framework passes this test because:
 | 1.2 | SAST security | ✅ PASS | CI `sast-security` job (semgrep) | — |
 | 1.3 | TODO scraping → debt log | ❌ FAIL | `make todo` displays but doesn't write to file | Need: pipe to `TECHDEBT.md` |
 | 1.4 | Suppressions require reason | ✅ PASS | `complexity.sh` requires `pmccabe:skip-complexity` annotation | — |
-| 1.5 | E2E per feature | ✅ PASS | 5 E2E scripts: live, repl, files, sync, smart-rw | — |
+| 1.5 | E2E per feature | ✅ PASS | 48 SCENARIO tests, `make features` lists all, 5 E2E scripts | [ADR-055](adr-055-layered-test-strategy.md) |
 | 1.6 | Peer review required | ❌ FAIL | CI runs on PR but no branch protection rules | Need: GitHub branch protection |
 | 1.7 | Definition of Ready | ❌ FAIL | No issue templates | Need: issue template with DoR checklist |
 | 1.8 | Doc-change enforcement | ❌ FAIL | No CI check for docs/ when src/ changes | Need: CI job |
@@ -568,6 +568,8 @@ The framework passes this test because:
 | 48 ADRs | Comprehensive decision log covering all major choices |
 | Modular source | 15 modules in `src/`, co-located tests (`*_test.cpp`, `*_it.cpp`) |
 | Sanitizers | ASan + UBSan in CI (`sanitizers` job) |
+| Fuzzing | libFuzzer target for annotation parser (`make fuzz`), [ADR-055](adr-055-layered-test-strategy.md) |
+| Feature traceability | `make features` lists all 48 SCENARIO test specs |
 | Low tech debt | Only 3 TODO markers in entire source |
 
 ### Sprint 1 Plan — Reach CMMI 0

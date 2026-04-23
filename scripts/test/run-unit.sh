@@ -21,6 +21,8 @@ main() {
     name="$(basename "$t")"
     cmake --build "${BUILD_DIR}" --target "${name}" > /dev/null
   done
+  # Remove stale coverage data after rebuild to prevent gcda merge errors
+  find "${BUILD_DIR}" -name "*.gcda" -delete 2>/dev/null || true
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
     "$t" --quiet

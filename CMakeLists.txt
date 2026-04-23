@@ -65,12 +65,18 @@ set(LIB_SOURCES
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
-# Read version from VERSION file (or use default)
-if(EXISTS "${CMAKE_SOURCE_DIR}/VERSION")
-  file(READ "${CMAKE_SOURCE_DIR}/VERSION" LLAMA_CLI_VERSION)
-  string(STRIP "${LLAMA_CLI_VERSION}" LLAMA_CLI_VERSION)
-else()
-  set(LLAMA_CLI_VERSION "0.0.0")
+# Get version from git tags (e.g. v0.19.0 → 0.19.0)
+execute_process(
+  COMMAND git describe --tags --abbrev=0
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE LLAMA_CLI_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+# Strip leading 'v' if present
+string(REGEX REPLACE "^v" "" LLAMA_CLI_VERSION "${LLAMA_CLI_VERSION}")
+if(LLAMA_CLI_VERSION STREQUAL "")
+  set(LLAMA_CLI_VERSION "0.0.0-dev")
 endif()
 add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
 
@@ -80,6 +86,19 @@ if(BUILD_TZ STREQUAL "")
   set(BUILD_TZ "+0000")
 endif()
 add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
+
+# Inject git commit SHA at compile time for session logging
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(GIT_COMMIT STREQUAL "")
+  set(GIT_COMMIT "unknown")
+endif()
+add_compile_definitions(GIT_COMMIT="${GIT_COMMIT}")
 
 # Main binary
 add_executable(llama-cli src/main.cpp ${LIB_SOURCES})
@@ -145,3 +164,12 @@ target_link_libraries(test_trace PRIVATE doctest::doctest)
 add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
 target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_logger PRIVATE doctest::doctest)
+
+# Fuzz targets — build with -DENABLE_FUZZ=ON (requires clang with libFuzzer)
+option(ENABLE_FUZZ "Build fuzz targets (requires clang with -fsanitize=fuzzer)" OFF)
+if(ENABLE_FUZZ)
+  add_executable(fuzz_annotation src/annotation/fuzz_annotation.cpp src/annotation/annotation.cpp)
+  target_include_directories(fuzz_annotation PRIVATE ${SRC_INCLUDE})
+  target_compile_options(fuzz_annotation PRIVATE -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer)
+  target_link_options(fuzz_annotation PRIVATE -fsanitize=fuzzer,address,undefined)
+endif()

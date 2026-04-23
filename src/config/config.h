@@ -72,7 +72,11 @@ struct Config {
       "When you receive command output, ANALYZE it — do not repeat it "
       "verbatim. "
       "Do NOT ask for confirmation or file paths — the client handles that. "
-      "Just include the tags directly in your response.";
+      "Just include the tags directly in your response. "
+      "IMPORTANT: Never claim code contains specific patterns, functions, "
+      "or design choices unless you have read the actual file content in "
+      "this conversation. If you have not read a file, say so instead of "
+      "guessing. Do not give scores or ratings without measurable criteria.";
 };
 
 // Load .env file into config (project-local, overrides env vars)

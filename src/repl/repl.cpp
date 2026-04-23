@@ -60,6 +60,7 @@ struct ReplState {
   bool bofh = false;                ///< BOFH mode: sarcastic spinner
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
+  bool trust = false;               ///< Trust mode: auto-approve all write/exec/str_replace (reset on /clear)
 };
 
 /** Get version string from compile-time definition. */
@@ -282,13 +283,23 @@ static void handle_model_selection(ReplState& s) {
   }
 
   // Prompt user to select by number
-  s.out << "Select model (1-" << models.size() << "): ";
-  s.out.flush();
-
+  // Use linenoise for interactive input so backspace/arrows work correctly.
+  // std::getline on raw TTY produces ^M garbage on backspace.
   std::string input;
-  if (!std::getline(s.in, input)) {
-    s.out << "\n[cancelled]\n";
-    return;
+  if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
+    std::string prompt = "Select model (1-" + std::to_string(models.size()) + "): ";
+    auto quit = linenoise::Readline(prompt.c_str(), input);
+    if (quit) {
+      s.out << "[cancelled]\n";
+      return;
+    }
+  } else {
+    s.out << "Select model (1-" << models.size() << "): ";
+    s.out.flush();
+    if (!std::getline(s.in, input)) {
+      s.out << "\n[cancelled]\n";
+      return;
+    }
   }
 
   // Parse selection number
@@ -374,14 +385,14 @@ static void emit_diff_line(std::ostream& out, const char* ansi, const char* pref
 }
 
 /**
- * @brief Print a git-style LCS diff between two text blobs using dtl.
+ * @brief Print a git-style unified diff with 3 lines of context and @@ hunk headers.
  *
- * Uses Myers diff (via dtl) for accurate change detection — inserted/deleted
- * blocks are shown with +/- prefixes; unchanged lines with two spaces.
- * ANSI colors applied when color is true.
+ * Uses Myers diff (via dtl) for accurate change detection. Only changed lines
+ * and their surrounding context are shown — unchanged regions are skipped.
  */
+// pmccabe:skip-complexity
+// NOLINTNEXTLINE(readability-function-size)
 static void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
-  // Split into lines
   auto split = [](const std::string& s) {
     std::vector<std::string> lines;
     std::istringstream ss(s);
@@ -397,18 +408,85 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
   dtl::Diff<std::string> diff(old_lines, new_lines);
   diff.compose();
 
+  // Build flat list with old/new line numbers
+  struct Entry {
+    dtl::edit_t type;
+    std::string text;
+    int old_ln;
+    int new_ln;
+  };
+  std::vector<Entry> entries;
+  int oln = 1, nln = 1;
   for (const auto& elem : diff.getSes().getSequence()) {
-    const auto& line = elem.first;
-    switch (elem.second.type) {
-      case dtl::SES_DELETE:
-        emit_diff_line(out, "\033[1;31m", "- ", line, color);
-        break;
-      case dtl::SES_ADD:
-        emit_diff_line(out, "\033[1;32m", "+ ", line, color);
-        break;
-      default:
-        out << "  " << line << "\n";
-        break;
+    Entry e;
+    e.type = elem.second.type;
+    e.text = elem.first;
+    e.old_ln = oln;
+    e.new_ln = nln;
+    if (e.type == dtl::SES_DELETE) {
+      ++oln;
+    } else if (e.type == dtl::SES_ADD) {
+      ++nln;
+    } else {
+      ++oln;
+      ++nln;
+    }
+    entries.push_back(e);
+  }
+
+  // Mark which entries to show (changed lines + 3 lines context)
+  const int ctx = 3;
+  std::vector<bool> show(entries.size(), false);
+  for (size_t i = 0; i < entries.size(); ++i) {
+    if (entries[i].type != dtl::SES_COMMON) {
+      size_t lo = (i >= static_cast<size_t>(ctx)) ? i - ctx : 0;
+      size_t hi = std::min(i + ctx, entries.size() - 1);
+      for (size_t j = lo; j <= hi; ++j) {
+        show[j] = true;
+      }
+    }
+  }
+
+  // Emit hunks
+  bool in_hunk = false;
+  for (size_t i = 0; i < entries.size(); ++i) {
+    if (!show[i]) {
+      in_hunk = false;
+      continue;
+    }
+    if (!in_hunk) {
+      // Find hunk extent to compute header
+      size_t end = i;
+      while (end < entries.size() && show[end]) {
+        ++end;
+      }
+      int o_start = entries[i].old_ln, o_count = 0;
+      int n_start = entries[i].new_ln, n_count = 0;
+      for (size_t j = i; j < end; ++j) {
+        if (entries[j].type != dtl::SES_ADD) {
+          ++o_count;
+        }
+        if (entries[j].type != dtl::SES_DELETE) {
+          ++n_count;
+        }
+      }
+      if (color) {
+        out << "\033[36m";
+      }
+      out << "@@ -" << o_start << "," << o_count << " +" << n_start << "," << n_count << " @@";
+      if (color) {
+        out << "\033[0m";
+      }
+      out << "\n";
+      in_hunk = true;
+    }
+    const auto& e = entries[i];
+    if (e.type == dtl::SES_DELETE) {
+      emit_diff_line(out, "\033[1;31m", "- ", e.text, color);
+    } else if (e.type == dtl::SES_ADD) {
+      emit_diff_line(out, "\033[1;32m", "+ ", e.text, color);
+    } else {
+      out << "  " << e.text << "\n";
     }
   }
 }
@@ -417,12 +495,19 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  * @brief Prompt the user to confirm writing a proposed file change.
  *
  * Always shows a diff (for existing files) or the full content (for new files)
- * before prompting. Accepts y/yes to confirm, n/no to decline, s/show to
- * re-display content.
+ * before prompting. Accepts:
+ *   y/yes = confirm write
+ *   n/no  = decline
+ *   s/show = re-display content
+ *   t/trust = approve this and all remaining actions this session
+ *   c/copy = copy content to clipboard (pbcopy/xclip)
  */
 // todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
-static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
+static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (trust) {
+    return true;
+  }
   std::ifstream check(action.path);
   bool file_exists = check.good();
   check.close();
@@ -435,7 +520,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     out << action.content << "\n";
   }
 
-  std::string opts = "[y/n/s]";
+  std::string opts = "[y/n/s/t/c]";
   out << "Write to " << action.path << "? " << opts << " " << std::flush;
   std::string answer;
   while (std::getline(in, answer)) {
@@ -447,6 +532,19 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+      return true;
+    }
+    if (answer == "c" || answer == "copy") {
+      // Copy content to clipboard (macOS: pbcopy, Linux: xclip)
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(action.content.c_str(), 1, action.content.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
     }
     out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
@@ -467,8 +565,8 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
  * @param out Output stream used for prompts and status messages.
  * @param color If true, enable ANSI-colored output where supported.
  */
-static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color) {
-  if (confirm_write(action, in, out, color)) {
+static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (confirm_write(action, in, out, color, trust)) {
     // Backup existing file before overwriting
     std::ifstream exists_check(action.path);
     if (exists_check.good()) {
@@ -499,7 +597,38 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
 /**
  * @brief Apply a <str_replace> action: show diff, prompt, then do targeted replacement.
  */
-static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color) {
+static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  if (trust) {
+    // Auto-approve in trust mode — skip confirmation
+    std::ifstream check(action.path);
+    if (!check.good()) {
+      tui::error(out, color, "str_replace: file not found: " + action.path);
+      return;
+    }
+    std::string existing = read_file(action.path);
+    if (existing.find(action.old_str) == std::string::npos) {
+      tui::error(out, color, "str_replace: old string not found in " + action.path);
+      return;
+    }
+    std::string updated = existing;
+    auto replace_pos = updated.find(action.old_str);
+    updated.replace(replace_pos, action.old_str.size(), action.new_str);
+    show_diff(existing, updated, out, color);
+    // fall through to write
+    std::ofstream bak(action.path + ".bak");
+    if (bak.is_open()) {
+      bak << existing;
+    }
+    std::ofstream file(action.path);
+    if (file.is_open()) {
+      file << updated;
+      out << "[wrote " << action.path << "]\n";
+      LOG_EVENT("repl", "str_replace", action.path, "", 0, 0, 0);
+    } else {
+      tui::error(out, color, "str_replace: could not write to " + action.path);
+    }
+    return;
+  }
   std::ifstream check(action.path);
   if (!check.good()) {
     tui::error(out, color, "str_replace: file not found: " + action.path);
@@ -517,11 +646,25 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
   updated.replace(replace_pos, action.old_str.size(), action.new_str);
   show_diff(existing, updated, out, color);
 
-  out << "Apply str_replace to " << action.path << "? [y/n] " << std::flush;
+  out << "Apply str_replace to " << action.path << "? [y/n/t/c] " << std::flush;
   std::string answer;
-  if (!std::getline(in, answer) || (answer != "y" && answer != "yes")) {
+  if (!std::getline(in, answer)) {
     out << "[skipped]\n";
-    // Log declined str_replace for rejection pattern analysis
+    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+    return;
+  }
+  if (answer == "t" || answer == "trust") {
+    trust = true;
+  } else if (answer == "c" || answer == "copy") {
+    FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+    if (pipe) {
+      fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
+      pclose(pipe);
+      out << "[copied to clipboard]\n";
+    }
+    return;
+  } else if (answer != "y" && answer != "yes") {
+    out << "[skipped]\n";
     LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
     return;
   }
@@ -660,25 +803,54 @@ static std::string strip_exec_annotations(const std::string& text) {
       break;
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, "[proposed: exec " + cmd + "]");
+    result.replace(start, end + close.size() - start, "\033[1;37m[proposed: exec " + cmd + "]\033[0m");
+  }
+  // Render any remaining unmatched annotation tags as bold white
+  // so they stand out instead of appearing as raw XML
+  for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read "}) {
+    size_t pos = 0;
+    std::string needle(tag);
+    while ((pos = result.find(needle, pos)) != std::string::npos) {
+      auto end = result.find('>', pos);
+      if (end == std::string::npos) {
+        break;
+      }
+      std::string raw = result.substr(pos, end - pos + 1);
+      std::string bold = "\033[1;37m" + raw + "\033[0m";
+      result.replace(pos, raw.size(), bold);
+      pos += bold.size();
+    }
   }
   return result;
 }
 
-/** Confirm and execute an LLM-proposed command (ADR-015)
- * Prompts user with y/n, executes on confirmation
- * Returns output if confirmed, empty string if declined */
-static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out) {
-  out << "Run: " << cmd << "? [y/n] " << std::flush;
-  std::string answer;
-  if (!std::getline(in, answer)) {
-    return "";
-  }
-  if (answer != "y" && answer != "yes") {
-    // Log declined exec so we can see rejection patterns
-    LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
-    out << "[skipped]\n";
-    return "";
+/** Confirm and execute an LLM-proposed command (ADR-015).
+ * Prompts user with y/n/t/c:
+ *   y = execute, n = skip, t = trust (auto-approve rest of session),
+ *   c = copy command to clipboard.
+ * Returns output if executed, empty string if declined/copied. */
+static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
+  if (!trust) {
+    out << "Run: " << cmd << "? [y/n/t/c] " << std::flush;
+    std::string answer;
+    if (!std::getline(in, answer)) {
+      return "";
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+    } else if (answer == "c" || answer == "copy") {
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(cmd.c_str(), 1, cmd.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
+      return "";
+    } else if (answer != "y" && answer != "yes") {
+      LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
+      out << "[skipped]\n";
+      return "";
+    }
   }
   auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
@@ -741,10 +913,10 @@ static bool handle_response(const std::string& response, ReplState& s) {
   }
 
   for (const auto& action : writes) {
-    process_write(action, s.in, s.out, s.color);
+    process_write(action, s.in, s.out, s.color, s.trust);
   }
   for (const auto& action : str_replaces) {
-    process_str_replace(action, s.in, s.out, s.color);
+    process_str_replace(action, s.in, s.out, s.color, s.trust);
   }
   bool has_followup = false;
   std::set<std::string> seen_reads;
@@ -760,7 +932,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
     }
   }
   for (const auto& cmd : execs) {
-    std::string output = confirm_exec(cmd, s.cfg, s.in, s.out);
+    std::string output = confirm_exec(cmd, s.cfg, s.in, s.out, s.trust);
     if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
       has_followup = true;
@@ -836,9 +1008,13 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 }
 
 /** Run chat on a thread, interruptible by Ctrl+C.
- * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
+ * Polls g_interrupted every 50ms. If interrupted, detaches the HTTP thread
  * so the user gets their prompt back immediately.
- * Uses shared_ptr for result to avoid use-after-free on detach. */
+ *
+ * Thread safety: the thread receives a shared_ptr copy of the conversation
+ * history, so detach is safe — no dangling reference to s.history.
+ * Without this copy, Ctrl+C followed by /model or a new prompt caused a
+ * segfault (use-after-free on s.history). */
 static std::string interruptible_chat(ReplState& s) {
   auto result = std::make_shared<std::string>();
   auto done = std::make_shared<std::atomic<bool>>(false);
@@ -848,8 +1024,10 @@ static std::string interruptible_chat(ReplState& s) {
     auto first_token = std::make_shared<std::atomic<bool>>(false);
     auto renderer = std::make_shared<StreamRenderer>(s.out, s.color && s.markdown);
     Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
-    std::thread t([&s, result, done, first_token, &spin, renderer] {
-      *result = s.stream_chat(s.history, [first_token, &spin, renderer](const std::string& token) {
+    // Copy history so the thread owns its data — safe to detach after interrupt
+    auto history_copy = std::make_shared<std::vector<Message>>(s.history);
+    std::thread t([&s, result, done, first_token, &spin, renderer, history_copy] {
+      *result = s.stream_chat(*history_copy, [first_token, &spin, renderer](const std::string& token) {
         if (g_interrupted) {
           return false;
         }
@@ -868,20 +1046,21 @@ static std::string interruptible_chat(ReplState& s) {
     spin.stop();
     if (*done) {
       t.join();
-      // cppcheck-suppress knownConditionTrueFalse
-      if (!result->empty()) {
-        s.out << "\n";
-      }
-      return *result;
+    } else {
+      // Safe to detach: thread owns history_copy, result, done, renderer
+      t.detach();
     }
-    t.detach();
-    s.out << "\n";
-    return "";
+    // cppcheck-suppress knownConditionTrueFalse
+    if (!g_interrupted && !result->empty()) {
+      s.out << "\n";
+    }
+    return g_interrupted ? "" : *result;
   }
 
   // Buffered mode (mock/fallback): use spinner
-  std::thread t([&s, result, done] {
-    *result = s.chat(s.history);
+  auto history_copy2 = std::make_shared<std::vector<Message>>(s.history);
+  std::thread t([&s, result, done, history_copy2] {
+    *result = s.chat(*history_copy2);
     *done = true;
   });
   while (!*done && !g_interrupted) {
@@ -889,10 +1068,10 @@ static std::string interruptible_chat(ReplState& s) {
   }
   if (*done) {
     t.join();
-    return *result;
+  } else {
+    t.detach();
   }
-  t.detach();
-  return "";
+  return g_interrupted ? "" : *result;
 }
 
 /** Call LLM with spinner, interruptible by Ctrl+C.
@@ -917,24 +1096,40 @@ static std::string chat_with_spinner(ReplState& s) {
  *
  * Appends the user's prompt to the session history, invokes the chat (with a spinner),
  * prints and records the assistant response, and processes any write/exec annotations.
- * If processing indicates a follow-up is needed, requests a follow-up response and prints
- * and records it as well. Handles SIGINT interruptions by printing "[interrupted]" and
- * undoing or stopping history updates as appropriate.
+ * Loops follow-ups: as long as the model produces annotations (exec, read, write),
+ * the output is fed back and the model gets another turn. This prevents the user
+ * from having to type "ok, en nu?" after every exec.
+ *
+ * After iteration 2, injects a reminder system message to prevent model drift
+ * (hallucination, flattery). See ADR-054.
  *
  * @param line The user input line to send as a prompt.
  * @param s REPL state containing chat, configuration, I/O streams, and conversation history.
  */
+static constexpr const char* REMINDER_NUDGE =
+    "Reminder: be concise, only state facts about code you have read in this "
+    "session, no scores without criteria.";
+
 static void send_prompt(const std::string& line, ReplState& s) {
   // Trace output for debugging loop behavior (ADR-028)
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
 
+  // Inject a short reminder after iteration 2 to prevent model drift (ADR-054)
+  bool inserted_reminder = false;
+  if (s.count >= 2) {
+    s.history.push_back({"system", REMINDER_NUDGE});
+    inserted_reminder = true;
+  }
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
     s.out << "\n[interrupted]\n";
     s.history.pop_back();
+    if (inserted_reminder) {
+      s.history.pop_back();
+    }
     g_interrupted = 0;
     return;
   }
@@ -942,17 +1137,23 @@ static void send_prompt(const std::string& line, ReplState& s) {
   bool needs_followup = handle_response(response, s);
   s.count++;
 
-  if (needs_followup) {
+  // Keep following up while the model produces annotations (exec, read, etc.)
+  // Bounded to prevent runaway turns burning tokens/time.
+  constexpr int kMaxFollowups = 8;
+  int followup_count = 0;
+  while (needs_followup && followup_count < kMaxFollowups) {
     std::string followup = chat_with_spinner(s);
-    if (!g_interrupted) {
-      if (!s.stream_chat) {
-        s.out << colorize_ai(tui::render_markdown(followup, s.color && s.markdown), s) << "\n";
-      }
-      s.history.push_back({"assistant", followup});
-    } else {
+    if (g_interrupted) {
       s.out << "\n[interrupted]\n";
       g_interrupted = 0;
+      break;
     }
+    s.history.push_back({"assistant", followup});
+    needs_followup = handle_response(followup, s);
+    ++followup_count;
+  }
+  if (needs_followup) {
+    s.out << "[follow-up limit reached]\n";
   }
 }
 
@@ -1032,8 +1233,9 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color)};
 
-  // Log session start so we can track session duration and model usage
-  LOG_EVENT("repl", "session_start", cfg.model, cfg.host + ":" + cfg.port, 0, 0, 0);
+  // Log session start with version, commit, model, and host for traceability
+  std::string version_info = std::string(LLAMA_CLI_VERSION) + " (" + GIT_COMMIT + ")";
+  LOG_EVENT("repl", "session_start", cfg.model, version_info + " " + cfg.host + ":" + cfg.port, 0, 0, 0);
 
   while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {
