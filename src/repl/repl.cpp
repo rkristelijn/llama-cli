@@ -953,17 +953,14 @@ static std::string interruptible_chat(ReplState& s) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     spin.stop();
-    if (*done) {
-      t.join();
-      // cppcheck-suppress knownConditionTrueFalse
-      if (!result->empty()) {
-        s.out << "\n";
-      }
-      return *result;
+    // Always join — detaching causes use-after-free on s.history
+    // when the user sends a new prompt while HTTP thread is still running
+    t.join();
+    // cppcheck-suppress knownConditionTrueFalse
+    if (!g_interrupted && !result->empty()) {
+      s.out << "\n";
     }
-    t.detach();
-    s.out << "\n";
-    return "";
+    return g_interrupted ? "" : *result;
   }
 
   // Buffered mode (mock/fallback): use spinner
@@ -974,12 +971,8 @@ static std::string interruptible_chat(ReplState& s) {
   while (!*done && !g_interrupted) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
-  if (*done) {
-    t.join();
-    return *result;
-  }
-  t.detach();
-  return "";
+  t.join();
+  return g_interrupted ? "" : *result;
 }
 
 /** Call LLM with spinner, interruptible by Ctrl+C.
