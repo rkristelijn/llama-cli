@@ -44,6 +44,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-050-reality-check-roadmap.md`](docs/adr/adr-050-reality-check-roadmap.md) — ADR-050: Reality Check — Positioning and Roadmap
 - [`docs/adr/adr-051-kiro-agent-config.md`](docs/adr/adr-051-kiro-agent-config.md) — ADR-051: Kiro Agent Configuration for llama-cli Development
 - [`docs/adr/adr-052-markdown-renderer.md`](docs/adr/adr-052-markdown-renderer.md) — ADR-052: Markdown Renderer
+- [`docs/adr/adr-053-cpp-static-analysis.md`](docs/adr/adr-053-cpp-static-analysis.md) — ADR-053: C++ Static Analysis Coverage
+- [`docs/adr/adr-054-gemma4-31b-second-chance.md`](docs/adr/adr-054-gemma4-31b-second-chance.md) — ADR-054: gemma4:31b — Second Chance with Tweaks
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -98,6 +100,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/make.md`](docs/make.md) — Make Command Tree
+- [`docs/model-bench.md`](docs/model-bench.md) — Model Benchmark
 - [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
@@ -169,6 +172,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
 - [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
 - [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
+- [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
 - [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
 - [`scripts/test/run-coverage.sh`](scripts/test/run-coverage.sh)
 - [`scripts/test/run-e2e.sh`](scripts/test/run-e2e.sh) — run-e2e.sh — Run all end-to-end tests.
@@ -213,4 +217,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_210 files indexed._
+_214 files indexed._

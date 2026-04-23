@@ -10,7 +10,7 @@ FULL ?= 0
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
 	tidy complexity comment-ratio docs sast sast-secret sast-security \
-	coverage coverage-report todo quick index setup install hooks \
+	coverage coverage-report todo quick index setup install hooks bench \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch
@@ -122,6 +122,9 @@ e2e: ## Run end-to-end tests
 
 live: ## Integration test with real LLM
 	@bash e2e/test_live.sh $(BINARY)
+
+bench: ## Benchmark local Ollama models (see docs/model-bench.md)
+	@bash scripts/test/bench-models.sh $(ARGS)
 
 coverage: ## Build with coverage and run tests
 	@bash scripts/test/run-coverage.sh "$(BUILD_DIR)"
