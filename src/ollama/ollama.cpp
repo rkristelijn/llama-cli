@@ -12,6 +12,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "json/json.h"
 #include "logging/logger.h"
@@ -255,6 +256,16 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
 
   auto end = std::chrono::high_resolution_clock::now();
   int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+  // Retry once on connection failure — model switch can cause a brief unavailability
+  if (!res && !aborted) {
+    tui::error(std::cerr, tui::use_color(cfg.no_color), "Connection failed, retrying in 2s (model may be loading)...");
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    start = std::chrono::high_resolution_clock::now();
+    res = cli.send(req);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  }
 
   if (!res && !aborted) {
     tui::error(std::cerr, tui::use_color(cfg.no_color), "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
