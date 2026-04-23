@@ -60,7 +60,7 @@ struct ReplState {
   bool bofh = false;                ///< BOFH mode: sarcastic spinner
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
-  bool trust = false;               ///< Trust mode: auto-approve all actions
+  bool trust = false;               ///< Trust mode: auto-approve all write/exec/str_replace (reset on /clear)
 };
 
 /** Get version string from compile-time definition. */
@@ -283,6 +283,8 @@ static void handle_model_selection(ReplState& s) {
   }
 
   // Prompt user to select by number
+  // Use linenoise for interactive input so backspace/arrows work correctly.
+  // std::getline on raw TTY produces ^M garbage on backspace.
   std::string input;
   if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
     std::string prompt = "Select model (1-" + std::to_string(models.size()) + "): ";
@@ -426,8 +428,12 @@ static void show_diff(const std::string& old_text, const std::string& new_text, 
  * @brief Prompt the user to confirm writing a proposed file change.
  *
  * Always shows a diff (for existing files) or the full content (for new files)
- * before prompting. Accepts y/yes to confirm, n/no to decline, s/show to
- * re-display content.
+ * before prompting. Accepts:
+ *   y/yes = confirm write
+ *   n/no  = decline
+ *   s/show = re-display content
+ *   t/trust = approve this and all remaining actions this session
+ *   c/copy = copy content to clipboard (pbcopy/xclip)
  */
 // todo: reduce complexity of confirm_write
 // pmccabe:skip-complexity
@@ -749,9 +755,11 @@ static std::string strip_exec_annotations(const std::string& text) {
   return result;
 }
 
-/** Confirm and execute an LLM-proposed command (ADR-015)
- * Prompts user with y/n, executes on confirmation
- * Returns output if confirmed, empty string if declined */
+/** Confirm and execute an LLM-proposed command (ADR-015).
+ * Prompts user with y/n/t/c:
+ *   y = execute, n = skip, t = trust (auto-approve rest of session),
+ *   c = copy command to clipboard.
+ * Returns output if executed, empty string if declined/copied. */
 static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   if (!trust) {
     out << "Run: " << cmd << "? [y/n/t/c] " << std::flush;
@@ -931,9 +939,13 @@ static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) 
 }
 
 /** Run chat on a thread, interruptible by Ctrl+C.
- * Polls g_interrupted every 50ms. If set, detaches the HTTP thread
+ * Polls g_interrupted every 50ms. If interrupted, detaches the HTTP thread
  * so the user gets their prompt back immediately.
- * Uses shared_ptr for result to avoid use-after-free on detach. */
+ *
+ * Thread safety: the thread receives a shared_ptr copy of the conversation
+ * history, so detach is safe — no dangling reference to s.history.
+ * Without this copy, Ctrl+C followed by /model or a new prompt caused a
+ * segfault (use-after-free on s.history). */
 static std::string interruptible_chat(ReplState& s) {
   auto result = std::make_shared<std::string>();
   auto done = std::make_shared<std::atomic<bool>>(false);
@@ -1015,9 +1027,12 @@ static std::string chat_with_spinner(ReplState& s) {
  *
  * Appends the user's prompt to the session history, invokes the chat (with a spinner),
  * prints and records the assistant response, and processes any write/exec annotations.
- * If processing indicates a follow-up is needed, requests a follow-up response and prints
- * and records it as well. Handles SIGINT interruptions by printing "[interrupted]" and
- * undoing or stopping history updates as appropriate.
+ * Loops follow-ups: as long as the model produces annotations (exec, read, write),
+ * the output is fed back and the model gets another turn. This prevents the user
+ * from having to type "ok, en nu?" after every exec.
+ *
+ * After iteration 2, injects a reminder system message to prevent model drift
+ * (hallucination, flattery). See ADR-054.
  *
  * @param line The user input line to send as a prompt.
  * @param s REPL state containing chat, configuration, I/O streams, and conversation history.

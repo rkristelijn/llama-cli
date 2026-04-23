@@ -165,13 +165,14 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text) {
 // --- strip -------------------------------------------------------------------
 
 /**
- * @brief Replace all annotation tags with human-readable summaries.
+ * @brief Replace all annotation tags with human-readable summaries (bold white).
  *
  * Strips \<write\>, \<str_replace\>, and \<read\> tags, replacing each with
- * a bracketed summary like [proposed: write path].
+ * a bold white bracketed summary like [proposed: write path].
+ * Bold white makes annotations visually distinct from normal LLM output.
  *
  * @param text Input string possibly containing annotation tags.
- * @return Cleaned string with annotations replaced by summaries.
+ * @return Cleaned string with annotations replaced by bold white summaries.
  */
 // todo: reduce complexity of strip_annotations
 // pmccabe:skip-complexity
