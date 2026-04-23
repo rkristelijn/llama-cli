@@ -924,12 +924,20 @@ static std::string chat_with_spinner(ReplState& s) {
  * @param line The user input line to send as a prompt.
  * @param s REPL state containing chat, configuration, I/O streams, and conversation history.
  */
+static constexpr const char* REMINDER_NUDGE =
+    "Reminder: be concise, only state facts about code you have read in this "
+    "session, no scores without criteria.";
+
 static void send_prompt(const std::string& line, ReplState& s) {
   // Trace output for debugging loop behavior (ADR-028)
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
 
+  // Inject a short reminder after iteration 2 to prevent model drift (ADR-054)
+  if (s.count >= 2) {
+    s.history.push_back({"system", REMINDER_NUDGE});
+  }
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {

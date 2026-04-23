@@ -140,6 +140,64 @@ These are nice-to-have but not differentiating:
 - Nick/custom prompt ([012](../backlog/012-nick-prompt.md)) — cosmetic
 - Project rename ([008](../backlog/008-project-rename.md)) — disruptive, low value now
 
+## Local Model Usage Discipline
+
+Lessons learned from real sessions with gemma4:26b (see chat.log, chat-review.log).
+These rules maximize the chance of success when using local models for dev work.
+
+### Session hygiene
+
+| Rule | Why |
+|------|-----|
+| `/clear` between tasks | Context pollution kills quality after 3-4 iterations |
+| Max 3-4 iterations per task | 26B models degrade with long conversations |
+| One task per session | Prevents drift from "explain repo" into "write full review" |
+
+### Structured over free-form
+
+| Do | Don't |
+|----|-------|
+| Use `docs/prompts/` for multi-step tasks | Free-chat complex features |
+| Load context explicitly with `!!cat file` | Ask the model to guess file contents |
+| Define the task before starting | Let the model decide what to do |
+
+### Verification discipline
+
+| Rule | Why |
+|------|-----|
+| Always `make check` after model changes | The model cannot verify its own output |
+| Never ask the model to review its own code | Circular reasoning → hallucinated praise |
+| Treat model output as untrusted | It hallucinates functions, patterns, and scores |
+
+### Hallucination prevention
+
+The model will confidently claim code contains `std::unique_ptr`, RAII patterns,
+or specific functions that don't exist. Mitigations:
+
+- Only trust claims about code the model has *literally read* in the current session
+- Add to system prompt: "Never claim code contains specific patterns unless you
+  have read the actual file content in this conversation"
+- Use `make check` as the only source of truth for code quality
+
+### Context budget
+
+| Model | Effective sweet spot | Hard limit |
+|-------|---------------------|------------|
+| gemma4:e4b | 2-4K tokens | 128K |
+| gemma4:26b | 4-8K tokens | 128K |
+
+"Effective sweet spot" = where quality remains high. The model accepts more
+tokens but reasoning quality drops well before the hard limit.
+
+### Model routing (follow model-guide.md)
+
+| Task type | Use |
+|-----------|-----|
+| Execute a prompt from `docs/prompts/` | gemma4:e4b |
+| Quick question, simple edit | gemma4:26b |
+| Code review, architecture, complex features | kiro-cli or Gemini CLI |
+| Verify anything | `make check`, never the model |
+
 ## Guiding Principle
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**

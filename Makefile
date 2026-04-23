@@ -48,9 +48,9 @@ format: format-code format-md format-yaml format-scripts ## Auto-format all file
 
 lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs ## Run all passive checks
 
-test: test-unit e2e ## Run all tests
+test: build test-unit e2e ## Run all tests (builds first)
 
-check: lint test sast ## Full quality gate (CI/pre-push)
+check: build lint test sast ## Full quality gate (CI/pre-push)
 
 full-check: ## Run exhaustive quality checks (FULL=1)
 	@$(MAKE) FULL=1 check
@@ -96,10 +96,10 @@ lint-makefile: ## Check Makefile conventions
 lint-scripts: ## Check shell script conventions (shellcheck)
 	@bash scripts/lint/check-scripts.sh
 
-tidy: all ## Run clang-tidy (smart: changed files only)
+tidy: ## Run clang-tidy (smart: changed files only)
 	@bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
 
-complexity: all ## Check cyclomatic complexity (pmccabe)
+complexity: ## Check cyclomatic complexity (pmccabe)
 	@bash scripts/lint/check-complexity.sh
 
 comment-ratio: ## Show comment ratio per file
@@ -113,14 +113,14 @@ docs: ## Check doxygen warnings
 
 ##@ Testing
 
-test-unit: all ## Run unit tests
+test-unit: ## Run unit tests
 	@bash scripts/test/run-unit.sh "$(BUILD_DIR)"
 t: test-unit
 
-e2e: all ## Run end-to-end tests
+e2e: ## Run end-to-end tests
 	@bash scripts/test/run-e2e.sh "$(BUILD_DIR)" "$(BINARY)"
 
-live: all ## Integration test with real LLM
+live: ## Integration test with real LLM
 	@bash e2e/test_live.sh $(BINARY)
 
 coverage: ## Build with coverage and run tests
@@ -129,7 +129,8 @@ coverage: ## Build with coverage and run tests
 coverage-report: coverage ## Show coverage summary per directory
 	@bash scripts/test/report-coverage.sh "$(BUILD_DIR)"
 
-quick: all ## Fast feedback: unit tests + comment ratio
+quick: ## Fast feedback: build + unit tests + comment ratio
+	@$(MAKE) build
 	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
 
 ##@ Security
