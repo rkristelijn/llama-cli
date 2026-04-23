@@ -141,11 +141,12 @@ features: ## List all test scenarios (feature spec)
 		[ -f "$(BUILD_DIR)/$$bin" ] && ./$(BUILD_DIR)/$$bin --list-test-cases 2>/dev/null | grep "Scenario:" | sed 's/^    //'; \
 	done
 
-fuzz: ## Run annotation fuzzer (60s, requires clang)
-	@cmake -B $(BUILD_DIR) -DENABLE_FUZZ=ON > /dev/null
-	@cmake --build $(BUILD_DIR) --target fuzz_annotation > /dev/null
+fuzz: ## Run annotation fuzzer (60s, requires llvm)
+	@LLVM=$$(brew --prefix llvm 2>/dev/null || echo /usr/bin); \
+	cmake -B build-fuzz -DENABLE_FUZZ=ON -DCMAKE_C_COMPILER="$$LLVM/bin/clang" -DCMAKE_CXX_COMPILER="$$LLVM/bin/clang++" > /dev/null && \
+	cmake --build build-fuzz --target fuzz_annotation > /dev/null
 	@echo "==> fuzzing annotation parser (60s)..."
-	@./$(BUILD_DIR)/fuzz_annotation -max_total_time=60 -print_final_stats=1
+	@./build-fuzz/fuzz_annotation -max_total_time=60 -print_final_stats=1
 
 ##@ Security
 

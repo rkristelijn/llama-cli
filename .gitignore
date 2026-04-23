@@ -1,4 +1,5 @@
 build/
+build-fuzz/
 build-cov/
 .cache/
 .tmp/

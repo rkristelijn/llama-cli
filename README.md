@@ -16,8 +16,8 @@ A local AI assistant in your terminal. Chat with LLMs, attach files, run command
 
 The Eisenhower Matrix helps prioritize tasks by urgency and importance:
 
-|                 | Urgent              | Not Urgent                  |
-|-----------------|---------------------|-----------------------------|
+|                 | Urgent                 | Not Urgent               |
+|-----------------|------------------------|--------------------------|
 | Important       | DO — crisis, deadlines | PLAN — growth, strategy  |
 | Not Important   | DELEGATE — interrupts  | ELIMINATE — distractions |
 
