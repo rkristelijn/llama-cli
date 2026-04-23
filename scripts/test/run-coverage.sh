@@ -16,7 +16,7 @@ BUILD_DIR="${1:-build}"
 
 main() {
   echo "==> make coverage (configuring with --coverage...)"
-  cmake -B "${BUILD_DIR}" -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" > /dev/null
+  cmake -B "${BUILD_DIR}" -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" -DENABLE_FUZZ=OFF > /dev/null
   cmake --build "${BUILD_DIR}" > /dev/null
   echo "==> make coverage (running tests...)"
   for t in "${BUILD_DIR}"/test_*; do

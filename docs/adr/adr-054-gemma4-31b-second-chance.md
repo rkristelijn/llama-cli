@@ -150,7 +150,7 @@ If 31b passes, update model-guide.md:
 - [ADR-044](adr-044-tidy-boilerplate.md) — Makefile leaf target rule
 - [ADR-050](adr-050-reality-check-roadmap.md) — Reality check and usage discipline
 - [model-guide.md](../model-guide.md) — Task-to-model routing
-- [ChatGPT analysis](../../chat.log) — Hardware tuning recommendations
+- ChatGPT analysis — Hardware tuning recommendations
 - [Ollama Modelfile docs](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)
 
 ## Addendum (2026-04-23): Implemented Tweaks
