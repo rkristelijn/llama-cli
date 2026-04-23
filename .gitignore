@@ -1,6 +1,7 @@
 build/
 build-cov/
 .cache/
+.tmp/
 compile_commands.json
 *.o
 *.d

@@ -6,7 +6,7 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 
 ## Bugs
 
-- [ ] `!!` command: AI doesn't always respond to the follow-up question
+- [x] `!!` command: AI doesn't always respond to the follow-up question
 - [ ] config.cpp: `std::stoi(c.port)` accepts `11434abc` — verify entire port string is numeric
 - [ ] config.cpp: `--files "/tmp/my notes.txt"` splits on whitespace — breaks quoted paths
 - [ ] config.cpp: malformed numeric env/CLI values crash before `validate_config()` runs (unguarded `stoi`)
@@ -31,8 +31,8 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] Optimize `make check` output — too chatty, find golden ratio of feedback
 - [ ] Add logging tests (Logger::log, path(), JSONL format validation)
 - [ ] Evaluate remaining 12-factor principles (#10)
-- [ ] The Makefile is a mess again, need to generate a tree view with what is calling what and verify the functionality is clean, maybe we should think about subcommands or grouping things
-- [ ] add !p and !c commands to copy the result or paste or should it be /copy /paste to keep it in line, should have a user/developer interaction design to keep things consistent and logic/intuitive
+- [x] The Makefile is a mess again, need to generate a tree view with what is calling what and verify the functionality is clean, maybe we should think about subcommands or grouping things
+- [-] add !p and !c commands to copy the result or paste or should it be /copy /paste to keep it in line, should have a user/developer interaction design to keep things consistent and logic/intuitive (partial: `c` option added to all confirmation prompts)
 - [ ] version should be bumped in pipeline not in merge request and it should bump properly feat/fix/breaking
 - [ ] we should have /private to avoid logging
 - [ ] Logger should detect dev vs installed context: log to `./events.jsonl` (repo-local) when running from source, `~/.llama-cli/events.jsonl` when installed — keeps dev and production logs separate
@@ -42,3 +42,6 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] up doesn't include ! and !!, when in private mode, /private commands, prompts are not added to the history
 - [ ] commit and push hooks should keep absolute time, not only the indicudual tasks
 - [ ] issue numbers online and local should be the same. issues should have proper body, not only a reference
+- [ ] CI speed: add ccache to CI jobs (biggest win — avoids full rebuild on every push)
+- [ ] CI speed: run coverage only on main merge, not on every PR push
+- [ ] CI speed: combine sanitizers + unit-test jobs (sanitizers already runs all tests)
