@@ -624,6 +624,8 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
       file << updated;
       out << "[wrote " << action.path << "]\n";
       LOG_EVENT("repl", "str_replace", action.path, "", 0, 0, 0);
+    } else {
+      tui::error(out, color, "str_replace: could not write to " + action.path);
     }
     return;
   }
@@ -1115,14 +1117,19 @@ static void send_prompt(const std::string& line, ReplState& s) {
   }
 
   // Inject a short reminder after iteration 2 to prevent model drift (ADR-054)
+  bool inserted_reminder = false;
   if (s.count >= 2) {
     s.history.push_back({"system", REMINDER_NUDGE});
+    inserted_reminder = true;
   }
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
     s.out << "\n[interrupted]\n";
     s.history.pop_back();
+    if (inserted_reminder) {
+      s.history.pop_back();
+    }
     g_interrupted = 0;
     return;
   }
@@ -1131,7 +1138,10 @@ static void send_prompt(const std::string& line, ReplState& s) {
   s.count++;
 
   // Keep following up while the model produces annotations (exec, read, etc.)
-  while (needs_followup) {
+  // Bounded to prevent runaway turns burning tokens/time.
+  constexpr int kMaxFollowups = 8;
+  int followup_count = 0;
+  while (needs_followup && followup_count < kMaxFollowups) {
     std::string followup = chat_with_spinner(s);
     if (g_interrupted) {
       s.out << "\n[interrupted]\n";
@@ -1140,6 +1150,10 @@ static void send_prompt(const std::string& line, ReplState& s) {
     }
     s.history.push_back({"assistant", followup});
     needs_followup = handle_response(followup, s);
+    ++followup_count;
+  }
+  if (needs_followup) {
+    s.out << "[follow-up limit reached]\n";
   }
 }
 
