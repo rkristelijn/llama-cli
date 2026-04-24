@@ -47,7 +47,7 @@ clean: ## Remove build artifacts
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs file-size ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -111,6 +111,9 @@ docs: ## Check doxygen warnings
 	@output=$$(doxygen .config/Doxyfile 2>&1) || { echo "doxygen failed"; exit 1; }; \
 	echo "$$output" | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
+
+file-size: ## Check source file sizes (ADR-061)
+	@bash scripts/lint/check-file-size.sh
 
 ##@ Testing
 

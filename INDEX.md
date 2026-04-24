@@ -52,6 +52,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-058-http-mock-testing.md`](docs/adr/adr-058-http-mock-testing.md) — Use httplib::Server as in-process mock for Ollama API unit tests — zero new dependencies
 - [`docs/adr/adr-059-memory-and-preferences.md`](docs/adr/adr-059-memory-and-preferences.md) — ADR-059: Persistent Memory & Preferences
 - [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
+- [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -174,6 +175,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
+- [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
@@ -228,4 +230,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_225 files indexed._
+_227 files indexed._
