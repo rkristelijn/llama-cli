@@ -46,6 +46,7 @@ inline std::string cli() {
              "  --why-so-serious  Enable BOFH spinner mode\n"
              "  --default-env     Print .env template to stdout (use > .env to save)\n"
              "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
+             "  --session=PATH    Session file for multi-turn sync mode (ADR-056)\n"
              "  PROMPT            Run in sync mode (non-interactive)\n"
              "\n"
              "Examples:\n"

@@ -250,6 +250,7 @@ static const OptDef opts[] = {
     {"--port=", "-p", &Config::port},
     {"--model=", "-m", &Config::model},
     {"--system-prompt=", nullptr, &Config::system_prompt},
+    {"--session=", nullptr, &Config::session_path},
 };
 
 /** Pointer-to-member type for Config int fields */
