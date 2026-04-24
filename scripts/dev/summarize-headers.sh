@@ -102,6 +102,16 @@ ask_ollama() {
   echo "$response" | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | cut -c1-120
 }
 
+# --- Portable sed -i (BSD vs GNU) ---
+
+sed_inplace() {
+  if sed --version > /dev/null 2>&1; then
+    sed -i "$@"
+  else
+    sed -i '' "$@"
+  fi
+}
+
 # --- Inject summary into file header ---
 
 inject_summary() {
@@ -112,7 +122,7 @@ inject_summary() {
     *.md)
       if head -1 "$file" | grep -q '^---$'; then
         # Add summary: into existing frontmatter
-        sed -i '' "/^---$/,/^---$/{
+        sed_inplace "/^---$/,/^---$/{
           /^---$/{
             n
             /^summary:/!i\\
@@ -124,9 +134,9 @@ summary: ${summary}
     *.cpp | *.h)
       if head -1 "$file" | grep -q '^/\*\*'; then
         if head -10 "$file" | grep -q '@brief'; then
-          sed -i '' "s|@brief .*|@brief ${summary}|" "$file"
+          sed_inplace "s|@brief .*|@brief ${summary}|" "$file"
         else
-          sed -i '' "2a\\
+          sed_inplace "2a\\
  * @brief ${summary}" "$file"
         fi
       else
@@ -136,7 +146,7 @@ summary: ${summary}
           existing=$(head -1 "$file")
           if [[ "$existing" == "//"* ]]; then
             # Replace first comment line
-            sed -i '' "1s|// .*|// ${summary}|" "$file"
+            sed_inplace "1s|// .*|// ${summary}|" "$file"
           fi
         fi
       fi
