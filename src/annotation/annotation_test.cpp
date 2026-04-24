@@ -239,12 +239,6 @@ SCENARIO ("fix_malformed_tags repairs broken closing tags") {
         CHECK (fixed == "<exec>echo hello</exec>")
           ;
       }
-      THEN ("parsers can extract the command") {
-        auto cmds = parse_write_annotations(fixed);
-        // Not a write — but exec parser in repl.cpp would match
-        CHECK (fixed.find("<exec>echo hello</exec>") != std::string::npos)
-          ;
-      }
     }
   }
 

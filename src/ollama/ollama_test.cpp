@@ -263,13 +263,14 @@ TEST_CASE ("ollama: get_available_models returns empty on bad response") {
 /// RAII guard: sets trace on with a CapturingTrace, restores on destruction
 struct TraceGuard {
   Trace* original;
+  bool original_trace;
   CapturingTrace capture;
-  TraceGuard() : original(stderr_trace) {
+  TraceGuard() : original(stderr_trace), original_trace(Config::instance().trace) {
     Config::instance().trace = true;
     stderr_trace = &capture;
   }
   ~TraceGuard() {
-    Config::instance().trace = false;
+    Config::instance().trace = original_trace;
     stderr_trace = original;
   }
 };

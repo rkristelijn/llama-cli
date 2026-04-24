@@ -306,7 +306,8 @@ std::string fix_malformed_tags(const std::string& text) {
         pos = correct + std::string(t.close).size();
         continue;
       }
-      // Find the next </...> tag and replace it with the correct closer
+      // Find the next </...> tag and replace it with the correct closer,
+      // but skip if it belongs to a valid inner element (e.g. </write> inside <exec>)
       auto bad = result.find("</", start + std::string(t.open).size());
       if (bad == std::string::npos) {
         break;
@@ -314,6 +315,30 @@ std::string fix_malformed_tags(const std::string& text) {
       auto gt = result.find('>', bad);
       if (gt == std::string::npos) {
         break;
+      }
+      // Extract the tag name from the closing tag (e.g. "write" from "</write>")
+      std::string bad_name = result.substr(bad + 2, gt - bad - 2);
+      // Check if this closing tag belongs to a valid inner opener
+      bool is_inner = false;
+      for (const auto& inner : tags) {
+        std::string inner_open(inner.open);
+        // Match tag name: "<write " → "write", "<exec>" → "exec"
+        std::string inner_name = inner_open.substr(1, inner_open.size() - 2);
+        if (inner_name.back() == ' ') {
+          inner_name.pop_back();
+        }
+        if (bad_name == inner_name) {
+          // Check if there's a matching opener between start and bad
+          auto inner_start = result.find(inner.open, start + std::string(t.open).size());
+          if (inner_start != std::string::npos && inner_start < bad) {
+            is_inner = true;
+          }
+          break;
+        }
+      }
+      if (is_inner) {
+        pos = gt + 1;  // skip this valid inner closer
+        continue;
       }
       result.replace(bad, gt - bad + 1, t.close);
       pos = bad + std::string(t.close).size();

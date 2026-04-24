@@ -227,8 +227,8 @@ Config load_env(const Config& defaults) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
     c.trace = true;
   }
-  if (std::getenv("ALLOW_WEB_SEARCH")) {
-    c.allow_web_search = true;
+  if (env_get("ALLOW_WEB_SEARCH", val)) {
+    c.allow_web_search = (val == "true" || val == "1");
   }
   if (env_get("LLAMA_SEARCH_URL", val)) {
     c.search_url = val;

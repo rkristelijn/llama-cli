@@ -9,7 +9,7 @@ FULL ?= 0
 .PHONY: all build clean run start s log test t test-unit e2e check full-check check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
-	tidy complexity comment-ratio docs sast sast-secret sast-security \
+	tidy complexity comment-ratio docs file-size sast sast-secret sast-security \
 	coverage coverage-report todo quick index setup install hooks bench features fuzz \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \

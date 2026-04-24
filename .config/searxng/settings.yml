@@ -7,4 +7,5 @@ search:
 
 server:
   secret_key: "llama-cli-searxng-local"
+  # Limiter disabled: local-only instance, no public exposure (ADR-057)
   limiter: false
