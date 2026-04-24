@@ -130,6 +130,15 @@ jobs:
       - run: bash scripts/ci/install-deps.sh pmccabe
       - run: make complexity
 
+  file-size:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make file-size
+
   # --- Build ---
 
   build:
