@@ -69,6 +69,21 @@ CI workflows are thin proxies that call `make` targets or scripts:
 - **Pin runner OS** — `ubuntu-24.04`, never `ubuntu-latest`
 - **Pin action versions** — use commit SHA with version comment, not mutable tags
 - **Reproducible locally** — `make check` runs the same checks as CI
+- **Smart filtering** — jobs only run when relevant files change (see table below)
+
+### Smart CI and hook filtering
+
+Git hooks and CI jobs detect which file types changed and skip irrelevant checks:
+
+| Changed files | Pre-commit runs | Pre-push runs | CI runs |
+|---------------|----------------|---------------|---------|
+| `src/`, `CMakeLists.txt` | format-code | build, test, tidy, e2e, comment-ratio | all code jobs + coverage + sanitizers |
+| `scripts/`, `Makefile` | format-scripts | lint-makefile, lint-scripts | lint-makefile, lint-scripts |
+| `*.md` | format-md | — | lint-markdown |
+| `*.yml` / `*.yaml` | format-yaml | — | lint-yaml |
+| any | index, sast-secret | sast-security | sast-secret |
+
+CI uses `dorny/paths-filter` with 5 filters (`code`, `src`, `docs`, `yaml`, `scripts`). Git hooks use `git diff --cached` (pre-commit) and `git diff main...HEAD` (pre-push) to detect file types.
 
 ### Version pinning
 
