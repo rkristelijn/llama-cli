@@ -18,11 +18,13 @@ STEPS=(
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
   "Analysis|tidy|make -s tidy"
-  "Analysis|complexity|make -s complexity"
+  # complexity: redundant with tidy + CI runs full-check on main
+  # "Analysis|complexity|make -s complexity"
   "Build|build|make -s build"
   "Test|test-unit|make -s test-unit"
   "Test|e2e|make -s e2e"
-  "Test|coverage-report|make -s coverage-report"
+  # coverage-report: slow (~30s), CI handles this on every PR
+  # "Test|coverage-report|make -s coverage-report"
   "Security|sast-security|make -s sast-security"
   "Security|sast-secret|make -s sast-secret"
   "Metrics|comment-ratio|make -s comment-ratio"
