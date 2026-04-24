@@ -487,3 +487,11 @@ SCENARIO ("REPL /model select from list") {
     }
   }
 }
+
+// TODO: test REPL with piped stdin (non-TTY input)
+// TODO: test /clear resets conversation history
+// TODO: test /set trace toggles trace mode
+// TODO: test color_name_to_ansi and ansi_to_name (high complexity, needs refactor)
+// TODO: test interruptible_chat timeout behavior (needs mock HTTP or thread control)
+// TODO: test !! command injects output into history
+// TODO: test ! command does NOT inject output into history

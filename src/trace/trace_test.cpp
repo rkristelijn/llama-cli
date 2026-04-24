@@ -42,3 +42,39 @@ SCENARIO ("StderrTrace exists") {
     }
   }
 }
+
+// --- StderrTrace output test ---
+
+SCENARIO ("StderrTrace writes to stderr") {
+  GIVEN ("the stderr trace instance") {
+    WHEN ("log is called") {
+      // StderrTrace writes to stderr — we can't easily capture it,
+      // but we verify it doesn't crash with various format strings
+      stderr_trace_instance.log("test %s", "message");
+      stderr_trace_instance.log("number %d", 42);
+      stderr_trace_instance.log("no args");
+      THEN ("no crash occurred") {
+        CHECK (true)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("CapturingTrace handles empty format") {
+  GIVEN ("a capturing trace") {
+    CapturingTrace trace;
+    WHEN ("empty string is logged") {
+      trace.log("");
+      THEN ("empty message is captured") {
+        REQUIRE (trace.messages.size() == 1)
+          ;
+        CHECK (trace.messages[0].empty())
+          ;
+      }
+    }
+  }
+}
+
+// TODO: test StderrTrace output format (timestamp + message) — needs stderr capture
+// TODO: test CapturingTrace with buffer overflow (>256 char message)

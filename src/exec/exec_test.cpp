@@ -63,3 +63,51 @@ SCENARIO ("command execution") {
     }
   }
 }
+
+// --- Timeout and truncation ---
+
+SCENARIO ("command execution: timeout") {
+  GIVEN ("a command that runs longer than the timeout") {
+    WHEN ("executed with 1 second timeout") {
+      // Use a loop that produces output — timeout is checked between reads
+      auto r = cmd_exec("for i in $(seq 1 100); do echo $i; sleep 0.1; done", 1, 10000);
+      THEN ("it is killed by timeout") {
+        CHECK (r.timed_out)
+          ;
+        CHECK (r.output.find("timeout") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("command execution: output truncation") {
+  GIVEN ("a command that produces lots of output") {
+    WHEN ("executed with small max_chars") {
+      auto r = cmd_exec("seq 1 10000", 5, 100);
+      THEN ("output is truncated") {
+        CHECK (r.output.find("truncated") != std::string::npos)
+          ;
+        CHECK (static_cast<int>(r.output.size()) < 200)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("command execution: failed command") {
+  GIVEN ("a command that exits with non-zero") {
+    WHEN ("executed") {
+      auto r = cmd_exec("false", 5, 10000);
+      THEN ("exit code is non-zero") {
+        CHECK (r.exit_code != 0)
+          ;
+        CHECK (!r.timed_out)
+          ;
+      }
+    }
+  }
+}
+
+// TODO: test popen failure path (cmd_exec returns "Error: could not execute command")
+// TODO: test WIFSIGNALED path (command killed by signal)

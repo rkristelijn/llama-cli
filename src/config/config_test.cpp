@@ -406,3 +406,70 @@ SCENARIO ("print default env template") {
     }
   }
 }
+
+// --- ADR-056: session, capabilities, sandbox ---
+
+SCENARIO ("config: --session flag") {
+  GIVEN ("--session=path is provided") {
+    const char* argv[] = {"llama-cli", "--session=/tmp/s.json", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN ("session_path is set") {
+        CHECK (c.session_path == "/tmp/s.json")
+          ;
+      }
+    }
+  }
+  GIVEN ("no --session flag") {
+    const char* argv[] = {"llama-cli", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(2, argv);
+      THEN ("session_path is empty") {
+        CHECK (c.session_path.empty())
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("config: --capabilities flag") {
+  GIVEN ("--capabilities=read,write is provided") {
+    const char* argv[] = {"llama-cli", "--capabilities=read,write", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN ("capabilities is set") {
+        CHECK (c.capabilities == "read,write")
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("config: --sandbox flag") {
+  GIVEN ("--sandbox=./src is provided") {
+    const char* argv[] = {"llama-cli", "--sandbox=./src", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(3, argv);
+      THEN ("sandbox is set") {
+        CHECK (c.sandbox == "./src")
+          ;
+      }
+    }
+  }
+  GIVEN ("no --sandbox flag") {
+    const char* argv[] = {"llama-cli", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(2, argv);
+      THEN ("sandbox defaults to current dir") {
+        CHECK (c.sandbox == ".")
+          ;
+      }
+    }
+  }
+}
+
+// TODO: test --files with space-separated paths
+// TODO: test --files with nonexistent file (should exit with error)
+// TODO: test malformed numeric env/CLI values (stoi crash — see TODO.md)
+// TODO: test TRACE env var handling (inconsistent between .env and env var)
+// TODO: test validate_config rejects invalid port strings like "11434abc"
