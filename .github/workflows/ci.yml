@@ -163,8 +163,8 @@ jobs:
           PERCENT=$(lcov --summary coverage.info \
             | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
           echo "Total Line Coverage: $PERCENT%"
-          if [ "$(echo "$PERCENT < 50" | bc -l)" -eq 1 ]; then
-            echo "Coverage below 50%!"; exit 1
+          if [ "$(echo "$PERCENT < 60" | bc -l)" -eq 1 ]; then
+            echo "Coverage below 60%!"; exit 1
           fi
       - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
         with:
