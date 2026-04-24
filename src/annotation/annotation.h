@@ -27,6 +27,11 @@ struct ReadAction {
   std::string search;  ///< Search term (empty = not set)
 };
 
+/// A web search query extracted from LLM response (ADR-057)
+struct SearchAction {
+  std::string query;  ///< Search query string
+};
+
 // Extract all <write> annotations from response text
 std::vector<WriteAction> parse_write_annotations(const std::string& text);
 
@@ -36,7 +41,13 @@ std::vector<StrReplaceAction> parse_str_replace_annotations(const std::string& t
 // Extract all <read> annotations from response text
 std::vector<ReadAction> parse_read_annotations(const std::string& text);
 
+// Extract all <search> annotations from response text (ADR-057)
+std::vector<SearchAction> parse_search_annotations(const std::string& text);
+
 // Remove write/str_replace/read annotations from text, replacing with summary
 std::string strip_annotations(const std::string& text);
+
+// Auto-repair malformed closing tags (e.g. <exec>...</bash> → <exec>...</exec>)
+std::string fix_malformed_tags(const std::string& text);
 
 #endif

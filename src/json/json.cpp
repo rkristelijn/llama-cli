@@ -147,6 +147,15 @@ std::string json_extract_object(const std::string& json, const std::string& key)
   return extract_braced(json, pos);
 }
 
+/** Extract a JSON object starting at a given position.
+ * pos must point to '{'. Used to walk arrays of objects. */
+std::string json_extract_object_at(const std::string& json, size_t pos) {
+  if (pos >= json.size() || json[pos] != '{') {
+    return "";
+  }
+  return extract_braced(json, pos);
+}
+
 /** Extract a JSON integer value by key: "key":123
  * Skips whitespace after the colon, then reads consecutive digits.
  * Returns 0 if the key is not found (sufficient for token counts). */

@@ -138,6 +138,14 @@ void load_dotenv(const std::string& path, Config& c) {
     } else if (key == "TRACE") {
       // TRACE=true or TRACE=1 enables trace output (HTTP calls, timing)
       c.trace = (val == "true" || val == "1");
+    } else if (key == "ALLOW_WEB_SEARCH") {
+      c.allow_web_search = (val == "true" || val == "1");
+    } else if (key == "LLAMA_SEARCH_URL") {
+      c.search_url = val;
+    } else if (key == "LLAMA_SEARCH_LANG") {
+      c.search_lang = val;
+    } else if (key == "LLAMA_SEARCH_LOCATION") {
+      c.search_location = val;
     }
   }
 }
@@ -218,6 +226,18 @@ Config load_env(const Config& defaults) {
   if (std::getenv("TRACE")) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
     c.trace = true;
+  }
+  if (env_get("ALLOW_WEB_SEARCH", val)) {
+    c.allow_web_search = (val == "true" || val == "1");
+  }
+  if (env_get("LLAMA_SEARCH_URL", val)) {
+    c.search_url = val;
+  }
+  if (env_get("LLAMA_SEARCH_LANG", val)) {
+    c.search_lang = val;
+  }
+  if (env_get("LLAMA_SEARCH_LOCATION", val)) {
+    c.search_location = val;
   }
   if (env_get("LLAMA_PROMPT_COLOR", val)) {
     c.prompt_color = val;
@@ -385,6 +405,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       c.force_repl = true;
       continue;
     }
+    if (arg == "--web-search") {
+      c.allow_web_search = true;
+      continue;
+    }
 
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
     parse_files_flag(arg, i, argc, argv, c);
@@ -438,6 +462,10 @@ void print_default_env() {
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
+            << "# ALLOW_WEB_SEARCH=1 # Enable web search tool (ADR-057)\n"
+            << "# LLAMA_SEARCH_URL=" << c.search_url << " # SearXNG-compatible JSON API base URL\n"
+            << "# LLAMA_SEARCH_LANG=" << c.search_lang << " # Search language (en-US, nl-NL, ...)\n"
+            << "# LLAMA_SEARCH_LOCATION= # Search location (e.g. Eindhoven, NL)\n"
             << "# LLAMA_PROMPT_COLOR=" << c.prompt_color << " # Prompt color (yellow, cyan, etc.)\n"
             << "# LLAMA_AI_COLOR=" << c.ai_color << " # AI response color (purple, green, etc.)\n"
             << "# OLLAMA_SYSTEM_PROMPT=\"" << flat_prompt << "\" # System prompt\n";

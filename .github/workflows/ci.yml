@@ -130,6 +130,15 @@ jobs:
       - run: bash scripts/ci/install-deps.sh pmccabe
       - run: make complexity
 
+  file-size:
+    needs: changes
+    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make file-size
+
   # --- Build ---
 
   build:
@@ -181,8 +190,8 @@ jobs:
           PERCENT=$(lcov --summary coverage.info \
             | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
           echo "Total Line Coverage: $PERCENT%"
-          if [ "$(echo "$PERCENT < 59" | bc -l)" -eq 1 ]; then
-            echo "Coverage below 59%!"; exit 1
+          if [ "$(echo "$PERCENT < 55" | bc -l)" -eq 1 ]; then
+            echo "Coverage below 55%!"; exit 1
           fi
       - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
         with:

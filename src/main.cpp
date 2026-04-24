@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
       // Process annotations if capabilities are set (ADR-056)
       int max_rounds = 10;
       while (!cfg.capabilities.empty() && max_rounds-- > 0) {
-        std::string followup = process_sync_annotations(response, cfg);
+        std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
         if (followup.empty()) break;
         messages.push_back({"user", followup});
         response = generate_response(messages);

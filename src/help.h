@@ -74,6 +74,8 @@ constexpr const char* repl =
     "  /color        Set prompt or AI response color\n"
     "  /set          Show options\n"
     "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
+    "  /mem          Show memories (/mem add <fact>, /mem clear)\n"
+    "  /pref         Show preferences (/pref add <pref>, /pref clear)\n"
     "  /version      Show version info\n"
     "  /help         Show this help\n"
     "  exit, quit    Exit the REPL\n"

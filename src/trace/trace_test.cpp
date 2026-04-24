@@ -47,14 +47,24 @@ SCENARIO ("StderrTrace exists") {
 
 SCENARIO ("StderrTrace writes to stderr") {
   GIVEN ("the stderr trace instance") {
-    WHEN ("log is called") {
-      // StderrTrace writes to stderr — we can't easily capture it,
-      // but we verify it doesn't crash with various format strings
-      stderr_trace_instance.log("test %s", "message");
-      stderr_trace_instance.log("number %d", 42);
-      stderr_trace_instance.log("no args");
-      THEN ("no crash occurred") {
-        CHECK (true)
+    WHEN ("log is called via the global pointer") {
+      // Swap in a CapturingTrace to verify messages without stderr noise
+      // (ADR-060 will unify all error output to ostream&)
+      CapturingTrace capture;
+      Trace* original = stderr_trace;
+      stderr_trace = &capture;
+      stderr_trace->log("test %s", "message");
+      stderr_trace->log("number %d", 42);
+      stderr_trace->log("no args");
+      stderr_trace = original;
+      THEN ("messages were captured") {
+        REQUIRE (capture.messages.size() == 3)
+          ;
+        CHECK (capture.messages[0] == "test message")
+          ;
+        CHECK (capture.messages[1] == "number 42")
+          ;
+        CHECK (capture.messages[2] == "no args")
           ;
       }
     }

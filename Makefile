@@ -9,7 +9,7 @@ FULL ?= 0
 .PHONY: all build clean run start s log test t test-unit e2e check full-check check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
-	tidy complexity comment-ratio docs sast sast-secret sast-security \
+	tidy complexity comment-ratio docs file-size sast sast-secret sast-security \
 	coverage coverage-report todo quick index setup install hooks bench features fuzz \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
@@ -47,7 +47,7 @@ clean: ## Remove build artifacts
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs file-size ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -111,6 +111,9 @@ docs: ## Check doxygen warnings
 	@output=$$(doxygen .config/Doxyfile 2>&1) || { echo "doxygen failed"; exit 1; }; \
 	echo "$$output" | grep "warning:" | grep -v "No output formats\|Unsupported xml\|falsely parses" && exit 1 || true
 	@echo "  [done] docs"
+
+file-size: ## Check source file sizes (ADR-061)
+	@bash scripts/lint/check-file-size.sh
 
 ##@ Testing
 

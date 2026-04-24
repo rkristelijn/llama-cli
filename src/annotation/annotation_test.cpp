@@ -229,3 +229,56 @@ SCENARIO ("stripped annotations contain bold white ANSI codes") {
     }
   }
 }
+
+SCENARIO ("fix_malformed_tags repairs broken closing tags") {
+  GIVEN ("an exec tag closed with </bash>") {
+    std::string text = "<exec>echo hello</bash>";
+    WHEN ("fixed") {
+      auto fixed = fix_malformed_tags(text);
+      THEN ("closing tag becomes </exec>") {
+        CHECK (fixed == "<exec>echo hello</exec>")
+          ;
+      }
+    }
+  }
+
+  GIVEN ("a write tag closed with </file>") {
+    std::string text = R"(<write file="a.txt">content</file>)";
+    WHEN ("fixed") {
+      auto fixed = fix_malformed_tags(text);
+      THEN ("closing tag becomes </write>") {
+        CHECK (fixed.find("</write>") != std::string::npos)
+          ;
+      }
+      THEN ("write parser can extract it") {
+        auto actions = parse_write_annotations(fixed);
+        CHECK (actions.size() == 1)
+          ;
+        CHECK (actions[0].path == "a.txt")
+          ;
+      }
+    }
+  }
+
+  GIVEN ("well-formed tags") {
+    std::string text = "<exec>ls</exec> and <search>query</search>";
+    WHEN ("fixed") {
+      auto fixed = fix_malformed_tags(text);
+      THEN ("text is unchanged") {
+        CHECK (fixed == text)
+          ;
+      }
+    }
+  }
+
+  GIVEN ("no tags at all") {
+    std::string text = "just plain text";
+    WHEN ("fixed") {
+      auto fixed = fix_malformed_tags(text);
+      THEN ("text is unchanged") {
+        CHECK (fixed == text)
+          ;
+      }
+    }
+  }
+}

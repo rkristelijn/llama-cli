@@ -139,6 +139,8 @@ SCENARIO ("REPL conversation history") {
     WHEN ("the REPL runs") {
       Config cfg;
       cfg.system_prompt = "be helpful";
+      cfg.memory_path = "";
+      cfg.preferences_path = "";
       run_repl(sys_chat, cfg, in, out);
     }
   }
@@ -315,7 +317,7 @@ SCENARIO ("REPL command execution") {
     WHEN ("the REPL runs") {
       run_repl(exec_chat, test_cfg(), in, out);
       THEN ("confirmation is asked") {
-        CHECK (out.str().find("Run: echo test123?") != std::string::npos)
+        CHECK (out.str().find("Run: \033[1;33mecho test123\033[0m?") != std::string::npos)
           ;
       }
       THEN ("command output is shown") {
