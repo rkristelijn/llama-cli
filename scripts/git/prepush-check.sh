@@ -12,9 +12,12 @@ STEP=0
 FAILED_NAMES=()
 
 STEPS=(
-  "Lint|lint-code|make -s lint-code"
-  "Lint|lint-yaml|make -s lint-yaml"
-  "Lint|lint-md|make -s lint-md"
+  # lint-code: precommit already runs format-code (auto-fix)
+  # "Lint|lint-code|make -s lint-code"
+  # lint-yaml: precommit already runs format-yaml (auto-fix)
+  # "Lint|lint-yaml|make -s lint-yaml"
+  # lint-md: precommit already runs format-md (auto-fix)
+  # "Lint|lint-md|make -s lint-md"
   "Lint|lint-makefile|make -s lint-makefile"
   "Lint|lint-scripts|make -s lint-scripts"
   "Analysis|tidy|make -s tidy"
@@ -26,7 +29,8 @@ STEPS=(
   # coverage-report: slow (~30s), CI handles this on every PR
   # "Test|coverage-report|make -s coverage-report"
   "Security|sast-security|make -s sast-security"
-  "Security|sast-secret|make -s sast-secret"
+  # sast-secret: precommit already runs this
+  # "Security|sast-secret|make -s sast-secret"
   "Metrics|comment-ratio|make -s comment-ratio"
 )
 
