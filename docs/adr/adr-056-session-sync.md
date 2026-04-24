@@ -185,3 +185,83 @@ Reuses `json_extract_string()` from `json/json.h` for reading. Serialization use
 - Session files grow unbounded — caller is responsible for cleanup or rotation
 - No built-in context window management — if history exceeds model context, Ollama truncates
 - Future: could add `--session-clear` to reset, or `--session-last N` to limit history depth
+
+## Capabilities: `--capabilities=read,write,exec`
+
+Without capabilities, sync mode streams the raw LLM response (including annotation tags) to stdout and the caller handles them. With `--capabilities`, llama-cli processes annotations itself — auto-executing allowed actions and feeding output back to the model.
+
+### Capability levels
+
+| Capability | Annotations processed | Auto-executes |
+|------------|----------------------|---------------|
+| `read` | `<read>`, `<exec>` (safe commands only) | File reads, read-only shell commands |
+| `write` | `<write>`, `<str_replace>` | File creates and edits |
+| `exec` | `<exec>` (any command) | Arbitrary shell commands |
+
+Capabilities are additive and comma-separated:
+
+```bash
+# Research mode — model can read files and run safe commands
+./llama-cli --session s.json --capabilities=read "what does main.cpp do?"
+
+# Code fix mode — model can read and edit files
+./llama-cli --session s.json --capabilities=read,write "fix the bug in config.cpp"
+
+# Full autonomy — model can do anything (explicit opt-in)
+./llama-cli --session s.json --capabilities=read,write,exec "set up the project"
+```
+
+### Read-only command allowlist
+
+The `read` capability allows `<exec>` only for commands whose first word is in this allowlist:
+
+```
+cat ls find grep head tail wc stat tree du df
+file diff sort uniq awk sed less more realpath dirname basename
+```
+
+Safety rules:
+- Each pipe segment is checked independently (`cat foo | grep bar` → both OK)
+- Redirects (`>`, `>>`) are always blocked in read mode
+- Commands not in the allowlist require the `exec` capability
+
+### Capability flow
+
+```mermaid
+flowchart TD
+    R[LLM response] --> P{has annotations?}
+    P -->|no| D[done]
+    P -->|yes| C{check capabilities}
+    C -->|read tag + read cap| FR[read file, feed back]
+    C -->|exec tag + read cap| SC{safe command?}
+    SC -->|yes| EX[execute, feed back]
+    SC -->|no| BL[blocked]
+    C -->|exec tag + exec cap| EX2[execute any, feed back]
+    C -->|write tag + write cap| WR[write/replace file]
+    C -->|no matching cap| BL
+    FR --> FL{more annotations?}
+    EX --> FL
+    EX2 --> FL
+    FL -->|yes, has output| NR[send follow-up to model]
+    NR --> R
+    FL -->|no| D
+```
+
+### Follow-up loop
+
+When read/exec output is produced, it's fed back to the model as a user message so the model can analyze the results. This loops up to 10 rounds (safety limit) or until the model produces a response with no actionable annotations.
+
+```mermaid
+sequenceDiagram
+    participant C as Caller
+    participant L as llama-cli
+    participant O as Ollama
+
+    C->>L: --capabilities=read "explain main.cpp"
+    L->>O: [system, user]
+    O-->>L: I'll read the file<br/><read path="src/main.cpp"/>
+    L->>L: read file (cap: read ✓)
+    L->>O: [system, user, assistant, user: file content]
+    O-->>L: This file does X, Y, Z...
+    L-->>C: final response on stdout
+```

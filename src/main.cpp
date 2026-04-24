@@ -11,9 +11,12 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <string>
 
+#include "annotation/annotation.h"
 #include "config/config.h"
+#include "exec/exec.h"
 #include "help.h"
 #include "json/json.h"
 #include "ollama/ollama.h"
@@ -87,6 +90,132 @@ static std::string load_kiro_context(Config& cfg, bool color) {
  *
  * @return int Exit code: `0` on normal completion.
  */
+/// Check if a capability is enabled in the comma-separated capabilities string
+static bool has_cap(const std::string& caps, const std::string& cap) {
+  // Search for cap as a whole word within comma-separated list
+  size_t pos = 0;
+  while ((pos = caps.find(cap, pos)) != std::string::npos) {
+    bool at_start = (pos == 0 || caps[pos - 1] == ',');
+    bool at_end = (pos + cap.size() >= caps.size() || caps[pos + cap.size()] == ',');
+    if (at_start && at_end) return true;
+    pos += cap.size();
+  }
+  return false;
+}
+
+/// Commands safe to auto-execute with the "read" capability.
+/// These cannot modify files, network, or system state.
+static const std::vector<std::string> READ_ONLY_COMMANDS = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
+                                                            "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
+                                                            "sed",  "less", "more", "realpath", "dirname", "basename"};
+
+/// Check if a command is read-only (first word in allowlist, no redirects)
+static bool is_read_only(const std::string& cmd) {
+  // Block redirects and destructive operators
+  if (cmd.find('>') != std::string::npos) return false;
+  // Extract first word from each pipe segment
+  std::istringstream segments(cmd);
+  std::string segment;
+  while (std::getline(segments, segment, '|')) {
+    // Trim leading whitespace
+    size_t start = segment.find_first_not_of(" \t");
+    if (start == std::string::npos) continue;
+    // Extract first word (the command)
+    size_t end = segment.find_first_of(" \t", start);
+    std::string word = segment.substr(start, end - start);
+    bool found = false;
+    for (const auto& safe : READ_ONLY_COMMANDS) {
+      if (word == safe) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+/// Parse <exec>cmd</exec> tags from LLM response text
+static std::vector<std::string> parse_exec_tags(const std::string& text) {
+  std::vector<std::string> cmds;
+  const std::string open = "<exec>";
+  const std::string close = "</exec>";
+  size_t pos = 0;
+  while ((pos = text.find(open, pos)) != std::string::npos) {
+    size_t start = pos + open.size();
+    size_t end = text.find(close, start);
+    if (end == std::string::npos) break;
+    cmds.push_back(text.substr(start, end - start));
+    pos = end + close.size();
+  }
+  return cmds;
+}
+
+/// Process annotations in sync mode response based on capabilities (ADR-056).
+/// Returns context to feed back to the model (read/exec output).
+// pmccabe:skip-complexity — handles all annotation types in one pass
+static std::string process_sync_annotations(const std::string& response, const Config& cfg) {
+  std::string caps = cfg.capabilities;
+  std::string followup;
+
+  // Process <read> annotations (requires "read" capability)
+  if (has_cap(caps, "read")) {
+    auto reads = parse_read_annotations(response);
+    for (const auto& action : reads) {
+      std::ifstream f(action.path);
+      if (!f) {
+        std::cerr << "[read: file not found: " << action.path << "]\n";
+        continue;
+      }
+      std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+      followup += "[file: " + action.path + "]\n" + content + "\n";
+      std::cerr << "[read " << action.path << "]\n";
+    }
+  }
+
+  // Process <exec> annotations (requires "read" for safe cmds, "exec" for all)
+  auto execs = parse_exec_tags(response);
+  for (const auto& cmd : execs) {
+    bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
+    if (!allowed) {
+      std::cerr << "[blocked: " << cmd << "]\n";
+      continue;
+    }
+    auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
+    followup += "[command: " + cmd + "]\n" + r.output + "\n";
+    std::cerr << "[exec " << cmd << "]\n";
+  }
+
+  // Process <write> and <str_replace> annotations (requires "write" capability)
+  if (has_cap(caps, "write")) {
+    auto writes = parse_write_annotations(response);
+    for (const auto& action : writes) {
+      std::ofstream f(action.path);
+      if (f) {
+        f << action.content;
+        std::cerr << "[wrote " << action.path << "]\n";
+      }
+    }
+    auto replaces = parse_str_replace_annotations(response);
+    for (const auto& action : replaces) {
+      std::ifstream rf(action.path);
+      if (!rf) continue;
+      std::string content((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
+      rf.close();
+      size_t pos = content.find(action.old_str);
+      if (pos == std::string::npos) continue;
+      content.replace(pos, action.old_str.size(), action.new_str);
+      std::ofstream wf(action.path);
+      if (wf) {
+        wf << content;
+        std::cerr << "[str_replace " << action.path << "]\n";
+      }
+    }
+  }
+
+  return followup;
+}
+
 /// Escape a string for JSON output (quotes, backslashes, control chars)
 static std::string escape_json(const std::string& s) {
   std::string out;
@@ -242,9 +371,24 @@ int main(int argc, char* argv[]) {
       });
       if (!response.empty()) {
         std::cout << "\n";
+        messages.push_back({"assistant", response});
+        // Process annotations if capabilities are set (ADR-056)
+        // Follow-up loop: feed read/exec output back to the model
+        int max_rounds = 10;  // safety limit to prevent infinite loops
+        while (!cfg.capabilities.empty() && max_rounds-- > 0) {
+          std::string followup = process_sync_annotations(response, cfg);
+          if (followup.empty()) break;
+          messages.push_back({"user", followup});
+          response = ollama_chat_stream(cfg, messages, [](const std::string& token) {
+            std::cout << token << std::flush;
+            return true;
+          });
+          if (response.empty()) break;
+          std::cout << "\n";
+          messages.push_back({"assistant", response});
+        }
         // Save updated history if --session is set (ADR-056)
         if (!cfg.session_path.empty()) {
-          messages.push_back({"assistant", response});
           save_session(cfg.session_path, messages);
         }
       }
