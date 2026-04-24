@@ -8,6 +8,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <climits>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -151,6 +153,32 @@ static std::vector<std::string> parse_exec_tags(const std::string& text) {
   return cmds;
 }
 
+/// Check if a file path is within the sandbox directory (ADR-056).
+/// Resolves both paths to absolute form to catch ".." traversal.
+/// For non-existent files (writes), checks the parent directory.
+static bool path_allowed(const std::string& path, const std::string& sandbox) {
+  // Resolve sandbox to absolute path
+  char sandbox_real[PATH_MAX];
+  if (!realpath(sandbox.c_str(), sandbox_real)) return false;
+  std::string sandbox_prefix(sandbox_real);
+  sandbox_prefix += "/";
+
+  // For existing files, resolve directly
+  char path_real[PATH_MAX];
+  if (realpath(path.c_str(), path_real)) {
+    std::string resolved(path_real);
+    // Allow exact match (sandbox dir itself) or prefix match
+    return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
+  }
+
+  // For new files, resolve the parent directory
+  size_t slash = path.rfind('/');
+  std::string parent = (slash != std::string::npos) ? path.substr(0, slash) : ".";
+  if (!realpath(parent.c_str(), path_real)) return false;
+  std::string resolved(path_real);
+  return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
+}
+
 /// Process annotations in sync mode response based on capabilities (ADR-056).
 /// Returns context to feed back to the model (read/exec output).
 // pmccabe:skip-complexity — handles all annotation types in one pass
@@ -162,6 +190,10 @@ static std::string process_sync_annotations(const std::string& response, const C
   if (has_cap(caps, "read")) {
     auto reads = parse_read_annotations(response);
     for (const auto& action : reads) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: read outside sandbox: " << action.path << "]\n";
+        continue;
+      }
       std::ifstream f(action.path);
       if (!f) {
         std::cerr << "[read: file not found: " << action.path << "]\n";
@@ -190,6 +222,10 @@ static std::string process_sync_annotations(const std::string& response, const C
   if (has_cap(caps, "write")) {
     auto writes = parse_write_annotations(response);
     for (const auto& action : writes) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
       std::ofstream f(action.path);
       if (f) {
         f << action.content;
@@ -198,6 +234,10 @@ static std::string process_sync_annotations(const std::string& response, const C
     }
     auto replaces = parse_str_replace_annotations(response);
     for (const auto& action : replaces) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
       std::ifstream rf(action.path);
       if (!rf) continue;
       std::string content((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());

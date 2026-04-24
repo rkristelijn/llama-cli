@@ -55,6 +55,7 @@ struct Config {
   std::vector<std::string> files;       ///< Input files for sync mode (--files, ADR-030)
   std::string session_path;             ///< Session file for multi-turn sync (--session, ADR-056)
   std::string capabilities;             ///< Capability flags: read,write,exec (--capabilities, ADR-056)
+  std::string sandbox = ".";            ///< Sandbox root for file ops (--sandbox, ADR-056)
   std::string system_prompt =           ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. Always respond in the same "

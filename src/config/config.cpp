@@ -252,6 +252,7 @@ static const OptDef opts[] = {
     {"--system-prompt=", nullptr, &Config::system_prompt},
     {"--session=", nullptr, &Config::session_path},
     {"--capabilities=", nullptr, &Config::capabilities},
+    {"--sandbox=", nullptr, &Config::sandbox},
 };
 
 /** Pointer-to-member type for Config int fields */

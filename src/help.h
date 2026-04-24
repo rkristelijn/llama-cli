@@ -48,6 +48,7 @@ inline std::string cli() {
              "  --files=FILE      Read file(s) as context (quoted for multiple)\n"
              "  --session=PATH    Session file for multi-turn sync mode (ADR-056)\n"
              "  --capabilities=X  Allowed actions: read,write,exec (default: none)\n"
+             "  --sandbox=PATH    Restrict file ops to this directory (default: .)\n"
              "  PROMPT            Run in sync mode (non-interactive)\n"
              "\n"
              "Examples:\n"
