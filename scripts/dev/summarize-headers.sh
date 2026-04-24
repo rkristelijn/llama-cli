@@ -157,11 +157,13 @@ main() {
 
   # Phase 1: collect files that need summaries
   local candidates=()
-  for f in $(find docs src scripts -type f \( -name "*.md" -o -name "*.cpp" -o -name "*.h" \) | sort); do
+  while IFS= read -r -d '' f; do
     if needs_summary "$f"; then
       candidates+=("$f")
     fi
-  done
+  done < <(find docs src scripts -type f \
+    \( -name "*.md" -o -name "*.cpp" -o -name "*.h" -o -name "*.sh" \) \
+    -print0 | sort -z)
 
   local total=${#candidates[@]}
   if [[ $total -eq 0 ]]; then

@@ -225,6 +225,12 @@ TEST_CASE ("ollama: get_available_models returns empty on bad response") {
 
 // --- trace mode ---
 
+/// RAII guard: sets trace on, restores on destruction
+struct TraceGuard {
+  TraceGuard() { Config::instance().trace = true; }
+  ~TraceGuard() { Config::instance().trace = false; }
+};
+
 TEST_CASE ("ollama: generate with trace logs to stderr") {
   MockServer m;
   m.svr.Post("/api/generate", [](const httplib::Request&, httplib::Response& res) {
@@ -234,11 +240,10 @@ TEST_CASE ("ollama: generate with trace logs to stderr") {
 
   auto cfg = mock_cfg(m.port);
   cfg.trace = true;
-  Config::instance().trace = true;
+  TraceGuard guard;
 
   CHECK (ollama_generate(cfg, "test") == "traced")
     ;
-  Config::instance().trace = false;
 }
 
 TEST_CASE ("ollama: chat with trace logs to stderr") {
@@ -250,10 +255,9 @@ TEST_CASE ("ollama: chat with trace logs to stderr") {
 
   auto cfg = mock_cfg(m.port);
   cfg.trace = true;
-  Config::instance().trace = true;
+  TraceGuard guard;
 
   std::vector<Message> msgs = {{"user", "test"}};
   CHECK (ollama_chat(cfg, msgs) == "traced")
     ;
-  Config::instance().trace = false;
 }

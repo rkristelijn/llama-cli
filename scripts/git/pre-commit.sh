@@ -20,13 +20,13 @@ fi
 
 # Validate branch naming convention: type/description (kebab-case)
 # @see docs/adr/adr-048-quality-framework.md §3.2 check 0.2
-BRANCH_PATTERN="^(feat|fix|chore|docs|refactor|test|ci|release)/.+$"
+BRANCH_PATTERN="^(feat|fix|chore|docs|refactor|test|ci|style|perf|build|release)/[a-z0-9]+(-[a-z0-9]+)*$"
 if [[ -n "${branch}" ]] && ! [[ "${branch}" =~ ${BRANCH_PATTERN} ]]; then
   echo ""
   echo "ERROR: Branch name '${branch}' does not follow naming convention."
   echo ""
   echo "  Expected: type/description  (e.g. feat/streaming, fix/config-crash)"
-  echo "  Types:    feat, fix, chore, docs, refactor, test, ci, release"
+  echo "  Types:    feat, fix, chore, docs, refactor, test, ci, style, perf, build, release"
   echo ""
   exit 1
 fi

@@ -40,7 +40,9 @@ main() {
 
   echo ""
   echo "==> Code TODOs"
-  grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true
+  local code_todos
+  code_todos=$(grep -rn -E '\b(TODO|FIXME|HACK|XXX)\b' src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true)
+  echo "${code_todos}"
 
   # Generate TECHDEBT.md
   # @see docs/adr/adr-048-quality-framework.md §3.3 check 1.3
@@ -53,9 +55,10 @@ main() {
     echo ""
     local code_count=0
     while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
       echo "- \`${line}\`"
       (( code_count++ )) || true
-    done < <(grep -rn "TODO\|FIXME\|HACK\|XXX" src/ include/ --include="*.cpp" --include="*.h" 2>/dev/null || true)
+    done <<< "${code_todos}"
     echo ""
     echo "**Total code TODOs: ${code_count}**"
     echo ""
