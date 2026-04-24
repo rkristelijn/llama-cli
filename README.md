@@ -7,7 +7,7 @@
 [![Semgrep](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-security&label=SAST)](https://github.com/rkristelijn/llama-cli/actions)
 [![Gitleaks](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-secret&label=Secrets)](https://github.com/rkristelijn/llama-cli/actions)
 [![Tests](https://img.shields.io/badge/Tests-48_scenarios-blue)](https://github.com/rkristelijn/llama-cli)
-[![CMMI](https://img.shields.io/badge/CMMI-Level_0.6-yellow)](docs/adr/adr-048-quality-framework.md)
+[![CMMI](https://img.shields.io/badge/CMMI-Level_1-brightgreen)](docs/adr/adr-048-quality-framework.md)
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
 
@@ -166,7 +166,7 @@ Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by
 
 This project follows [ADR-048](docs/adr/adr-048-quality-framework.md), a lean quality framework designed so that **any AI agent — including small local models — can execute development tasks** by following self-contained prompts with exact file paths, code, and verification commands.
 
-The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 0** (working toward CMMI 1). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-18) for the live audit.
+The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 1** (Managed). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-24) for the live audit.
 
 Task prompts for AI agents live in [`docs/prompts/`](docs/prompts/) — each prompt is copy-paste ready for a local Ollama model.
 

@@ -1,4 +1,4 @@
-// command.h — REPL slash command parser
+// Parses user input for interactive mode commands and executes specified actions.
 // Parses and executes /commands in interactive mode.
 
 #ifndef COMMAND_H

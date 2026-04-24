@@ -1,55 +1,53 @@
 #!/usr/bin/env bash
-# prepush-check.sh — Validate all checks before pushing.
+# prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
 
 set -o errexit
 set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+# Detect which file types changed vs main
+CHANGED=$(git diff --name-only main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)
+HAS_CPP=false; HAS_SH=false
+
+while IFS= read -r f; do
+  case "$f" in
+    src/*.cpp|src/*.h|CMakeLists.txt|.config/*) HAS_CPP=true ;;
+    scripts/*|Makefile) HAS_SH=true ;;
+  esac
+done <<< "$CHANGED"
+
+# Build the step list dynamically
+STEPS=()
+$HAS_SH   && STEPS+=("Lint|lint-makefile|make -s lint-makefile")
+$HAS_SH   && STEPS+=("Lint|lint-scripts|make -s lint-scripts")
+$HAS_CPP  && STEPS+=("Analysis|tidy|make -s tidy")
+$HAS_CPP  && STEPS+=("Build|build|make -s build")
+$HAS_CPP  && STEPS+=("Test|test-unit|make -s test-unit")
+$HAS_CPP  && STEPS+=("Test|e2e|make -s e2e")
+STEPS+=("Security|sast-security|make -s sast-security")
+$HAS_CPP  && STEPS+=("Metrics|comment-ratio|make -s comment-ratio")
+
+# If nothing code-related changed, minimal checks
+if [[ ${#STEPS[@]} -eq 1 ]]; then
+  echo ""
+  echo "── No code/script changes — running security only ──"
+fi
+
 PASSED=0
 FAILED=0
 STEP=0
 FAILED_NAMES=()
-
-STEPS=(
-  # lint-code: precommit already runs format-code (auto-fix)
-  # "Lint|lint-code|make -s lint-code"
-  # lint-yaml: precommit already runs format-yaml (auto-fix)
-  # "Lint|lint-yaml|make -s lint-yaml"
-  # lint-md: precommit already runs format-md (auto-fix)
-  # "Lint|lint-md|make -s lint-md"
-  "Lint|lint-makefile|make -s lint-makefile"
-  "Lint|lint-scripts|make -s lint-scripts"
-  "Analysis|tidy|make -s tidy"
-  # complexity: redundant with tidy + CI runs full-check on main
-  # "Analysis|complexity|make -s complexity"
-  "Build|build|make -s build"
-  "Test|test-unit|make -s test-unit"
-  "Test|e2e|make -s e2e"
-  # coverage-report: slow (~30s), CI handles this on every PR
-  # "Test|coverage-report|make -s coverage-report"
-  "Security|sast-security|make -s sast-security"
-  # sast-secret: precommit already runs this
-  # "Security|sast-secret|make -s sast-secret"
-  "Metrics|comment-ratio|make -s comment-ratio"
-)
-
 TOTAL="${#STEPS[@]}"
 
 declare -A HINTS=(
-  ["lint-code"]="fix: make format-code, recheck: make lint-code"
-  ["lint-yaml"]="fix: make format-yaml, recheck: make lint-yaml"
-  ["lint-md"]="fix: make format-md, recheck: make lint-md"
   ["lint-makefile"]="fix: follow Makefile conventions, recheck: make lint-makefile"
   ["lint-scripts"]="fix: follow shell script conventions, recheck: make lint-scripts"
   ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
-  ["complexity"]="fix: refactor complex functions, recheck: make complexity"
   ["build"]="fix: resolve build errors, recheck: make build"
   ["test-unit"]="fix: failing unit tests, recheck: make test-unit"
   ["e2e"]="fix: failing e2e tests, recheck: make e2e"
-  ["coverage-report"]="fix: add tests for better coverage, recheck: make coverage-report"
   ["sast-security"]="fix: address semgrep findings, recheck: make sast-security"
-  ["sast-secret"]="fix: remove secrets from code, recheck: make sast-secret"
   ["comment-ratio"]="fix: add comments to source, recheck: make comment-ratio"
 )
 

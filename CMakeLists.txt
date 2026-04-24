@@ -126,6 +126,10 @@ add_executable(test_exec src/exec/exec_test.cpp src/exec/exec.cpp)
 target_include_directories(test_exec PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_exec PRIVATE doctest::doctest)
 
+add_executable(test_ollama src/ollama/ollama_test.cpp src/ollama/ollama.cpp src/json/json.cpp src/logging/logger.cpp src/trace/trace.cpp)
+target_include_directories(test_ollama PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_ollama PRIVATE doctest::doctest httplib::httplib)
+
 set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})

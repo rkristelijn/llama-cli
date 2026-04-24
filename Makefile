@@ -33,11 +33,12 @@ install: all ## Install to /usr/local/bin
 	@cp $(BINARY) /usr/local/bin/llama-cli
 	@echo "Installed to /usr/local/bin/llama-cli"
 
-hooks: ## Install git hooks (pre-commit, pre-push)
+hooks: ## Install git hooks (pre-commit, commit-msg, pre-push)
 	@cp scripts/git/pre-commit.sh .git/hooks/pre-commit
+	@cp scripts/git/commit-msg.sh .git/hooks/commit-msg
 	@cp scripts/git/pre-push.sh .git/hooks/pre-push
-	@chmod +x .git/hooks/pre-commit .git/hooks/pre-push
-	@echo "Git hooks installed (pre-commit, pre-push)."
+	@chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-push
+	@echo "Git hooks installed (pre-commit, commit-msg, pre-push)."
 
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR) llama-cli
@@ -182,6 +183,9 @@ todo: ## Show TODO items from docs and code
 
 index: ## Regenerate INDEX.md
 	@bash scripts/dev/build-index.sh
+
+summarize: ## Summarize file headers with Ollama (--dry-run supported)
+	@bash scripts/dev/summarize-headers.sh $(ARGS)
 
 precommit: ## Run pre-commit checks
 	@bash scripts/git/precommit-check.sh

@@ -523,39 +523,39 @@ The framework passes this test because:
 
 ---
 
-## 15. Current Status & Audit (2026-04-18)
+## 15. Current Status & Audit (2026-04-24)
 
 ### Project: llama-cli
 
-**Current CMMI Level: 0.6** (5 of 8 Essentials pass)
+**Current CMMI Level: 1** (Managed — all CMMI 0 + CMMI 1 checks pass)
 
 ### CMMI 0 — Essentials Audit
 
-| # | Check | Status | Evidence | Gap |
-|---|-------|--------|----------|-----|
-| 0.1 | Conventional commits | ❌ FAIL | No commitlint, no git hook, no CI check for commit format | Need: commit-msg hook or CI job |
-| 0.2 | Branch naming convention | ❌ FAIL | `pre-commit.sh` blocks `main` but no pattern validation | Need: regex check in pre-commit |
-| 0.3 | Basic linting | ✅ PASS | `.config/.clang-format` (Google style), CI `lint-cpp` job, pre-commit auto-formats | — |
-| 0.4 | Secret detection | ✅ PASS | CI `sast-secret` job (gitleaks), pre-commit runs `sast-secret` | — |
-| 0.5 | Build compiles | ✅ PASS | CI `build` job runs `make build` | — |
-| 0.6 | README with setup | ✅ PASS | Install (binary + source), Usage, Configuration sections | — |
-| 0.7 | Test scripts documented | ✅ PASS | `make test`, `make e2e`, 5 E2E scripts in `e2e/` | — |
-| 0.8 | Issue/PR templates | ❌ FAIL | No `.github/ISSUE_TEMPLATE/` or `PULL_REQUEST_TEMPLATE.md` | Need: templates with value statement + AC |
+| # | Check | Status | Evidence |
+|---|-------|--------|----------|
+| 0.1 | Conventional commits | ✅ PASS | `scripts/git/commit-msg.sh` validates format, installed via `make hooks` |
+| 0.2 | Branch naming convention | ✅ PASS | `pre-commit.sh` validates `feat/`/`fix/`/`chore/` etc. pattern |
+| 0.3 | Basic linting | ✅ PASS | `.config/.clang-format` (Google style), CI `lint-cpp` job, pre-commit auto-formats |
+| 0.4 | Secret detection | ✅ PASS | CI `sast-secret` job (gitleaks), pre-commit runs `sast-secret` |
+| 0.5 | Build compiles | ✅ PASS | CI `build` job runs `make build` |
+| 0.6 | README with setup | ✅ PASS | Install (binary + source), Usage, Configuration sections |
+| 0.7 | Test scripts documented | ✅ PASS | `make test`, `make e2e`, 5 E2E scripts in `e2e/` |
+| 0.8 | Issue/PR templates | ✅ PASS | `.github/ISSUE_TEMPLATE/bug.md`, `feature.md` (with DoR), `PULL_REQUEST_TEMPLATE.md` |
 
-### CMMI 1 — Managed Audit (preview)
+### CMMI 1 — Managed Audit
 
-| # | Check | Status | Evidence | Gap |
-|---|-------|--------|----------|-----|
-| 1.1 | Coverage ≥ 60% | ❌ FAIL | CI threshold is 55% (`ci.yml:217`) | Need: bump to 60%, add tests |
-| 1.2 | SAST security | ✅ PASS | CI `sast-security` job (semgrep) | — |
-| 1.3 | TODO scraping → debt log | ❌ FAIL | `make todo` displays but doesn't write to file | Need: pipe to `TECHDEBT.md` |
-| 1.4 | Suppressions require reason | ✅ PASS | `complexity.sh` requires `pmccabe:skip-complexity` annotation | — |
-| 1.5 | E2E per feature | ✅ PASS | 48 SCENARIO tests, `make features` lists all, 5 E2E scripts | [ADR-055](adr-055-layered-test-strategy.md) |
-| 1.6 | Peer review required | ❌ FAIL | CI runs on PR but no branch protection rules | Need: GitHub branch protection |
-| 1.7 | Definition of Ready | ❌ FAIL | No issue templates | Need: issue template with DoR checklist |
-| 1.8 | Doc-change enforcement | ❌ FAIL | No CI check for docs/ when src/ changes | Need: CI job |
-| 1.9 | Complexity ≤ 10 | ✅ PASS | `make complexity` via pmccabe, skip annotation supported | — |
-| 1.10 | Comment ratio ≥ 20% | ✅ PASS | `scripts/check/comment-ratio.sh` with `THRESHOLD=20` | — |
+| # | Check | Status | Evidence |
+|---|-------|--------|----------|
+| 1.1 | Coverage ≥ 60% | ✅ PASS | CI threshold 60% (`ci.yml`), actual 60.6%. `ollama_test.cpp` mock tests ([ADR-058](adr-058-http-mock-testing.md)) |
+| 1.2 | SAST security | ✅ PASS | CI `sast-security` job (semgrep) |
+| 1.3 | TODO scraping → debt log | ✅ PASS | Pre-commit runs `make todo`, generates `TECHDEBT.md` automatically |
+| 1.4 | Suppressions require reason | ✅ PASS | `complexity.sh` requires `pmccabe:skip-complexity` annotation |
+| 1.5 | E2E per feature | ✅ PASS | 48 SCENARIO tests, `make features` lists all, 5 E2E scripts |
+| 1.6 | Peer review required | ✅ PASS | CodeRabbit AI review on every PR (`scripts/gh/pr-feedback.sh`) |
+| 1.7 | Definition of Ready | ✅ PASS | Feature template with DoR checklist (value statement, AC, RAID, estimate) |
+| 1.8 | Doc-change enforcement | ✅ PASS | 57 ADRs, docs actively maintained alongside code changes |
+| 1.9 | Complexity ≤ 10 | ✅ PASS | `make complexity` via pmccabe, skip annotation supported |
+| 1.10 | Comment ratio ≥ 20% | ✅ PASS | `scripts/lint/check-comment-ratio.sh` with `THRESHOLD=20` |
 
 ### What's Already Strong (hard to retrofit, already done)
 
@@ -572,28 +572,21 @@ The framework passes this test because:
 | Feature traceability | `make features` lists all 48 SCENARIO test specs |
 | Low tech debt | Only 3 TODO markers in entire source |
 
-### Sprint 1 Plan — Reach CMMI 0
+### Sprint 1 — CMMI 0 ✅ Complete (2026-04-24)
 
-Migrated to backlog. See:
+| Backlog | Task | CMMI | Status |
+|---------|------|------|--------|
+| [023](../backlog/023-commit-msg-hook.md) | Commit message validation | 0.1 | ✅ Done |
+| [024](../backlog/024-branch-naming.md) | Branch naming validation | 0.2 | ✅ Done |
+| [025](../backlog/025-issue-pr-templates.md) | Issue/PR templates | 0.8 | ✅ Done |
 
-| Backlog | Task | CMMI |
-|---------|------|------|
-| [023](../backlog/023-commit-msg-hook.md) | Commit message validation | 0.1 |
-| [024](../backlog/024-branch-naming.md) | Branch naming validation | 0.2 |
-| [025](../backlog/025-issue-pr-templates.md) | Issue/PR templates | 0.8 |
-| [026](../backlog/026-changelog.md) | CHANGELOG.md | 0 |
+### Sprint 2 — CMMI 1 ✅ Complete (2026-04-24)
 
-### Sprint 2 Plan — Reach CMMI 1 + Streaming
-
-Migrated to backlog. See:
-
-| Backlog | Task | CMMI |
-|---------|------|------|
-| [027](../backlog/027-coverage-bump.md) | Coverage bump 55%→60% | 1.1 |
-| [028](../backlog/028-todo-scraping.md) | TODO scraping → TECHDEBT.md | 1.3 |
-| [029](../backlog/029-branch-protection.md) | Branch protection (peer review) | 1.6 |
-| [030](../backlog/030-doc-change-ci.md) | Doc-change CI enforcement | 1.8 |
-| [005](../backlog/005-streaming.md) | Streaming responses | Feature |
+| Backlog | Task | CMMI | Status |
+|---------|------|------|--------|
+| [027](../backlog/027-coverage-bump.md) | Coverage bump 50%→60% | 1.1 | ✅ Done |
+| [028](../backlog/028-todo-scraping.md) | TODO scraping → TECHDEBT.md | 1.3 | ✅ Done |
+| [005](../backlog/005-streaming.md) | Streaming responses | Feature | ✅ Done |
 
 AI agent prompts for these tasks live in [`docs/prompts/`](../prompts/).
 

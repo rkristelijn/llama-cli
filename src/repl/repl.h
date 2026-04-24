@@ -1,4 +1,4 @@
-// repl.h — Interactive REPL loop
+// Interactive REPL loop for Ollama with conversation history and testability features.
 // Reads user input, sends to Ollama with conversation history.
 // Uses injectable chat function for testability (ADR-008).
 
