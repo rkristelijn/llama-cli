@@ -53,6 +53,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-059-memory-and-preferences.md`](docs/adr/adr-059-memory-and-preferences.md) — ADR-059: Persistent Memory & Preferences
 - [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
+- [`docs/adr/adr-062-expanded-runtime-analysis.md`](docs/adr/adr-062-expanded-runtime-analysis.md) — Add ThreadSanitizer, Valgrind, and include-what-you-use to CI to close remaining blind spots
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -230,4 +231,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_227 files indexed._
+_228 files indexed._
