@@ -548,7 +548,7 @@ The framework passes this test because:
 |---|-------|--------|----------|
 | 1.1 | Coverage ≥ 60% | ✅ PASS | CI threshold 60% (`ci.yml`), actual 60.6%. `ollama_test.cpp` mock tests ([ADR-058](adr-058-http-mock-testing.md)) |
 | 1.2 | SAST security | ✅ PASS | CI `sast-security` job (semgrep) |
-| 1.3 | TODO scraping → debt log | ✅ PASS | `make todo` generates `TECHDEBT.md` (26 code + 84 markdown TODOs) |
+| 1.3 | TODO scraping → debt log | ✅ PASS | Pre-commit runs `make todo`, generates `TECHDEBT.md` automatically |
 | 1.4 | Suppressions require reason | ✅ PASS | `complexity.sh` requires `pmccabe:skip-complexity` annotation |
 | 1.5 | E2E per feature | ✅ PASS | 48 SCENARIO tests, `make features` lists all, 5 E2E scripts |
 | 1.6 | Peer review required | ✅ PASS | CodeRabbit AI review on every PR (`scripts/gh/pr-feedback.sh`) |

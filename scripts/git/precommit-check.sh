@@ -10,14 +10,14 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
 HAS_CPP=false; HAS_MD=false; HAS_YAML=false; HAS_SH=false
 
-for f in $STAGED; do
+while IFS= read -r f; do
   case "$f" in
     *.cpp|*.h) HAS_CPP=true ;;
     *.md) HAS_MD=true ;;
     *.yml|*.yaml) HAS_YAML=true ;;
     *.sh|Makefile) HAS_SH=true ;;
   esac
-done
+done <<< "$STAGED"
 
 STEP=0
 TOTAL=0

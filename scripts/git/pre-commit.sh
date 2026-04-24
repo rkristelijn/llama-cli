@@ -48,7 +48,7 @@ git add INDEX.md TECHDEBT.md
 if curl -s --max-time 2 "http://${OLLAMA_HOST:-localhost:11434}/api/tags" > /dev/null 2>&1; then
   bash scripts/dev/summarize-headers.sh
   bash scripts/dev/build-index.sh
-  git add INDEX.md
+  git add -u
 else
   echo "[skip] Ollama not running — skipping header summarization"
 fi

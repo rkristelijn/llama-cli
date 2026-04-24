@@ -81,7 +81,7 @@ Git hooks and CI jobs detect which file types changed and skip irrelevant checks
 | `scripts/`, `Makefile` | format-scripts | lint-makefile, lint-scripts | lint-makefile, lint-scripts |
 | `*.md` | format-md | — | lint-markdown |
 | `*.yml` / `*.yaml` | format-yaml | — | lint-yaml |
-| any | index, sast-secret | sast-security | sast-secret |
+| any | index, todo, sast-secret | sast-security | sast-secret |
 
 CI uses `dorny/paths-filter` with 5 filters (`code`, `src`, `docs`, `yaml`, `scripts`). Git hooks use `git diff --cached` (pre-commit) and `git diff main...HEAD` (pre-push) to detect file types.
 

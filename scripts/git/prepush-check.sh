@@ -10,12 +10,12 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 CHANGED=$(git diff --name-only main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)
 HAS_CPP=false; HAS_SH=false
 
-for f in $CHANGED; do
+while IFS= read -r f; do
   case "$f" in
     src/*.cpp|src/*.h|CMakeLists.txt|.config/*) HAS_CPP=true ;;
     scripts/*|Makefile) HAS_SH=true ;;
   esac
-done
+done <<< "$CHANGED"
 
 # Build the step list dynamically
 STEPS=()
