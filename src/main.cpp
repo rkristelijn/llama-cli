@@ -394,43 +394,44 @@ int main(int argc, char* argv[]) {
 
   if (cfg.mode == Mode::Sync) {
     // Sync mode: one-shot, response to stdout (ADR-007)
-    if (cfg.provider == "mock") {
-      std::cout << "mock response: " << cfg.prompt << "\n";
-    } else {
-      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-      // Load session history if --session is set (ADR-056)
-      std::vector<Message> messages = cfg.session_path.empty() ? std::vector<Message>{} : load_session(cfg.session_path);
-      // Add system prompt only if starting a new conversation
-      if (messages.empty() && !cfg.system_prompt.empty()) {
-        messages.push_back({"system", cfg.system_prompt});
+    // Mock provider goes through the same flow — echoes prompt as response
+    // so annotation processing and session work identically in tests.
+    auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
+      if (cfg.provider == "mock") {
+        return "mock response: " + msgs.back().content;
       }
-      messages.push_back({"user", cfg.prompt});
-      std::string response = ollama_chat_stream(cfg, messages, [](const std::string& token) {
+      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
+      return ollama_chat_stream(cfg, msgs, [](const std::string& token) {
         std::cout << token << std::flush;
         return true;
       });
-      if (!response.empty()) {
-        std::cout << "\n";
+    };
+
+    // Load session history if --session is set (ADR-056)
+    std::vector<Message> messages = cfg.session_path.empty() ? std::vector<Message>{} : load_session(cfg.session_path);
+    // Add system prompt only if starting a new conversation
+    if (messages.empty() && !cfg.system_prompt.empty()) {
+      messages.push_back({"system", cfg.system_prompt});
+    }
+    messages.push_back({"user", cfg.prompt});
+    std::string response = generate_response(messages);
+    if (!response.empty()) {
+      std::cout << response << "\n";
+      messages.push_back({"assistant", response});
+      // Process annotations if capabilities are set (ADR-056)
+      int max_rounds = 10;
+      while (!cfg.capabilities.empty() && max_rounds-- > 0) {
+        std::string followup = process_sync_annotations(response, cfg);
+        if (followup.empty()) break;
+        messages.push_back({"user", followup});
+        response = generate_response(messages);
+        if (response.empty()) break;
+        std::cout << response << "\n";
         messages.push_back({"assistant", response});
-        // Process annotations if capabilities are set (ADR-056)
-        // Follow-up loop: feed read/exec output back to the model
-        int max_rounds = 10;  // safety limit to prevent infinite loops
-        while (!cfg.capabilities.empty() && max_rounds-- > 0) {
-          std::string followup = process_sync_annotations(response, cfg);
-          if (followup.empty()) break;
-          messages.push_back({"user", followup});
-          response = ollama_chat_stream(cfg, messages, [](const std::string& token) {
-            std::cout << token << std::flush;
-            return true;
-          });
-          if (response.empty()) break;
-          std::cout << "\n";
-          messages.push_back({"assistant", response});
-        }
-        // Save updated history if --session is set (ADR-056)
-        if (!cfg.session_path.empty()) {
-          save_session(cfg.session_path, messages);
-        }
+      }
+      // Save updated history if --session is set (ADR-056)
+      if (!cfg.session_path.empty()) {
+        save_session(cfg.session_path, messages);
       }
     }
   } else {
