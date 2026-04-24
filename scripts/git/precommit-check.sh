@@ -28,6 +28,7 @@ $HAS_YAML && (( TOTAL++ )) || true
 $HAS_MD && (( TOTAL++ )) || true
 $HAS_SH && (( TOTAL++ )) || true
 (( TOTAL++ )) || true  # index (always — cheap)
+(( TOTAL++ )) || true  # todo (always — cheap)
 (( TOTAL++ )) || true  # sast-secret (always)
 
 run_step() {
@@ -53,6 +54,7 @@ $HAS_SH   && run_step "format-scripts" make -s format-scripts
 echo ""
 echo "── Documentation ──"
 run_step "index" make -s index
+run_step "todo" make -s todo
 
 echo ""
 echo "── Security ──"

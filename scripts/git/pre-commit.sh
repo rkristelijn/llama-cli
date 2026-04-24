@@ -41,6 +41,9 @@ fi
 # Quick build + secret scan (catch secrets early)
 bash scripts/git/precommit-check.sh
 
+# Stage auto-generated docs
+git add INDEX.md TECHDEBT.md
+
 # Auto-summarize headers + rebuild index if Ollama is reachable
 if curl -s --max-time 2 "http://${OLLAMA_HOST:-localhost:11434}/api/tags" > /dev/null 2>&1; then
   bash scripts/dev/summarize-headers.sh
