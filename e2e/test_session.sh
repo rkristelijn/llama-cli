@@ -106,4 +106,46 @@ OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
 assert_contains "$OUTPUT" "<exec>" "annotations passed through without capabilities"
 echo "PASS: no capabilities passes annotations through"
 
+# --- Capabilities: exec (yolo mode) ---
+
+echo "Testing: capabilities=exec allows any command..."
+SESSION="$TMPDIR_TEST/cap-yolo.json"
+OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
+  --capabilities=read,write,exec --sandbox="$TMPDIR_TEST" \
+  '<exec>echo yolo-test-123</exec>' 2>&1)
+assert_contains "$OUTPUT" "yolo-test-123" "exec capability ran arbitrary command"
+echo "PASS: capabilities=exec allows any command"
+
+# --- Sandbox: .. traversal ---
+
+echo "Testing: sandbox blocks .. traversal..."
+SESSION="$TMPDIR_TEST/sandbox-dotdot.json"
+mkdir -p "$TMPDIR_TEST/sub"
+OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
+  --capabilities=read --sandbox="$TMPDIR_TEST/sub" \
+  '<read path="'"$TMPDIR_TEST"'/sub/../testfile.txt"/>' 2>&1)
+assert_contains "$OUTPUT" "blocked" ".. traversal was blocked"
+echo "PASS: sandbox blocks .. traversal"
+
+# --- Redirect blocked in read mode ---
+
+echo "Testing: redirect > blocked in read-only mode..."
+SESSION="$TMPDIR_TEST/cap-redirect.json"
+OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
+  --capabilities=read --sandbox="$TMPDIR_TEST" \
+  '<exec>echo pwned > '"$TMPDIR_TEST"'/hacked.txt</exec>' 2>&1)
+assert_contains "$OUTPUT" "blocked" "redirect was blocked"
+test ! -f "$TMPDIR_TEST/hacked.txt" || die "redirect created a file despite read-only mode"
+echo "PASS: redirect > blocked in read-only mode"
+
+# --- Pipe safety: each segment checked ---
+
+echo "Testing: pipe with unsafe command blocked..."
+SESSION="$TMPDIR_TEST/cap-pipe.json"
+OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
+  --capabilities=read --sandbox="$TMPDIR_TEST" \
+  '<exec>cat '"$TMPDIR_TEST"'/testfile.txt | rm -rf /</exec>' 2>&1)
+assert_contains "$OUTPUT" "blocked" "pipe with unsafe segment was blocked"
+echo "PASS: pipe with unsafe command blocked"
+
 echo "=== All session tests passed ==="
