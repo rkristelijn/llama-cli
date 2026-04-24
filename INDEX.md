@@ -192,16 +192,16 @@ Auto-generated overview of all files in this repo.
 - [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
 - [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
-- [`src/command/command.h`](src/command/command.h) — // Parses user input for interactive mode commands and executes specified actions.
+- [`src/command/command.h`](src/command/command.h) — // Parses and executes user input commands in interactive mode.
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
 - [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
 - [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
-- [`src/config/config.h`](src/config/config.h) — // Application configuration for the Ollama server with customizable settings.
+- [`src/config/config.h`](src/config/config.h) — // Application configuration for Ollama server with customizable settings.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
-- [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
+- [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with specified timeout and captures its output.
 - [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**

@@ -1,4 +1,4 @@
-// exec.h — Shell command execution with timeout and output capture
+// Executes a shell command with a specified timeout and captures its output.
 // Used by ! (direct), !! (context), and <exec> (LLM-proposed)
 
 #ifndef EXEC_H

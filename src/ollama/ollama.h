@@ -1,4 +1,4 @@
-// ollama.h — Ollama API client
+// API client for local instance handling HTTP communication and conversation management with Ollama.
 // Handles HTTP communication with a local Ollama instance.
 
 #ifndef OLLAMA_H

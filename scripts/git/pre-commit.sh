@@ -40,3 +40,12 @@ fi
 
 # Quick build + secret scan (catch secrets early)
 bash scripts/git/precommit-check.sh
+
+# Auto-summarize headers + rebuild index if Ollama is reachable
+if curl -s --max-time 2 "http://${OLLAMA_HOST:-localhost:11434}/api/tags" > /dev/null 2>&1; then
+  bash scripts/dev/summarize-headers.sh
+  bash scripts/dev/build-index.sh
+  git add INDEX.md
+else
+  echo "[skip] Ollama not running — skipping header summarization"
+fi

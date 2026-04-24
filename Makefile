@@ -184,6 +184,9 @@ todo: ## Show TODO items from docs and code
 index: ## Regenerate INDEX.md
 	@bash scripts/dev/build-index.sh
 
+summarize: ## Summarize file headers with Ollama (--dry-run supported)
+	@bash scripts/dev/summarize-headers.sh $(ARGS)
+
 precommit: ## Run pre-commit checks
 	@bash scripts/git/precommit-check.sh
 

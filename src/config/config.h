@@ -1,4 +1,4 @@
-// config.h — Application configuration
+// Application configuration for the Ollama server with customizable settings.
 // Loads settings from defaults, environment variables, and CLI arguments.
 // Precedence: CLI args > env vars > defaults (ADR-004)
 // CLI interface follows POSIX conventions (ADR-007)

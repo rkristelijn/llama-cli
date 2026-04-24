@@ -1,4 +1,4 @@
-// annotation.h — Parse LLM tool annotations from response text
+// Tool extracts and processes LLM response annotations.
 
 #ifndef ANNOTATION_H
 #define ANNOTATION_H
