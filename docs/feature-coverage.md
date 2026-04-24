@@ -147,7 +147,7 @@ Tests that would improve coverage with minimal effort:
 
 The coverage badge in README uses [Codecov](https://codecov.io). Setup:
 
-1. Log in at https://codecov.io with your GitHub account (free for public repos)
+1. Log in at <https://codecov.io> with your GitHub account (free for public repos)
 2. Navigate to the repo settings and copy the "Repository Upload Token"
 3. In GitHub: Settings → Environments → create environment named `workflow`
 4. Add secret `CODECOV_TOKEN` with the token value

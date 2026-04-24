@@ -215,12 +215,13 @@ Capabilities are additive and comma-separated:
 
 The `read` capability allows `<exec>` only for commands whose first word is in this allowlist:
 
-```
+```text
 cat ls find grep head tail wc stat tree du df
 file diff sort uniq awk sed less more realpath dirname basename
 ```
 
 Safety rules:
+
 - Each pipe segment is checked independently (`cat foo | grep bar` → both OK)
 - Redirects (`>`, `>>`) are always blocked in read mode
 - Commands not in the allowlist require the `exec` capability

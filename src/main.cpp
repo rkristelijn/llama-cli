@@ -351,6 +351,7 @@ static void save_session(const std::string& path, const std::vector<Message>& ms
 
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic
 // NOLINTNEXTLINE(readability-function-size)
+/** @brief Entry point: loads config, dispatches to sync or interactive mode. */
 int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (std::string(argv[i]) == "--help") {
