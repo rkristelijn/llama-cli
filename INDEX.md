@@ -47,6 +47,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-053-cpp-static-analysis.md`](docs/adr/adr-053-cpp-static-analysis.md) — ADR-053: C++ Static Analysis Coverage
 - [`docs/adr/adr-054-gemma4-31b-second-chance.md`](docs/adr/adr-054-gemma4-31b-second-chance.md) — ADR-054: gemma4:31b — Second Chance with Tweaks
 - [`docs/adr/adr-055-layered-test-strategy.md`](docs/adr/adr-055-layered-test-strategy.md) — ADR-055: Layered Test Strategy — From Unit Tests to Fuzzing
+- [`docs/adr/adr-056-session-sync.md`](docs/adr/adr-056-session-sync.md) — ADR-056: Stateful Sync Mode via `--session`
+- [`docs/adr/adr-057-web-search-integration.md`](docs/adr/adr-057-web-search-integration.md) — ADR-057: Web Search Integration via Tool Annotations
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -96,6 +98,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
+- [`docs/feature-coverage.md`](docs/feature-coverage.md) — Feature Coverage Matrix
 - [`docs/full-test-script.md`](docs/full-test-script.md) — Manual Test Script
 - [`docs/gh-manual.md`](docs/gh-manual.md) — GitHub CLI Manual (gh)
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
@@ -219,4 +222,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_216 files indexed._
+_219 files indexed._

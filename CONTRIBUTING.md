@@ -5,6 +5,7 @@
 This codebase is kept accessible for C++ newcomers:
 
 - Write simple C++ — no template magic, no operator overloading, no unnecessary abstractions
+- Write booleans in positive, so allow, (not supress or deny), so you get !allowed instead of double negation.
 - Comments explain *why*, not *what* — we enforce a **minimum 20% comment ratio** in all code and scripts (`make comment-ratio`)
 - Test names read as documentation: `TEST_CASE("config: env vars override defaults")`
 - Prefer `std::string` over `const char*`, `std::vector` over raw arrays

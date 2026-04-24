@@ -131,3 +131,45 @@ SCENARIO ("Logger writes JSONL events") {
     }
   }
 }
+
+// --- Logger path and edge cases ---
+
+SCENARIO ("Logger path detection") {
+  GIVEN ("the logger singleton") {
+    WHEN ("path is queried") {
+      const auto& logger = Logger::instance();
+      THEN ("path is non-empty and ends with events.jsonl") {
+        CHECK (!logger.path().empty())
+          ;
+        CHECK (logger.path().find("events.jsonl") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("Logger escapes control characters") {
+  GIVEN ("a logger instance") {
+    auto& logger = Logger::instance();
+    WHEN ("an event with tabs and newlines is logged") {
+      Event e;
+      e.agent = "test";
+      e.action = "escape";
+      e.input = "line1\nline2";
+      e.output = "tab\there";
+      logger.log(e);
+      THEN ("the log file contains escaped sequences") {
+        std::ifstream f(logger.path());
+        std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        CHECK (content.find("\\n") != std::string::npos)
+          ;
+        CHECK (content.find("\\t") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+// TODO: test Logger dev-mode vs installed-mode path detection
+// TODO: test Logger with unwritable log path (permission denied)
+// TODO: test Logger escape of all RFC 8259 control characters (\b, \f, \u00xx)

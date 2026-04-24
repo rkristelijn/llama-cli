@@ -146,6 +146,7 @@ jobs:
     if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    environment: workflow
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh lcov bc
@@ -168,6 +169,7 @@ jobs:
       - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
         with:
           files: coverage.info
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
   sanitizers:
