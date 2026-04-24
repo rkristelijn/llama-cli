@@ -7,6 +7,7 @@
 
 #include "repl/repl.h"
 
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <chrono>
@@ -20,6 +21,7 @@
 #include "command/command.h"
 #include "exec/exec.h"
 #include "help.h"
+#include "json/json.h"
 #include "logging/logger.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
@@ -340,6 +342,100 @@ static void handle_model_selection(ReplState& s) {
  * @param s REPL state used for I/O and session data (may be modified).
  * @return true Always returns `true` to indicate the REPL should continue.
  */
+/// Ensure parent directory exists for a file path (ADR-059)
+static void ensure_parent_dir(const std::string& path) {
+  auto slash = path.rfind('/');
+  if (slash != std::string::npos) {
+    std::string dir = path.substr(0, slash);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+    mkdir(dir.c_str(), 0755);
+  }
+}
+
+/// Read a plain-text file, return empty string if missing
+static std::string read_file_or_empty(const std::string& path) {
+  std::ifstream f(path);
+  if (!f.is_open()) {
+    return "";
+  }
+  return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+}
+
+/// Append a line to a file, creating parent dirs as needed (ADR-059)
+static void append_line(const std::string& path, const std::string& line) {
+  ensure_parent_dir(path);
+  std::ofstream f(path, std::ios::app);
+  if (f.is_open()) {
+    f << "- " << line << "\n";
+  }
+}
+
+/**
+ * @brief Handle /mem command: show, add, or clear memories (ADR-059).
+ *
+ * Subcommands: (none) = show, add <fact> = append, clear = wipe.
+ */
+static void handle_mem(const std::string& arg, ReplState& s) {
+  const std::string& path = s.cfg.memory_path;
+  if (arg.empty()) {
+    std::string content = read_file_or_empty(path);
+    if (content.empty()) {
+      s.out << "[no memories stored]\n";
+    } else {
+      s.out << content;
+    }
+    return;
+  }
+  auto space = arg.find(' ');
+  std::string sub = (space != std::string::npos) ? arg.substr(0, space) : arg;
+  std::string val = (space != std::string::npos) ? arg.substr(space + 1) : "";
+
+  if (sub == "add" && !val.empty()) {
+    append_line(path, val);
+    s.out << "[remembered: " << val << "]\n";
+    LOG_EVENT("repl", "mem_add", val, path, 0, 0, 0);
+  } else if (sub == "clear") {
+    std::ofstream f(path, std::ios::trunc);
+    s.out << "[memory cleared]\n";
+    LOG_EVENT("repl", "mem_clear", path, "", 0, 0, 0);
+  } else {
+    s.out << "Usage: /mem, /mem add <fact>, /mem clear\n";
+  }
+}
+
+/**
+ * @brief Handle /pref command: show, add, or clear preferences (ADR-059).
+ *
+ * Subcommands: (none) = show, add <pref> = append, clear = wipe.
+ */
+static void handle_pref(const std::string& arg, ReplState& s) {
+  const std::string& path = s.cfg.preferences_path;
+  if (arg.empty()) {
+    std::string content = read_file_or_empty(path);
+    if (content.empty()) {
+      s.out << "[no preferences stored]\n";
+    } else {
+      s.out << content;
+    }
+    return;
+  }
+  auto space = arg.find(' ');
+  std::string sub = (space != std::string::npos) ? arg.substr(0, space) : arg;
+  std::string val = (space != std::string::npos) ? arg.substr(space + 1) : "";
+
+  if (sub == "add" && !val.empty()) {
+    append_line(path, val);
+    s.out << "[preference saved: " << val << "]\n";
+    LOG_EVENT("repl", "pref_add", val, path, 0, 0, 0);
+  } else if (sub == "clear") {
+    std::ofstream f(path, std::ios::trunc);
+    s.out << "[preferences cleared]\n";
+    LOG_EVENT("repl", "pref_clear", path, "", 0, 0, 0);
+  } else {
+    s.out << "Usage: /pref, /pref add <preference>, /pref clear\n";
+  }
+}
+
 static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
     s.history.clear();
@@ -352,6 +448,10 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     handle_model_selection(s);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
+  } else if (input.command == "mem") {
+    handle_mem(input.arg, s);
+  } else if (input.command == "pref") {
+    handle_pref(input.arg, s);
   } else if (input.command == "help" || input.command.empty()) {
     s.out << help::repl;
   } else {
@@ -805,9 +905,8 @@ static std::string strip_exec_annotations(const std::string& text) {
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
     result.replace(start, end + close.size() - start, "\033[1;37m[proposed: exec " + cmd + "]\033[0m");
   }
-  // Render any remaining unmatched annotation tags as bold white
-  // so they stand out instead of appearing as raw XML
-  for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read "}) {
+  // Strip any remaining annotation-like tags so raw XML never reaches the user
+  for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read ", "<search>", "</search>"}) {
     size_t pos = 0;
     std::string needle(tag);
     while ((pos = result.find(needle, pos)) != std::string::npos) {
@@ -815,10 +914,7 @@ static std::string strip_exec_annotations(const std::string& text) {
       if (end == std::string::npos) {
         break;
       }
-      std::string raw = result.substr(pos, end - pos + 1);
-      std::string bold = "\033[1;37m" + raw + "\033[0m";
-      result.replace(pos, raw.size(), bold);
-      pos += bold.size();
+      result.erase(pos, end - pos + 1);
     }
   }
   return result;
@@ -831,7 +927,7 @@ static std::string strip_exec_annotations(const std::string& text) {
  * Returns output if executed, empty string if declined/copied. */
 static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   if (!trust) {
-    out << "Run: " << cmd << "? [y/n/t/c] " << std::flush;
+    out << "Run: \033[1;33m" << cmd << "\033[0m? [y/n/t/c] " << std::flush;
     std::string answer;
     if (!std::getline(in, answer)) {
       return "";
@@ -855,6 +951,10 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
   auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] exec (LLM): %s exit=%d %ldms\n", cmd.c_str(), r.exit_code, ms);
+  }
 
   // Log confirmed LLM-proposed exec with duration
   LOG_EVENT("repl", "exec_confirmed", cmd, r.output, static_cast<int>(ms), 0, 0);
@@ -892,6 +992,205 @@ static std::string colorize_ai(const std::string& text, const ReplState& s) {
   return result;
 }
 
+/**
+ * @brief Ensure SearXNG is running when web search is enabled (ADR-057).
+ *
+ * Checks Docker availability, starts the daemon if needed (macOS: open -a Docker),
+ * then ensures the searxng container is running. Pulls the image on first use.
+ */
+static void ensure_searxng(const Config& cfg, std::ostream& out) {
+  bool trace = Config::instance().trace;
+  // Quick check: is SearXNG already responding?
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: probing %s\n", cfg.search_url.c_str());
+  }
+  auto probe = cmd_exec("curl -sf -o /dev/null -m 2 '" + cfg.search_url + "'", 3, 100);
+  if (probe.exit_code == 0) {
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: SearXNG already running\n");
+    }
+    return;  // already running
+  }
+
+  // Check if docker CLI is available
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: checking docker CLI\n");
+  }
+  auto docker_check = cmd_exec("docker --version", 3, 200);
+  if (docker_check.exit_code != 0) {
+    out << "\033[33m[web-search] docker not found — install Docker to enable web search\033[0m\n";
+    return;
+  }
+
+  // Check if Docker daemon is running
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: checking Docker daemon\n");
+  }
+  auto daemon_check = cmd_exec("docker info", 5, 500);
+  if (daemon_check.exit_code != 0) {
+    out << "\033[33m[web-search] starting Docker...\033[0m\n";
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: starting Docker daemon\n");
+    }
+#ifdef __APPLE__
+    cmd_exec("open -a Docker", 5, 100);
+#else
+    cmd_exec("sudo systemctl start docker", 10, 200);
+#endif
+    // Wait for daemon to be ready (up to 30s)
+    for (int i = 0; i < 15; ++i) {
+      auto ready = cmd_exec("docker info", 3, 500);
+      if (ready.exit_code == 0) {
+        if (trace) {
+          stderr_trace->log("[TRACE] web-search: Docker daemon ready\n");
+        }
+        break;
+      }
+      cmd_exec("sleep 2", 3, 10);
+    }
+  }
+
+  // Check if searxng container exists and is running
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: checking searxng container\n");
+  }
+  auto running = cmd_exec("docker ps -q -f name=searxng", 5, 200);
+  if (!running.output.empty()) {
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: container already running\n");
+    }
+    return;  // container running, SearXNG may still be starting up
+  }
+
+  // Check if container exists but is stopped
+  auto exists = cmd_exec("docker ps -aq -f name=searxng", 5, 200);
+  if (!exists.output.empty()) {
+    out << "\033[33m[web-search] starting SearXNG container...\033[0m\n";
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: docker start searxng\n");
+    }
+    cmd_exec("docker start searxng", 10, 200);
+  } else {
+    out << "\033[33m[web-search] pulling and starting SearXNG...\033[0m\n";
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: docker compose up searxng\n");
+    }
+    cmd_exec("docker compose -f .config/docker-compose.yml up -d", 60, 5000);
+  }
+
+  // Wait for SearXNG to respond (up to 15s)
+  for (int i = 0; i < 15; ++i) {
+    auto ready = cmd_exec("curl -sf -o /dev/null -m 1 '" + cfg.search_url + "'", 2, 100);
+    if (ready.exit_code == 0) {
+      out << "\033[32m[web-search] SearXNG ready\033[0m\n";
+      if (trace) {
+        stderr_trace->log("[TRACE] web-search: SearXNG responding\n");
+      }
+      return;
+    }
+    cmd_exec("sleep 1", 2, 10);
+  }
+  out << "\033[33m[web-search] SearXNG not responding — search may fail\033[0m\n";
+}
+
+/**
+ * @brief URL-encode a string for use in query parameters.
+ * Spaces become '+', alphanumerics and -_.~ pass through, rest is %XX.
+ */
+static std::string url_encode(const std::string& input) {
+  std::string out;
+  for (char c : input) {
+    if (c == ' ') {
+      out += '+';
+    } else if (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_' || c == '.' || c == '~') {
+      out += c;
+    } else {
+      char buf[4];
+      snprintf(buf, sizeof(buf), "%%%02X", static_cast<unsigned char>(c));
+      out += buf;
+    }
+  }
+  return out;
+}
+
+/**
+ * @brief Search the web via a SearXNG-compatible JSON API (ADR-057).
+ *
+ * Calls {search_url}/search?q=...&format=json and parses the results array.
+ * Any service returning SearXNG-compatible JSON works as a drop-in backend.
+ */
+static std::string web_search(const std::string& query, const Config& cfg) {
+  bool trace = Config::instance().trace;
+  // Build SearXNG JSON API URL
+  std::string url = cfg.search_url + "/search?q=" + url_encode(query) + "&format=json&language=" + url_encode(cfg.search_lang);
+  if (!cfg.search_location.empty()) {
+    url += "&location=" + url_encode(cfg.search_location);
+  }
+
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: GET %s\n", url.c_str());
+  }
+  std::string cmd = "curl -sfL '" + url + "'";
+  auto result = cmd_exec(cmd, 10, 200000);
+  if (result.exit_code != 0 || result.output.empty()) {
+    if (trace) {
+      stderr_trace->log("[TRACE] web-search: curl failed exit=%d output=%s\n", result.exit_code, result.output.c_str());
+    }
+    return "[web search failed]";
+  }
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: response %zu bytes\n", result.output.size());
+  }
+
+  // Parse results array — walk through JSON objects in "results":[...]
+  const std::string& body = result.output;
+  auto arr_key = body.find("\"results\"");
+  if (arr_key == std::string::npos) {
+    return "[web search: no results for '" + query + "']";
+  }
+  // Find opening bracket of the array
+  auto arr_start = body.find('[', arr_key);
+  if (arr_start == std::string::npos) {
+    return "[web search: no results for '" + query + "']";
+  }
+
+  std::string out;
+  int count = 0;
+  size_t pos = arr_start + 1;
+  // Extract up to 5 result objects from the array
+  while (count < 5 && pos < body.size()) {
+    auto obj_start = body.find('{', pos);
+    if (obj_start == std::string::npos) {
+      break;
+    }
+    // Use the same brace-tracking logic as json_extract_object
+    std::string obj = json_extract_object_at(body, obj_start);
+    if (obj.empty()) {
+      break;
+    }
+    pos = obj_start + obj.size();
+
+    std::string title = json_extract_string(obj, "title");
+    std::string content = json_extract_string(obj, "content");
+    std::string link = json_extract_string(obj, "url");
+    if (!content.empty()) {
+      out += "- " + title + ": " + content;
+      if (!link.empty()) {
+        out += " (" + link + ")";
+      }
+      out += "\n";
+      ++count;
+    }
+  }
+  if (out.empty()) {
+    return "[web search: no results for '" + query + "']";
+  }
+  if (trace) {
+    stderr_trace->log("[TRACE] web-search: %d results for '%s'\n", count, query.c_str());
+  }
+  return "[web search results for '" + query + "']\n" + out;
+}
+
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 static bool handle_response(const std::string& response, ReplState& s) {
@@ -899,8 +1198,10 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto str_replaces = parse_str_replace_annotations(response);
   auto reads = parse_read_annotations(response);
   auto execs = parse_exec_annotations(response);
+  auto searches = parse_search_annotations(response);
 
-  if (writes.empty() && str_replaces.empty() && reads.empty() && execs.empty()) {
+  bool has_annotations = !writes.empty() || !str_replaces.empty() || !reads.empty() || !execs.empty() || !searches.empty();
+  if (!has_annotations) {
     if (!s.stream_chat) {
       s.out << colorize_ai(tui::render_markdown(response, s.color && s.markdown), s) << "\n";
     }
@@ -935,6 +1236,16 @@ static bool handle_response(const std::string& response, ReplState& s) {
     std::string output = confirm_exec(cmd, s.cfg, s.in, s.out, s.trust);
     if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
+      has_followup = true;
+    }
+  }
+  // Web search: only when enabled in config (ADR-057, privacy-first)
+  if (s.cfg.allow_web_search) {
+    for (const auto& action : searches) {
+      std::string result = web_search(action.query, s.cfg);
+      s.out << "\033[1;37m[searching: " << action.query << "]\033[0m\n";
+      LOG_EVENT("repl", "web_search", action.query, result, 0, 0, 0);
+      s.history.push_back({"user", result});
       has_followup = true;
     }
   }
@@ -992,9 +1303,16 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
  * @param s The REPL state providing execution configuration, input/output streams, and history.
  */
 static void run_exec(const std::string& cmd, bool add_to_history, ReplState& s) {
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] exec: %s\n", cmd.c_str());
+  }
   auto t0 = std::chrono::steady_clock::now();
   auto r = cmd_exec(cmd, s.cfg.exec_timeout, s.cfg.max_output);
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] exec: exit=%d %ldms output=%zu bytes\n", r.exit_code, ms, r.output.size());
+  }
 
   // Log user-initiated exec (! or !!) with duration for performance analysis
   LOG_EVENT("repl", add_to_history ? "exec_context" : "exec", cmd, r.output, static_cast<int>(ms), 0, 0);
@@ -1133,6 +1451,9 @@ static void send_prompt(const std::string& line, ReplState& s) {
     g_interrupted = 0;
     return;
   }
+  // Auto-repair malformed closing tags before parsing (e.g. <exec>...</bash>)
+  response = fix_malformed_tags(response);
+
   s.history.push_back({"assistant", response});
   bool needs_followup = handle_response(response, s);
   s.count++;
@@ -1194,7 +1515,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
 // Tab-completion for slash commands
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/clear", "/color", "/model", "/set", "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/clear", "/color", "/mem", "/model", "/pref", "/set", "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
@@ -1214,10 +1535,26 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
-    history.push_back({"system", cfg.system_prompt});
+    std::string sys = cfg.system_prompt;
+    // Append web search tool description when enabled (ADR-057)
+    if (cfg.allow_web_search) {
+      sys += Config::WEB_SEARCH_PROMPT;
+    }
+    // Load persistent preferences and memory into system prompt (ADR-059)
+    std::string prefs = read_file_or_empty(cfg.preferences_path);
+    if (!prefs.empty()) {
+      sys += "\n\nUser preferences:\n" + prefs;
+    }
+    std::string mem = read_file_or_empty(cfg.memory_path);
+    if (!mem.empty()) {
+      sys += "\n\nUser context (remembered facts):\n" + mem;
+    }
+    history.push_back({"system", sys});
   }
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
+  // Enable multiline mode so long prompts wrap instead of scrolling horizontally
+  linenoise::SetMultiLine(true);
   ReplState state = {chat,
                      stream_chat,
                      models_fn,
@@ -1236,6 +1573,11 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   // Log session start with version, commit, model, and host for traceability
   std::string version_info = std::string(LLAMA_CLI_VERSION) + " (" + GIT_COMMIT + ")";
   LOG_EVENT("repl", "session_start", cfg.model, version_info + " " + cfg.host + ":" + cfg.port, 0, 0, 0);
+
+  // Auto-start SearXNG when web search is enabled (ADR-057)
+  if (cfg.allow_web_search) {
+    ensure_searxng(cfg, out);
+  }
 
   while (read_line(in, out, line, state.color, state.prompt_color)) {
     if (line.empty()) {

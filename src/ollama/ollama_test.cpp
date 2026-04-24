@@ -13,9 +13,12 @@
 #include <doctest/doctest.h>
 #include <httplib.h>
 
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "trace/trace.h"
 
 /// RAII wrapper: starts httplib::Server on a free port, stops on destruction
 struct MockServer {
@@ -54,6 +57,15 @@ static Config mock_cfg(int port) {
   return c;
 }
 
+/// RAII guard: redirects std::cerr to a stringstream, restores on destruction
+struct CerrCapture {
+  std::ostringstream captured;
+  std::streambuf* original;
+  CerrCapture() : original(std::cerr.rdbuf(captured.rdbuf())) {}
+  ~CerrCapture() { std::cerr.rdbuf(original); }
+  std::string str() const { return captured.str(); }
+};
+
 /// Config pointing at nothing — for connection failure tests
 static Config dead_cfg() {
   Config c;
@@ -81,7 +93,10 @@ TEST_CASE ("ollama: generate returns response text") {
 }
 
 TEST_CASE ("ollama: generate handles connection failure") {
+  CerrCapture cerr;
   CHECK (ollama_generate(dead_cfg(), "hi").empty())
+    ;
+  CHECK (cerr.str().find("could not connect to Ollama") != std::string::npos)
     ;
 }
 
@@ -93,7 +108,10 @@ TEST_CASE ("ollama: generate handles HTTP error with message") {
   });
   m.start();
 
+  CerrCapture cerr;
   CHECK (ollama_generate(mock_cfg(m.port), "hi").empty())
+    ;
+  CHECK (cerr.str().find("model not found") != std::string::npos)
     ;
 }
 
@@ -105,7 +123,10 @@ TEST_CASE ("ollama: generate handles HTTP error without error field") {
   });
   m.start();
 
+  CerrCapture cerr;
   CHECK (ollama_generate(mock_cfg(m.port), "hi").empty())
+    ;
+  CHECK (cerr.str().find("HTTP 500") != std::string::npos)
     ;
 }
 
@@ -126,7 +147,10 @@ TEST_CASE ("ollama: chat returns assistant content") {
 
 TEST_CASE ("ollama: chat handles connection failure") {
   std::vector<Message> msgs = {{"user", "hi"}};
+  CerrCapture cerr;
   CHECK (ollama_chat(dead_cfg(), msgs).empty())
+    ;
+  CHECK (cerr.str().find("could not connect to Ollama") != std::string::npos)
     ;
 }
 
@@ -139,7 +163,10 @@ TEST_CASE ("ollama: chat handles HTTP error") {
   m.start();
 
   std::vector<Message> msgs = {{"user", "hi"}};
+  CerrCapture cerr;
   CHECK (ollama_chat(mock_cfg(m.port), msgs).empty())
+    ;
+  CHECK (cerr.str().find("bad request") != std::string::npos)
     ;
 }
 
@@ -174,7 +201,10 @@ TEST_CASE ("ollama: chat_stream collects tokens") {
 TEST_CASE ("ollama: chat_stream handles connection failure") {
   std::vector<Message> msgs = {{"user", "hi"}};
   // Note: this test takes ~3s due to the 2s retry in production code
+  CerrCapture cerr;
   CHECK (ollama_chat_stream(dead_cfg(), msgs, [](const std::string&) { return true; }).empty())
+    ;
+  CHECK (cerr.str().find("could not connect to Ollama") != std::string::npos)
     ;
 }
 
@@ -187,7 +217,12 @@ TEST_CASE ("ollama: chat_stream handles HTTP error") {
   m.start();
 
   std::vector<Message> msgs = {{"user", "hi"}};
+  CerrCapture cerr;
   CHECK (ollama_chat_stream(mock_cfg(m.port), msgs, [](const std::string&) { return true; }).empty())
+    ;
+  // In streaming mode, httplib may not expose the error body;
+  // the code falls back to "HTTP 500" when the error field is empty
+  CHECK (cerr.str().find("Ollama error") != std::string::npos)
     ;
 }
 
@@ -225,10 +260,18 @@ TEST_CASE ("ollama: get_available_models returns empty on bad response") {
 
 // --- trace mode ---
 
-/// RAII guard: sets trace on, restores on destruction
+/// RAII guard: sets trace on with a CapturingTrace, restores on destruction
 struct TraceGuard {
-  TraceGuard() { Config::instance().trace = true; }
-  ~TraceGuard() { Config::instance().trace = false; }
+  Trace* original;
+  CapturingTrace capture;
+  TraceGuard() : original(stderr_trace) {
+    Config::instance().trace = true;
+    stderr_trace = &capture;
+  }
+  ~TraceGuard() {
+    Config::instance().trace = false;
+    stderr_trace = original;
+  }
 };
 
 TEST_CASE ("ollama: generate with trace logs to stderr") {
@@ -243,6 +286,8 @@ TEST_CASE ("ollama: generate with trace logs to stderr") {
   TraceGuard guard;
 
   CHECK (ollama_generate(cfg, "test") == "traced")
+    ;
+  CHECK (!guard.capture.messages.empty())
     ;
 }
 
@@ -259,5 +304,7 @@ TEST_CASE ("ollama: chat with trace logs to stderr") {
 
   std::vector<Message> msgs = {{"user", "test"}};
   CHECK (ollama_chat(cfg, msgs) == "traced")
+    ;
+  CHECK (!guard.capture.messages.empty())
     ;
 }

@@ -36,27 +36,33 @@ struct Config {
     return cfg;
   }
 
-  std::string provider = "ollama";      ///< LLM provider name (ollama, mock, etc.)
-  std::string host = "localhost";       ///< Ollama server hostname
-  std::string port = "11434";           ///< Ollama server port
-  std::string model = DEFAULT_MODEL;    ///< LLM model name
-  int timeout = 120;                    ///< HTTP request timeout in seconds
-  int exec_timeout = 30;                ///< Max seconds for command execution
-  int max_output = 10000;               ///< Max chars of command output for LLM context
-  bool no_color = false;                ///< Disable colored output (--no-color, NO_COLOR)
-  bool no_banner = false;               ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
-  bool bofh = false;                    ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
-  bool trace = false;                   ///< Trace mode: show HTTP calls and debug info
-  bool force_repl = false;              ///< Force REPL mode even when stdin is not a TTY (--repl)
-  Mode mode = Mode::Interactive;        ///< Execution mode (interactive or sync)
-  std::string prompt_color = "yellow";  ///< Prompt color name (LLAMA_PROMPT_COLOR)
-  std::string ai_color = "purple";      ///< AI response color name (LLAMA_AI_COLOR)
-  std::string prompt;                   ///< One-shot prompt for sync mode
-  std::vector<std::string> files;       ///< Input files for sync mode (--files, ADR-030)
-  std::string session_path;             ///< Session file for multi-turn sync (--session, ADR-056)
-  std::string capabilities;             ///< Capability flags: read,write,exec (--capabilities, ADR-056)
-  std::string sandbox = ".";            ///< Sandbox root for file ops (--sandbox, ADR-056)
-  std::string system_prompt =           ///< System prompt for conversation context
+  std::string provider = "ollama";                         ///< LLM provider name (ollama, mock, etc.)
+  std::string host = "localhost";                          ///< Ollama server hostname
+  std::string port = "11434";                              ///< Ollama server port
+  std::string model = DEFAULT_MODEL;                       ///< LLM model name
+  int timeout = 120;                                       ///< HTTP request timeout in seconds
+  int exec_timeout = 30;                                   ///< Max seconds for command execution
+  int max_output = 10000;                                  ///< Max chars of command output for LLM context
+  bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)
+  bool no_banner = false;                                  ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
+  bool bofh = false;                                       ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
+  bool trace = false;                                      ///< Trace mode: show HTTP calls and debug info
+  bool force_repl = false;                                 ///< Force REPL mode even when stdin is not a TTY (--repl)
+  Mode mode = Mode::Interactive;                           ///< Execution mode (interactive or sync)
+  std::string prompt_color = "yellow";                     ///< Prompt color name (LLAMA_PROMPT_COLOR)
+  std::string ai_color = "purple";                         ///< AI response color name (LLAMA_AI_COLOR)
+  std::string prompt;                                      ///< One-shot prompt for sync mode
+  std::vector<std::string> files;                          ///< Input files for sync mode (--files, ADR-030)
+  std::string session_path;                                ///< Session file for multi-turn sync (--session, ADR-056)
+  std::string capabilities;                                ///< Capability flags: read,write,exec (--capabilities, ADR-056)
+  std::string sandbox = ".";                               ///< Sandbox root for file ops (--sandbox, ADR-056)
+  bool allow_web_search = false;                           ///< Enable web search tool (--web-search, ADR-057)
+  std::string search_url = "http://localhost:8888";        ///< SearXNG-compatible JSON API base URL (ADR-057)
+  std::string search_lang = "en-US";                       ///< Search language, e.g. en-US, nl-NL (ADR-057)
+  std::string search_location;                             ///< Search location, e.g. "Eindhoven, NL" (ADR-057)
+  std::string memory_path = ".cache/llama-memory.md";      ///< Memory file (ADR-059)
+  std::string preferences_path = ".preferences/style.md";  ///< Preferences file (ADR-059)
+  std::string system_prompt =                              ///< System prompt for conversation context
       "You are llama-cli, a local AI assistant running in a terminal. "
       "Keep responses concise and relevant. Always respond in the same "
       "language as the user's message. "
@@ -76,10 +82,21 @@ struct Config {
       "verbatim. "
       "Do NOT ask for confirmation or file paths — the client handles that. "
       "Just include the tags directly in your response. "
+      "Always put your explanation BEFORE the tags, never after. "
       "IMPORTANT: Never claim code contains specific patterns, functions, "
       "or design choices unless you have read the actual file content in "
       "this conversation. If you have not read a file, say so instead of "
       "guessing. Do not give scores or ratings without measurable criteria.";
+  /// Web search tool prompt fragment — appended when allow_web_search is true
+  static constexpr const char* WEB_SEARCH_PROMPT =
+      " You can search the web with <search>query</search>. "
+      "ALWAYS search BEFORE answering when the topic involves recent events, "
+      "real-time data, news, current affairs, or anything beyond your training "
+      "cutoff. Do NOT guess or hallucinate — search first, then answer based "
+      "on the results. Keep search queries short and factual (e.g. "
+      "'Trump latest news', not 'Trump news April 2026'). Never include "
+      "future dates in queries. Search results are fed back to you "
+      "automatically.";
 };
 
 // Load .env file into config (project-local, overrides env vars)

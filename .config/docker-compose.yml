@@ -1,0 +1,9 @@
+services:
+  searxng:
+    image: searxng/searxng
+    container_name: searxng
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    restart: unless-stopped

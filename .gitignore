@@ -2,6 +2,7 @@ build/
 build-fuzz/
 build-cov/
 .cache/
+.preferences/
 .tmp/
 compile_commands.json
 *.o

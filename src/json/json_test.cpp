@@ -215,6 +215,39 @@ SCENARIO ("json: extract_int with leading whitespace") {
   }
 }
 
+// --- json_extract_object_at (SearXNG results array walking) ---
+
+SCENARIO ("json: extract_object_at walks array of objects") {
+  GIVEN ("a JSON array with multiple objects") {
+    std::string json = R"([{"title":"A","url":"http://a"},{"title":"B","url":"http://b"}])";
+    THEN ("first object is extracted at position 1") {
+      std::string obj = json_extract_object_at(json, 1);
+      CHECK (json_extract_string(obj, "title") == "A")
+        ;
+    }
+    THEN ("second object is extracted by advancing past first") {
+      std::string first = json_extract_object_at(json, 1);
+      size_t next = 1 + first.size();
+      // skip comma between objects
+      while (next < json.size() && json[next] != '{') {
+        next++;
+      }
+      std::string second = json_extract_object_at(json, next);
+      CHECK (json_extract_string(second, "title") == "B")
+        ;
+    }
+  }
+  GIVEN ("an invalid position") {
+    std::string json = R"({"key":"val"})";
+    THEN ("non-brace position returns empty") {
+      CHECK (json_extract_object_at(json, 0).empty() == false)
+        ;
+      CHECK (json_extract_object_at(json, 999).empty())
+        ;
+    }
+  }
+}
+
 // TODO: test json_extract_string with escaped backslash before quote (\\\")
 // TODO: test json_extract_object with deeply nested objects
 // TODO: test decode_unicode_escape with non-ASCII codepoints (>127)

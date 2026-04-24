@@ -162,6 +162,25 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text) {
   return actions;
 }
 
+// --- <search> ----------------------------------------------------------------
+
+/**
+ * @brief Extract all \<search\>query\</search\> annotations from response text.
+ * @param text Input string to scan for search annotations.
+ * @return Vector of SearchAction with query for each found annotation.
+ */
+std::vector<SearchAction> parse_search_annotations(const std::string& text) {
+  std::vector<SearchAction> actions;
+  size_t pos = 0;
+  std::string opening, content;
+  while (find_block(text, "search", pos, opening, content) != std::string::npos) {
+    if (!content.empty()) {
+      actions.push_back({content});
+    }
+  }
+  return actions;
+}
+
 // --- strip -------------------------------------------------------------------
 
 /**
@@ -237,5 +256,68 @@ std::string strip_annotations(const std::string& text) {
     result.replace(start, end + 1 - start, "\033[1;37m[read " + path + "]\033[0m");
   }
 
+  // strip <search>...</search>
+  while (true) {
+    auto start = result.find("<search>");
+    if (start == std::string::npos) {
+      break;
+    }
+    auto end = result.find("</search>", start);
+    if (end == std::string::npos) {
+      break;
+    }
+    std::string query = result.substr(start + 8, end - start - 8);
+    result.replace(start, end + 9 - start, "\033[1;37m[search: " + query + "]\033[0m");
+  }
+
+  return result;
+}
+
+// --- malformed tag repair -----------------------------------------------------
+
+/// Auto-repair broken closing tags from LLM output.
+/// When the LLM writes e.g. <exec>cmd</bash> instead of <exec>cmd</exec>,
+/// this replaces the wrong closing tag with the correct one so downstream
+/// parsers can match normally.
+std::string fix_malformed_tags(const std::string& text) {
+  std::string result = text;
+  // For each known tag, find openers without a matching closer and fix
+  // the next </...> to be the correct closer.
+  static const struct {
+    const char* open;
+    const char* close;
+  } tags[] = {
+      {"<exec>", "</exec>"},
+      {"<write ", "</write>"},
+      {"<str_replace ", "</str_replace>"},
+      {"<search>", "</search>"},
+  };
+  for (const auto& t : tags) {
+    size_t pos = 0;
+    while (true) {
+      auto start = result.find(t.open, pos);
+      if (start == std::string::npos) {
+        break;
+      }
+      // Already has correct closer? Skip.
+      auto correct = result.find(t.close, start);
+      auto next_open = result.find(t.open, start + 1);
+      if (correct != std::string::npos && (next_open == std::string::npos || correct < next_open)) {
+        pos = correct + std::string(t.close).size();
+        continue;
+      }
+      // Find the next </...> tag and replace it with the correct closer
+      auto bad = result.find("</", start + std::string(t.open).size());
+      if (bad == std::string::npos) {
+        break;
+      }
+      auto gt = result.find('>', bad);
+      if (gt == std::string::npos) {
+        break;
+      }
+      result.replace(bad, gt - bad + 1, t.close);
+      pos = bad + std::string(t.close).size();
+    }
+  }
   return result;
 }

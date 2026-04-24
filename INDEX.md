@@ -50,6 +50,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-056-session-sync.md`](docs/adr/adr-056-session-sync.md) — ADR-056: Stateful Sync Mode via `--session`
 - [`docs/adr/adr-057-web-search-integration.md`](docs/adr/adr-057-web-search-integration.md) — ADR-057: Web Search Integration via Tool Annotations
 - [`docs/adr/adr-058-http-mock-testing.md`](docs/adr/adr-058-http-mock-testing.md) — Use httplib::Server as in-process mock for Ollama API unit tests — zero new dependencies
+- [`docs/adr/adr-059-memory-and-preferences.md`](docs/adr/adr-059-memory-and-preferences.md) — ADR-059: Persistent Memory & Preferences
+- [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -94,6 +96,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/backlog/039-local-ci.md`](docs/backlog/039-local-ci.md) — 039: Local CI Testing
 - [`docs/backlog/040-ci-caching.md`](docs/backlog/040-ci-caching.md) — 040: CI Check Caching
 - [`docs/backlog/041-tree-sitter-highlighting.md`](docs/backlog/041-tree-sitter-highlighting.md) — 041: Syntax Highlighting via tree-sitter
+- [`docs/backlog/042-unified-error-output.md`](docs/backlog/042-unified-error-output.md) — 042: Unified Error Output Stream
 - [`docs/backlog/README.md`](docs/backlog/README.md) — Backlog
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
@@ -225,4 +228,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_222 files indexed._
+_225 files indexed._
