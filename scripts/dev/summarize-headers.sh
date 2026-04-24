@@ -59,14 +59,21 @@ needs_summary() {
     *.md)
       # Has frontmatter summary? Good enough.
       sed -n '/^---$/,/^---$/p' "$file" 2>/dev/null | grep -q '^summary:' && return 1
-      # Fallback: first meaningful line >= 20 chars?
+      # No frontmatter? First heading or line ≥ 20 chars is fine (can't inject without frontmatter)
+      if ! head -1 "$file" | grep -q '^---$'; then return 1; fi
+      # Has frontmatter but no summary — check if first non-frontmatter line is useful
       local first
-      first=$(grep -m1 -v '^---$\|^$\|^#!' "$file" | sed 's/^[# ]*//' | cut -c1-80)
-      [[ ${#first} -ge 20 && "$first" != "/**" && "$first" != "---" ]] && return 1
+      first=$(awk '/^---$/{n++; next} n>=2{print; exit}' "$file" | sed 's/^[# ]*//' | cut -c1-80)
+      [[ ${#first} -ge 20 ]] && return 1
       return 0
       ;;
     *.cpp | *.h)
+      # Has @brief in doxygen block?
       head -10 "$file" | grep -q '@brief' && return 1
+      # Has a meaningful // comment on line 1? (≥ 20 chars)
+      local first
+      first=$(head -1 "$file" | sed 's|^// *||')
+      [[ ${#first} -ge 20 ]] && return 1
       return 0
       ;;
     *.sh)
