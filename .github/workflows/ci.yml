@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      src: ${{ steps.filter.outputs.src }}
       docs: ${{ steps.filter.outputs.docs }}
       yaml: ${{ steps.filter.outputs.yaml }}
       scripts: ${{ steps.filter.outputs.scripts }}
@@ -31,6 +32,9 @@ jobs:
               - 'CMakeLists.txt'
               - 'Makefile'
               - '.config/**'
+            src:
+              - 'src/**'
+              - 'CMakeLists.txt'
             docs:
               - '**/*.md'
             yaml:
@@ -157,7 +161,7 @@ jobs:
 
   test-coverage:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: (needs.changes.outputs.src == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: workflow
@@ -188,7 +192,7 @@ jobs:
 
   sanitizers:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: (needs.changes.outputs.src == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
