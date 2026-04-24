@@ -49,6 +49,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-055-layered-test-strategy.md`](docs/adr/adr-055-layered-test-strategy.md) — ADR-055: Layered Test Strategy — From Unit Tests to Fuzzing
 - [`docs/adr/adr-056-session-sync.md`](docs/adr/adr-056-session-sync.md) — ADR-056: Stateful Sync Mode via `--session`
 - [`docs/adr/adr-057-web-search-integration.md`](docs/adr/adr-057-web-search-integration.md) — ADR-057: Web Search Integration via Tool Annotations
+- [`docs/adr/adr-058-http-mock-testing.md`](docs/adr/adr-058-http-mock-testing.md) — Use httplib::Server as in-process mock for Ollama API unit tests — zero new dependencies
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -149,6 +150,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
 - [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
+- [`scripts/dev/summarize-headers.sh`](scripts/dev/summarize-headers.sh)
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
 - [`scripts/fmt/format-code.sh`](scripts/fmt/format-code.sh) — format-code.sh — Auto-format C++ source files using clang-format.
 - [`scripts/fmt/format-md.sh`](scripts/fmt/format-md.sh) — format-md.sh — Auto-format Markdown files using rumdl.
@@ -185,21 +187,21 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
 - [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
-- [`src/annotation/annotation.h`](src/annotation/annotation.h) — // annotation.h — Parse LLM tool annotations from response text
+- [`src/annotation/annotation.h`](src/annotation/annotation.h) — // Tool extracts and processes LLM response annotations.
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
 - [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
 - [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
-- [`src/command/command.h`](src/command/command.h) — // command.h — REPL slash command parser
+- [`src/command/command.h`](src/command/command.h) — // Parses user input for interactive mode commands and executes specified actions.
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
 - [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
 - [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
-- [`src/config/config.h`](src/config/config.h) — // config.h — Application configuration
+- [`src/config/config.h`](src/config/config.h) — // Application configuration for the Ollama server with customizable settings.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
-- [`src/exec/exec.h`](src/exec/exec.h) — // exec.h — Shell command execution with timeout and output capture
+- [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
 - [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
@@ -208,13 +210,14 @@ Auto-generated overview of all files in this repo.
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
+- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
-- [`src/ollama/ollama.h`](src/ollama/ollama.h) — // ollama.h — Ollama API client
+- [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
 - [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
-- [`src/repl/repl.h`](src/repl/repl.h) — // repl.h — Interactive REPL loop
+- [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
@@ -222,4 +225,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_219 files indexed._
+_222 files indexed._

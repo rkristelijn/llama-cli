@@ -45,6 +45,6 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] CI speed: add ccache to CI jobs (biggest win — avoids full rebuild on every push)
 - [ ] CI speed: run coverage only on main merge, not on every PR push
 - [ ] CI speed: combine sanitizers + unit-test jobs (sanitizers already runs all tests)
-- [ ] Add e2e/integration test for retry on connection failure (ollama.cpp) — needs HTTP mock or test server
+- [x] Add e2e/integration test for retry on connection failure (ollama.cpp) — needs HTTP mock or test server
 - [ ] Add integration test for `.kiro/agents/` context loading (main.cpp) — needs filesystem fixture + main() entry
 - [ ] Add test for linenoise `/model` input path — TTY-specific, needs pseudo-terminal or e2e test

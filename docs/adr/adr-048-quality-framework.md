@@ -546,7 +546,7 @@ The framework passes this test because:
 
 | # | Check | Status | Evidence |
 |---|-------|--------|----------|
-| 1.1 | Coverage ≥ 60% | ✅ PASS | CI threshold set to 60% (`ci.yml`) |
+| 1.1 | Coverage ≥ 60% | ✅ PASS | CI threshold 60% (`ci.yml`), actual 60.6%. `ollama_test.cpp` mock tests ([ADR-058](adr-058-http-mock-testing.md)) |
 | 1.2 | SAST security | ✅ PASS | CI `sast-security` job (semgrep) |
 | 1.3 | TODO scraping → debt log | ✅ PASS | `make todo` generates `TECHDEBT.md` (26 code + 84 markdown TODOs) |
 | 1.4 | Suppressions require reason | ✅ PASS | `complexity.sh` requires `pmccabe:skip-complexity` annotation |
