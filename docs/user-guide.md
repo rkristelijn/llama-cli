@@ -13,7 +13,8 @@
 9. [REPL commands](#9-repl-commands)
 10. [Configuration](#10-configuration)
 11. [Event logging](#11-event-logging)
-12. [Troubleshooting](#12-troubleshooting)
+12. [Response rating](#12-response-rating)
+13. [Troubleshooting](#13-troubleshooting)
 
 ## 1. Prerequisites
 
@@ -205,6 +206,9 @@ cat error.log | llama-cli "explain this error"
 | `/color` | Set prompt or AI response color |
 | `/set` | Show runtime options |
 | `/set <opt>` | Toggle option (`markdown`, `color`, `bofh`, `trace`) |
+| `/mem` | Show/add/clear memories |
+| `/pref` | Show/add/clear preferences |
+| `/rate` | Rate responses (`/rate last +/-, /rate list`) |
 | `/version` | Show version info |
 | `/help` | Show available commands |
 | `exit`, `quit` | Exit the REPL |
@@ -266,6 +270,7 @@ All actions are logged to `~/.llama-cli/events.jsonl` as structured JSON (one ev
 | `str_replace_declined` | Edit rejected | path |
 | `file_read` | File read by LLM | path |
 | `generate` / `chat` | LLM call | prompt, response, duration_ms, tokens |
+| `rate_response` | User rates a response | response, rating |
 
 ### Viewing logs
 
@@ -308,7 +313,73 @@ TIME       AGENT      ACTION               DURATION     IN    OUT  SUMMARY
 
 See [ADR-027](adr/adr-027-event-logging.md) for the design rationale.
 
-## 12. Troubleshooting
+## 12. Response rating
+
+After each assistant response, you can rate it to track quality over time.
+
+### Rating keys
+
+| Key | Rating | Log value |
+|-----|--------|-----------|
+| `y` or `+` | Good response | `positive` |
+| `n` or `-` | Bad response | `negative` |
+| `s` | Save for review | `saved` |
+| `Enter` | Skip (no rating) | (none) |
+
+Example:
+
+```text
+> explain what a binary tree is
+A binary tree is a hierarchical data structure...
+
+[y]es / [n]o / [s]ave / [Enter] skip: y
+[rated: positive]
+```
+
+### Retroactive rating
+
+Rate previous responses using `/rate`:
+
+```bash
+/rate last +        # rate last response positive
+/rate last -        # rate last response negative
+/rate last s        # save for review
+/rate 5 +           # rate 5th assistant response positive
+/rate list          # show all rated responses
+```
+
+### Viewing ratings in logs
+
+Rated responses include a `rating` field:
+
+```json
+{
+  "timestamp": "2026-04-26T14:00:00.123Z",
+  "agent": "repl",
+  "action": "chat",
+  "input": "explain binary tree",
+  "output": "A binary tree is...",
+  "duration_ms": 5234,
+  "tokens_prompt": 1234,
+  "tokens_completion": 89,
+  "rating": "positive"
+}
+```
+
+### Query ratings
+
+```bash
+# Show all positive ratings
+make log | grep '"rating":"positive"'
+
+# Show all negative ratings (what went wrong)
+make log | grep '"rating":"negative"'
+
+# Show saved responses for review
+make log | grep '"rating":"saved"'
+```
+
+## 13. Troubleshooting
 
 ### Connection refused
 

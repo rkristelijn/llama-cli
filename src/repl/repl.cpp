@@ -13,6 +13,7 @@
 #include <chrono>
 #include <csignal>
 #include <fstream>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -63,6 +64,7 @@ struct ReplState {
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
   bool trust = false;               ///< Trust mode: auto-approve all write/exec/str_replace (reset on /clear)
+  int last_assistant_idx = -1;      ///< Index of last assistant message for rating
 };
 
 /** Get version string from compile-time definition. */
@@ -278,10 +280,30 @@ static void handle_model_selection(ReplState& s) {
     return;
   }
 
-  // Display numbered list of models
+  // Load model descriptions from .cache/models.csv
+  std::map<std::string, std::string> desc_map;
+  {
+    std::ifstream csv(".cache/models.csv");
+    std::string line;
+    if (csv.is_open()) std::getline(csv, line);  // skip header
+    while (csv.is_open() && std::getline(csv, line)) {
+      auto comma = line.find(',');
+      if (comma == std::string::npos) continue;
+      std::string name = line.substr(0, comma);
+      std::string rest = line.substr(comma + 1);
+      auto comma2 = rest.find(',');
+      std::string desc = (comma2 != std::string::npos) ? rest.substr(0, comma2) : rest;
+      desc_map[name] = desc;
+    }
+  }
+
+  // Display numbered list with descriptions
   s.out << "Available models:\n";
   for (size_t i = 0; i < models.size(); i++) {
-    s.out << "  " << (i + 1) << ". " << models[i] << "\n";
+    std::string marker = (models[i] == Config::instance().model) ? " *" : "  ";
+    auto it = desc_map.find(models[i]);
+    std::string desc = (it != desc_map.end()) ? "  " + it->second : "";
+    s.out << marker << (i + 1) << ". " << models[i] << desc << "\n";
   }
 
   // Prompt user to select by number
@@ -436,6 +458,90 @@ static void handle_pref(const std::string& arg, ReplState& s) {
   }
 }
 
+/**
+ * @brief Handle /rate command: rate last or specific response.
+ *
+ * /rate last +    — rate last response positive
+ * /rate last -    — rate last response negative
+ * /rate last s    — save for review
+ * /rate 5 +       — rate 5th assistant response positive
+ * /rate list      — show saved responses
+ */
+static void handle_rate(const std::string& arg, ReplState& s) {
+  if (arg == "list") {
+    int count = 0;
+    for (size_t i = 0; i < s.history.size(); ++i) {
+      if (s.history[i].role == "assistant" && !s.history[i].rating.empty()) {
+        ++count;
+        std::string preview = s.history[i].content.substr(0, 60);
+        s.out << count << ". [" << s.history[i].rating << "] " << preview << "...\n";
+      }
+    }
+    if (count == 0) {
+      s.out << "[no rated responses]\n";
+    }
+    return;
+  }
+
+  // Parse: /rate <index> <rating>
+  std::string index_str, rating_str;
+  auto space = arg.find(' ');
+  if (space == std::string::npos) {
+    s.out << "Usage: /rate last +/-, /rate <n> +/-, /rate list\n";
+    return;
+  }
+  index_str = arg.substr(0, space);
+  rating_str = arg.substr(space + 1);
+
+  // Find target message
+  int target_idx = -1;
+  if (index_str == "last") {
+    target_idx = s.last_assistant_idx;
+  } else {
+    try {
+      int n = std::stoi(index_str);
+      // Find nth assistant message
+      int count = 0;
+      for (size_t i = 0; i < s.history.size(); ++i) {
+        if (s.history[i].role == "assistant") {
+          ++count;
+          if (count == n) {
+            target_idx = static_cast<int>(i);
+            break;
+          }
+        }
+      }
+    } catch (...) {
+      s.out << "Invalid index. Use 'last' or a number.\n";
+      return;
+    }
+  }
+
+  if (target_idx < 0 || target_idx >= static_cast<int>(s.history.size())) {
+    s.out << "Response not found.\n";
+    return;
+  }
+
+  // Parse rating
+  std::string rating;
+  if (rating_str == "+" || rating_str == "y" || rating_str == "yes" || rating_str == "good") {
+    rating = "positive";
+  } else if (rating_str == "-" || rating_str == "n" || rating_str == "no" || rating_str == "bad") {
+    rating = "negative";
+  } else if (rating_str == "s" || rating_str == "save") {
+    rating = "saved";
+  } else {
+    s.out << "Invalid rating. Use: + (good), - (bad), s (save)\n";
+    return;
+  }
+
+  s.history[target_idx].rating = rating;
+  s.out << "[rated: " << rating << "]\n";
+
+  // Log the rating
+  LOG_EVENT("repl", "rate_response", s.history[target_idx].content, rating, 0, 0, 0);
+}
+
 static bool handle_command(const ParsedInput& input, ReplState& s) {
   if (input.command == "clear") {
     s.history.clear();
@@ -452,6 +558,23 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     handle_mem(input.arg, s);
   } else if (input.command == "pref") {
     handle_pref(input.arg, s);
+  } else if (input.command == "rate") {
+    handle_rate(input.arg, s);
+  } else if (input.command == "copy") {
+    // Copy last assistant response to clipboard
+    if (s.last_assistant_idx < 0 || s.last_assistant_idx >= static_cast<int>(s.history.size())) {
+      s.out << "[no response to copy]\n";
+    } else {
+      const std::string& content = s.history[s.last_assistant_idx].content;
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");  // error-handling:ok
+      if (pipe) {
+        fwrite(content.c_str(), 1, content.size(), pipe);
+        pclose(pipe);
+        s.out << "[copied " << content.size() << " chars to clipboard]\n";
+      } else {
+        s.out << "[clipboard not available — install pbcopy or xclip]\n";
+      }
+    }
   } else if (input.command == "help" || input.command.empty()) {
     s.out << help::repl;
   } else {
@@ -1441,7 +1564,12 @@ static void send_prompt(const std::string& line, ReplState& s) {
     inserted_reminder = true;
   }
   s.history.push_back({"user", line});
+
+  // Time the LLM call so user sees how long it took
+  auto t0 = std::chrono::steady_clock::now();
   std::string response = chat_with_spinner(s);
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
   if (g_interrupted) {
     s.out << "\n[interrupted]\n";
     s.history.pop_back();
@@ -1455,8 +1583,25 @@ static void send_prompt(const std::string& line, ReplState& s) {
   response = fix_malformed_tags(response);
 
   s.history.push_back({"assistant", response});
+  s.last_assistant_idx = static_cast<int>(s.history.size()) - 1;
   bool needs_followup = handle_response(response, s);
   s.count++;
+
+  // Show response stats: duration, model, response length
+  if (s.color) {
+    s.out << "\033[2m";  // dim
+  }
+  if (elapsed >= 1000) {
+    s.out << "[" << (elapsed / 1000) << "." << ((elapsed % 1000) / 100) << "s";
+  } else {
+    s.out << "[" << elapsed << "ms";
+  }
+  s.out << " · " << Config::instance().model;
+  s.out << " · " << response.size() << " chars]";
+  if (s.color) {
+    s.out << "\033[0m";
+  }
+  s.out << "\n";
 
   // Keep following up while the model produces annotations (exec, read, etc.)
   // Bounded to prevent runaway turns burning tokens/time.
@@ -1470,6 +1615,7 @@ static void send_prompt(const std::string& line, ReplState& s) {
       break;
     }
     s.history.push_back({"assistant", followup});
+    s.last_assistant_idx = static_cast<int>(s.history.size()) - 1;
     needs_followup = handle_response(followup, s);
     ++followup_count;
   }
@@ -1515,7 +1661,8 @@ static bool dispatch(const std::string& line, ReplState& s) {
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
 // Tab-completion for slash commands
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/clear", "/color", "/mem", "/model", "/pref", "/set", "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/clear", "/color", "/copy", "/mem",     "/model",
+                                                "/pref",  "/rate",  "/set",  "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
@@ -1555,6 +1702,22 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   linenoise::SetCompletionCallback(slash_completion);
   // Enable multiline mode so long prompts wrap instead of scrolling horizontally
   linenoise::SetMultiLine(true);
+
+  // Persist prompt history across sessions — up-arrow recalls previous prompts.
+  // Dev mode: .tmp/history.txt, installed: ~/.llama-cli/history.txt
+  std::string history_path;
+  {
+    struct stat st;
+    if (stat("Makefile", &st) == 0) {
+      history_path = ".tmp/history.txt";
+    } else {
+      const char* home = getenv("HOME");
+      history_path = std::string(home ? home : ".") + "/.llama-cli/history.txt";
+    }
+  }
+  linenoise::SetHistoryMaxLen(500);
+  linenoise::LoadHistory(history_path.c_str());
+
   ReplState state = {chat,
                      stream_chat,
                      models_fn,
@@ -1589,5 +1752,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   }
   // Log session end with total prompt count for usage analysis
   LOG_EVENT("repl", "session_end", std::to_string(state.count) + " prompts", "", 0, 0, 0);
+  // Save prompt history so next session can recall with up-arrow
+  linenoise::SaveHistory(history_path.c_str());
   return state.count;
 }

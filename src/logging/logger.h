@@ -19,6 +19,7 @@ struct Event {
   int duration_ms = 0;        ///< Execution time in milliseconds
   int tokens_prompt = 0;      ///< Prompt tokens
   int tokens_completion = 0;  ///< Completion tokens
+  std::string rating;         ///< Rating: "positive", "negative", "saved", or empty
 };
 
 /// Append-only JSONL logger for agent events

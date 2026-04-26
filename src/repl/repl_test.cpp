@@ -497,3 +497,131 @@ SCENARIO ("REPL /model select from list") {
 // TODO: test interruptible_chat timeout behavior (needs mock HTTP or thread control)
 // TODO: test !! command injects output into history
 // TODO: test ! command does NOT inject output into history
+
+SCENARIO ("REPL /model shows descriptions from CSV") {
+  GIVEN ("a models.csv exists with descriptions") {
+    // Write a temp CSV for the test
+    {
+      std::ofstream csv(".cache/models.csv");
+      csv << "model,description,tok_s,vram,arch\n";
+      csv << "alpha:7b,fast general model,40.0,8GB,MoE\n";
+      csv << "beta:13b,coding specialist,25.0,14GB,dense\n";
+    }
+    ModelsFn two_models = [](const Config&) { return std::vector<std::string>{"alpha:7b", "beta:13b"}; };
+    WHEN ("the user runs /model and cancels") {
+      std::istringstream in("/model\n1\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, two_models);
+      THEN ("descriptions are shown next to model names") {
+        CHECK (out.str().find("fast general model") != std::string::npos)
+          ;
+        CHECK (out.str().find("coding specialist") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("DEFAULT_MODEL is auto") {
+  GIVEN ("no model override") {
+    Config c;
+    THEN ("default model is auto") {
+      CHECK (c.model == std::string("auto"))
+        ;
+    }
+  }
+}
+// Rating prompt only shows in interactive TTY mode (not testable via stringstream).
+// /rate command is testable because it's a regular slash command.
+
+SCENARIO ("REPL /rate command") {
+  GIVEN ("user rates last response via /rate") {
+    std::istringstream in("hello\n/rate last +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates last response as negative") {
+    std::istringstream in("hello\n/rate last -\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: negative]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user saves last response for review") {
+    std::istringstream in("hello\n/rate last s\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: saved]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user lists rated responses after /rate") {
+    std::istringstream in("hello\n/rate last +\n/rate list\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("list shows rated responses") {
+      CHECK (out.str().find("1. [positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user lists with no ratings") {
+    std::istringstream in("hello\n/rate list\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("no rated responses message is shown") {
+      CHECK (out.str().find("[no rated responses]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user provides invalid /rate syntax") {
+    std::istringstream in("/rate\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("usage help is shown") {
+      CHECK (out.str().find("Usage: /rate") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user provides invalid rating value") {
+    std::istringstream in("hello\n/rate last x\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("invalid rating message is shown") {
+      CHECK (out.str().find("Invalid rating") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates a specific response by index") {
+    std::istringstream in("first\nsecond\n/rate 1 +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("first response is rated") {
+      CHECK (out.str().find("[rated: positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates with no prior response") {
+    std::istringstream in("/rate last +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("response not found message is shown") {
+      CHECK (out.str().find("Response not found") != std::string::npos)
+        ;
+    }
+  }
+}

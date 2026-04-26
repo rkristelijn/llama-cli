@@ -12,8 +12,9 @@
 
 /// A single message in a conversation
 struct Message {
-  std::string role;     ///< Message role: "system", "user", or "assistant"
-  std::string content;  ///< Message text content
+  std::string role;         ///< Message role: "system", "user", or "assistant"
+  std::string content;      ///< Message text content
+  std::string rating = "";  ///< Rating: "positive", "negative", "saved", or empty (default)
 };
 
 // Send a one-shot prompt (no history). Uses /api/generate.

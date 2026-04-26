@@ -393,6 +393,18 @@ int main(int argc, char* argv[]) {
     cfg.mode = Mode::Sync;
   }
 
+  // Auto-detect model for sync mode
+  if (cfg.model == "auto" && cfg.mode == Mode::Sync) {
+    auto models = get_available_models(cfg);
+    if (!models.empty()) {
+      cfg.model = models[0];
+      Config::instance().model = models[0];
+    } else {
+      tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
+      return 1;
+    }
+  }
+
   if (cfg.mode == Mode::Sync) {
     // Sync mode: one-shot, response to stdout (ADR-007)
     // Mock provider goes through the same flow — echoes prompt as response
@@ -437,10 +449,31 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
+    // Auto-detect model from server when set to "auto"
+    if (cfg.model == "auto") {
+      auto models = get_available_models(cfg);
+      if (!models.empty()) {
+        cfg.model = models[0];
+        Config::instance().model = models[0];
+      } else {
+        tui::error(std::cerr, color, "No models found on " + cfg.host + ":" + cfg.port + ". Run: ollama pull qwen3:30b");
+        return 1;
+      }
+    }
+    // Warm up the model — Ollama loads it into memory on first request.
+    // Without this, the first user prompt often fails with an HTTP error.
+    {
+      tui::system_msg(std::cerr, color, "Loading " + cfg.model + "...");
+      auto warmup_result = ollama_generate(cfg, "hi");
+      if (warmup_result.empty()) {
+        tui::error(std::cerr, color, "Warning: model warmup failed — first prompt may be slow");
+      }
+    }
     if (!cfg.no_banner) {
       tui::banner(std::cerr, color);
     }
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
+    tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }

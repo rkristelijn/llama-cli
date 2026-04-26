@@ -16,12 +16,12 @@ static std::string attr(const std::string& tag, const std::string& name) {
   auto key = name + "=\"";
   auto pos = tag.find(key);
   if (pos == std::string::npos) {
-    return "";
+    return "";  // error-handling:ok — not-found is normal for optional attributes
   }
   pos += key.size();
   auto end = tag.find('"', pos);
   if (end == std::string::npos) {
-    return "";
+    return "";  // error-handling:ok — malformed tag, caller handles empty result
   }
   return tag.substr(pos, end - pos);
 }
@@ -92,11 +92,12 @@ static std::string child_content(const std::string& text, const std::string& tag
   if (find_block(text, tag, pos, opening, content) != std::string::npos) {
     return content;
   }
-  return "";
+  return "";  // error-handling:ok — no matching block found, normal for parsing
 }
 
 /**
  * @brief Extract all \<str_replace\> annotations with \<old\> and \<new\> children.
+ * @param text Input string to scan.
  * @param text Input string to scan.
  * @return Vector of StrReplaceAction with path, old_str, and new_str.
  */
