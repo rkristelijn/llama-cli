@@ -48,3 +48,4 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [x] Add e2e/integration test for retry on connection failure (ollama.cpp) — needs HTTP mock or test server
 - [ ] Add integration test for `.kiro/agents/` context loading (main.cpp) — needs filesystem fixture + main() entry
 - [ ] Add test for linenoise `/model` input path — TTY-specific, needs pseudo-terminal or e2e test
+- [ ] summarize has hardcoded model, I think when running it, you should be able to pick it, and if not not an existing model it should pull or fail
