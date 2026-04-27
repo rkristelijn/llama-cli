@@ -75,6 +75,7 @@ main() {
 
   echo ""
   echo "==> TECHDEBT.md updated"
+  git add ./TECHDEBT.md
 }
 
 main "$@"

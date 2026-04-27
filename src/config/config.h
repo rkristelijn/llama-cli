@@ -36,6 +36,7 @@ struct Config {
     return cfg;
   }
 
+  bool auto_confirm_write = false;                         ///< Auto-confirm file writes in sync mode (--auto-confirm-write)
   std::string provider = "ollama";                         ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port

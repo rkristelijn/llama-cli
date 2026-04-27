@@ -43,3 +43,4 @@ echo "" >> "$OUTPUT"
 echo "_${count} files indexed._" >> "$OUTPUT"
 
 echo "INDEX.md generated ($count files)"
+git add ./INDEX.md
