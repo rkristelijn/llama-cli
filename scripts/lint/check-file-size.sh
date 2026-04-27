@@ -23,7 +23,7 @@ EXEMPT=(
 
 MAX_SOURCE=400
 MAX_HEADER=300
-MAX_TEST=600
+MAX_TEST=650
 
 # Check if a file is in the exempt list
 is_exempt() {

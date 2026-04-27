@@ -1,0 +1,8 @@
+==> bench-models (3 rounds after warmup)
+    host: localhost:11434 | date: 2026-04-26 13:27
+
+| Model                        |   Load |  tok/s |  Avg T | Tokens |  CPU% |  Mem% |   VRAM |  Proc |
+| ---                          |   ---: |   ---: |   ---: |   ---: |  ---: |  ---: |   ---: |  ---: |
+| qwen3-coder:30b              |   5.1s |   51.6 |   2.8s |    131 |  190% |   70% |   19GB |  100% |
+
+  [done] bench-models

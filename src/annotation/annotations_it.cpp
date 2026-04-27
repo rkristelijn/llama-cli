@@ -20,7 +20,7 @@ SCENARIO ("Write annotation with confirm and skip") {
     WHEN ("the user confirms with y") {
       std::istringstream in("write it\ny\nexit\n");
       std::ostringstream out;
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("the file is written") {
         std::ifstream f(path);
         CHECK (f.is_open())
@@ -36,7 +36,7 @@ SCENARIO ("Write annotation with confirm and skip") {
       std::remove(path.c_str());
       std::istringstream in("write it\nn\nexit\n");
       std::ostringstream out;
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("the file is not written") {
         std::ifstream f(path);
         CHECK_FALSE (f.is_open())
@@ -60,7 +60,7 @@ SCENARIO ("Write annotation with show then confirm") {
     WHEN ("the user types s then y") {
       std::istringstream in("write it\ns\ny\nexit\n");
       std::ostringstream out;
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("content is previewed") {
         CHECK (out.str().find("show content") != std::string::npos)
           ;
@@ -89,7 +89,7 @@ SCENARIO ("Exec annotation with confirm and skip") {
     WHEN ("the user confirms with y") {
       std::istringstream in("do it\ny\nexit\n");
       std::ostringstream out;
-      run_repl(exec_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)exec_chat, test_cfg(), in, out);
       THEN ("command output is shown") {
         CHECK (out.str().find("integration123") != std::string::npos)
           ;
@@ -104,7 +104,7 @@ SCENARIO ("Exec annotation with confirm and skip") {
       call_count = 0;  // reset shared counter between WHEN blocks
       std::istringstream in("do it\nn\nexit\n");
       std::ostringstream out;
-      run_repl(exec_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)exec_chat, test_cfg(), in, out);
       THEN ("[skipped] is shown") {
         CHECK (out.str().find("[skipped]") != std::string::npos)
           ;
@@ -132,7 +132,7 @@ SCENARIO ("Write annotation shows diff for existing files") {
     WHEN ("the user confirms with y (diff shown automatically)") {
       std::istringstream in("write it\ny\nexit\n");
       std::ostringstream out;
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
 
       THEN ("diff is shown automatically with - and +") {
         CHECK (out.str().find("- old content") != std::string::npos)
@@ -173,7 +173,7 @@ SCENARIO ("str_replace annotation applies targeted replacement") {
     WHEN ("the user confirms") {
       std::istringstream in("fix it\ny\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("file contains replacement") {
         std::ifstream f(path);
         std::string content((std::istreambuf_iterator<char>(f)), {});
@@ -187,7 +187,7 @@ SCENARIO ("str_replace annotation applies targeted replacement") {
     WHEN ("the user declines") {
       std::istringstream in("fix it\nn\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("[skipped] is shown") {
         CHECK (out.str().find("[skipped]") != std::string::npos)
           ;
@@ -214,7 +214,7 @@ SCENARIO ("str_replace diff shows hunk headers and context") {
     WHEN ("the user confirms") {
       std::istringstream in("fix\ny\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("hunk header is shown") {
         CHECK (out.str().find("@@") != std::string::npos)
           ;
@@ -258,7 +258,7 @@ SCENARIO ("write diff shows hunk headers for existing file") {
     WHEN ("the user confirms") {
       std::istringstream in("write\ny\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("hunk header is present") {
         CHECK (out.str().find("@@") != std::string::npos)
           ;
@@ -307,7 +307,7 @@ SCENARIO ("read annotation injects file content into context") {
 
     std::istringstream in("read file\nexit\n");
     std::ostringstream out;
-    run_repl(chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
     THEN ("LLM gets a follow-up with file content") {
       CHECK (call_count == 2)
         ;
@@ -340,7 +340,7 @@ SCENARIO ("trust mode auto-approves subsequent writes") {
       // 't' for first write, no prompt expected for second
       std::istringstream in("go\nt\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("both files are written") {
         std::ifstream f1(p1);
         CHECK (f1.is_open())
@@ -372,7 +372,7 @@ SCENARIO ("trust mode auto-approves subsequent str_replaces") {
     WHEN ("user answers t") {
       std::istringstream in("fix\nt\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("replacement is applied") {
         std::ifstream f(path);
         std::string content((std::istreambuf_iterator<char>(f)), {});
@@ -406,7 +406,7 @@ SCENARIO ("trust mode auto-approves subsequent execs") {
     WHEN ("user trusts on first exec") {
       std::istringstream in("go\nt\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("both commands execute") {
         CHECK (out.str().find("first") != std::string::npos)
           ;
@@ -440,7 +440,7 @@ SCENARIO ("copy to clipboard for str_replace skips apply") {
     WHEN ("user answers c") {
       std::istringstream in("fix\nc\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("file is NOT modified") {
         std::ifstream f(path);
         std::string content((std::istreambuf_iterator<char>(f)), {});
@@ -473,7 +473,7 @@ SCENARIO ("followup loop continues until model stops producing annotations") {
     WHEN ("user trusts on first exec so followups auto-approve") {
       std::istringstream in("go\nt\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("model is called 3 times (initial + 2 followups)") {
         CHECK (call_count == 3)
           ;
@@ -508,7 +508,7 @@ SCENARIO ("reminder nudge injected after iteration 2") {
     WHEN ("the REPL runs 3 prompts") {
       std::istringstream in("first\nsecond\nthird\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("reminder is present on the 3rd call") {
         CHECK (call_count == 3)
           ;
@@ -531,7 +531,7 @@ SCENARIO ("followup loop is bounded to prevent runaway turns") {
     WHEN ("user trusts so all execs auto-approve") {
       std::istringstream in("go\nt\nexit\n");
       std::ostringstream out;
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("loop stops at max 8 followups + 1 initial = 9 calls or less") {
         CHECK (call_count <= 10)
           ;
@@ -556,7 +556,7 @@ SCENARIO ("trust-mode str_replace reports error on unwritable path") {
       Config cfg = test_cfg();
       // Pre-set trust by sending t on a valid action first — but simpler:
       // just check that the error appears even without trust (the error path is the same)
-      run_repl(chat, cfg, in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, cfg, in, out);
       THEN ("error is shown for the bad path") {
         CHECK (out.str().find("not found") != std::string::npos)
           ;

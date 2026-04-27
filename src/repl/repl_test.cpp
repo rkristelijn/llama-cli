@@ -8,6 +8,10 @@
 
 #include <doctest/doctest.h>
 
+#include <csignal>
+
+extern volatile sig_atomic_t g_interrupted;
+
 #include <fstream>
 #include <sstream>
 
@@ -28,7 +32,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("hello\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      int count = run_repl(echo_chat, test_cfg(), in, out);
+      int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("one prompt is processed") {
         CHECK (count == 1)
           ;
@@ -44,7 +48,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("exit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      int count = run_repl(echo_chat, test_cfg(), in, out);
+      int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("no prompts are processed") {
         CHECK (count == 0)
           ;
@@ -56,7 +60,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("quit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      CHECK (run_repl(echo_chat, test_cfg(), in, out) == 0)
+      CHECK (run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw) echo_chat, test_cfg(), in, out) == 0)
         ;
     }
   }
@@ -65,7 +69,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("\n\nhello\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      CHECK (run_repl(echo_chat, test_cfg(), in, out) == 1)
+      CHECK (run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw) echo_chat, test_cfg(), in, out) == 1)
         ;
     }
   }
@@ -74,7 +78,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("first\nsecond\nthird\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      int count = run_repl(echo_chat, test_cfg(), in, out);
+      int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("all prompts are processed") {
         CHECK (count == 3)
           ;
@@ -94,7 +98,7 @@ SCENARIO ("REPL basic flow") {
     std::istringstream in("hello\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      CHECK (run_repl(echo_chat, test_cfg(), in, out) == 1)
+      CHECK (run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw) echo_chat, test_cfg(), in, out) == 1)
         ;
     }
   }
@@ -118,7 +122,7 @@ SCENARIO ("REPL conversation history") {
     std::istringstream in("first\nsecond\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(history_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)history_chat, test_cfg(), in, out);
       THEN ("history grows") {
         CHECK (call_count == 2)
           ;
@@ -141,7 +145,7 @@ SCENARIO ("REPL conversation history") {
       cfg.system_prompt = "be helpful";
       cfg.memory_path = "";
       cfg.preferences_path = "";
-      run_repl(sys_chat, cfg, in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)sys_chat, cfg, in, out);
     }
   }
 }
@@ -151,7 +155,7 @@ SCENARIO ("REPL slash commands") {
     std::istringstream in("/help\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      int count = run_repl(echo_chat, test_cfg(), in, out);
+      int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("no prompt is sent") {
         CHECK (count == 0)
           ;
@@ -174,7 +178,7 @@ SCENARIO ("REPL slash commands") {
     std::istringstream in("first\n/clear\nsecond\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(clear_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)clear_chat, test_cfg(), in, out);
       THEN ("cleared message is shown") {
         CHECK (out.str().find("[history cleared]") != std::string::npos)
           ;
@@ -186,7 +190,7 @@ SCENARIO ("REPL slash commands") {
     std::istringstream in("/foobar\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("error is shown") {
         CHECK (out.str().find("Unknown command: /foobar") != std::string::npos)
           ;
@@ -206,7 +210,7 @@ SCENARIO ("REPL write annotations") {
     std::istringstream in("create file\ny\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("annotation is stripped from output") {
         CHECK (out.str().find("<write") == std::string::npos)
           ;
@@ -236,7 +240,7 @@ SCENARIO ("REPL write annotations") {
     std::istringstream in("create file\nn\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("file is not written") {
         std::ifstream f("/tmp/llama-repl-test.txt");
         CHECK_FALSE (f.is_open())
@@ -253,7 +257,7 @@ SCENARIO ("REPL write annotations") {
     std::istringstream in("create file\ns\ny\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(write_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)write_chat, test_cfg(), in, out);
       THEN ("content is previewed") {
         CHECK (out.str().find("test content") != std::string::npos)
           ;
@@ -272,7 +276,7 @@ SCENARIO ("REPL command execution") {
     std::istringstream in("!echo hello\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      int count = run_repl(echo_chat, test_cfg(), in, out);
+      int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("command output is shown") {
         CHECK (out.str().find("hello") != std::string::npos)
           ;
@@ -302,7 +306,7 @@ SCENARIO ("REPL command execution") {
     std::istringstream in("!!echo context\nwhat was that?\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(ctx_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)ctx_chat, test_cfg(), in, out);
       THEN ("LLM sees command output in history") {
         CHECK (call_count == 1)
           ;
@@ -315,7 +319,7 @@ SCENARIO ("REPL command execution") {
     std::istringstream in("run it\ny\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(exec_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)exec_chat, test_cfg(), in, out);
       THEN ("confirmation is asked") {
         CHECK (out.str().find("Run: \033[1;33mecho test123\033[0m?") != std::string::npos)
           ;
@@ -332,7 +336,7 @@ SCENARIO ("REPL command execution") {
     std::istringstream in("run it\nn\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(exec_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)exec_chat, test_cfg(), in, out);
       THEN ("skipped message is shown") {
         CHECK (out.str().find("[skipped]") != std::string::npos)
           ;
@@ -346,7 +350,7 @@ SCENARIO ("REPL /set command") {
     std::istringstream in("/set\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("options are shown") {
         CHECK (out.str().find("markdown") != std::string::npos)
           ;
@@ -362,7 +366,7 @@ SCENARIO ("REPL /set command") {
     std::istringstream in("/set markdown\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("toggle is confirmed") {
         CHECK (out.str().find("[markdown off]") != std::string::npos)
           ;
@@ -374,7 +378,7 @@ SCENARIO ("REPL /set command") {
     std::istringstream in("/set bofh\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("toggle is confirmed") {
         CHECK (out.str().find("[bofh on]") != std::string::npos)
           ;
@@ -386,7 +390,7 @@ SCENARIO ("REPL /set command") {
     std::istringstream in("/set foobar\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("error is shown") {
         CHECK (out.str().find("Unknown option") != std::string::npos)
           ;
@@ -398,7 +402,7 @@ SCENARIO ("REPL /set command") {
     std::istringstream in("/set markdown off\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("toggle works") {
         CHECK (out.str().find("[markdown off]") != std::string::npos)
           ;
@@ -412,7 +416,7 @@ SCENARIO ("REPL /version command") {
     std::istringstream in("/version\nexit\n");
     std::ostringstream out;
     WHEN ("the REPL runs") {
-      run_repl(echo_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
       THEN ("version is shown") {
         CHECK (out.str().find("llama-cli") != std::string::npos)
           ;
@@ -430,7 +434,7 @@ SCENARIO ("REPL /model with no models available") {
     std::istringstream in("/model\nexit\n");
     std::ostringstream out;
     WHEN ("the user runs /model") {
-      run_repl(echo_chat, test_cfg(), in, out, no_models);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, no_models);
       THEN ("no models message is shown") {
         CHECK (out.str().find("No models available") != std::string::npos)
           ;
@@ -447,7 +451,7 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user picks model 2") {
       std::istringstream in("/model\n2\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, five_models);
       THEN ("all 5 models are listed") {
         CHECK (out.str().find("1. gemma4:e4b") != std::string::npos)
           ;
@@ -463,7 +467,7 @@ SCENARIO ("REPL /model select from list") {
       ModelsFn one_model = [](const Config&) { return std::vector<std::string>{"gemma4:e4b"}; };
       std::istringstream in("/model\n1\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, one_model);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, one_model);
       THEN ("model is set") {
         CHECK (out.str().find("[model set to gemma4:e4b]") != std::string::npos)
           ;
@@ -472,7 +476,7 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user enters an out-of-range number") {
       std::istringstream in("/model\n99\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, five_models);
       THEN ("out of range message is shown") {
         CHECK (out.str().find("[out of range]") != std::string::npos)
           ;
@@ -481,7 +485,7 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user enters invalid input") {
       std::istringstream in("/model\nabc\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, five_models);
       THEN ("invalid input message is shown") {
         CHECK (out.str().find("[invalid input]") != std::string::npos)
           ;
@@ -511,7 +515,7 @@ SCENARIO ("REPL /model shows descriptions from CSV") {
     WHEN ("the user runs /model and cancels") {
       std::istringstream in("/model\n1\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, two_models);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out, two_models);
       THEN ("descriptions are shown next to model names") {
         CHECK (out.str().find("fast general model") != std::string::npos)
           ;
@@ -522,7 +526,7 @@ SCENARIO ("REPL /model shows descriptions from CSV") {
   }
 }
 
-SCENARIO ("DEFAULT_MODEL is auto") {
+SCENARIO ("default_model is auto") {
   GIVEN ("no model override") {
     Config c;
     THEN ("default model is auto") {
@@ -538,7 +542,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user rates last response via /rate") {
     std::istringstream in("hello\n/rate last +\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("rating is confirmed") {
       CHECK (out.str().find("[rated: positive]") != std::string::npos)
         ;
@@ -548,7 +552,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user rates last response as negative") {
     std::istringstream in("hello\n/rate last -\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("rating is confirmed") {
       CHECK (out.str().find("[rated: negative]") != std::string::npos)
         ;
@@ -558,7 +562,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user saves last response for review") {
     std::istringstream in("hello\n/rate last s\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("rating is confirmed") {
       CHECK (out.str().find("[rated: saved]") != std::string::npos)
         ;
@@ -568,7 +572,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user lists rated responses after /rate") {
     std::istringstream in("hello\n/rate last +\n/rate list\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("list shows rated responses") {
       CHECK (out.str().find("1. [positive]") != std::string::npos)
         ;
@@ -578,7 +582,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user lists with no ratings") {
     std::istringstream in("hello\n/rate list\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("no rated responses message is shown") {
       CHECK (out.str().find("[no rated responses]") != std::string::npos)
         ;
@@ -588,7 +592,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user provides invalid /rate syntax") {
     std::istringstream in("/rate\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("usage help is shown") {
       CHECK (out.str().find("Usage: /rate") != std::string::npos)
         ;
@@ -598,7 +602,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user provides invalid rating value") {
     std::istringstream in("hello\n/rate last x\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("invalid rating message is shown") {
       CHECK (out.str().find("Invalid rating") != std::string::npos)
         ;
@@ -608,7 +612,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user rates a specific response by index") {
     std::istringstream in("first\nsecond\n/rate 1 +\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("first response is rated") {
       CHECK (out.str().find("[rated: positive]") != std::string::npos)
         ;
@@ -618,7 +622,7 @@ SCENARIO ("REPL /rate command") {
   GIVEN ("user rates with no prior response") {
     std::istringstream in("/rate last +\nexit\n");
     std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)echo_chat, test_cfg(), in, out);
     THEN ("response not found message is shown") {
       CHECK (out.str().find("Response not found") != std::string::npos)
         ;

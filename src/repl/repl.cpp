@@ -7,12 +7,15 @@
 
 #include "repl/repl.h"
 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <chrono>
 #include <csignal>
 #include <fstream>
+#include <iomanip>
 #include <map>
 #include <memory>
 #include <set>
@@ -21,6 +24,7 @@
 #include "annotation/annotation.h"
 #include "command/command.h"
 #include "exec/exec.h"
+#include "exec/hardware.h"
 #include "help.h"
 #include "json/json.h"
 #include "logging/logger.h"
@@ -42,7 +46,7 @@
 /// @endcond
 
 /// Global flag set by SIGINT handler to interrupt LLM calls
-static volatile sig_atomic_t g_interrupted = 0;
+volatile sig_atomic_t g_interrupted = 0;
 
 /** SIGINT handler — sets flag so spinner/chat can check and abort */
 static void sigint_handler(int /*sig*/) { g_interrupted = 1; }
@@ -52,6 +56,7 @@ struct ReplState {
   ChatFn& chat;                     ///< Injected chat function (real or mock)
   StreamChatFn stream_chat;         ///< Streaming chat function (nullable)
   ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
+  HardwareFn hw_fn;                 ///< Injected hardware detector (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
   std::istream& in;                 ///< Input stream
@@ -61,6 +66,7 @@ struct ReplState {
   bool interactive = false;         ///< Whether running on a real TTY (for spinner)
   bool markdown = true;             ///< Whether to render markdown in LLM output
   bool bofh = false;                ///< BOFH mode: sarcastic spinner
+  bool warmup = false;              ///< Whether to warm up model on switch
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
   bool trust = false;               ///< Trust mode: auto-approve all write/exec/str_replace (reset on /clear)
@@ -79,12 +85,21 @@ static std::string ansi_to_name(const std::string& code);
 /** Show current options state — lists all toggleable runtime settings.
  * Called by /set without arguments, similar to `env` or `set` in bash. */
 static void show_options(ReplState& s) {
+  auto status = [&](bool val) {
+    if (!s.color) return val ? "on" : "off";
+    return val ? "\033[32mon\033[0m" : "\033[31moff\033[0m";
+  };
+
   s.out << "Options (toggle with /set <option>):\n";
-  s.out << "  markdown  " << (s.markdown ? "on" : "off") << "\n";
-  s.out << "  color     " << (s.color ? "on" : "off") << "\n";
-  s.out << "  bofh      " << (s.bofh ? "on" : "off") << "\n";
-  s.out << "  trace     " << (Config::instance().trace ? "on" : "off") << "\n";
-  s.out << "Colors (/color prompt|ai <name>):\n";
+  s.out << "  markdown  " << std::left << std::setw(15) << status(s.markdown) << "Render AI responses with formatting and lists\n";
+  s.out << "  color     " << std::left << std::setw(15) << status(s.color) << "Enable ANSI colors in terminal output\n";
+  s.out << "  warmup    " << std::left << std::setw(15) << status(s.warmup)
+        << "Pre-load model on startup/switch to avoid first-prompt delay\n";
+  s.out << "  bofh      " << std::left << std::setw(15) << status(s.bofh) << "Enable 'Bastard Operator From Hell' sarcastic spinner\n";
+  s.out << "  trace     " << std::left << std::setw(15) << status(Config::instance().trace)
+        << "Show detailed HTTP traffic and timing logs\n";
+
+  s.out << "\nColors (/color prompt|ai <name>):\n";
   s.out << "  prompt    " << ansi_to_name(s.prompt_color) << "\n";
   s.out << "  ai        " << ansi_to_name(s.ai_color) << "\n";
 }
@@ -101,6 +116,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"markdown", &ReplState::markdown},
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
+      {"warmup", &ReplState::warmup},
   };
   if (name == "trace") {
     Config::instance().trace = !Config::instance().trace;
@@ -141,7 +157,8 @@ static void handle_set(const std::string& arg, ReplState& s) {
   }
 }
 
-// Map color name to ANSI code
+// NOLINTBEGIN(readability-braces-around-statements)
+// Map color name to ANSI code — lookup table as if-chain for readability
 static std::string color_name_to_ansi(const std::string& name) {
   if (name == "black") return "30";
   if (name == "red") return "31";
@@ -189,6 +206,7 @@ static std::string ansi_to_name(const std::string& code) {
   if (code == "38;5;118") return "lime";
   return "none";
 }
+// NOLINTEND(readability-braces-around-statements)
 
 // Save or update a key=value in .env file
 static bool save_to_dotenv(const std::string& key, const std::string& value) {
@@ -270,81 +288,198 @@ static void handle_color(const std::string& arg, ReplState& s) {
  *
  * @param s REPL state used for I/O and config access.
  */
-static void handle_model_selection(ReplState& s) {
+static void handle_model_selection(ReplState& s, const std::string& arg) {
+  // Detect hardware for sweetspot calculation (injected)
+  HardwareInfo hw = s.hw_fn();
+
   // Use injected models_fn so unit tests can provide a mock model list
   // without needing a running Ollama server
-  std::vector<std::string> models = s.models_fn(s.cfg);
+  std::vector<std::string> models_raw = s.models_fn(s.cfg);
 
-  if (models.empty()) {
+  if (models_raw.empty()) {
     s.out << "No models available on " << s.cfg.host << ":" << s.cfg.port << "\n";
     return;
   }
 
-  // Load model descriptions from .cache/models.csv
-  std::map<std::string, std::string> desc_map;
-  {
-    std::ifstream csv(".cache/models.csv");
-    std::string line;
-    if (csv.is_open()) std::getline(csv, line);  // skip header
-    while (csv.is_open() && std::getline(csv, line)) {
-      auto comma = line.find(',');
-      if (comma == std::string::npos) continue;
-      std::string name = line.substr(0, comma);
-      std::string rest = line.substr(comma + 1);
-      auto comma2 = rest.find(',');
-      std::string desc = (comma2 != std::string::npos) ? rest.substr(0, comma2) : rest;
-      desc_map[name] = desc;
+  // Fetch metadata from Ollama (params, quant, size)
+  auto infos = get_model_info(s.cfg);
+  std::map<std::string, ModelInfo> info_map;
+  for (const auto& info : infos) {
+    info_map[info.name] = info;
+  }
+
+  // Determine sort mode from argument (default to params)
+  char sort_mode = 'p';
+  if (!arg.empty()) {
+    char c = static_cast<char>(std::tolower(static_cast<unsigned char>(arg[0])));
+    if (c == 'n' || c == 'p' || c == 's' || c == 'q') {
+      sort_mode = c;
     }
   }
 
-  // Display numbered list with descriptions
-  s.out << "Available models:\n";
-  for (size_t i = 0; i < models.size(); i++) {
-    std::string marker = (models[i] == Config::instance().model) ? " *" : "  ";
-    auto it = desc_map.find(models[i]);
-    std::string desc = (it != desc_map.end()) ? "  " + it->second : "";
-    s.out << marker << (i + 1) << ". " << models[i] << desc << "\n";
-  }
+  // Helper to get numeric value from "27.8B" or "1.2GB" strings
+  auto to_num = [](const std::string& str) -> double {
+    try {
+      std::string digits;
+      for (char c : str) {
+        if (std::isdigit(static_cast<unsigned char>(c)) || c == '.') digits += c;
+      }
+      return digits.empty() ? 0 : std::stod(digits);
+    } catch (...) {
+      return 0;
+    }
+  };
 
-  // Prompt user to select by number
-  // Use linenoise for interactive input so backspace/arrows work correctly.
-  // std::getline on raw TTY produces ^M garbage on backspace.
-  std::string input;
-  if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
-    std::string prompt = "Select model (1-" + std::to_string(models.size()) + "): ";
-    auto quit = linenoise::Readline(prompt.c_str(), input);
-    if (quit) {
-      s.out << "[cancelled]\n";
+  while (true) {
+    std::vector<std::string> models = models_raw;
+
+    // Sort based on chosen mode
+    std::sort(models.begin(), models.end(), [&](const std::string& a, const std::string& b) {
+      const auto& ia = info_map[a];
+      const auto& ib = info_map[b];
+
+      switch (sort_mode) {
+        case 'n':
+          return a < b;
+        case 'p': {
+          double pa = to_num(ia.params);
+          double pb = to_num(ib.params);
+          if (pa != pb) return pa > pb;
+          return a < b;
+        }
+        case 'q': {
+          if (ia.quant != ib.quant) return ia.quant > ib.quant;
+          return ia.size_gb > ib.size_gb;
+        }
+        case 's':
+        default: {
+          if (ia.size_gb != ib.size_gb) return ia.size_gb > ib.size_gb;
+          return a < b;
+        }
+      }
+    });
+
+    // Find max name length for column alignment
+    size_t max_name = 0;
+    for (const auto& name : models) {
+      if (name.size() > max_name) {
+        max_name = name.size();
+      }
+    }
+
+    // Display hardware info
+    s.out << "\n  🖥️  CPU:  " << hw.cpu << "\n";
+    s.out << "  🎮 GPU:  " << hw.gpu << " (" << hw.vram_gb << "GB VRAM estimated)\n";
+    s.out << "  🧠 RAM:  " << hw.ram_gb << "GB\n";
+
+    // Display aligned table
+    s.out << "\nAvailable models (sorted by "
+          << (sort_mode == 'n' ? "name" : (sort_mode == 'p' ? "params" : (sort_mode == 'q' ? "quality" : "size"))) << "):\n\n";
+    s.out << "     " << std::left << std::setw(static_cast<int>(max_name + 2)) << "NAME" << std::right << std::setw(10) << "PARAMS"
+          << std::right << std::setw(10) << "SIZE" << "  " << "QUANT" << "\n";
+    s.out << "     " << std::string(max_name + 2 + 10 + 10 + 9, '-') << "\n";
+
+    for (size_t i = 0; i < models.size(); i++) {
+      const auto& m_info = info_map[models[i]];
+      double params = to_num(m_info.params);
+
+      // Sweetspot: 11B to 27B (since 27.8B+ causes timeouts/heavy load)
+      bool sweet = (params >= 11.0 && params <= 27.5);
+      std::string dim = (sweet || !s.color) ? "" : "\033[2m";
+      std::string reset = (sweet || !s.color) ? "" : "\033[0m";
+
+      std::string marker = (models[i] == Config::instance().model) ? " *" : "  ";
+      s.out << marker << std::setw(2) << std::right << (i + 1) << ". " << dim;
+      s.out << std::left << std::setw(static_cast<int>(max_name + 2)) << models[i];
+
+      auto it = info_map.find(models[i]);
+      if (it != info_map.end()) {
+        const auto& m_data = it->second;
+        s.out << std::right << std::setw(10) << m_data.params;
+        if (m_data.size_gb >= 0.1) {
+          std::ostringstream ss;
+          ss << std::fixed << std::setprecision(1) << m_data.size_gb << "GB";
+          s.out << std::setw(10) << ss.str();
+        } else {
+          s.out << std::setw(10) << "-";
+        }
+        s.out << "  " << m_data.quant;
+      }
+      s.out << reset << "\n";
+    }
+
+    s.out << "\n  * = active  |  GB = disk/VRAM\n";
+    s.out << "  -------------------------------------------------------\n";
+    s.out << "  PARAMS: Complexity (number of parameters in billions)\n";
+    s.out << "  SIZE:   Model size (disk space and VRAM usage)\n";
+    s.out << "  QUANT:  Quantization (compression quality: higher is better)\n\n";
+
+    // Prompt user to select by number
+    std::string input;
+    std::string prompt = "Select 1-" + std::to_string(models.size()) + " (or n/p/s/q to sort): ";
+
+    if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
+      auto quit = linenoise::Readline(prompt.c_str(), input);
+      if (quit) {
+        s.out << "[cancelled]\n";
+        return;
+      }
+    } else {
+      s.out << prompt;
+      s.out.flush();
+      if (!std::getline(s.in, input)) {
+        s.out << "\n[cancelled]\n";
+        return;
+      }
+    }
+
+    if (input.empty()) {
       return;
     }
-  } else {
-    s.out << "Select model (1-" << models.size() << "): ";
-    s.out.flush();
-    if (!std::getline(s.in, input)) {
-      s.out << "\n[cancelled]\n";
-      return;
+
+    // Check for re-sort command
+    char first = static_cast<char>(std::tolower(static_cast<unsigned char>(input[0])));
+    if (input.size() == 1 && (first == 'n' || first == 'p' || first == 's' || first == 'q')) {
+      sort_mode = first;
+      continue;
     }
-  }
 
-  // Parse selection number
-  int choice = 0;
-  try {
-    choice = std::stoi(input);
-  } catch (...) {
-    s.out << "[invalid input]\n";
-    return;
-  }
+    // Parse selection number
+    int choice = 0;
+    try {
+      choice = std::stoi(input);
+    } catch (...) {
+      s.out << "[invalid input: enter a number or n/p/s/q]\n";
+      continue;
+    }
 
-  // Validate range (1-indexed for user, 0-indexed for vector)
-  if (choice < 1 || choice > static_cast<int>(models.size())) {
-    s.out << "[out of range]\n";
-    return;
-  }
+    // Validate range (1-indexed for user, 0-indexed for vector)
+    if (choice < 1 || choice > static_cast<int>(models.size())) {
+      s.out << "[out of range]\n";
+      continue;
+    }
 
-  // Update config with selected model
-  std::string selected = models[choice - 1];
-  Config::instance().model = selected;
-  s.out << "[model set to " << selected << "]\n";
+    // Update config with selected model
+    std::string selected = models[choice - 1];
+    Config::instance().model = selected;
+    s.out << "[model set to " << selected << "]\n";
+
+    // Optional warmup after switch
+    if (s.warmup) {
+      s.out << "Warming up " << selected << "... (Ctrl+C to skip)\n";
+      s.out.flush();
+      // Use streaming chat for warmup so it can be interrupted
+      std::vector<Message> warmup_msg = {{"user", "hi"}};
+      ollama_chat_stream(s.cfg, warmup_msg, [](const std::string&) {
+        return g_interrupted == 0;  // stop if interrupted
+      });
+      if (g_interrupted) {
+        s.out << "[warmup skipped]\n";
+        g_interrupted = 0;
+      }
+    }
+    break;
+  }
 }
 
 /**
@@ -551,7 +686,7 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
   } else if (input.command == "color") {
     handle_color(input.arg, s);
   } else if (input.command == "model") {
-    handle_model_selection(s);
+    handle_model_selection(s, input.arg);
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "mem") {
@@ -560,7 +695,7 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     handle_pref(input.arg, s);
   } else if (input.command == "rate") {
     handle_rate(input.arg, s);
-  } else if (input.command == "copy") {
+  } else if (input.command == "copy" || input.command == "c") {
     // Copy last assistant response to clipboard
     if (s.last_assistant_idx < 0 || s.last_assistant_idx >= static_cast<int>(s.history.size())) {
       s.out << "[no response to copy]\n";
@@ -574,6 +709,25 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
       } else {
         s.out << "[clipboard not available — install pbcopy or xclip]\n";
       }
+    }
+  } else if (input.command == "paste" || input.command == "p") {
+    // Paste clipboard content as context for the LLM
+    FILE* pipe = popen("pbpaste 2>/dev/null || xclip -selection clipboard -o 2>/dev/null", "r");  // error-handling:ok
+    if (pipe) {
+      std::string content;
+      char buf[4096];
+      while (fgets(buf, sizeof(buf), pipe)) {
+        content += buf;
+      }
+      pclose(pipe);
+      if (content.empty()) {
+        s.out << "[clipboard is empty]\n";
+      } else {
+        s.history.push_back({"user", "[clipboard]\n" + content});
+        s.out << "[pasted " << content.size() << " chars as context]\n";
+      }
+    } else {
+      s.out << "[clipboard not available — install pbpaste or xclip]\n";
     }
   } else if (input.command == "help" || input.command.empty()) {
     s.out << help::repl;
@@ -1101,7 +1255,9 @@ static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::
 // Wrap rendered AI text with the configured AI color.
 // Re-applies AI color after any ANSI reset inside markdown rendering.
 static std::string colorize_ai(const std::string& text, const ReplState& s) {
-  if (!s.color || s.ai_color.empty()) return text;
+  if (!s.color || s.ai_color.empty()) {
+    return text;
+  }
   std::string color_code = "\033[" + s.ai_color + "m";
   std::string result = color_code;
   std::string reset = "\033[0m";
@@ -1547,7 +1703,7 @@ static std::string chat_with_spinner(ReplState& s) {
  * @param line The user input line to send as a prompt.
  * @param s REPL state containing chat, configuration, I/O streams, and conversation history.
  */
-static constexpr const char* REMINDER_NUDGE =
+static constexpr const char* reminder_nudge =
     "Reminder: be concise, only state facts about code you have read in this "
     "session, no scores without criteria.";
 
@@ -1560,7 +1716,7 @@ static void send_prompt(const std::string& line, ReplState& s) {
   // Inject a short reminder after iteration 2 to prevent model drift (ADR-054)
   bool inserted_reminder = false;
   if (s.count >= 2) {
-    s.history.push_back({"system", REMINDER_NUDGE});
+    s.history.push_back({"system", reminder_nudge});
     inserted_reminder = true;
   }
   s.history.push_back({"user", line});
@@ -1605,9 +1761,9 @@ static void send_prompt(const std::string& line, ReplState& s) {
 
   // Keep following up while the model produces annotations (exec, read, etc.)
   // Bounded to prevent runaway turns burning tokens/time.
-  constexpr int kMaxFollowups = 8;
+  constexpr int k_max_followups = 8;
   int followup_count = 0;
-  while (needs_followup && followup_count < kMaxFollowups) {
+  while (needs_followup && followup_count < k_max_followups) {
     std::string followup = chat_with_spinner(s);
     if (g_interrupted) {
       s.out << "\n[interrupted]\n";
@@ -1659,33 +1815,107 @@ static bool dispatch(const std::string& line, ReplState& s) {
 
 /** Main REPL loop: read → parse → dispatch → respond
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
-// Tab-completion for slash commands
+/// List files/dirs matching a path prefix for tab completion
+static void path_completions(const std::string& prefix, const std::string& before, std::vector<std::string>& completions) {
+  // Split into directory and partial filename
+  std::string dir_part, file_part;
+  auto slash = prefix.rfind('/');
+  if (slash != std::string::npos) {
+    dir_part = prefix.substr(0, slash + 1);
+    file_part = prefix.substr(slash + 1);
+  } else {
+    dir_part = ".";
+    file_part = prefix;
+  }
+
+  // Expand ~ to HOME
+  std::string resolved_dir = dir_part;
+  if (!resolved_dir.empty() && resolved_dir[0] == '~') {
+    const char* home = getenv("HOME");
+    if (home) {
+      resolved_dir = std::string(home) + resolved_dir.substr(1);
+    }
+  }
+
+  DIR* d = opendir(resolved_dir.c_str());
+  if (!d) {
+    return;
+  }
+  const struct dirent* entry;
+  while ((entry = readdir(d)) != nullptr) {
+    std::string name(entry->d_name);
+    if (name == "." || name == "..") {
+      continue;
+    }
+    if (name.compare(0, file_part.size(), file_part) != 0) {
+      continue;
+    }
+    std::string full = dir_part + name;
+    // Append / for directories
+    if (entry->d_type == DT_DIR) {
+      full += "/";
+    }
+    completions.push_back(before + full);
+  }
+  closedir(d);
+}
+
+// Tab-completion for slash commands and file paths
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/clear", "/color", "/copy", "/mem",     "/model",
-                                                "/pref",  "/rate",  "/set",  "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/c",     "/clear", "/color", "/copy", "/mem",     "/model", "/p",
+                                                "/paste", "/pref",  "/rate",  "/set",  "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
   }
-  if (input[0] != '/') {
+
+  // Slash commands
+  if (input[0] == '/') {
+    for (const auto& cmd : cmds) {
+      if (cmd.compare(0, input.size(), input) == 0) {
+        completions.push_back(cmd);
+      }
+    }
     return;
   }
-  for (const auto& cmd : cmds) {
-    if (cmd.compare(0, input.size(), input) == 0) {
-      completions.push_back(cmd);
+
+  // Path completion for ! and !! commands
+  std::string before, path_prefix;
+  if (input.compare(0, 2, "!!") == 0) {
+    before = "!!";
+    path_prefix = input.substr(2);
+  } else if (input[0] == '!') {
+    before = "!";
+    path_prefix = input.substr(1);
+  } else {
+    // Also complete paths that start with ./ ~/ or /
+    auto last_space = input.rfind(' ');
+    if (last_space != std::string::npos) {
+      std::string word = input.substr(last_space + 1);
+      if (!word.empty() && (word[0] == '.' || word[0] == '~' || word[0] == '/')) {
+        before = input.substr(0, last_space + 1);
+        path_prefix = word;
+      }
+    } else if (input[0] == '.' || input[0] == '~' || input[0] == '/') {
+      path_prefix = input;
     }
+  }
+
+  if (!path_prefix.empty()) {
+    path_completions(path_prefix, before, completions);
   }
 }
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
-int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat) {
+int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat,
+             HardwareFn hw_fn) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
     std::string sys = cfg.system_prompt;
     // Append web search tool description when enabled (ADR-057)
     if (cfg.allow_web_search) {
-      sys += Config::WEB_SEARCH_PROMPT;
+      sys += Config::web_search_prompt;
     }
     // Load persistent preferences and memory into system prompt (ADR-059)
     std::string prefs = read_file_or_empty(cfg.preferences_path);
@@ -1721,6 +1951,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   ReplState state = {chat,
                      stream_chat,
                      models_fn,
+                     hw_fn,
                      cfg,
                      history,
                      in,
@@ -1730,6 +1961,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      is_tty,
                      true,
                      cfg.bofh,
+                     cfg.warmup,
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color)};
 

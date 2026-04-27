@@ -138,6 +138,8 @@ void load_dotenv(const std::string& path, Config& c) {
     } else if (key == "TRACE") {
       // TRACE=true or TRACE=1 enables trace output (HTTP calls, timing)
       c.trace = (val == "true" || val == "1");
+    } else if (key == "LLAMA_WARMUP") {
+      c.warmup = (val == "true" || val == "1");
     } else if (key == "ALLOW_WEB_SEARCH") {
       c.allow_web_search = (val == "true" || val == "1");
     } else if (key == "LLAMA_SEARCH_URL") {
@@ -226,6 +228,9 @@ Config load_env(const Config& defaults) {
   if (std::getenv("TRACE")) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
     c.trace = true;
+  }
+  if (env_get("LLAMA_WARMUP", val)) {
+    c.warmup = (val == "true" || val == "1");
   }
   if (env_get("ALLOW_WEB_SEARCH", val)) {
     c.allow_web_search = (val == "true" || val == "1");
@@ -462,6 +467,7 @@ void print_default_env() {
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
+            << "# LLAMA_WARMUP=0 # Warm up model on startup or switch (1=enabled, 0=disabled)\n"
             << "# ALLOW_WEB_SEARCH=1 # Enable web search tool (ADR-057)\n"
             << "# LLAMA_SEARCH_URL=" << c.search_url << " # SearXNG-compatible JSON API base URL\n"
             << "# LLAMA_SEARCH_LANG=" << c.search_lang << " # Search language (en-US, nl-NL, ...)\n"

@@ -21,6 +21,7 @@ setup: ## Install all dependencies
 	@bash scripts/dev/setup.sh
 
 build: all ## Build the project
+	@echo "build ✓"
 
 start: all ## Build and run the REPL (alias: s)
 	@./$(BINARY) $(ARGS)

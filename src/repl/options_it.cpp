@@ -15,7 +15,7 @@ SCENARIO ("Set shows all options") {
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN ("the user runs /set") {
-    run_repl(chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
     THEN ("all options are listed") {
       CHECK (out.str().find("markdown") != std::string::npos)
         ;
@@ -41,7 +41,7 @@ SCENARIO ("Set toggles color and bofh") {
   Config cfg = test_cfg();
   cfg.no_color = true;  // Force initial color off
   WHEN ("the user toggles color and bofh then checks") {
-    run_repl(chat, cfg, in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, cfg, in, out);
     THEN ("toggles are confirmed") {
       CHECK (out.str().find("[color on]") != std::string::npos)
         ;
@@ -57,7 +57,7 @@ SCENARIO ("Set unknown option shows error") {
   std::istringstream in("/set foobar\nexit\n");
   std::ostringstream out;
   WHEN ("the user runs /set foobar") {
-    run_repl(chat, test_cfg(), in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
     THEN ("error is shown") {
       CHECK (out.str().find("Unknown option") != std::string::npos)
         ;
@@ -72,7 +72,7 @@ SCENARIO ("Runtime options persist across prompts") {
     std::istringstream in("/set markdown\n**bold text**\nexit\n");
     std::ostringstream out;
     WHEN ("the user disables markdown then sends bold text") {
-      run_repl(chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
       THEN ("markdown toggle is confirmed") {
         CHECK (out.str().find("[markdown off]") != std::string::npos)
           ;
@@ -93,7 +93,7 @@ SCENARIO ("BOFH mode via --why-so-serious") {
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN ("the REPL starts with bofh config") {
-    run_repl(chat, cfg, in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, cfg, in, out);
     THEN ("bofh shows as on") {
       CHECK (out.str().find("bofh      on") != std::string::npos)
         ;
@@ -109,7 +109,7 @@ SCENARIO ("No-color config flag") {
   std::istringstream in("/set\nexit\n");
   std::ostringstream out;
   WHEN ("the REPL starts with no_color config") {
-    run_repl(chat, cfg, in, out);
+    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, cfg, in, out);
     THEN ("color shows as off") {
       CHECK (out.str().find("color     off") != std::string::npos)
         ;

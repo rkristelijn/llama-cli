@@ -17,7 +17,7 @@ SCENARIO ("Markdown rendering on vs off in REPL") {
     WHEN ("markdown is off via /set") {
       std::istringstream in("/set markdown\nrender\nexit\n");
       std::ostringstream out;
-      run_repl(md_chat, test_cfg(), in, out);
+      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)md_chat, test_cfg(), in, out);
       THEN ("raw markdown is preserved") {
         CHECK (out.str().find("# Title") != std::string::npos)
           ;

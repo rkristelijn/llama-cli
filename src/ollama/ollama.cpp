@@ -292,6 +292,17 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   return full_response;
 }
 
+/** Check if a model is currently loaded in Ollama's memory. */
+bool is_model_running(const Config& cfg, const std::string& model_name) {
+  auto cli = make_client(cfg);
+  auto res = cli.Get("/api/ps");
+  if (res && res->status == 200) {
+    // Check if model name is in the running models list
+    return res->body.find("\"name\":\"" + model_name + "\"") != std::string::npos;
+  }
+  return false;
+}
+
 /** Fetch list of available models from Ollama /api/tags endpoint.
  * Parses the JSON response and extracts model names.
  * Returns empty vector on connection error or invalid response. */
@@ -324,4 +335,50 @@ std::vector<std::string> get_available_models(const Config& cfg) {
   }
 
   return models;
+}
+
+/** Fetch model list with metadata from Ollama /api/tags.
+ * Parses name, parameter_size, quantization_level, family, and size. */
+std::vector<ModelInfo> get_model_info(const Config& cfg) {
+  std::vector<ModelInfo> result;
+  auto cli = make_client(cfg);
+  auto res = cli.Get("/api/tags");
+  if (!res) {
+    return result;  // error-handling:ok — connection failed, caller handles empty
+  }
+
+  // Walk through model objects in the "models" array
+  const std::string& body = res->body;
+  auto arr = body.find("\"models\":");
+  if (arr == std::string::npos) {
+    return result;  // error-handling:ok — unexpected response format
+  }
+
+  size_t pos = arr;
+  while ((pos = body.find("{", pos)) != std::string::npos) {
+    // Find the end of this model object
+    std::string obj = json_extract_object_at(body, pos);
+    if (obj.empty()) {
+      break;
+    }
+    ModelInfo info;
+    info.name = json_extract_string(obj, "name");
+    if (info.name.empty()) {
+      pos += obj.size();
+      continue;
+    }
+    // Extract details sub-object
+    std::string details = json_extract_object(obj, "details");
+    if (!details.empty()) {
+      info.params = json_extract_string(details, "parameter_size");
+      info.quant = json_extract_string(details, "quantization_level");
+      info.family = json_extract_string(details, "family");
+    }
+    // Size in bytes → GB
+    int size_bytes = json_extract_int(obj, "size");
+    info.size_gb = size_bytes / 1073741824.0;
+    result.push_back(info);
+    pos += obj.size();
+  }
+  return result;
 }

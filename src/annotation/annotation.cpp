@@ -98,7 +98,6 @@ static std::string child_content(const std::string& text, const std::string& tag
 /**
  * @brief Extract all \<str_replace\> annotations with \<old\> and \<new\> children.
  * @param text Input string to scan.
- * @param text Input string to scan.
  * @return Vector of StrReplaceAction with path, old_str, and new_str.
  */
 std::vector<StrReplaceAction> parse_str_replace_annotations(const std::string& text) {

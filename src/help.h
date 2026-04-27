@@ -37,7 +37,7 @@ inline std::string cli() {
              "default: 11434)\n"
              "  --model=MODEL     LLM model name          (env: OLLAMA_MODEL,   "
              "default: ") +
-         DEFAULT_MODEL +
+         default_model +
          std::string(
              ")\n"
              "  --timeout=SECS    HTTP timeout in seconds (env: OLLAMA_TIMEOUT, "
@@ -77,7 +77,8 @@ constexpr const char* repl =
     "  /mem          Show memories (/mem add <fact>, /mem clear)\n"
     "  /pref         Show preferences (/pref add <pref>, /pref clear)\n"
     "  /rate         Rate last response (/rate last +/-, /rate list)\n"
-    "  /copy         Copy last response to clipboard\n"
+    "  /copy (/c)    Copy last response to clipboard\n"
+    "  /paste (/p)   Paste clipboard as LLM context\n"
     "  /version      Show version info\n"
     "  /help         Show this help\n"
     "  exit, quit    Exit the REPL\n"

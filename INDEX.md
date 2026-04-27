@@ -208,6 +208,8 @@ Auto-generated overview of all files in this repo.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
+- [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — include "hardware.h"
+- [`src/exec/hardware.h`](src/exec/hardware.h) — ifndef HARDWARE_H
 - [`src/help.h`](src/help.h) — /**
 - [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
@@ -231,4 +233,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_228 files indexed._
+_230 files indexed._

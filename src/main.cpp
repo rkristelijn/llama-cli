@@ -8,11 +8,16 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <csignal>
+
+extern volatile sig_atomic_t g_interrupted;
+
 #include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -107,7 +112,7 @@ static bool has_cap(const std::string& caps, const std::string& cap) {
 
 /// Commands safe to auto-execute with the "read" capability.
 /// These cannot modify files, network, or system state.
-static const std::vector<std::string> READ_ONLY_COMMANDS = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
+static const std::vector<std::string> read_only_commands = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
                                                             "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
                                                             "sed",  "less", "more", "realpath", "dirname", "basename"};
 
@@ -126,7 +131,7 @@ static bool is_read_only(const std::string& cmd) {
     size_t end = segment.find_first_of(" \t", start);
     std::string word = segment.substr(start, end - start);
     bool found = false;
-    for (const auto& safe : READ_ONLY_COMMANDS) {
+    for (const auto& safe : read_only_commands) {
       if (word == safe) {
         found = true;
         break;
@@ -343,7 +348,9 @@ static void save_session(const std::string& path, const std::vector<Message>& ms
   f << "[\n";
   for (size_t i = 0; i < msgs.size(); i++) {
     f << "  {\"role\":\"" << msgs[i].role << "\",\"content\":\"" << escape_json(msgs[i].content) << "\"}";
-    if (i + 1 < msgs.size()) f << ",";
+    if (i + 1 < msgs.size()) {
+      f << ",";
+    }
     f << "\n";
   }
   f << "]\n";
@@ -435,10 +442,14 @@ int main(int argc, char* argv[]) {
       int max_rounds = 10;
       while (!cfg.capabilities.empty() && max_rounds-- > 0) {
         std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
-        if (followup.empty()) break;
+        if (followup.empty()) {
+          break;
+        }
         messages.push_back({"user", followup});
         response = generate_response(messages);
-        if (response.empty()) break;
+        if (response.empty()) {
+          break;
+        }
         std::cout << response << "\n";
         messages.push_back({"assistant", response});
       }
@@ -452,27 +463,73 @@ int main(int argc, char* argv[]) {
     // Auto-detect model from server when set to "auto"
     if (cfg.model == "auto") {
       auto models = get_available_models(cfg);
-      if (!models.empty()) {
-        cfg.model = models[0];
-        Config::instance().model = models[0];
+      auto infos = get_model_info(cfg);
+      std::map<std::string, ModelInfo> info_map;
+      for (const auto& info : infos) info_map[info.name] = info;
+
+      // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
+      struct Candidate {
+        std::string name;
+        double params;
+        bool sweet;
+      };
+      std::vector<Candidate> candidates;
+
+      for (const auto& m : models) {
+        double p = 0;
+        try {
+          p = std::stod(info_map[m].params);
+        } catch (...) {
+        }
+        candidates.push_back({m, p, (p >= 11.0 && p <= 28.0)});
+      }
+
+      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+        // Prioritize models in sweetspot range (11B-28B)
+        if (a.sweet != b.sweet) return a.sweet > b.sweet;
+        // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
+        return a.params < b.params;
+      });
+
+      if (!candidates.empty()) {
+        cfg.model = candidates[0].name;
+        Config::instance().model = candidates[0].name;
+        HardwareInfo hw = detect_hardware();
+        tui::system_msg(std::cerr, color,
+                        "Detected hardware: " + hw.cpu + " | " + std::to_string(hw.ram_gb) + "GB RAM | " + std::to_string(hw.vram_gb) +
+                            "GB VRAM estimated.");
+        tui::system_msg(std::cerr, color, "Auto-selected " + cfg.model + " as the optimal sweetspot model for your hardware.");
       } else {
-        tui::error(std::cerr, color, "No models found on " + cfg.host + ":" + cfg.port + ". Run: ollama pull qwen3:30b");
+        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3.6:27b");
         return 1;
       }
     }
-    // Warm up the model — Ollama loads it into memory on first request.
-    // Without this, the first user prompt often fails with an HTTP error.
-    {
-      tui::system_msg(std::cerr, color, "Loading " + cfg.model + "...");
-      auto warmup_result = ollama_generate(cfg, "hi");
-      if (warmup_result.empty()) {
-        tui::error(std::cerr, color, "Warning: model warmup failed — first prompt may be slow");
-      }
-    }
+
     if (!cfg.no_banner) {
       tui::banner(std::cerr, color);
     }
-    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
+
+    // Optional model warmup (only if not already running)
+    if (Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
+      tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
+      // Simple spinner loop
+      const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
+      int frame = 0;
+      std::vector<Message> warmup_msg = {{"user", "hi"}};
+
+      // We need to run this in a way that allows us to check progress
+      // ollama_chat_stream doesn't expose the http object for cancellation easily,
+      // but we can at least show a spinner.
+      ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
+        if (g_interrupted) return false;
+        std::cerr << "\r" << spinner[frame % 10] << " loading..." << std::flush;
+        frame++;
+        return true;
+      });
+      std::cerr << "\r" << "   " << std::flush;  // Clear spinner
+    }
+
+    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + Config::instance().model + ")");
     tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");

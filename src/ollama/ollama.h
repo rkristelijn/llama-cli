@@ -36,4 +36,19 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
 // Returns vector of model names. Empty on error.
 std::vector<std::string> get_available_models(const Config& cfg);
 
+// Check if a model is currently loaded in Ollama's memory.
+bool is_model_running(const Config& cfg, const std::string& model_name);
+
+/// Model metadata from Ollama /api/tags
+struct ModelInfo {
+  std::string name;    ///< Model name (e.g. "gemma4:26b")
+  std::string params;  ///< Parameter size (e.g. "26.0B")
+  std::string quant;   ///< Quantization (e.g. "Q4_K_M")
+  std::string family;  ///< Model family (e.g. "gemma4")
+  double size_gb = 0;  ///< Size on disk in GB
+};
+
+/// Fetch model list with metadata from Ollama server
+std::vector<ModelInfo> get_model_info(const Config& cfg);
+
 #endif

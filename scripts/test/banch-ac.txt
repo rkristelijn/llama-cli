@@ -1,0 +1,13 @@
+==> bench-models (3 rounds after warmup)
+    host: localhost:11434 | date: 2026-04-26 13:15
+
+| Model                        |   Load |  tok/s |  Avg T | Tokens |  CPU% |  Mem% |   VRAM |  Proc |
+| ---                          |   ---: |   ---: |   ---: |   ---: |  ---: |  ---: |   ---: |  ---: |
+| qwen3:30b                    |   5.8s |   48.9 |   9.8s |    461 |  206% |   71% |   19GB |  100% |
+| qwen3-coder:30b              |   5.1s |   51.3 |   2.8s |    128 |  141% |   70% |   19GB |  100% |
+| gemma4-31b-tuned:latest      |   6.3s |    7.5 |  67.4s |    503 |  151% |   79% |   22GB |  100% |
+| gemma4:31b                   |   6.2s |    7.5 |  60.8s |    456 |   71% |   83% |   23GB |  100% |
+| gemma4-uncensored:e4b        |   2.9s |   35.3 |  14.8s |    508 |  136% |   33% |  7.3GB |  100% |
+| gemma4:26b                   |   5.5s |   35.6 |  19.7s |    680 |  147% |   68% |   19GB |  100% |
+
+  [done] bench-models
