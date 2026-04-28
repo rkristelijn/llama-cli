@@ -8,16 +8,12 @@
 #include <dirent.h>
 #include <unistd.h>
 
-#include <csignal>
-
-extern volatile sig_atomic_t g_interrupted;
-
 #include <climits>
 #include <cstdlib>
+#include <filesystem>  // Added for std::filesystem::exists
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <map>
 #include <sstream>
 #include <string>
 
@@ -34,7 +30,7 @@ extern volatile sig_atomic_t g_interrupted;
 /// Minimal parser — just finds "file://" strings between quotes.
 static std::vector<std::string> extract_resources(const std::string& json) {
   std::vector<std::string> paths;
-  const std::string prefix = "\"file://";
+  const std::string prefix = ""file://";
   size_t pos = 0;
   while ((pos = json.find(prefix, pos)) != std::string::npos) {
     size_t start = pos + prefix.size();
@@ -70,7 +66,9 @@ static std::string load_kiro_context(Config& cfg, bool color) {
     // Append agent prompt to system prompt
     std::string prompt = json_extract_string(json, "prompt");
     if (!prompt.empty()) {
-      cfg.system_prompt += "\n\n" + prompt;
+      cfg.system_prompt += "
+
+" + prompt;
     }
     // Read resource files into context
     for (const auto& path : extract_resources(json)) {
@@ -78,11 +76,14 @@ static std::string load_kiro_context(Config& cfg, bool color) {
       if (!rf) {
         continue;
       }
-      context += "--- " + path + " ---\n";
+      context += "--- " + path + " ---
+";
       context += std::string((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
-      context += "\n";
+      context += "
+";
     }
-    tui::system_msg(std::cerr, color, "[loaded .kiro/agents/" + name + "]\n");
+    tui::system_msg(std::cerr, color, "[loaded .kiro/agents/" + name + "]
+");
   }
   closedir(dir);
   return context;
@@ -112,7 +113,7 @@ static bool has_cap(const std::string& caps, const std::string& cap) {
 
 /// Commands safe to auto-execute with the "read" capability.
 /// These cannot modify files, network, or system state.
-static const std::vector<std::string> read_only_commands = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
+static const std::vector<std::string> READ_ONLY_COMMANDS = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
                                                             "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
                                                             "sed",  "less", "more", "realpath", "dirname", "basename"};
 
@@ -125,13 +126,13 @@ static bool is_read_only(const std::string& cmd) {
   std::string segment;
   while (std::getline(segments, segment, '|')) {
     // Trim leading whitespace
-    size_t start = segment.find_first_not_of(" \t");
+    size_t start = segment.find_first_not_of(" 	");
     if (start == std::string::npos) continue;
     // Extract first word (the command)
-    size_t end = segment.find_first_of(" \t", start);
+    size_t end = segment.find_first_of(" 	", start);
     std::string word = segment.substr(start, end - start);
     bool found = false;
-    for (const auto& safe : read_only_commands) {
+    for (const auto& safe : READ_ONLY_COMMANDS) {
       if (word == safe) {
         found = true;
         break;
@@ -191,22 +192,50 @@ static std::string process_sync_annotations(const std::string& response, const C
   std::string caps = cfg.capabilities;
   std::string followup;
 
+  // Helper to read all lines from a file
+  auto read_lines = [](const std::string& path) {
+    std::vector<std::string> lines;
+    std::ifstream f(path);
+    if (!f) return lines;
+    std::string line;
+    while (std::getline(f, line)) {
+      lines.push_back(line);
+    }
+    return lines;
+  };
+
+  // Helper to write all lines to a file
+  auto write_lines = [](const std::string& path, const std::vector<std::string>& lines) {
+    std::ofstream f(path);
+    if (!f) return false;
+    for (const auto& line : lines) {
+      f << line << "
+";
+    }
+    return true;
+  };
+
   // Process <read> annotations (requires "read" capability)
   if (has_cap(caps, "read")) {
     auto reads = parse_read_annotations(response);
     for (const auto& action : reads) {
       if (!path_allowed(action.path, cfg.sandbox)) {
-        std::cerr << "[blocked: read outside sandbox: " << action.path << "]\n";
+        std::cerr << "[blocked: read outside sandbox: " << action.path << "]
+";
         continue;
       }
       std::ifstream f(action.path);
       if (!f) {
-        std::cerr << "[read: file not found: " << action.path << "]\n";
+        std::cerr << "[read: file not found: " << action.path << "]
+";
         continue;
       }
       std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-      followup += "[file: " + action.path + "]\n" + content + "\n";
-      std::cerr << "[read " << action.path << "]\n";
+      followup += "[file: " + action.path + "]
+" + content + "
+";
+      std::cerr << "[read " << action.path << "]
+";
     }
   }
 
@@ -215,32 +244,39 @@ static std::string process_sync_annotations(const std::string& response, const C
   for (const auto& cmd : execs) {
     bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
     if (!allowed) {
-      std::cerr << "[blocked: " << cmd << "]\n";
+      std::cerr << "[blocked: " << cmd << "]
+";
       continue;
     }
     auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
-    followup += "[command: " + cmd + "]\n" + r.output + "\n";
-    std::cerr << "[exec " << cmd << "]\n";
+    followup += "[command: " + cmd + "]
+" + r.output + "
+";
+    std::cerr << "[exec " << cmd << "]
+";
   }
 
-  // Process <write> and <str_replace> annotations (requires "write" capability)
+  // Process <write>, <str_replace>, <add_line>, and <delete_line> annotations (requires "write" capability)
   if (has_cap(caps, "write")) {
     auto writes = parse_write_annotations(response);
     for (const auto& action : writes) {
       if (!path_allowed(action.path, cfg.sandbox)) {
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]
+";
         continue;
       }
       std::ofstream f(action.path);
       if (f) {
         f << action.content;
-        std::cerr << "[wrote " << action.path << "]\n";
+        std::cerr << "[wrote " << action.path << "]
+";
       }
     }
     auto replaces = parse_str_replace_annotations(response);
     for (const auto& action : replaces) {
       if (!path_allowed(action.path, cfg.sandbox)) {
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]
+";
         continue;
       }
       std::ifstream rf(action.path);
@@ -253,7 +289,66 @@ static std::string process_sync_annotations(const std::string& response, const C
       std::ofstream wf(action.path);
       if (wf) {
         wf << content;
-        std::cerr << "[str_replace " << action.path << "]\n";
+        std::cerr << "[str_replace " << action.path << "]
+";
+      }
+    }
+
+    auto add_lines = parse_add_line_annotations(response);
+    for (const auto& action : add_lines) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: add_line outside sandbox: " << action.path << "]
+";
+        continue;
+      }
+      std::vector<std::string> lines = read_lines(action.path);
+      if (lines.empty() && !std::filesystem::exists(action.path)) {
+          // If file doesn't exist, create it with the new line
+          std::ofstream of(action.path);
+          if (of) {
+              of << action.content << "
+";
+              std::cerr << "[add_line " << action.path << " (new file)]
+";
+          }
+          continue;
+      }
+      // Line numbers are 1-based, vector indices are 0-based
+      if (action.line_number > 0 && action.line_number <= static_cast<int>(lines.size() + 1)) {
+        lines.insert(lines.begin() + action.line_number - 1, action.content);
+        if (write_lines(action.path, lines)) {
+          std::cerr << "[add_line " << action.path << " line " << action.line_number << "]
+";
+        }
+      } else {
+        std::cerr << "[add_line: invalid line number " << action.path << "]
+";
+      }
+    }
+    auto delete_lines = parse_delete_line_annotations(response);
+    for (const auto& action : delete_lines) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: delete_line outside sandbox: " << action.path << "]
+";
+        continue;
+      }
+      std::vector<std::string> lines = read_lines(action.path);
+      bool found = false;
+      for (auto it = lines.begin(); it != lines.end(); ++it) {
+        if (*it == action.content) {
+          lines.erase(it);
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        if (write_lines(action.path, lines)) {
+          std::cerr << "[delete_line " << action.path << "]
+";
+        }
+      } else {
+        std::cerr << "[delete_line: content not found for " << action.path << "]
+";
       }
     }
   }
@@ -267,19 +362,21 @@ static std::string escape_json(const std::string& s) {
   for (char c : s) {
     switch (c) {
       case '"':
-        out += "\\\"";
+        out += """;
         break;
-      case '\\':
-        out += "\\\\";
+      case '':
+        out += "";
         break;
-      case '\n':
-        out += "\\n";
+      case '
+':
+        out += "
+";
         break;
-      case '\r':
-        out += "\\r";
+      case '':
+        out += "";
         break;
-      case '\t':
-        out += "\\t";
+      case '	':
+        out += "	";
         break;
       default:
         out += c;
@@ -288,29 +385,31 @@ static std::string escape_json(const std::string& s) {
   return out;
 }
 
-/// Unescape JSON string escape sequences (\\n, \\t, \\", \\\\, etc.)
+/// Unescape JSON string escape sequences (
+, 	, ", \, etc.)
 static std::string unescape_json(const std::string& s) {
   std::string out;
   for (size_t i = 0; i < s.size(); i++) {
-    if (s[i] == '\\' && i + 1 < s.size()) {
+    if (s[i] == '' && i + 1 < s.size()) {
       switch (s[++i]) {
         case '"':
           out += '"';
           break;
-        case '\\':
-          out += '\\';
+        case '':
+          out += '';
           break;
         case 'n':
-          out += '\n';
+          out += '
+';
           break;
         case 'r':
-          out += '\r';
+          out += '';
           break;
         case 't':
-          out += '\t';
+          out += '	';
           break;
         default:
-          out += '\\';
+          out += '';
           out += s[i];
       }
     } else {
@@ -331,7 +430,7 @@ static std::vector<Message> load_session(const std::string& path) {
   std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
   // Minimal parser: find each {"role":"...","content":"..."} object
   size_t pos = 0;
-  while ((pos = json.find("\"role\"", pos)) != std::string::npos) {
+  while ((pos = json.find(""role"", pos)) != std::string::npos) {
     std::string role = json_extract_string(json.substr(pos - 1), "role");
     std::string content = json_extract_string(json.substr(pos - 1), "content");
     if (!role.empty()) {
@@ -345,15 +444,16 @@ static std::vector<Message> load_session(const std::string& path) {
 /// Save conversation history to a session JSON file (ADR-056)
 static void save_session(const std::string& path, const std::vector<Message>& msgs) {
   std::ofstream f(path);
-  f << "[\n";
+  f << "[
+";
   for (size_t i = 0; i < msgs.size(); i++) {
-    f << "  {\"role\":\"" << msgs[i].role << "\",\"content\":\"" << escape_json(msgs[i].content) << "\"}";
-    if (i + 1 < msgs.size()) {
-      f << ",";
-    }
-    f << "\n";
+    f << "  {"role":"" << msgs[i].role << "","content":"" << escape_json(msgs[i].content) << ""}";
+    if (i + 1 < msgs.size()) f << ",";
+    f << "
+";
   }
-  f << "]\n";
+  f << "]
+";
 }
 
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic
@@ -366,7 +466,8 @@ int main(int argc, char* argv[]) {
       return 0;
     }
     if (std::string(argv[i]) == "--version") {
-      std::cout << "llama-cli " << LLAMA_CLI_VERSION << " (built " << __DATE__ << " " << __TIME__ << " " << BUILD_TIMEZONE << ")\n";
+      std::cout << "llama-cli " << LLAMA_CLI_VERSION << " (built " << __DATE__ << " " << __TIME__ << " " << BUILD_TIMEZONE << ")
+";
       return 0;
     }
     if (std::string(argv[i]) == "--default-env") {
@@ -385,31 +486,24 @@ int main(int argc, char* argv[]) {
     for (const auto& path : cfg.files) {
       std::ifstream f(path);
       if (!f) {
-        std::cerr << "error: cannot read " << path << "\n";
+        std::cerr << "error: cannot read " << path << "
+";
         return 1;
       }
-      context += "--- " + path + " ---\n";
+      context += "--- " + path + " ---
+";
       context += std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-      context += "\n";
+      context += "
+";
     }
   } else if (!isatty(STDIN_FILENO) && !cfg.force_repl) {
     context = std::string((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
   }
   if (!context.empty()) {
-    cfg.prompt = cfg.prompt.empty() ? context : cfg.prompt + "\n\n" + context;
-    cfg.mode = Mode::Sync;
-  }
+    cfg.prompt = cfg.prompt.empty() ? context : cfg.prompt + "
 
-  // Auto-detect model for sync mode
-  if (cfg.model == "auto" && cfg.mode == Mode::Sync) {
-    auto models = get_available_models(cfg);
-    if (!models.empty()) {
-      cfg.model = models[0];
-      Config::instance().model = models[0];
-    } else {
-      tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
-      return 1;
-    }
+" + context;
+    cfg.mode = Mode::Sync;
   }
 
   if (cfg.mode == Mode::Sync) {
@@ -440,21 +534,19 @@ int main(int argc, char* argv[]) {
     messages.push_back({"user", cfg.prompt});
     std::string response = generate_response(messages);
     if (!response.empty()) {
-      std::cout << response << "\n";
+      std::cout << response << "
+";
       messages.push_back({"assistant", response});
       // Process annotations if capabilities are set (ADR-056)
       int max_rounds = 10;
       while (!cfg.capabilities.empty() && max_rounds-- > 0) {
         std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
-        if (followup.empty()) {
-          break;
-        }
+        if (followup.empty()) break;
         messages.push_back({"user", followup});
         response = generate_response(messages);
-        if (response.empty()) {
-          break;
-        }
-        std::cout << response << "\n";
+        if (response.empty()) break;
+        std::cout << response << "
+";
         messages.push_back({"assistant", response});
       }
       // Save updated history if --session is set (ADR-056)
@@ -464,97 +556,31 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
-    // Auto-detect model from server when set to "auto"
-    if (cfg.model == "auto") {
-      auto models = get_available_models(cfg);
-      auto infos = get_model_info(cfg);
-      std::map<std::string, ModelInfo> info_map;
-      for (const auto& info : infos) info_map[info.name] = info;
-
-      // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
-      struct Candidate {
-        std::string name;
-        double params;
-        bool sweet;
-      };
-      std::vector<Candidate> candidates;
-
-      for (const auto& m : models) {
-        double p = 0;
-        try {
-          p = std::stod(info_map[m].params);
-        } catch (...) {
-        }
-        candidates.push_back({m, p, (p >= 11.0 && p <= 28.0)});
-      }
-
-      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
-        // Prioritize models in sweetspot range (11B-28B)
-        if (a.sweet != b.sweet) return a.sweet > b.sweet;
-        // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
-        return a.params < b.params;
-      });
-
-      if (!candidates.empty()) {
-        cfg.model = candidates[0].name;
-        Config::instance().model = candidates[0].name;
-        HardwareInfo hw = detect_hardware();
-        tui::system_msg(std::cerr, color,
-                        "Detected hardware: " + hw.cpu + " | " + std::to_string(hw.ram_gb) + "GB RAM | " + std::to_string(hw.vram_gb) +
-                            "GB VRAM estimated.");
-        tui::system_msg(std::cerr, color, "Auto-selected " + cfg.model + " as the optimal sweetspot model for your hardware.");
-      } else {
-        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3.6:27b");
-        return 1;
-      }
-    }
-
     if (!cfg.no_banner) {
       tui::banner(std::cerr, color);
     }
-
-    // Optional model warmup (only if not already running)
-    if (Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
-      tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
-      // Simple spinner loop
-      const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
-      int frame = 0;
-      std::vector<Message> warmup_msg = {{"user", "hi"}};
-
-      // We need to run this in a way that allows us to check progress
-      // ollama_chat_stream doesn't expose the http object for cancellation easily,
-      // but we can at least show a spinner.
-      ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
-        if (g_interrupted) return false;
-        std::cerr << "\r" << spinner[frame % 10] << " loading..." << std::flush;
-        frame++;
-        return true;
-      });
-      std::cerr << "\r" << "   " << std::flush;  // Clear spinner
-    }
-
-    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + Config::instance().model + ")");
-    tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
+    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
     if (cfg.provider == "mock") {
-      tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
+      tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.
+");
     }
-    tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
+    tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.
+");
     // Load .kiro/agents/ context if present in cwd
     std::string kiro_ctx = load_kiro_context(cfg, color);
     if (!kiro_ctx.empty()) {
-      cfg.system_prompt += "\n\n## Project context\n" + kiro_ctx;
+      cfg.system_prompt += "
+
+## Project context
+" + kiro_ctx;
     }
     auto generate = [&cfg](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        if (mock_response_env) {
-          return std::string(mock_response_env);
-        }
         return "mock response: " + msgs.back().content;
       }
       return ollama_chat(Config::instance(), msgs);
     };
-    auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
+    auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) -> std::string {
       if (cfg.provider == "mock") {
         // Simulate streaming by sending the response through the callback
         std::string response = "mock response: " + msgs.back().content;
