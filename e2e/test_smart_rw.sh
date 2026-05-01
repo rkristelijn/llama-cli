@@ -105,7 +105,7 @@ OUTPUT=$(run_repl_with \
     "<read path=\"$TMP_READ\" lines=\"1-2\"/>" \
     "")  # no confirmation needed for read
 
-assert_contains "$OUTPUT" "read " "read confirmation shown"
+assert_contains "$OUTPUT" "alpha" "read file content in follow-up"
 echo "PASS: read annotation processed"
 
 echo ""
