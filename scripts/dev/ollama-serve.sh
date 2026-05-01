@@ -18,8 +18,9 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 #   ~/ollama-serve.sh net    # share models on network
 #   ~/ollama-serve.sh down   # shut it all down
 #
-# NOTE: The homebrew launchd plist has KeepAlive=true, which auto-respawns
-#       ollama on kill. Every command unloads it first to prevent that.
+# NOTE: On macOS, homebrew's launchd plist has KeepAlive=true, which
+#       auto-respawns ollama on kill. On Linux, ollama runs as a systemd
+#       service. Both are stopped before (re)starting to prevent conflicts.
 #
 # ─── M2 Pro 32GB Tuning Notes ───────────────────────────────────────────
 #
@@ -67,9 +68,12 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 #
 # ─────────────────────────────────────────────────────────────────────────
 
-PLIST=~/Library/LaunchAgents/homebrew.mxcl.ollama.plist
 PORT=11434
 LOG=/tmp/ollama.log
+OS="$(uname -s)"
+
+# macOS launchd plist (ignored on Linux)
+PLIST=~/Library/LaunchAgents/homebrew.mxcl.ollama.plist
 
 # M2 Pro 32GB optimized settings
 OLLAMA_SETTINGS=(
@@ -80,23 +84,42 @@ OLLAMA_SETTINGS=(
   OLLAMA_MAX_LOADED_MODELS=1
 )
 
+# get_local_ip — Resolve the machine's LAN IP address.
+# Globals: OS
+# Outputs: Writes IP to stdout
+get_local_ip() {
+  if [ "$OS" = "Darwin" ]; then
+    ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null
+  else
+    hostname -I 2>/dev/null | awk '{print $1}'
+  fi
+}
+
+# stop_ollama — Stop ollama, handling both launchd (macOS) and systemd (Linux).
+# Globals: OS, PLIST
 stop_ollama() {
-  launchctl unload "$PLIST" 2>/dev/null
+  if [ "$OS" = "Darwin" ]; then
+    launchctl unload "$PLIST" 2>/dev/null || true
+  else
+    sudo systemctl stop ollama 2>/dev/null || true
+  fi
   local PIDS
-  PIDS=$(pgrep -f "ollama serve" 2>/dev/null)
+  PIDS=$(pgrep -f "ollama serve" 2>/dev/null) || true
   if [ -n "$PIDS" ]; then
-    kill $PIDS 2>/dev/null
+    kill "$PIDS" 2>/dev/null || true
     for pid in $PIDS; do
       while kill -0 "$pid" 2>/dev/null; do :; done
     done
   fi
 }
 
+# start_ollama — Start ollama serve with tuned env vars.
+# Arguments: HOST (bind address, e.g. 127.0.0.1 or 0.0.0.0)
 start_ollama() {
   local HOST=$1
   export OLLAMA_HOST=$HOST
   for setting in "${OLLAMA_SETTINGS[@]}"; do
-    export "$setting"
+    export "${setting?}"
   done
   nohup ollama serve > "$LOG" 2>&1 &
   sleep 2
@@ -105,7 +128,7 @@ start_ollama() {
 verify() {
   local MODE=$1
   local MY_IP
-  MY_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)
+  MY_IP=$(get_local_ip)
   local OK=true
 
   echo ""
@@ -136,13 +159,13 @@ verify() {
     echo "  ✓ Max Loaded Models: $OLLAMA_MAX_LOADED_MODELS"
 
     if [ "$MODE" = "net" ]; then
-      if ! curl -s --connect-timeout 2 http://$MY_IP:$PORT >/dev/null; then
+      if ! curl -s --connect-timeout 2 "http://$MY_IP:$PORT" >/dev/null; then
         echo "  ✗ Not reachable on $MY_IP"; OK=false
       else
         echo "  ✓ Reachable on $MY_IP (network exposed)"
       fi
     else
-      if curl -s --connect-timeout 2 http://$MY_IP:$PORT >/dev/null 2>&1; then
+      if curl -s --connect-timeout 2 "http://$MY_IP:$PORT" >/dev/null 2>&1; then
         echo "  ✗ Still reachable on $MY_IP (should be localhost only)"; OK=false
       else
         echo "  ✓ Not reachable on $MY_IP (localhost only)"
