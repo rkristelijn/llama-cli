@@ -292,7 +292,7 @@ inline std::string try_list(const std::string& line, bool color) {
 
 /** Get terminal width in columns via ioctl. Falls back to 80. */
 inline int get_terminal_width() {
-  struct winsize w{};
+  struct winsize w {};
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
     return w.ws_col;
   }

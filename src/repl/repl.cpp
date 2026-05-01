@@ -1967,8 +1967,8 @@ static void path_completions(const std::string& prefix, const std::string& befor
 
 // Tab-completion for slash commands and file paths
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/c",     "/clear", "/color", "/copy", "/mem",   "/model", "/p",
-                                                "/paste", "/pref",  "/rate",  "/scan", "/set",   "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/c",     "/clear", "/color", "/copy", "/mem", "/model",   "/p",
+                                                "/paste", "/pref",  "/rate",  "/scan", "/set", "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
