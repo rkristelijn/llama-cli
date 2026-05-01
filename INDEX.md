@@ -180,6 +180,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
+- [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
 - [`scripts/lint/check-error-handling.sh`](scripts/lint/check-error-handling.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
@@ -253,4 +254,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_250 files indexed._
+_251 files indexed._
