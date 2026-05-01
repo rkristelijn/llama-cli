@@ -55,8 +55,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
 - [`docs/adr/adr-062-prompt-format-and-workflow-engine.md`](docs/adr/adr-062-prompt-format-and-workflow-engine.md) — ADR-062: Context-First Architecture & Workflow Engine
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
-- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/backlog/001-log-optimization.md`](docs/backlog/001-log-optimization.md) — 001: Log Optimization for Usage Analysis
 - [`docs/backlog/002-wingman-command-tips.md`](docs/backlog/002-wingman-command-tips.md) — 002: Wingman — Command Tips
 - [`docs/backlog/003-wingman-preflight.md`](docs/backlog/003-wingman-preflight.md) — 003: Wingman — Prompt Preflight
@@ -114,7 +114,6 @@ Auto-generated overview of all files in this repo.
 - [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
-- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/prompts/01-commit-msg-hook.md`](docs/prompts/01-commit-msg-hook.md) — Prompt 01: Add commit message validation hook
 - [`docs/prompts/02-branch-naming.md`](docs/prompts/02-branch-naming.md) — Prompt 02: Add branch naming validation
 - [`docs/prompts/03-env-example.md`](docs/prompts/03-env-example.md) — Prompt 03: Add .env.example configuration template
@@ -128,6 +127,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/prompts/11-streaming-tests.md`](docs/prompts/11-streaming-tests.md) — Prompt 11: Add streaming tests
 - [`docs/prompts/README.md`](docs/prompts/README.md) — AI Agent Task Prompts
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
+- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/roadmap/README.md`](docs/roadmap/README.md) — Roadmap
@@ -142,8 +142,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
-- [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
 - [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
+- [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User Guide
 - [`scripts/check/coverage.sh`](scripts/check/coverage.sh) — DEPRECATED: use 'make coverage' instead. See ADR-044.
@@ -171,10 +171,10 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
 - [`scripts/gh/sync-backlog.sh`](scripts/gh/sync-backlog.sh)
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
-- [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
-- [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
 - [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
+- [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
 - [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
+- [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
@@ -194,48 +194,48 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test/run-unit.sh`](scripts/test/run-unit.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
-- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // Tool extracts and processes LLM response annotations.
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
-- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // Parses user input for interactive mode commands and executes specified actions.
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
-- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
-- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
-- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // Application configuration for the Ollama server with customizable settings.
-- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
-- [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — include "hardware.h"
 - [`src/exec/hardware.h`](src/exec/hardware.h) — ifndef HARDWARE_H
+- [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
 - [`src/help.h`](src/help.h) — /**
-- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — /**
-- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/net/scan.cpp`](src/net/scan.cpp) — /**
 - [`src/net/scan.h`](src/net/scan.h) — // Network scanner — discovers Ollama servers on the local subnet.
-- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
+- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
-- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
-- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 

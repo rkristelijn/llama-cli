@@ -14,7 +14,7 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] json_extract_object: brace counting doesn't handle braces inside quoted strings
 - [ ] log-viewer.sh: JSON regex patterns break on spaced JSON (allow `[[:space:]]*` around colons)
 - [ ] INDEX.md: duplicate ADR-003 numbering (0003-kiro-cli-as-reference.md vs adr-003-v-model-workflow.md)
-- [ ] `/version` in REPL is malformed — possibly depending on dynamic value
+- [x] `/version` in REPL is malformed — possibly depending on dynamic value
 
 ## Small fixes
 
