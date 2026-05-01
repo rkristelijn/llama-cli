@@ -987,6 +987,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
  * @param color If true, enable ANSI-colored output where supported.
  */
 static void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  LOG_FEATURE("write_annotation");
   if (confirm_write(action, in, out, color, trust)) {
     // Backup existing file before overwriting
     std::ifstream exists_check(action.path);
@@ -1019,6 +1020,7 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
  * @brief Apply a <str_replace> action: show diff, prompt, then do targeted replacement.
  */
 static void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+  LOG_FEATURE("str_replace_annotation");
   if (trust) {
     // Auto-approve in trust mode — skip confirmation
     std::ifstream check(action.path);
@@ -1117,6 +1119,7 @@ static void process_str_replace(const StrReplaceAction& action, std::istream& in
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 static std::string process_read(const ReadAction& action, std::ostream& out, bool color) {
+  LOG_FEATURE("read_annotation");
   std::ifstream check(action.path);
   if (!check.good()) {
     tui::error(out, color, "read: file not found: " + action.path);
@@ -1247,6 +1250,7 @@ static std::string strip_exec_annotations(const std::string& text) {
  *   c = copy command to clipboard.
  * Returns output if executed, empty string if declined/copied. */
 static std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
+  LOG_FEATURE("exec_annotation");
   if (!trust) {
     out << "Run: \033[1;33m" << cmd << "\033[0m? [y/n/t/c] " << std::flush;
     std::string answer;

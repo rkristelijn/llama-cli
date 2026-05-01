@@ -26,6 +26,7 @@ extern volatile sig_atomic_t g_interrupted;
 #include "exec/exec.h"
 #include "help.h"
 #include "json/json.h"
+#include "logging/logger.h"
 #include "ollama/ollama.h"
 #include "repl/repl.h"
 #include "session/session.h"
@@ -111,6 +112,7 @@ static std::string process_sync_annotations(const std::string& response, const C
   // Process <exec> annotations (requires "read" for safe cmds, "exec" for all)
   auto execs = parse_exec_tags(response);
   for (const auto& cmd : execs) {
+    LOG_FEATURE("exec_annotation");
     bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
     if (!allowed) {
       std::cerr << "[blocked: " << cmd << "]\n";
@@ -259,6 +261,7 @@ int main(int argc, char* argv[]) {
   // Build context from --files or stdin pipe (ADR-030)
   std::string context;
   if (!cfg.files.empty()) {
+    LOG_FEATURE("files_flag");
     for (const auto& path : cfg.files) {
       std::ifstream f(path);
       if (!f) {
@@ -290,11 +293,13 @@ int main(int argc, char* argv[]) {
   }
 
   if (cfg.mode == Mode::Sync) {
+    LOG_FEATURE("sync_mode");
     // Sync mode: one-shot, response to stdout (ADR-007)
     // Mock provider goes through the same flow — echoes prompt as response
     // so annotation processing and session work identically in tests.
     auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
+        LOG_FEATURE("mock_provider");
         const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
         if (mock_response_env) {
           return mock_response_env;
@@ -309,7 +314,11 @@ int main(int argc, char* argv[]) {
     };
 
     // Load session history if --session is set (ADR-056)
-    std::vector<Message> messages = cfg.session_path.empty() ? std::vector<Message>{} : load_session(cfg.session_path);
+    std::vector<Message> messages;
+    if (!cfg.session_path.empty()) {
+      LOG_FEATURE("session_load");
+      messages = load_session(cfg.session_path);
+    }
     // Add system prompt only if starting a new conversation
     if (messages.empty() && !cfg.system_prompt.empty()) {
       messages.push_back({"system", cfg.system_prompt});
@@ -341,6 +350,7 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
+    LOG_FEATURE("repl_mode");
     // Auto-detect model from server when set to "auto"
     if (cfg.model == "auto" && cfg.provider != "mock") {
       auto models = get_available_models(cfg);

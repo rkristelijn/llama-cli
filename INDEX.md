@@ -55,6 +55,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
 - [`docs/adr/adr-062-prompt-format-and-workflow-engine.md`](docs/adr/adr-062-prompt-format-and-workflow-engine.md) — ADR-062: Context-First Architecture & Workflow Engine
 - [`docs/adr/adr-063-dynamic-runtime-feature-coverage.md`](docs/adr/adr-063-dynamic-runtime-feature-coverage.md) — ADR 063: Dynamic Runtime Feature Coverage via Log Instrumentation
+- [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md) — ADR-064: Enforcement of Dead Code Detection
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -189,6 +190,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
 - [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
 - [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
+- [`scripts/test/check-feature-coverage.sh`](scripts/test/check-feature-coverage.sh)
 - [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
 - [`scripts/test/run-coverage.sh`](scripts/test/run-coverage.sh)
 - [`scripts/test/run-e2e.sh`](scripts/test/run-e2e.sh) — run-e2e.sh — Run all end-to-end tests.
@@ -250,4 +252,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_247 files indexed._
+_249 files indexed._
