@@ -54,6 +54,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
 - [`docs/adr/adr-062-prompt-format-and-workflow-engine.md`](docs/adr/adr-062-prompt-format-and-workflow-engine.md) — ADR-062: Context-First Architecture & Workflow Engine
+- [`docs/adr/adr-063-dynamic-runtime-feature-coverage.md`](docs/adr/adr-063-dynamic-runtime-feature-coverage.md) — ADR 063: Dynamic Runtime Feature Coverage via Log Instrumentation
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -249,4 +250,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_246 files indexed._
+_247 files indexed._
