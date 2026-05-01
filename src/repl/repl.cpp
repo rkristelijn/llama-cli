@@ -929,8 +929,10 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 
   // Always show diff / content before prompting
   if (file_exists) {
+    LOG_FEATURE("write_diff_existing");
     show_diff(existing, action.content, out, color);
   } else {
+    LOG_FEATURE("write_new_file");
     out << action.content << "\n";
   }
 
@@ -1003,14 +1005,16 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
     if (file.is_open()) {
       file << action.content << "\n";
       out << "[wrote " << action.path << "]\n";
-      // Log successful file write for audit trail
+      LOG_FEATURE("write_confirmed");
       LOG_EVENT("repl", "file_write", action.path, "ok", 0, 0, 0);
     } else {
       tui::error(out, color, "Error: could not write to " + action.path);
+      LOG_FEATURE("write_error");
       LOG_EVENT("repl", "file_write", action.path, "error: could not write", 0, 0, 0);
     }
   } else {
     out << "[skipped]\n";
+    LOG_FEATURE("write_declined");
     // Log declined write so we can see rejection patterns
     LOG_EVENT("repl", "file_write_declined", action.path, "", 0, 0, 0);
   }
@@ -1122,6 +1126,7 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   LOG_FEATURE("read_annotation");
   std::ifstream check(action.path);
   if (!check.good()) {
+    LOG_FEATURE("read_not_found");
     tui::error(out, color, "read: file not found: " + action.path);
     LOG_EVENT("repl", "file_read", action.path, "error: not found", 0, 0, 0);
     return "";
@@ -1140,6 +1145,7 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   result << "[file: " << action.path;
 
   if (!action.search.empty()) {
+    LOG_FEATURE("read_search");
     // Search mode: return lines containing the term with context (±3 lines)
     result << " search=\"" << action.search << "\"]\n";
     for (size_t i = 0; i < lines.size(); ++i) {
@@ -1153,6 +1159,7 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
       }
     }
   } else if (action.from_line > 0 && action.to_line > 0) {
+    LOG_FEATURE("read_line_range");
     // Line range mode
     int from = std::max(1, action.from_line);
     int to = std::min((int)lines.size(), action.to_line);
@@ -1161,6 +1168,7 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
       result << i << ": " << lines[i - 1] << "\n";
     }
   } else {
+    LOG_FEATURE("read_full_file");
     // Full file
     result << "]\n" << content;
   }

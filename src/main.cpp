@@ -115,9 +115,11 @@ static std::string process_sync_annotations(const std::string& response, const C
     LOG_FEATURE("exec_annotation");
     bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
     if (!allowed) {
+      LOG_FEATURE("exec_blocked");
       std::cerr << "[blocked: " << cmd << "]\n";
       continue;
     }
+    LOG_FEATURE("exec_allowed");
     auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
     followup += "[command: " + cmd + "]\n" + r.output + "\n";
     std::cerr << "[exec " << cmd << "]\n";
@@ -128,6 +130,7 @@ static std::string process_sync_annotations(const std::string& response, const C
     auto writes = parse_write_annotations(response);
     for (const auto& action : writes) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        LOG_FEATURE("sync_write_sandbox_blocked");
         followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
@@ -156,6 +159,7 @@ static std::string process_sync_annotations(const std::string& response, const C
       rf.close();
       size_t pos = content.find(action.old_str);
       if (pos == std::string::npos) {
+        LOG_FEATURE("sync_str_replace_not_found");
         followup += "[error: old text not found in " + action.path + "]\n";
         continue;
       }
