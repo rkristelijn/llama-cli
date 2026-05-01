@@ -24,13 +24,18 @@ bool has_cap(const std::string& caps, const std::string& cap) {
 }
 
 /// Commands safe to auto-execute with the "read" capability.
+/// These cannot modify files, network, or system state.
+/// Used by is_read_only() to validate pipe chains.
 static const std::vector<std::string> read_only_commands = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
                                                             "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
                                                             "sed",  "less", "more", "realpath", "dirname", "basename"};
 
-/// Check if a command is read-only (first word in allowlist, no redirects)
+/// Check if a command is read-only (first word in allowlist, no redirects).
+/// Splits on pipe segments and validates each command independently.
 bool is_read_only(const std::string& cmd) {
+  // Block redirects — any > means potential file modification
   if (cmd.find('>') != std::string::npos) return false;
+  // Check each pipe segment independently
   std::istringstream segments(cmd);
   std::string segment;
   while (std::getline(segments, segment, '|')) {
@@ -67,7 +72,10 @@ std::vector<std::string> parse_exec_tags(const std::string& text) {
 }
 
 /// Check if a file path is within the sandbox directory (ADR-056).
+/// Uses realpath() to resolve symlinks and ".." traversal attempts.
+/// For new files (not yet on disk), validates the parent directory instead.
 bool path_allowed(const std::string& path, const std::string& sandbox) {
+  // Resolve sandbox to absolute path
   char sandbox_real[PATH_MAX];
   if (!realpath(sandbox.c_str(), sandbox_real)) return false;
   std::string sandbox_prefix(sandbox_real);

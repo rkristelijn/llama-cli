@@ -1,3 +1,11 @@
+/**
+ * @file hardware.cpp
+ * @brief Hardware detection for model auto-selection.
+ *
+ * Detects RAM, VRAM, CPU, and GPU on macOS (sysctl) and Linux (/proc, lspci).
+ * Used by the REPL to auto-select the optimal model for the hardware.
+ */
+
 #include "hardware.h"
 
 #include <fstream>

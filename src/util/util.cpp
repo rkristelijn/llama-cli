@@ -29,6 +29,8 @@ std::string url_encode(const std::string& input) {
 // NOLINTBEGIN(readability-braces-around-statements)
 
 /// Map a color name to its ANSI escape code.
+/// Supports standard (30-37), bright (91-97), and 256-color (38;5;N) codes.
+/// Returns empty string for "none", "default", or unknown names.
 std::string color_name_to_ansi(const std::string& name) {
   if (name == "black") return "30";
   if (name == "red") return "31";
@@ -54,6 +56,7 @@ std::string color_name_to_ansi(const std::string& name) {
 }
 
 /// Map an ANSI escape code back to a color name.
+/// Inverse of color_name_to_ansi(). Returns "none" for unknown codes.
 std::string ansi_to_name(const std::string& code) {
   if (code == "30") return "black";
   if (code == "31") return "red";

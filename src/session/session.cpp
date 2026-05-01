@@ -20,7 +20,9 @@ std::vector<Message> load_session(const std::string& path) {
     return msgs;  // new session — file will be created on save
   }
   std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  // Minimal parser: find each {"role":"...","content":"..."} object
+  // Minimal parser: find each {"role":"...","content":"..."} object.
+  // Uses json_extract_string for field extraction and unescape_json
+  // to restore escaped characters (\n, \t, \") in content.
   size_t pos = 0;
   while ((pos = json.find("\"role\"", pos)) != std::string::npos) {
     std::string role = json_extract_string(json.substr(pos - 1), "role");
@@ -34,6 +36,7 @@ std::vector<Message> load_session(const std::string& path) {
 }
 
 /// Save conversation history to a session JSON file.
+/// Writes a JSON array of {role, content} objects with escaped content.
 void save_session(const std::string& path, const std::vector<Message>& msgs) {
   std::ofstream f(path);
   f << "[\n";

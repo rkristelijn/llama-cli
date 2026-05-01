@@ -214,8 +214,8 @@ Auto-generated overview of all files in this repo.
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
 - [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
-- [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — include "hardware.h"
-- [`src/exec/hardware.h`](src/exec/hardware.h) — ifndef HARDWARE_H
+- [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — /**
+- [`src/exec/hardware.h`](src/exec/hardware.h) — /**
 - [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
 - [`src/help.h`](src/help.h) — /**
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
