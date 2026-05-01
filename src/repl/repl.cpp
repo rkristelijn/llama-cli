@@ -59,6 +59,7 @@ struct ReplState {
   ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
   ModelInfoFn model_info_fn;        ///< Injected model info fetcher (real or mock)
   HardwareFn hw_fn;                 ///< Injected hardware detector (real or mock)
+  ScanFn scan_fn;                   ///< Injected network scanner (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
   std::istream& in;                 ///< Input stream
@@ -570,7 +571,7 @@ static void append_line(const std::string& path, const std::string& line) {
 static void handle_scan(ReplState& s) {
   s.out << "Scanning " << get_local_subnet() << "0/24 for Ollama servers...\n";
   s.out.flush();
-  auto hosts = scan_ollama_hosts();
+  auto hosts = s.scan_fn(11434);
   if (hosts.empty()) {
     s.out << "No Ollama servers found on the local network.\n";
     return;
@@ -2012,7 +2013,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat,
-             HardwareFn hw_fn, ModelInfoFn model_info_fn) {
+             HardwareFn hw_fn, ModelInfoFn model_info_fn, ScanFn scan_fn) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -2057,6 +2058,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      models_fn,
                      model_info_fn,
                      hw_fn,
+                     scan_fn,
                      cfg,
                      history,
                      in,
