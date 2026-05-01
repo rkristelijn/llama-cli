@@ -40,6 +40,7 @@ struct Config {
   std::string provider = "ollama";                         ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port
+  std::vector<std::string> hosts;                          ///< Discovered Ollama hosts (OLLAMA_HOSTS, /scan)
   std::string model = default_model;                       ///< LLM model name
   int timeout = 120;                                       ///< HTTP request timeout in seconds
   int exec_timeout = 30;                                   ///< Max seconds for command execution

@@ -28,6 +28,7 @@
 #include "help.h"
 #include "json/json.h"
 #include "logging/logger.h"
+#include "net/scan.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
 
@@ -293,20 +294,43 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
   // Detect hardware for sweetspot calculation (injected)
   HardwareInfo hw = s.hw_fn();
 
-  // Use injected models_fn so unit tests can provide a mock model list
-  // without needing a running Ollama server
-  std::vector<std::string> models_raw = s.models_fn(s.cfg);
+  // Collect models from all known hosts (or just the current one)
+  struct HostModel {
+    std::string name;
+    std::string host;
+    std::string port;
+  };
+  std::vector<HostModel> all_models;
+  std::map<std::string, ModelInfo> info_map;
 
-  if (models_raw.empty()) {
-    s.out << "No models available on " << s.cfg.host << ":" << s.cfg.port << "\n";
-    return;
+  auto& hosts = Config::instance().hosts;
+  if (hosts.empty()) {
+    // Single host mode — use injected functions
+    auto models_raw = s.models_fn(s.cfg);
+    for (const auto& m : models_raw) {
+      all_models.push_back({m, s.cfg.host, s.cfg.port});
+    }
+    auto infos = s.model_info_fn(s.cfg);
+    for (const auto& info : infos) info_map[info.name] = info;
+  } else {
+    // Multi-host mode — query each discovered host
+    for (const auto& hp : hosts) {
+      Config tmp = s.cfg;
+      auto colon = hp.find(':');
+      tmp.host = (colon != std::string::npos) ? hp.substr(0, colon) : hp;
+      tmp.port = (colon != std::string::npos) ? hp.substr(colon + 1) : "11434";
+      auto models_raw = get_available_models(tmp);
+      auto infos = get_model_info(tmp);
+      for (const auto& info : infos) info_map[info.name + "@" + tmp.host] = info;
+      for (const auto& m : models_raw) {
+        all_models.push_back({m, tmp.host, tmp.port});
+      }
+    }
   }
 
-  // Fetch metadata from Ollama (params, quant, size)
-  auto infos = s.model_info_fn(s.cfg);
-  std::map<std::string, ModelInfo> info_map;
-  for (const auto& info : infos) {
-    info_map[info.name] = info;
+  if (all_models.empty()) {
+    s.out << "No models available.\n";
+    return;
   }
 
   // Determine sort mode from argument (default to params)
@@ -332,21 +356,23 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
   };
 
   while (true) {
-    std::vector<std::string> models = models_raw;
-
     // Sort based on chosen mode
-    std::sort(models.begin(), models.end(), [&](const std::string& a, const std::string& b) {
-      const auto& ia = info_map[a];
-      const auto& ib = info_map[b];
+    auto sorted = all_models;
+    std::sort(sorted.begin(), sorted.end(), [&](const HostModel& a, const HostModel& b) {
+      // Lookup key depends on multi-host mode
+      std::string ka = hosts.empty() ? a.name : a.name + "@" + a.host;
+      std::string kb = hosts.empty() ? b.name : b.name + "@" + b.host;
+      const auto& ia = info_map[ka];
+      const auto& ib = info_map[kb];
 
       switch (sort_mode) {
         case 'n':
-          return a < b;
+          return a.name < b.name;
         case 'p': {
           double pa = to_num(ia.params);
           double pb = to_num(ib.params);
           if (pa != pb) return pa > pb;
-          return a < b;
+          return a.name < b.name;
         }
         case 'q': {
           if (ia.quant != ib.quant) return ia.quant > ib.quant;
@@ -355,18 +381,17 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
         case 's':
         default: {
           if (ia.size_gb != ib.size_gb) return ia.size_gb > ib.size_gb;
-          return a < b;
+          return a.name < b.name;
         }
       }
     });
 
     // Find max name length for column alignment
     size_t max_name = 0;
-    for (const auto& name : models) {
-      if (name.size() > max_name) {
-        max_name = name.size();
-      }
+    for (const auto& m : sorted) {
+      if (m.name.size() > max_name) max_name = m.name.size();
     }
+    bool multi = !hosts.empty();
 
     // Display hardware info
     s.out << "\n  🖥️  CPU:  " << hw.cpu << "\n";
@@ -377,23 +402,26 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
     s.out << "\nAvailable models (sorted by "
           << (sort_mode == 'n' ? "name" : (sort_mode == 'p' ? "params" : (sort_mode == 'q' ? "quality" : "size"))) << "):\n\n";
     s.out << "     " << std::left << std::setw(static_cast<int>(max_name + 2)) << "NAME" << std::right << std::setw(10) << "PARAMS"
-          << std::right << std::setw(10) << "SIZE" << "  " << "QUANT" << "\n";
-    s.out << "     " << std::string(max_name + 2 + 10 + 10 + 9, '-') << "\n";
+          << std::right << std::setw(10) << "SIZE" << "  " << "QUANT";
+    if (multi) s.out << "  HOST";
+    s.out << "\n";
+    s.out << "     " << std::string(max_name + 2 + 10 + 10 + 9 + (multi ? 20 : 0), '-') << "\n";
 
-    for (size_t i = 0; i < models.size(); i++) {
-      const auto& m_info = info_map[models[i]];
+    for (size_t i = 0; i < sorted.size(); i++) {
+      std::string info_key = multi ? sorted[i].name + "@" + sorted[i].host : sorted[i].name;
+      const auto& m_info = info_map[info_key];
       double params = to_num(m_info.params);
 
-      // Sweetspot: 11B to 27B (since 27.8B+ causes timeouts/heavy load)
+      // Sweetspot: 11B to 27B
       bool sweet = (params >= 11.0 && params <= 27.5);
       std::string dim = (sweet || !s.color) ? "" : "\033[2m";
       std::string reset = (sweet || !s.color) ? "" : "\033[0m";
 
-      std::string marker = (models[i] == Config::instance().model) ? " *" : "  ";
+      std::string marker = (sorted[i].name == Config::instance().model) ? " *" : "  ";
       s.out << marker << std::setw(2) << std::right << (i + 1) << ". " << dim;
-      s.out << std::left << std::setw(static_cast<int>(max_name + 2)) << models[i];
+      s.out << std::left << std::setw(static_cast<int>(max_name + 2)) << sorted[i].name;
 
-      auto it = info_map.find(models[i]);
+      auto it = info_map.find(info_key);
       if (it != info_map.end()) {
         const auto& m_data = it->second;
         s.out << std::right << std::setw(10) << m_data.params;
@@ -406,6 +434,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
         }
         s.out << "  " << m_data.quant;
       }
+      if (multi) s.out << "  " << sorted[i].host;
       s.out << reset << "\n";
     }
 
@@ -417,7 +446,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
 
     // Prompt user to select by number
     std::string input;
-    std::string prompt = "Select 1-" + std::to_string(models.size()) + " (or n/p/s/q to sort): ";
+    std::string prompt = "Select 1-" + std::to_string(sorted.size()) + " (or n/p/s/q to sort): ";
 
     if (&s.in == &std::cin && isatty(STDIN_FILENO)) {
       auto quit = linenoise::Readline(prompt.c_str(), input);
@@ -455,19 +484,25 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
     }
 
     // Validate range (1-indexed for user, 0-indexed for vector)
-    if (choice < 1 || choice > static_cast<int>(models.size())) {
+    if (choice < 1 || choice > static_cast<int>(sorted.size())) {
       s.out << "[out of range]\n";
       continue;
     }
 
-    // Update config with selected model
-    std::string selected = models[choice - 1];
-    Config::instance().model = selected;
-    s.out << "[model set to " << selected << "]\n";
+    // Update config with selected model and host
+    auto& selected = sorted[choice - 1];
+    Config::instance().model = selected.name;
+    Config::instance().host = selected.host;
+    Config::instance().port = selected.port;
+    if (multi) {
+      s.out << "[model set to " << selected.name << " on " << selected.host << ":" << selected.port << "]\n";
+    } else {
+      s.out << "[model set to " << selected.name << "]\n";
+    }
 
     // Optional warmup after switch
     if (s.warmup) {
-      s.out << "Warming up " << selected << "... (Ctrl+C to skip)\n";
+      s.out << "Warming up " << selected.name << "... (Ctrl+C to skip)\n";
       s.out.flush();
       // Use streaming chat for warmup so it can be interrupted
       std::vector<Message> warmup_msg = {{"user", "hi"}};
@@ -529,7 +564,57 @@ static void append_line(const std::string& path, const std::string& line) {
 }
 
 /**
- * @brief Handle /mem command: show, add, or clear memories (ADR-059).
+ * @brief Handle /scan — discover Ollama servers on the local network.
+ * Scans the local subnet for port 11434, writes results to .env as OLLAMA_HOSTS.
+ */
+static void handle_scan(ReplState& s) {
+  s.out << "Scanning " << get_local_subnet() << "0/24 for Ollama servers...\n";
+  s.out.flush();
+  auto hosts = scan_ollama_hosts();
+  if (hosts.empty()) {
+    s.out << "No Ollama servers found on the local network.\n";
+    return;
+  }
+  s.out << "Found " << hosts.size() << " Ollama server(s):\n";
+  for (const auto& h : hosts) {
+    s.out << "  " << h << "\n";
+  }
+  // Write to .env (append or update OLLAMA_HOSTS line)
+  std::string hosts_str;
+  for (size_t i = 0; i < hosts.size(); i++) {
+    if (i > 0) hosts_str += ",";
+    hosts_str += hosts[i];
+  }
+  // Read existing .env, replace or append OLLAMA_HOSTS
+  std::vector<std::string> lines;
+  bool found = false;
+  std::ifstream rf(".env");
+  if (rf.is_open()) {
+    std::string line;
+    while (std::getline(rf, line)) {
+      if (line.rfind("OLLAMA_HOSTS=", 0) == 0) {
+        lines.push_back("OLLAMA_HOSTS=" + hosts_str);
+        found = true;
+      } else {
+        lines.push_back(line);
+      }
+    }
+    rf.close();
+  }
+  if (!found) {
+    lines.push_back("OLLAMA_HOSTS=" + hosts_str);
+  }
+  std::ofstream wf(".env");
+  if (wf) {
+    for (const auto& l : lines) wf << l << "\n";
+    s.out << "Saved to .env (OLLAMA_HOSTS=" << hosts_str << ")\n";
+  }
+  // Update runtime config
+  Config::instance().hosts = hosts;
+}
+
+/**
+ * @brief Handle /mem — view or modify persistent memory (ADR-059).
  *
  * Subcommands: (none) = show, add <fact> = append, clear = wipe.
  */
@@ -732,6 +817,8 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     }
   } else if (input.command == "help" || input.command.empty()) {
     s.out << help::repl;
+  } else if (input.command == "scan") {
+    handle_scan(s);
   } else {
     s.out << "Unknown command: /" << input.command << ". Type /help for options.\n";
   }
@@ -1879,8 +1966,8 @@ static void path_completions(const std::string& prefix, const std::string& befor
 
 // Tab-completion for slash commands and file paths
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/c",     "/clear", "/color", "/copy", "/mem",     "/model", "/p",
-                                                "/paste", "/pref",  "/rate",  "/set",  "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/c",     "/clear", "/color", "/copy", "/mem",   "/model", "/p",
+                                                "/paste", "/pref",  "/rate",  "/scan", "/set",   "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;

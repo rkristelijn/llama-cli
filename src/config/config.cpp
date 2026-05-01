@@ -113,6 +113,14 @@ void load_dotenv(const std::string& path, Config& c) {
     if (key == "OLLAMA_HOST") {
       // Support host:port format, including IPv6 bracket notation
       parse_host_port(val, c.host, c.port);
+    } else if (key == "OLLAMA_HOSTS") {
+      // Comma-separated list of host:port pairs from /scan
+      c.hosts.clear();
+      std::istringstream ss(val);
+      std::string token;
+      while (std::getline(ss, token, ',')) {
+        if (!token.empty()) c.hosts.push_back(token);
+      }
     } else if (key == "OLLAMA_PORT") {
       c.port = val;
     } else if (key == "OLLAMA_MODEL") {
