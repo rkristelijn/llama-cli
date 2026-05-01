@@ -236,11 +236,17 @@ Auto-generated overview of all files in this repo.
 - [`src/session/session.cpp`](src/session/session.cpp) — /**
 - [`src/session/session.h`](src/session/session.h) — /**
 - [`src/session/session_test.cpp`](src/session/session_test.cpp) — /**
+- [`src/sync/sync.cpp`](src/sync/sync.cpp) — /**
+- [`src/sync/sync.h`](src/sync/sync.h) — /**
+- [`src/sync/sync_test.cpp`](src/sync/sync_test.cpp) — /**
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
 - [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
+- [`src/util/util.cpp`](src/util/util.cpp) — /**
+- [`src/util/util.h`](src/util/util.h) — /**
+- [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_240 files indexed._
+_246 files indexed._

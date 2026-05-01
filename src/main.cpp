@@ -29,24 +29,8 @@ extern volatile sig_atomic_t g_interrupted;
 #include "ollama/ollama.h"
 #include "repl/repl.h"
 #include "session/session.h"
+#include "sync/sync.h"
 #include "tui/tui.h"
-
-/// Extract "file://path" entries from a JSON resources array.
-/// Minimal parser — just finds "file://" strings between quotes.
-static std::vector<std::string> extract_resources(const std::string& json) {
-  std::vector<std::string> paths;
-  const std::string prefix = "\"file://";
-  size_t pos = 0;
-  while ((pos = json.find(prefix, pos)) != std::string::npos) {
-    size_t start = pos + prefix.size();
-    size_t end = json.find('"', start);
-    if (end != std::string::npos) {
-      paths.push_back(json.substr(start, end - start));
-    }
-    pos = (end != std::string::npos) ? end + 1 : start;
-  }
-  return paths;
-}
 
 /// Load .kiro/agents/*.json: append agent prompt to system prompt,
 /// read resource files into initial context string.
@@ -98,93 +82,6 @@ static std::string load_kiro_context(Config& cfg, bool color) {
  *
  * @return int Exit code: `0` on normal completion.
  */
-/// Check if a capability is enabled in the comma-separated capabilities string
-static bool has_cap(const std::string& caps, const std::string& cap) {
-  // Search for cap as a whole word within comma-separated list
-  size_t pos = 0;
-  while ((pos = caps.find(cap, pos)) != std::string::npos) {
-    bool at_start = (pos == 0 || caps[pos - 1] == ',');
-    bool at_end = (pos + cap.size() >= caps.size() || caps[pos + cap.size()] == ',');
-    if (at_start && at_end) return true;
-    pos += cap.size();
-  }
-  return false;
-}
-
-/// Commands safe to auto-execute with the "read" capability.
-/// These cannot modify files, network, or system state.
-static const std::vector<std::string> read_only_commands = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
-                                                            "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
-                                                            "sed",  "less", "more", "realpath", "dirname", "basename"};
-
-/// Check if a command is read-only (first word in allowlist, no redirects)
-static bool is_read_only(const std::string& cmd) {
-  // Block redirects and destructive operators
-  if (cmd.find('>') != std::string::npos) return false;
-  // Extract first word from each pipe segment
-  std::istringstream segments(cmd);
-  std::string segment;
-  while (std::getline(segments, segment, '|')) {
-    // Trim leading whitespace
-    size_t start = segment.find_first_not_of(" \t");
-    if (start == std::string::npos) continue;
-    // Extract first word (the command)
-    size_t end = segment.find_first_of(" \t", start);
-    std::string word = segment.substr(start, end - start);
-    bool found = false;
-    for (const auto& safe : read_only_commands) {
-      if (word == safe) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) return false;
-  }
-  return true;
-}
-
-/// Parse <exec>cmd</exec> tags from LLM response text
-static std::vector<std::string> parse_exec_tags(const std::string& text) {
-  std::vector<std::string> cmds;
-  const std::string open = "<exec>";
-  const std::string close = "</exec>";
-  size_t pos = 0;
-  while ((pos = text.find(open, pos)) != std::string::npos) {
-    size_t start = pos + open.size();
-    size_t end = text.find(close, start);
-    if (end == std::string::npos) break;
-    cmds.push_back(text.substr(start, end - start));
-    pos = end + close.size();
-  }
-  return cmds;
-}
-
-/// Check if a file path is within the sandbox directory (ADR-056).
-/// Resolves both paths to absolute form to catch ".." traversal.
-/// For non-existent files (writes), checks the parent directory.
-static bool path_allowed(const std::string& path, const std::string& sandbox) {
-  // Resolve sandbox to absolute path
-  char sandbox_real[PATH_MAX];
-  if (!realpath(sandbox.c_str(), sandbox_real)) return false;
-  std::string sandbox_prefix(sandbox_real);
-  sandbox_prefix += "/";
-
-  // For existing files, resolve directly
-  char path_real[PATH_MAX];
-  if (realpath(path.c_str(), path_real)) {
-    std::string resolved(path_real);
-    // Allow exact match (sandbox dir itself) or prefix match
-    return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
-  }
-
-  // For new files, resolve the parent directory
-  size_t slash = path.rfind('/');
-  std::string parent = (slash != std::string::npos) ? path.substr(0, slash) : ".";
-  if (!realpath(parent.c_str(), path_real)) return false;
-  std::string resolved(path_real);
-  return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
-}
-
 /// Process annotations in sync mode response based on capabilities (ADR-056).
 /// Returns context to feed back to the model (read/exec output).
 // pmccabe:skip-complexity — handles all annotation types in one pass
