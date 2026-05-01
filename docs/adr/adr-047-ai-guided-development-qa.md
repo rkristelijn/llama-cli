@@ -1,5 +1,7 @@
 # AI Guided development
 
+*Status*: Accepted · *Superseded by*: [ADR-048](adr-048-quality-framework.md)
+
 Imagine a system, (a code boilerplate) where a junior dev can write code like a unicorn-developer, where the process in strict, but understandable, with the necessary automatic checks in place. Every task will be orchestrated in the leanest process.
 
 prompt: I'm thinking of the leanest process for picking up a change for code. it must be inspired by itil, and feat (change management), fix (incident management, prob? (problem management) <- thinking conventional commets, prob is not there, maybe refactor/chore. anyway, it is the minimum process for such a code change. it is also tied in iso 9126.

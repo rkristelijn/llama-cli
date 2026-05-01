@@ -4,6 +4,8 @@
 
 Accepted
 
+Accepted
+
 ## Context
 
 Currently, `llama-cli` is a local-first, private assistant. The LLM's knowledge is limited to its training data and the files explicitly provided by the user. There is a clear need for the LLM to access real-time information from the internet (e.g., news, weather, or recent documentation updates) to answer queries that fall outside its training cutoff.

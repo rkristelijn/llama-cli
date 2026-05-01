@@ -1,7 +1,7 @@
 
 # ADR 063: Dynamic Runtime Feature Coverage via Log Instrumentation
 
-**Status:** `PROPOSED`
+**Status:** `Accepted`
 
 **Context**
 Currently, `llama-cli` maintains two separate sets of information regarding test coverage:

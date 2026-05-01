@@ -1,6 +1,6 @@
 # ADR-031: tgpt Provider Integration
 
-*Status*: Proposed · *Date*: 2026-04-13 · *Context*: Expand provider options with a free, CLI-based alternative to Ollama and Gemini.
+*Status*: Rejected · *Date*: 2026-04-13 · *Context*: Expand provider options with a free, CLI-based alternative to Ollama and Gemini.
 
 ## Decision
 

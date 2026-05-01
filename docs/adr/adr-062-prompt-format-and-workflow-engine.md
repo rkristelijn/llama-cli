@@ -4,6 +4,8 @@
 
 Proposed
 
+Proposed
+
 ## Context
 
 After evaluating the competitive landscape (Codex CLI, Copilot CLI, Open WebUI, etc.), llama-cli risks being "just another Ollama wrapper" if it stays at the transport layer. The 2025–2026 shift moved value up the stack — from model access to workflow integration.

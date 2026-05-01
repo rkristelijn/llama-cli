@@ -4,6 +4,8 @@
 
 Proposed
 
+Proposed
+
 ## Context
 
 This codebase is actively modified with AI assistance, which means bulk changes (moving files, renaming, restructuring) happen frequently. These changes can silently break internal references:

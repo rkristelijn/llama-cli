@@ -1,6 +1,6 @@
 # ADR-028: Execution Limits
 
-*Status*: Proposed · *Date*: 2026-04-12 · *Context*: Prevent agent loops from hanging indefinitely.
+*Status*: Accepted · *Date*: 2026-04-12 · *Context*: Prevent agent loops from hanging indefinitely.
 
 ## Problem
 
