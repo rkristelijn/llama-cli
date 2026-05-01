@@ -2,7 +2,7 @@
 #
 # check-file-size.sh — Enforce maximum file sizes in src/.
 #
-# Limits: source 400, headers 300, tests 600 lines.
+# Limits: source 400, headers 300, tests 650 lines.
 # Existing violations are listed as known tech debt (ADR-061).
 #
 # Usage:

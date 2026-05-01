@@ -455,7 +455,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
       s.out.flush();
       // Use streaming chat for warmup so it can be interrupted
       std::vector<Message> warmup_msg = {{"user", "hi"}};
-      ollama_chat_stream(s.cfg, warmup_msg, [](const std::string&) {
+      ollama_chat_stream(Config::instance(), warmup_msg, [](const std::string&) {
         return g_interrupted == 0;  // stop if interrupted
       });
       if (g_interrupted) {
@@ -938,15 +938,6 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     // Diff/content already shown above — proceed directly to write.
     LOG_EVENT("repl", "file_write", action.path, "auto-confirmed", 0, 0, 0);
     out << "[auto-written: " << action.path << "]\n";  // User feedback
-
-    // *** The actual file writing and backup logic from the original function
-    // *** (around lines ~950 onwards) needs to be executed here to complete the operation.
-    // For demonstration, we return true, simulating successful bypass.
-    // The actual write logic needs to be integrated here.
-    // For example, it would proceed to call write_file_with_backup or similar.
-    // The original function's structure implies the write happens *after* confirmation.
-    // For automatic confirmation, we'd need to execute that part here.
-    // To be precise, the entire write logic needs to be structured to be callable here.
     return true;
   }
   // Original interactive prompt logic follows if auto_confirm_write is false

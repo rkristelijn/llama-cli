@@ -433,8 +433,8 @@ int main(int argc, char* argv[]) {
     };
     auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
       if (cfg.provider == "mock") {
-        // Simulate streaming by sending the response through the callback
-        std::string response = "mock response: " + msgs.back().content;
+        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
+        std::string response = mock_response_env ? std::string(mock_response_env) : "mock response: " + msgs.back().content;
         on_token(response);
         return response;
       }

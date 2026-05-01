@@ -6,7 +6,6 @@
 
 #include "annotation/annotation.h"
 
-#include <iostream>  // Added for std::cerr
 #include <sstream>
 
 // --- helpers -----------------------------------------------------------------

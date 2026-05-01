@@ -684,6 +684,7 @@ class StreamRenderer {
     if (content.find("<exec>") != std::string::npos || content.find("</exec>") != std::string::npos ||
         content.find("<write ") != std::string::npos || content.find("</write>") != std::string::npos ||
         content.find("<str_replace ") != std::string::npos || content.find("</str_replace>") != std::string::npos ||
+        content.find("<add_line ") != std::string::npos || content.find("<delete_line ") != std::string::npos ||
         content.find("<read ") != std::string::npos || content.find("<search>") != std::string::npos ||
         content.find("</search>") != std::string::npos) {
       return;  // suppress tag lines from stream output
