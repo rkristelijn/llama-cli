@@ -1009,7 +1009,6 @@ static void process_write(const WriteAction& action, std::istream& in, std::ostr
       LOG_EVENT("repl", "file_write", action.path, "ok", 0, 0, 0);
     } else {
       tui::error(out, color, "Error: could not write to " + action.path);
-      LOG_FEATURE("write_error");
       LOG_EVENT("repl", "file_write", action.path, "error: could not write", 0, 0, 0);
     }
   } else {

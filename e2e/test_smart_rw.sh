@@ -108,5 +108,40 @@ OUTPUT=$(run_repl_with \
 assert_contains "$OUTPUT" "alpha" "read file content in follow-up"
 echo "PASS: read annotation processed"
 
+# --- test 7: read full file --------------------------------------------------
+echo "--- test 7: read full file ---"
+
+printf 'one\ntwo\nthree\n' > "$TMP_READ"
+
+OUTPUT=$(run_repl_with \
+    "<read path=\"$TMP_READ\"/>" \
+    "")
+
+assert_contains "$OUTPUT" "one" "full file read contains first line"
+assert_contains "$OUTPUT" "three" "full file read contains last line"
+echo "PASS: read full file"
+
+# --- test 8: read not found ---------------------------------------------------
+echo "--- test 8: read not found ---"
+
+OUTPUT=$(run_repl_with \
+    "<read path=\"/tmp/llama-e2e-nonexistent-file.txt\"/>" \
+    "")
+
+assert_contains "$OUTPUT" "not found" "read not found error shown"
+echo "PASS: read not found"
+
+# --- test 9: read with search ------------------------------------------------
+echo "--- test 9: read with search ---"
+
+printf 'aaa\nbbb\ntarget_line\nccc\nddd\n' > "$TMP_READ"
+
+OUTPUT=$(run_repl_with \
+    "<read path=\"$TMP_READ\" search=\"target_line\"/>" \
+    "")
+
+assert_contains "$OUTPUT" "target_line" "search found the target line"
+echo "PASS: read with search"
+
 echo ""
 echo "=== All smart read/write e2e tests passed ==="
