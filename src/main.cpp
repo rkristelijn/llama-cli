@@ -474,8 +474,8 @@ int main(int argc, char* argv[]) {
     cfg.mode = Mode::Sync;
   }
 
-  // Auto-detect model for sync mode
-  if (cfg.model == "auto" && cfg.mode == Mode::Sync) {
+  // Auto-detect model for sync mode (skip for mock provider)
+  if (cfg.model == "auto" && cfg.mode == Mode::Sync && cfg.provider != "mock") {
     auto models = get_available_models(cfg);
     if (!models.empty()) {
       cfg.model = models[0];
@@ -539,7 +539,7 @@ int main(int argc, char* argv[]) {
   } else {
     // Interactive mode: REPL loop (ADR-012)
     // Auto-detect model from server when set to "auto"
-    if (cfg.model == "auto") {
+    if (cfg.model == "auto" && cfg.provider != "mock") {
       auto models = get_available_models(cfg);
       auto infos = get_model_info(cfg);
       std::map<std::string, ModelInfo> info_map;
