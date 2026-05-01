@@ -5,7 +5,7 @@ tags: [documentation, indexing, frontmatter, dogfooding]
 
 # ADR-010: Documentation Indexing
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: As the repo grows, finding the right document becomes harder for both humans and AI. A central index is needed. This approach is dogfooded from the personal repo's indexing strategy.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: As the repo grows, finding the right document becomes harder for both humans and AI. A central index is needed. This approach is dogfooded from the personal repo's indexing strategy.
 
 ## Decision
 

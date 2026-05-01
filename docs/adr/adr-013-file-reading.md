@@ -1,6 +1,6 @@
 # ADR-013: File Reading & REPL Commands
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: Users need to provide file contents as context to the LLM. This must work in both sync mode (pipe) and interactive mode (commands). A command system for the REPL is needed.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: Users need to provide file contents as context to the LLM. This must work in both sync mode (pipe) and interactive mode (commands). A command system for the REPL is needed.
 
 ## Decision
 

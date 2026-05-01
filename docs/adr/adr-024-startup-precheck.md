@@ -1,6 +1,6 @@
 # ADR-024: Startup Precheck and Self-Remediation
 
-*Status*: Accepted · *Date*: 2026-04-12 · *Context*: On a fresh Linux install, `make` failed because `cmake` was missing — with no actionable error. After a successful install, `llama-cli` started but connected to a non-existent model with no guidance on how to configure it.
+*Status*: Implemented · *Date*: 2026-04-12 · *Context*: On a fresh Linux install, `make` failed because `cmake` was missing — with no actionable error. After a successful install, `llama-cli` started but connected to a non-existent model with no guidance on how to configure it.
 
 ## Problem
 

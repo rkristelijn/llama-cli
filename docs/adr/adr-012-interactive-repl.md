@@ -1,6 +1,6 @@
 # ADR-012: Interactive REPL
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: Interactive mode needs a read-eval-print loop. The REPL must be testable, support graceful exit, and be upgradeable to line editing later.
+*Status*: Implemented · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: Interactive mode needs a read-eval-print loop. The REPL must be testable, support graceful exit, and be upgradeable to line editing later.
 
 ## Decision
 

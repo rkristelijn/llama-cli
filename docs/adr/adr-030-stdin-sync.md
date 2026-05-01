@@ -1,6 +1,6 @@
 # ADR-030: Stdin and File Input for Sync Mode
 
-*Status*: Accepted · *Date*: 2026-04-13 · *Context*: Sync mode only accepts a prompt via positional argument. ADR-007 specifies stdin pipe support but this was never implemented. Long prompts with special characters break when passed as shell arguments. Batch scripting requires file input.
+*Status*: Implemented · *Date*: 2026-04-13 · *Context*: Sync mode only accepts a prompt via positional argument. ADR-007 specifies stdin pipe support but this was never implemented. Long prompts with special characters break when passed as shell arguments. Batch scripting requires file input.
 
 ## Problem
 

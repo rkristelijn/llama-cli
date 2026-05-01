@@ -1,6 +1,6 @@
 # ADR-048: AI-Guided Quality Framework
 
-*Status*: Accepted · *Date*: 2026-04-18 · *Extends*: [ADR-047](adr-047-ai-guided-development-qa.md)
+*Status*: Implemented · *Date*: 2026-04-18 · *Extends*: [ADR-047](adr-047-ai-guided-development-qa.md)
 
 ## Context
 

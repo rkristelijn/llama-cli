@@ -1,6 +1,6 @@
 # ADR-002: Quality Checks & CI Pipeline
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
+*Status*: Implemented · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
 
 ## Decision
 

@@ -1,6 +1,6 @@
 # ADR-014: LLM Tool Annotations
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: The LLM needs to be able to propose file writes and command execution. Rather than implementing full tool-calling (which requires model support), annotations in the LLM's response are parsed by the client and executed after user confirmation.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: The LLM needs to be able to propose file writes and command execution. Rather than implementing full tool-calling (which requires model support), annotations in the LLM's response are parsed by the client and executed after user confirmation.
 
 ## Decision
 

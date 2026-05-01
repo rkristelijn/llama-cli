@@ -1,6 +1,6 @@
 # ADR-025: Central Help Text
 
-*Status*: Accepted · *Date*: 2026-04-12 · *Context*: Help text appeared in two places: `--help` (CLI) and `/help` (REPL). Keeping them in sync manually is error-prone and violates DRY.
+*Status*: Implemented · *Date*: 2026-04-12 · *Context*: Help text appeared in two places: `--help` (CLI) and `/help` (REPL). Keeping them in sync manually is error-prone and violates DRY.
 
 ## Problem
 

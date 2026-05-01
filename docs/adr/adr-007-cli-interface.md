@@ -1,6 +1,6 @@
 # ADR-007: CLI Interface Design
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: The CLI interface is the user-facing API. It must follow POSIX conventions and support unix pipes for maximum composability.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: The CLI interface is the user-facing API. It must follow POSIX conventions and support unix pipes for maximum composability.
 
 ## Decision
 

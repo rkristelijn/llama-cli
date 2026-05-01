@@ -1,6 +1,6 @@
 # ADR-056: Stateful Sync Mode via `--session`
 
-*Status*: Accepted · *Date*: 2026-04-24 · *Context*: External tools (Kiro CLI, scripts, CI pipelines) use sync mode for one-shot queries but cannot hold multi-turn conversations because sync mode discards history after each call. This blocks delegation patterns where an orchestrator needs follow-up capability.
+*Status*: Implemented · *Date*: 2026-04-24 · *Context*: External tools (Kiro CLI, scripts, CI pipelines) use sync mode for one-shot queries but cannot hold multi-turn conversations because sync mode discards history after each call. This blocks delegation patterns where an orchestrator needs follow-up capability.
 
 ## Problem
 

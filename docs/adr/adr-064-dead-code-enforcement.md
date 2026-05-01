@@ -1,7 +1,7 @@
 
 # ADR-064: Enforcement of Dead Code Detection
 
-**Status:** `[proposed]`
+**Status:** Proposed
 
 **Context:**
 The current `llama-cli` quality framework (ADR-048) utilizes `clang-tidy`, `cppcheck`, and `gcov` to monitor code quality. While unused variables or functions currently trigger warnings, these are not treated as build blockers. This leads to an accumulation of technical debt in the form of dead code, which violates our principle of simple, maintainable C++ (as defined in `CONTRIBUTING.md`) and increases cognitive load for developers.

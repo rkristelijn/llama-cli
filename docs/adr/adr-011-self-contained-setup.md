@@ -1,6 +1,6 @@
 # ADR-011: Self-Contained Setup
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: The project depends on 7 external tools. New developers should not have to figure out what to install manually. The repo must be portable and self-contained.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: The project depends on 7 external tools. New developers should not have to figure out what to install manually. The repo must be portable and self-contained.
 
 ## Decision
 

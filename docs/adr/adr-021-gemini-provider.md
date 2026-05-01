@@ -1,6 +1,6 @@
 # ADR-021: Gemini CLI Integration
 
-*Status*: Accepted · *Date*: 2026-04-12 · *Context*: We needed to implement the `GeminiProvider` following the abstraction defined in ADR-020. This provider used the existing `gemini` CLI tool installed on the user's system.
+*Status*: Rejected · *Date*: 2026-04-12 · *Context*: We needed to implement the `GeminiProvider` following the abstraction defined in ADR-020. This provider used the existing `gemini` CLI tool installed on the user's system.
 
 ## Decision
 

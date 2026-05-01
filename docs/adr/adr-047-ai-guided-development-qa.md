@@ -1,6 +1,6 @@
 # AI Guided development
 
-*Status*: Accepted · *Superseded by*: [ADR-048](adr-048-quality-framework.md)
+*Status*: Superseded · *Superseded by*: [ADR-048](adr-048-quality-framework.md)
 
 Imagine a system, (a code boilerplate) where a junior dev can write code like a unicorn-developer, where the process in strict, but understandable, with the necessary automatic checks in place. Every task will be orchestrated in the leanest process.
 

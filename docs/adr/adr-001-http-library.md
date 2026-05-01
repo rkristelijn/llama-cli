@@ -1,6 +1,6 @@
 # ADR-001: HTTP Library — cpp-httplib
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: C++ has no native HTTP support, so an external library is required.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: C++ has no native HTTP support, so an external library is required.
 
 ## Options Considered
 

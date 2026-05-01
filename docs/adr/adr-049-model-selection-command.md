@@ -1,6 +1,6 @@
 # ADR-049: Interactive Model Selection Command
 
-*Status*: Accepted · *Date*: 2026-04-18 · *Context*: Users need a way to switch models during a REPL session without restarting. The `/model` command provides interactive model selection from the Ollama server.
+*Status*: Implemented · *Date*: 2026-04-18 · *Context*: Users need a way to switch models during a REPL session without restarting. The `/model` command provides interactive model selection from the Ollama server.
 
 ## Problem
 

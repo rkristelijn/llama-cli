@@ -1,6 +1,6 @@
 # REPL end-to-end testing
 
-*Status*: Accepted
+*Status*: Implemented
 
 ## CLI-Based REPL Testing
 

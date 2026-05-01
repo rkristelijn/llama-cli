@@ -1,6 +1,6 @@
 # ADR-008: Test Framework
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: Raw `assert()` tests lack BDD-style structure and mocking support. A test framework is needed to improve readability and enable HTTP call mocking.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: Raw `assert()` tests lack BDD-style structure and mocking support. A test framework is needed to improve readability and enable HTTP call mocking.
 
 ## Options Considered
 
