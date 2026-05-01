@@ -97,11 +97,13 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh llvm
       - run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "$GH_REF" = "refs/heads/main" ]; then
             make FULL=1 tidy
           else
             make tidy
           fi
+        env:
+          GH_REF: ${{ github.ref }}
 
   lint-cppcheck:
     needs: changes
