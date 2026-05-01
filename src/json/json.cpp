@@ -173,3 +173,62 @@ int json_extract_int(const std::string& json, const std::string& key) {
   }
   return result;
 }
+
+/// Escape a string for JSON output (quotes, backslashes, control chars)
+std::string escape_json(const std::string& s) {
+  std::string out;
+  for (char c : s) {
+    switch (c) {
+      case '"':
+        out += "\\\"";
+        break;
+      case '\\':
+        out += "\\\\";
+        break;
+      case '\n':
+        out += "\\n";
+        break;
+      case '\r':
+        out += "\\r";
+        break;
+      case '\t':
+        out += "\\t";
+        break;
+      default:
+        out += c;
+    }
+  }
+  return out;
+}
+
+/// Unescape JSON string escape sequences (\\n, \\t, \\", \\\\, etc.)
+std::string unescape_json(const std::string& s) {
+  std::string out;
+  for (size_t i = 0; i < s.size(); i++) {
+    if (s[i] == '\\' && i + 1 < s.size()) {
+      switch (s[++i]) {
+        case '"':
+          out += '"';
+          break;
+        case '\\':
+          out += '\\';
+          break;
+        case 'n':
+          out += '\n';
+          break;
+        case 'r':
+          out += '\r';
+          break;
+        case 't':
+          out += '\t';
+          break;
+        default:
+          out += '\\';
+          out += s[i];
+      }
+    } else {
+      out += s[i];
+    }
+  }
+  return out;
+}

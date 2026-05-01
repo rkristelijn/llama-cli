@@ -233,6 +233,9 @@ Auto-generated overview of all files in this repo.
 - [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
 - [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
 - [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
+- [`src/session/session.cpp`](src/session/session.cpp) — /**
+- [`src/session/session.h`](src/session/session.h) — /**
+- [`src/session/session_test.cpp`](src/session/session_test.cpp) — /**
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
@@ -240,4 +243,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_237 files indexed._
+_240 files indexed._

@@ -28,6 +28,7 @@ extern volatile sig_atomic_t g_interrupted;
 #include "json/json.h"
 #include "ollama/ollama.h"
 #include "repl/repl.h"
+#include "session/session.h"
 #include "tui/tui.h"
 
 /// Extract "file://path" entries from a JSON resources array.
@@ -333,101 +334,6 @@ static std::string process_sync_annotations(const std::string& response, const C
   }
 
   return followup;
-}
-
-/// Escape a string for JSON output (quotes, backslashes, control chars)
-static std::string escape_json(const std::string& s) {
-  std::string out;
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        out += "\\\"";
-        break;
-      case '\\':
-        out += "\\\\";
-        break;
-      case '\n':
-        out += "\\n";
-        break;
-      case '\r':
-        out += "\\r";
-        break;
-      case '\t':
-        out += "\\t";
-        break;
-      default:
-        out += c;
-    }
-  }
-  return out;
-}
-
-/// Unescape JSON string escape sequences (\\n, \\t, \\", \\\\, etc.)
-static std::string unescape_json(const std::string& s) {
-  std::string out;
-  for (size_t i = 0; i < s.size(); i++) {
-    if (s[i] == '\\' && i + 1 < s.size()) {
-      switch (s[++i]) {
-        case '"':
-          out += '"';
-          break;
-        case '\\':
-          out += '\\';
-          break;
-        case 'n':
-          out += '\n';
-          break;
-        case 'r':
-          out += '\r';
-          break;
-        case 't':
-          out += '\t';
-          break;
-        default:
-          out += '\\';
-          out += s[i];
-      }
-    } else {
-      out += s[i];
-    }
-  }
-  return out;
-}
-
-/// Load conversation history from a session JSON file (ADR-056).
-/// Returns empty vector if file doesn't exist yet.
-static std::vector<Message> load_session(const std::string& path) {
-  std::vector<Message> msgs;
-  std::ifstream f(path);
-  if (!f) {
-    return msgs;  // new session — file will be created on save
-  }
-  std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  // Minimal parser: find each {"role":"...","content":"..."} object
-  size_t pos = 0;
-  while ((pos = json.find("\"role\"", pos)) != std::string::npos) {
-    std::string role = json_extract_string(json.substr(pos - 1), "role");
-    std::string content = json_extract_string(json.substr(pos - 1), "content");
-    if (!role.empty()) {
-      msgs.push_back({role, unescape_json(content)});
-    }
-    pos += 6;  // advance past "role"
-  }
-  return msgs;
-}
-
-/// Save conversation history to a session JSON file (ADR-056)
-static void save_session(const std::string& path, const std::vector<Message>& msgs) {
-  std::ofstream f(path);
-  f << "[\n";
-  for (size_t i = 0; i < msgs.size(); i++) {
-    f << "  {\"role\":\"" << msgs[i].role << "\",\"content\":\"" << escape_json(msgs[i].content) << "\"}";
-    if (i + 1 < msgs.size()) {
-      f << ",";
-    }
-    f << "\n";
-  }
-  f << "]\n";
 }
 
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic

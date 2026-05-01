@@ -64,6 +64,7 @@ set(LIB_SOURCES
   src/net/scan.cpp
   src/trace/trace.cpp
   src/logging/logger.cpp
+  src/session/session.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
 
@@ -140,7 +141,11 @@ add_executable(test_scan src/net/scan_test.cpp src/net/scan.cpp)
 target_include_directories(test_scan PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_scan PRIVATE doctest::doctest httplib::httplib)
 
-set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp)
+add_executable(test_session src/session/session_test.cpp src/session/session.cpp src/json/json.cpp)
+target_include_directories(test_session PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_session PRIVATE doctest::doctest)
+
+set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
