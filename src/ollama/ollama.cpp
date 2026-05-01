@@ -31,44 +31,6 @@ static httplib::Client make_client(const Config& cfg) {
 /// Escape special characters for safe embedding in a JSON string value.
 /// Handles quotes, backslashes, control characters, and non-printable bytes.
 /// @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
-static std::string escape_json_string(const std::string& s) {
-  std::string escaped;
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        escaped += "\\\"";
-        break;
-      case '\\':
-        escaped += "\\\\";
-        break;
-      case '\b':
-        escaped += "\\b";
-        break;
-      case '\f':
-        escaped += "\\f";
-        break;
-      case '\n':
-        escaped += "\\n";
-        break;
-      case '\r':
-        escaped += "\\r";
-        break;
-      case '\t':
-        escaped += "\\t";
-        break;
-      default:
-        if (static_cast<unsigned char>(c) <= 0x1f) {
-          char buf[7];
-          snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
-          escaped += buf;
-        } else {
-          escaped += c;
-        }
-    }
-  }
-  return escaped;
-}
-
 /** One-shot prompt via /api/generate (no conversation history).
  * Sends a single prompt to Ollama and returns the response text.
  * Checks for API errors (e.g. model not found) and shows them to the user.
@@ -80,9 +42,9 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto start = std::chrono::high_resolution_clock::now();
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
-  std::string escaped_prompt = escape_json_string(prompt);
+  std::string escaped_prompt = escape_json(prompt);
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
+  std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/generate model=%s\n", url.c_str(), cfg.model.c_str());
@@ -131,7 +93,7 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
     if (i > 0) {
       json += ",";
     }
-    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json_string(messages[i].content) + R"("})";
+    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json(messages[i].content) + R"("})";
   }
   json += "]";
   return json;
@@ -151,7 +113,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:false = wait for complete response (no chunked streaming yet)
   std::string body =
-      R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+      R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
@@ -205,7 +167,7 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:true (default) — Ollama sends newline-delimited JSON chunks
-  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
+  std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat (stream) model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());

@@ -56,6 +56,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-062-prompt-format-and-workflow-engine.md`](docs/adr/adr-062-prompt-format-and-workflow-engine.md) — ADR-062: Context-First Architecture & Workflow Engine
 - [`docs/adr/adr-063-dynamic-runtime-feature-coverage.md`](docs/adr/adr-063-dynamic-runtime-feature-coverage.md) — ADR 063: Dynamic Runtime Feature Coverage via Log Instrumentation
 - [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md) — ADR-064: Enforcement of Dead Code Detection
+- [`docs/adr/adr-065-code-consistency-refactor.md`](docs/adr/adr-065-code-consistency-refactor.md) — ADR-065: Code Consistency Refactor Plan
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -252,4 +253,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_249 files indexed._
+_250 files indexed._

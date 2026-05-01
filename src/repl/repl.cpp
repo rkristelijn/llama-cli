@@ -29,6 +29,7 @@
 #include "json/json.h"
 #include "logging/logger.h"
 #include "net/scan.h"
+#include "sync/sync.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
 #include "util/util.h"
@@ -1178,36 +1179,6 @@ static std::string process_read(const ReadAction& action, std::ostream& out, boo
   return r;
 }
 
-/**
- * @brief Extracts command strings enclosed in <exec>...</exec> tags.
- *
- * Scans the input text left-to-right and collects the inner contents of each
- * complete `<exec>`...`</exec>` block found.
- *
- * @return std::vector<std::string> Vector of command strings in the order they
- * appear. Returns an empty vector if no complete exec blocks are found or if a
- * closing tag is missing for a detected opening tag.
- */
-static std::vector<std::string> parse_exec_annotations(const std::string& text) {
-  std::vector<std::string> cmds;
-  const std::string open = "<exec>";
-  const std::string close = "</exec>";
-  size_t pos = 0;
-  while (pos < text.size()) {
-    auto start = text.find(open, pos);
-    if (start == std::string::npos) {
-      break;
-    }
-    auto end = text.find(close, start + open.size());
-    if (end == std::string::npos) {
-      break;
-    }
-    cmds.push_back(text.substr(start + open.size(), end - start - open.size()));
-    pos = end + close.size();
-  }
-  return cmds;
-}
-
 // Strip <exec> annotations from text, replacing with readable summary.
 // Used to display clean response text to the user without raw XML tags.
 /**
@@ -1511,7 +1482,7 @@ static bool handle_response(const std::string& response, ReplState& s) {
   auto writes = parse_write_annotations(response);
   auto str_replaces = parse_str_replace_annotations(response);
   auto reads = parse_read_annotations(response);
-  auto execs = parse_exec_annotations(response);
+  auto execs = parse_exec_tags(response);
   auto searches = parse_search_annotations(response);
 
   bool has_annotations = !writes.empty() || !str_replaces.empty() || !reads.empty() || !execs.empty() || !searches.empty();

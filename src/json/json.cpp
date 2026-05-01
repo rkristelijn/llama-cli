@@ -6,6 +6,7 @@
 
 #include "json/json.h"
 
+#include <cstdio>
 #include <unordered_map>
 
 /** Simple escape map: JSON escape char -> decoded char. */
@@ -174,7 +175,7 @@ int json_extract_int(const std::string& json, const std::string& key) {
   return result;
 }
 
-/// Escape a string for JSON output (quotes, backslashes, control chars)
+/// Escape a string for JSON output (RFC 8259: quotes, backslashes, control chars)
 std::string escape_json(const std::string& s) {
   std::string out;
   for (char c : s) {
@@ -184,6 +185,12 @@ std::string escape_json(const std::string& s) {
         break;
       case '\\':
         out += "\\\\";
+        break;
+      case '\b':
+        out += "\\b";
+        break;
+      case '\f':
+        out += "\\f";
         break;
       case '\n':
         out += "\\n";
@@ -195,7 +202,13 @@ std::string escape_json(const std::string& s) {
         out += "\\t";
         break;
       default:
-        out += c;
+        if (static_cast<unsigned char>(c) <= 0x1f) {
+          char buf[7];
+          std::snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
+          out += buf;
+        } else {
+          out += c;
+        }
     }
   }
   return out;

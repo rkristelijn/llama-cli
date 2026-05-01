@@ -3,7 +3,8 @@
  * @brief Central help text — single source of truth for --help and /help
  * output.
  */
-#pragma once
+#ifndef HELP_H
+#define HELP_H
 
 #include <string>
 
@@ -93,3 +94,5 @@ constexpr const char* repl =
     "  <exec>command</exec>      Run a shell command\n";
 
 }  // namespace help
+
+#endif  // HELP_H

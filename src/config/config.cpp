@@ -161,7 +161,7 @@ void load_dotenv(const std::string& path, Config& c) {
 }
 
 /** Validate the configuration, print errors and exit on failure */
-static void validate_config(const Config& c) {
+static bool validate_config(const Config& c) {
   bool ok = true;
   if (c.host.empty()) {
     std::cerr << "Error: OLLAMA_HOST cannot be empty" << std::endl;
@@ -191,8 +191,9 @@ static void validate_config(const Config& c) {
   }
 
   if (!ok) {
-    exit(1);
+    return false;
   }
+  return true;
 }
 
 /** Load config from environment variables, overriding defaults */
@@ -368,16 +369,16 @@ static std::string get_files_value(const std::string& arg, int& i, int argc, con
   return "";
 }
 
-/// Parse --files flag and populate config.files (ADR-030)
-static void parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+/// Parse --files flag and populate config.files (ADR-030).
+/// Returns false if --files was given with no value.
+static bool parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   std::string files_val = get_files_value(arg, i, argc, argv);
   if (files_val.empty() && arg.rfind("--files", 0) == 0) {
-    // --files or --files= with no value
     std::cerr << "Error: --files flag requires at least one file path." << std::endl;
-    std::exit(1);
+    return false;
   }
   if (files_val.empty()) {
-    return;  // not a --files arg at all
+    return true;  // not a --files arg at all
   }
 
   // Parse space-separated file paths
@@ -390,6 +391,7 @@ static void parse_files_flag(const std::string& arg, int& i, int argc, const cha
   if (!c.files.empty()) {
     c.mode = Mode::Sync;
   }
+  return true;
 }
 
 /** Load config from CLI arguments, overriding base config
@@ -424,7 +426,9 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
     }
 
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
-    parse_files_flag(arg, i, argc, argv, c);
+    if (!parse_files_flag(arg, i, argc, argv, c)) {
+      std::exit(1);
+    }
 
     // Positional arg = prompt (first non-option argument)
     // Triggers sync mode per ADR-005
@@ -442,7 +446,9 @@ Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
   load_dotenv(".env", c);
   c = load_cli(argc, argv, c);
-  validate_config(c);
+  if (!validate_config(c)) {
+    std::exit(1);  // validation errors already printed to stderr
+  }
   Config::instance() = c;
   return c;
 }
