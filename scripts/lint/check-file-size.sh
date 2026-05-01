@@ -19,6 +19,7 @@ EXEMPT=(
   "src/tui/tui.h"
   "src/config/config.cpp"
   "src/main.cpp"
+  "src/annotation/annotation.cpp"
 )
 
 MAX_SOURCE=400

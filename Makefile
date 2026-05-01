@@ -142,7 +142,7 @@ quick: ## Fast feedback: build + unit tests + comment ratio
 	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
 
 features: ## List all test scenarios (feature spec)
-	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace; do \
+	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace test_scan test_hardware test_ollama; do \
 		[ -f "$(BUILD_DIR)/$$bin" ] && ./$(BUILD_DIR)/$$bin --list-test-cases 2>/dev/null | grep "Scenario:" | sed 's/^    //'; \
 	done
 

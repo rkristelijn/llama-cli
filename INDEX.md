@@ -224,6 +224,7 @@ Auto-generated overview of all files in this repo.
 - [`src/main.cpp`](src/main.cpp) — /**
 - [`src/net/scan.cpp`](src/net/scan.cpp) — /**
 - [`src/net/scan.h`](src/net/scan.h) — // Network scanner — discovers Ollama servers on the local subnet.
+- [`src/net/scan_test.cpp`](src/net/scan_test.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
 - [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
@@ -239,4 +240,4 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 
-_236 files indexed._
+_237 files indexed._

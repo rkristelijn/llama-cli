@@ -304,7 +304,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
   std::vector<HostModel> all_models;
   std::map<std::string, ModelInfo> info_map;
 
-  auto& hosts = Config::instance().hosts;
+  const auto& hosts = Config::instance().hosts;
   if (hosts.empty()) {
     // Single host mode — use injected functions
     auto models_raw = s.models_fn(s.cfg);
@@ -491,7 +491,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
     }
 
     // Update config with selected model and host
-    auto& selected = sorted[choice - 1];
+    const auto& selected = sorted[choice - 1];
     Config::instance().model = selected.name;
     Config::instance().host = selected.host;
     Config::instance().port = selected.port;

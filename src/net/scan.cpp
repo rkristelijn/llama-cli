@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+/// @brief Override httplib connect timeout to 1 second for fast subnet scanning.
 #define CPPHTTPLIB_CONNECT_TIMEOUT 1
 #include <httplib.h>
 
