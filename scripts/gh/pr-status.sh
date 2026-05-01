@@ -75,7 +75,7 @@ if [ -n "$FAILED_JOBS" ]; then
 
   LOG_FILE="$(mktemp)"
   trap 'rm -f "$LOG_FILE"' EXIT
-  gh run view "$RUN_ID" --log > "$LOG_FILE" 2>/dev/null
+  gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>/dev/null
 
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"

@@ -90,6 +90,34 @@ SCENARIO ("parsing user input") {
     }
   }
 
+  GIVEN ("a bare '!' with no command") {
+    auto result = parse_input("!");
+    THEN ("it is parsed as a prompt (size <= 1)") {
+      CHECK (result.type == InputType::Prompt)
+        ;
+    }
+  }
+
+  GIVEN ("a bare '!!' with no command") {
+    auto result = parse_input("!!");
+    THEN ("it is parsed as Exec with arg '!' (size <= 2 for ExecContext)") {
+      CHECK (result.type == InputType::Exec)
+        ;
+      CHECK (result.arg == "!")
+        ;
+    }
+  }
+
+  GIVEN ("a slash command with no name '/'") {
+    auto result = parse_input("/");
+    THEN ("it is parsed as a command with empty name") {
+      CHECK (result.type == InputType::Command)
+        ;
+      CHECK (result.command.empty())
+        ;
+    }
+  }
+
   GIVEN ("a /read command with path containing spaces") {
     auto result = parse_input("/read my file.cpp");
     THEN ("the full path is captured") {

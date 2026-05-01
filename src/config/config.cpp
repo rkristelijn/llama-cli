@@ -113,6 +113,14 @@ void load_dotenv(const std::string& path, Config& c) {
     if (key == "OLLAMA_HOST") {
       // Support host:port format, including IPv6 bracket notation
       parse_host_port(val, c.host, c.port);
+    } else if (key == "OLLAMA_HOSTS") {
+      // Comma-separated list of host:port pairs from /scan
+      c.hosts.clear();
+      std::istringstream ss(val);
+      std::string token;
+      while (std::getline(ss, token, ',')) {
+        if (!token.empty()) c.hosts.push_back(token);
+      }
     } else if (key == "OLLAMA_PORT") {
       c.port = val;
     } else if (key == "OLLAMA_MODEL") {
@@ -138,6 +146,8 @@ void load_dotenv(const std::string& path, Config& c) {
     } else if (key == "TRACE") {
       // TRACE=true or TRACE=1 enables trace output (HTTP calls, timing)
       c.trace = (val == "true" || val == "1");
+    } else if (key == "LLAMA_WARMUP") {
+      c.warmup = (val == "true" || val == "1");
     } else if (key == "ALLOW_WEB_SEARCH") {
       c.allow_web_search = (val == "true" || val == "1");
     } else if (key == "LLAMA_SEARCH_URL") {
@@ -151,7 +161,7 @@ void load_dotenv(const std::string& path, Config& c) {
 }
 
 /** Validate the configuration, print errors and exit on failure */
-static void validate_config(const Config& c) {
+static bool validate_config(const Config& c) {
   bool ok = true;
   if (c.host.empty()) {
     std::cerr << "Error: OLLAMA_HOST cannot be empty" << std::endl;
@@ -181,8 +191,9 @@ static void validate_config(const Config& c) {
   }
 
   if (!ok) {
-    exit(1);
+    return false;
   }
+  return true;
 }
 
 /** Load config from environment variables, overriding defaults */
@@ -226,6 +237,9 @@ Config load_env(const Config& defaults) {
   if (std::getenv("TRACE")) {
     // Any value enables trace (TRACE=1, TRACE=true, etc.)
     c.trace = true;
+  }
+  if (env_get("LLAMA_WARMUP", val)) {
+    c.warmup = (val == "true" || val == "1");
   }
   if (env_get("ALLOW_WEB_SEARCH", val)) {
     c.allow_web_search = (val == "true" || val == "1");
@@ -355,16 +369,16 @@ static std::string get_files_value(const std::string& arg, int& i, int argc, con
   return "";
 }
 
-/// Parse --files flag and populate config.files (ADR-030)
-static void parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
+/// Parse --files flag and populate config.files (ADR-030).
+/// Returns false if --files was given with no value.
+static bool parse_files_flag(const std::string& arg, int& i, int argc, const char* const argv[], Config& c) {
   std::string files_val = get_files_value(arg, i, argc, argv);
   if (files_val.empty() && arg.rfind("--files", 0) == 0) {
-    // --files or --files= with no value
     std::cerr << "Error: --files flag requires at least one file path." << std::endl;
-    std::exit(1);
+    return false;
   }
   if (files_val.empty()) {
-    return;  // not a --files arg at all
+    return true;  // not a --files arg at all
   }
 
   // Parse space-separated file paths
@@ -377,6 +391,7 @@ static void parse_files_flag(const std::string& arg, int& i, int argc, const cha
   if (!c.files.empty()) {
     c.mode = Mode::Sync;
   }
+  return true;
 }
 
 /** Load config from CLI arguments, overriding base config
@@ -411,7 +426,9 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
     }
 
     // --files=FILE or --files FILE — single arg, space-separated paths (ADR-030)
-    parse_files_flag(arg, i, argc, argv, c);
+    if (!parse_files_flag(arg, i, argc, argv, c)) {
+      std::exit(1);
+    }
 
     // Positional arg = prompt (first non-option argument)
     // Triggers sync mode per ADR-005
@@ -429,7 +446,9 @@ Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
   load_dotenv(".env", c);
   c = load_cli(argc, argv, c);
-  validate_config(c);
+  if (!validate_config(c)) {
+    std::exit(1);  // validation errors already printed to stderr
+  }
   Config::instance() = c;
   return c;
 }
@@ -462,6 +481,7 @@ void print_default_env() {
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"
+            << "# LLAMA_WARMUP=0 # Warm up model on startup or switch (1=enabled, 0=disabled)\n"
             << "# ALLOW_WEB_SEARCH=1 # Enable web search tool (ADR-057)\n"
             << "# LLAMA_SEARCH_URL=" << c.search_url << " # SearXNG-compatible JSON API base URL\n"
             << "# LLAMA_SEARCH_LANG=" << c.search_lang << " # Search language (en-US, nl-NL, ...)\n"

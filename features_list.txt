@@ -1,0 +1,74 @@
+CapturingTrace captures messages
+CapturingTrace handles empty format
+CapturingTrace truncates messages over 256 chars
+command execution
+command execution: failed command
+command execution: output truncation
+command execution: timeout
+config: --capabilities flag
+config defaults
+config from CLI arguments
+config from .env file
+config from environment variables
+config precedence chain
+config: --sandbox flag
+config: --session flag
+copy to clipboard for str_replace skips apply
+default_model is auto
+detect_hardware returns valid info
+Exec annotation with confirm and skip
+fix_malformed_tags repairs broken closing tags
+followup loop continues until model stops producing annotations
+followup loop is bounded to prevent runaway turns
+HardwareInfo struct defaults
+json: extract_int with leading whitespace
+json_extract_object
+json: extract_object_at walks array of objects
+json: missing key returns empty
+json: nested object extraction
+json string extraction
+json: unicode escape decoding
+json: whitespace around colon
+Logger escapes control characters
+Logger path detection
+Logger writes JSONL events
+Markdown renderer
+Markdown rendering on vs off in REPL
+parsing add_line annotations
+parsing delete_line annotations
+parsing read annotations
+parsing search annotations
+parsing str_replace annotations
+parsing user input
+parsing write annotations
+print default env template
+read annotation injects file content into context
+/read command execution
+reminder nudge injected after iteration 2
+REPL basic flow
+REPL command execution
+REPL conversation history
+REPL /model select from list
+REPL /model with no models available
+REPL /rate command
+REPL /set command
+REPL slash commands
+REPL /version command
+REPL write annotations
+StderrTrace exists
+StderrTrace::log writes to stderr
+StderrTrace writes to stderr
+StreamRenderer handles new block elements
+StreamRenderer handles tables
+stripped annotations contain bold white ANSI codes
+str_replace annotation applies targeted replacement
+str_replace diff shows hunk headers and context
+Table rendering
+trust mode auto-approves subsequent execs
+trust mode auto-approves subsequent str_replaces
+trust mode auto-approves subsequent writes
+trust-mode str_replace reports error on unwritable path
+Write annotation shows diff for existing files
+Write annotation with confirm and skip
+Write annotation with show then confirm
+write diff shows hunk headers for existing file

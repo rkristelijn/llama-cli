@@ -1,6 +1,6 @@
 # ADR-005: Execution Modes
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: The application needs to serve different use cases — interactive chat, scripting/piping, and background batch processing. A single mode is insufficient.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: The application needs to serve different use cases — interactive chat, scripting/piping, and background batch processing. A single mode is insufficient.
 
 ## Decision
 

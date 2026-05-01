@@ -31,44 +31,6 @@ static httplib::Client make_client(const Config& cfg) {
 /// Escape special characters for safe embedding in a JSON string value.
 /// Handles quotes, backslashes, control characters, and non-printable bytes.
 /// @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
-static std::string escape_json_string(const std::string& s) {
-  std::string escaped;
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        escaped += "\\\"";
-        break;
-      case '\\':
-        escaped += "\\\\";
-        break;
-      case '\b':
-        escaped += "\\b";
-        break;
-      case '\f':
-        escaped += "\\f";
-        break;
-      case '\n':
-        escaped += "\\n";
-        break;
-      case '\r':
-        escaped += "\\r";
-        break;
-      case '\t':
-        escaped += "\\t";
-        break;
-      default:
-        if (static_cast<unsigned char>(c) <= 0x1f) {
-          char buf[7];
-          snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
-          escaped += buf;
-        } else {
-          escaped += c;
-        }
-    }
-  }
-  return escaped;
-}
-
 /** One-shot prompt via /api/generate (no conversation history).
  * Sends a single prompt to Ollama and returns the response text.
  * Checks for API errors (e.g. model not found) and shows them to the user.
@@ -80,9 +42,9 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto start = std::chrono::high_resolution_clock::now();
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
-  std::string escaped_prompt = escape_json_string(prompt);
+  std::string escaped_prompt = escape_json(prompt);
   // stream:false = wait for complete response (no chunked streaming yet)
-  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
+  std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/generate model=%s\n", url.c_str(), cfg.model.c_str());
@@ -131,7 +93,7 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
     if (i > 0) {
       json += ",";
     }
-    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json_string(messages[i].content) + R"("})";
+    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json(messages[i].content) + R"("})";
   }
   json += "]";
   return json;
@@ -151,7 +113,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:false = wait for complete response (no chunked streaming yet)
   std::string body =
-      R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
+      R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
@@ -205,7 +167,7 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   auto cli = make_client(cfg);
   std::string url = "http://" + cfg.host + ":" + cfg.port;
   // stream:true (default) — Ollama sends newline-delimited JSON chunks
-  std::string body = R"({"model": ")" + escape_json_string(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
+  std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
 
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat (stream) model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
@@ -292,6 +254,17 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   return full_response;
 }
 
+/** Check if a model is currently loaded in Ollama's memory. */
+bool is_model_running(const Config& cfg, const std::string& model_name) {
+  auto cli = make_client(cfg);
+  auto res = cli.Get("/api/ps");
+  if (res && res->status == 200) {
+    // Check if model name is in the running models list
+    return res->body.find("\"name\":\"" + model_name + "\"") != std::string::npos;
+  }
+  return false;
+}
+
 /** Fetch list of available models from Ollama /api/tags endpoint.
  * Parses the JSON response and extracts model names.
  * Returns empty vector on connection error or invalid response. */
@@ -324,4 +297,50 @@ std::vector<std::string> get_available_models(const Config& cfg) {
   }
 
   return models;
+}
+
+/** Fetch model list with metadata from Ollama /api/tags.
+ * Parses name, parameter_size, quantization_level, family, and size. */
+std::vector<ModelInfo> get_model_info(const Config& cfg) {
+  std::vector<ModelInfo> result;
+  auto cli = make_client(cfg);
+  auto res = cli.Get("/api/tags");
+  if (!res) {
+    return result;  // error-handling:ok — connection failed, caller handles empty
+  }
+
+  // Walk through model objects in the "models" array
+  const std::string& body = res->body;
+  auto arr = body.find("\"models\":");
+  if (arr == std::string::npos) {
+    return result;  // error-handling:ok — unexpected response format
+  }
+
+  size_t pos = arr;
+  while ((pos = body.find("{", pos)) != std::string::npos) {
+    // Find the end of this model object
+    std::string obj = json_extract_object_at(body, pos);
+    if (obj.empty()) {
+      break;
+    }
+    ModelInfo info;
+    info.name = json_extract_string(obj, "name");
+    if (info.name.empty()) {
+      pos += obj.size();
+      continue;
+    }
+    // Extract details sub-object
+    std::string details = json_extract_object(obj, "details");
+    if (!details.empty()) {
+      info.params = json_extract_string(details, "parameter_size");
+      info.quant = json_extract_string(details, "quantization_level");
+      info.family = json_extract_string(details, "family");
+    }
+    // Size in bytes → GB
+    int size_bytes = json_extract_int(obj, "size");
+    info.size_gb = size_bytes / 1073741824.0;
+    result.push_back(info);
+    pos += obj.size();
+  }
+  return result;
 }

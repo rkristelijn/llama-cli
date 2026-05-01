@@ -148,4 +148,15 @@ OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
 assert_contains "$OUTPUT" "blocked" "pipe with unsafe segment was blocked"
 echo "PASS: pipe with unsafe command blocked"
 
+# --- str_replace with old text not found ---
+
+echo "Testing: str_replace with wrong old text..."
+SESSION="$TMPDIR_TEST/str-notfound.json"
+printf 'hello world\n' > "$TMPDIR_TEST/str-test.txt"
+OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
+  --capabilities=read,write --sandbox="$TMPDIR_TEST" \
+  '<str_replace path="'"$TMPDIR_TEST"'/str-test.txt"><old>nonexistent text</old><new>replaced</new></str_replace>' 2>&1)
+assert_contains "$OUTPUT" "not found" "str_replace old text not found error"
+echo "PASS: str_replace old text not found"
+
 echo "=== All session tests passed ==="

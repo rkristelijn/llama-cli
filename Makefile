@@ -9,7 +9,7 @@ FULL ?= 0
 .PHONY: all build clean run start s log test t test-unit e2e check full-check check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
-	tidy complexity comment-ratio docs file-size sast sast-secret sast-security \
+	tidy complexity comment-ratio docs file-size sast sast-secret sast-security consistency \
 	coverage coverage-report todo quick index setup install hooks bench features fuzz \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
@@ -21,6 +21,7 @@ setup: ## Install all dependencies
 	@bash scripts/dev/setup.sh
 
 build: all ## Build the project
+	@echo "build ✓"
 
 start: all ## Build and run the REPL (alias: s)
 	@./$(BINARY) $(ARGS)
@@ -47,7 +48,7 @@ clean: ## Remove build artifacts
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs file-size ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs file-size consistency ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -106,6 +107,9 @@ complexity: ## Check cyclomatic complexity (pmccabe)
 comment-ratio: ## Show comment ratio per file
 	@bash scripts/lint/check-comment-ratio.sh
 
+consistency: ## Check code consistency (ADR-065)
+	@bash scripts/lint/check-consistency.sh
+
 docs: ## Check doxygen warnings
 	@echo "==> checking doxygen..."
 	@output=$$(doxygen .config/Doxyfile 2>&1) || { echo "doxygen failed"; exit 1; }; \
@@ -141,7 +145,7 @@ quick: ## Fast feedback: build + unit tests + comment ratio
 	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
 
 features: ## List all test scenarios (feature spec)
-	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace; do \
+	@for bin in test_repl test_annotations test_annotation test_config test_command test_json test_exec test_markdown test_logger test_trace test_scan test_hardware test_ollama; do \
 		[ -f "$(BUILD_DIR)/$$bin" ] && ./$(BUILD_DIR)/$$bin --list-test-cases 2>/dev/null | grep "Scenario:" | sed 's/^    //'; \
 	done
 

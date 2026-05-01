@@ -1,6 +1,6 @@
 # ADR-051: Kiro Agent Configuration for llama-cli Development
 
-*Status*: Accepted · *Date*: 2026-04-19
+*Status*: Implemented · *Date*: 2026-04-19
 
 ## Context
 

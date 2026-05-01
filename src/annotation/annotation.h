@@ -32,6 +32,19 @@ struct SearchAction {
   std::string query;  ///< Search query string
 };
 
+/// A proposed line insertion in an existing file
+struct AddLineAction {
+  std::string path;     ///< Target file path
+  int line_number;      ///< 1-based line number to insert at
+  std::string content;  ///< Line content to add
+};
+
+/// A proposed line deletion in an existing file
+struct DeleteLineAction {
+  std::string path;     ///< Target file path
+  std::string content;  ///< Exact line content to delete
+};
+
 // Extract all <write> annotations from response text
 std::vector<WriteAction> parse_write_annotations(const std::string& text);
 
@@ -43,6 +56,12 @@ std::vector<ReadAction> parse_read_annotations(const std::string& text);
 
 // Extract all <search> annotations from response text (ADR-057)
 std::vector<SearchAction> parse_search_annotations(const std::string& text);
+
+// Extract all <add_line> annotations from response text
+std::vector<AddLineAction> parse_add_line_annotations(const std::string& text);
+
+// Extract all <delete_line> annotations from response text
+std::vector<DeleteLineAction> parse_delete_line_annotations(const std::string& text);
 
 // Remove write/str_replace/read annotations from text, replacing with summary
 std::string strip_annotations(const std::string& text);

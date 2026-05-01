@@ -25,8 +25,8 @@
  */
 enum class Mode { Interactive, Sync };
 
-/// Default model name — single source of truth for all code and tests
-constexpr const char* DEFAULT_MODEL = "gemma4:26b";
+/// Default model name — "auto" picks first available from Ollama server
+constexpr const char* default_model = "auto";
 
 /// Application configuration (singleton — use Config::instance() for global access)
 struct Config {
@@ -36,10 +36,12 @@ struct Config {
     return cfg;
   }
 
+  bool auto_confirm_write = false;                         ///< Auto-confirm file writes in sync mode (--auto-confirm-write)
   std::string provider = "ollama";                         ///< LLM provider name (ollama, mock, etc.)
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port
-  std::string model = DEFAULT_MODEL;                       ///< LLM model name
+  std::vector<std::string> hosts;                          ///< Discovered Ollama hosts (OLLAMA_HOSTS, /scan)
+  std::string model = default_model;                       ///< LLM model name
   int timeout = 120;                                       ///< HTTP request timeout in seconds
   int exec_timeout = 30;                                   ///< Max seconds for command execution
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
@@ -47,6 +49,7 @@ struct Config {
   bool no_banner = false;                                  ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
   bool bofh = false;                                       ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   bool trace = false;                                      ///< Trace mode: show HTTP calls and debug info
+  bool warmup = true;                                      ///< Warm up model on startup/switch (LLAMA_WARMUP)
   bool force_repl = false;                                 ///< Force REPL mode even when stdin is not a TTY (--repl)
   Mode mode = Mode::Interactive;                           ///< Execution mode (interactive or sync)
   std::string prompt_color = "yellow";                     ///< Prompt color name (LLAMA_PROMPT_COLOR)
@@ -88,7 +91,7 @@ struct Config {
       "this conversation. If you have not read a file, say so instead of "
       "guessing. Do not give scores or ratings without measurable criteria.";
   /// Web search tool prompt fragment — appended when allow_web_search is true
-  static constexpr const char* WEB_SEARCH_PROMPT =
+  static constexpr const char* web_search_prompt =
       " You can search the web with <search>query</search>. "
       "ALWAYS search BEFORE answering when the topic involves recent events, "
       "real-time data, news, current affairs, or anything beyond your training "

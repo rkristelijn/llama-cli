@@ -1,5 +1,7 @@
 # REPL end-to-end testing
 
+*Status*: Implemented
+
 ## CLI-Based REPL Testing
 
 For standalone command-line tools, you need a framework that can handle interactive stdin/stdout streams.

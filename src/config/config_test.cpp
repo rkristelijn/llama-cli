@@ -40,7 +40,7 @@ SCENARIO ("config defaults") {
         ;
       CHECK (c.port == "11434")
         ;
-      CHECK (c.model == DEFAULT_MODEL)
+      CHECK (c.model == default_model)
         ;
       CHECK (c.timeout == 120)
         ;
@@ -396,7 +396,7 @@ SCENARIO ("print default env template") {
           ;
         CHECK (output.find("# OLLAMA_PORT=11434") != std::string::npos)
           ;
-        CHECK (output.find(std::string("# OLLAMA_MODEL=") + DEFAULT_MODEL) != std::string::npos)
+        CHECK (output.find(std::string("# OLLAMA_MODEL=") + default_model) != std::string::npos)
           ;
         CHECK (output.find("# OLLAMA_SYSTEM_PROMPT=") != std::string::npos)
           ;

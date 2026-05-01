@@ -97,6 +97,7 @@ void Logger::log(const Event& e) {
     out << "\"output\":\"" << escape(e.output) << "\",";
     out << "\"duration_ms\":" << e.duration_ms << ",";
     out << "\"tokens_prompt\":" << e.tokens_prompt << ",";
-    out << "\"tokens_completion\":" << e.tokens_completion << "}\n";
+    out << "\"tokens_completion\":" << e.tokens_completion << ",";
+    out << "\"rating\":\"" << escape(e.rating) << "\"}\n";
   }
 }

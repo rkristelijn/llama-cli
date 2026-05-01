@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (updated 2026-04-16)
+Implemented
+
+Implemented (updated 2026-04-16)
 
 ## Date
 

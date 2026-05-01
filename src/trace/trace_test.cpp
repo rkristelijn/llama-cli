@@ -6,6 +6,10 @@
 #include "trace/trace.h"
 
 #include <doctest/doctest.h>
+#include <unistd.h>
+
+#include <cstdio>
+#include <string>
 
 SCENARIO ("CapturingTrace captures messages") {
   GIVEN ("a capturing trace instance") {
@@ -86,5 +90,60 @@ SCENARIO ("CapturingTrace handles empty format") {
   }
 }
 
-// TODO: test StderrTrace output format (timestamp + message) — needs stderr capture
-// TODO: test CapturingTrace with buffer overflow (>256 char message)
+SCENARIO ("StderrTrace::log writes to stderr") {
+  GIVEN ("the stderr trace instance") {
+    WHEN ("log is called directly on the instance") {
+      // Redirect stderr to capture output
+      FILE* tmp = tmpfile();
+      int saved = dup(fileno(stderr));
+      dup2(fileno(tmp), fileno(stderr));
+
+      stderr_trace_instance.log("direct %s %d", "test", 99);
+
+      // Restore stderr and read captured output
+      fflush(stderr);
+      dup2(saved, fileno(stderr));
+      close(saved);
+
+      // Read what was written
+      fseek(tmp, 0, SEEK_SET);
+      char buf[512];
+      size_t n = fread(buf, 1, sizeof(buf) - 1, tmp);
+      buf[n] = '\0';
+      fclose(tmp);
+
+      std::string output(buf);
+      THEN ("output contains timestamp in HH:MM:SS format") {
+        // Pattern: [HH:MM:SS]
+        CHECK (output.find("[") != std::string::npos)
+          ;
+        CHECK (output.find(":") != std::string::npos)
+          ;
+        CHECK (output.find("]") != std::string::npos)
+          ;
+      }
+      THEN ("output contains the formatted message") {
+        CHECK (output.find("direct test 99") != std::string::npos)
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("CapturingTrace truncates messages over 256 chars") {
+  GIVEN ("a capturing trace") {
+    CapturingTrace trace;
+    WHEN ("a message longer than 256 chars is logged") {
+      // Build a 300-char format string
+      std::string long_msg(300, 'x');
+      trace.log("%s", long_msg.c_str());
+      THEN ("message is truncated to buffer size") {
+        REQUIRE (trace.messages.size() == 1)
+          ;
+        // vsnprintf with 256-byte buffer truncates at 255 + null
+        CHECK (trace.messages[0].size() == 255)
+          ;
+      }
+    }
+  }
+}

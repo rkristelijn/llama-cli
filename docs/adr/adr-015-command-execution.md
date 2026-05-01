@@ -1,6 +1,6 @@
 # ADR-015: Command Execution
 
-*Status*: Accepted · *Date*: 2026-04-11 · *Context*: Users need to run shell commands from within the REPL — both directly and via LLM suggestions. This completes the roadmap item "Run commands and use output as context".
+*Status*: Implemented · *Date*: 2026-04-11 · *Context*: Users need to run shell commands from within the REPL — both directly and via LLM suggestions. This completes the roadmap item "Run commands and use output as context".
 
 ## Decision
 

@@ -6,7 +6,8 @@
 [![License](https://img.shields.io/github/license/rkristelijn/llama-cli)](LICENSE)
 [![Semgrep](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-security&label=SAST)](https://github.com/rkristelijn/llama-cli/actions)
 [![Gitleaks](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-secret&label=Secrets)](https://github.com/rkristelijn/llama-cli/actions)
-[![Tests](https://img.shields.io/badge/Tests-48_scenarios-blue)](https://github.com/rkristelijn/llama-cli)
+[![Tests](https://img.shields.io/badge/Tests-154_scenarios-blue)](https://github.com/rkristelijn/llama-cli)
+[![Features](https://img.shields.io/badge/E2E_Features-21%2F21-brightgreen)](scripts/test/check-feature-coverage.sh)
 [![CMMI](https://img.shields.io/badge/CMMI-Level_1-brightgreen)](docs/adr/adr-048-quality-framework.md)
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.

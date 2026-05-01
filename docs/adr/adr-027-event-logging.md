@@ -1,6 +1,6 @@
 # ADR-027: Event Logging & Replay
 
-*Status*: Proposed · *Date*: 2026-04-12 · *Context*: Issue #57 — Debug and optimize agent behavior by recording all actions in a structured event log.
+*Status*: Implemented · *Date*: 2026-04-12 · *Context*: Issue #57 — Debug and optimize agent behavior by recording all actions in a structured event log.
 
 ## Problem
 

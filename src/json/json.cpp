@@ -6,6 +6,7 @@
 
 #include "json/json.h"
 
+#include <cstdio>
 #include <unordered_map>
 
 /** Simple escape map: JSON escape char -> decoded char. */
@@ -172,4 +173,75 @@ int json_extract_int(const std::string& json, const std::string& key) {
     result = result * 10 + (json[i] - '0');
   }
   return result;
+}
+
+/// Escape a string for JSON output (RFC 8259: quotes, backslashes, control chars)
+std::string escape_json(const std::string& s) {
+  std::string out;
+  for (char c : s) {
+    switch (c) {
+      case '"':
+        out += "\\\"";
+        break;
+      case '\\':
+        out += "\\\\";
+        break;
+      case '\b':
+        out += "\\b";
+        break;
+      case '\f':
+        out += "\\f";
+        break;
+      case '\n':
+        out += "\\n";
+        break;
+      case '\r':
+        out += "\\r";
+        break;
+      case '\t':
+        out += "\\t";
+        break;
+      default:
+        if (static_cast<unsigned char>(c) <= 0x1f) {
+          char buf[7];
+          std::snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
+          out += buf;
+        } else {
+          out += c;
+        }
+    }
+  }
+  return out;
+}
+
+/// Unescape JSON string escape sequences (\\n, \\t, \\", \\\\, etc.)
+std::string unescape_json(const std::string& s) {
+  std::string out;
+  for (size_t i = 0; i < s.size(); i++) {
+    if (s[i] == '\\' && i + 1 < s.size()) {
+      switch (s[++i]) {
+        case '"':
+          out += '"';
+          break;
+        case '\\':
+          out += '\\';
+          break;
+        case 'n':
+          out += '\n';
+          break;
+        case 'r':
+          out += '\r';
+          break;
+        case 't':
+          out += '\t';
+          break;
+        default:
+          out += '\\';
+          out += s[i];
+      }
+    } else {
+      out += s[i];
+    }
+  }
+  return out;
 }

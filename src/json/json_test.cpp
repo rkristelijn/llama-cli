@@ -252,3 +252,46 @@ SCENARIO ("json: extract_object_at walks array of objects") {
 // TODO: test json_extract_object with deeply nested objects
 // TODO: test decode_unicode_escape with non-ASCII codepoints (>127)
 // TODO: test malformed JSON (unclosed strings, missing braces)
+
+TEST_CASE ("escape_json escapes special characters") {
+  CHECK (escape_json("hello") == "hello")
+    ;
+  CHECK (escape_json("say \"hi\"") == "say \\\"hi\\\"")
+    ;
+  CHECK (escape_json("a\\b") == "a\\\\b")
+    ;
+  CHECK (escape_json("line1\nline2") == "line1\\nline2")
+    ;
+  CHECK (escape_json("col1\tcol2") == "col1\\tcol2")
+    ;
+  CHECK (escape_json("cr\r") == "cr\\r")
+    ;
+}
+
+TEST_CASE ("unescape_json reverses escape_json") {
+  CHECK (unescape_json("hello") == "hello")
+    ;
+  CHECK (unescape_json("say \\\"hi\\\"") == "say \"hi\"")
+    ;
+  CHECK (unescape_json("a\\\\b") == "a\\b")
+    ;
+  CHECK (unescape_json("line1\\nline2") == "line1\nline2")
+    ;
+  CHECK (unescape_json("col1\\tcol2") == "col1\tcol2")
+    ;
+  CHECK (unescape_json("cr\\r") == "cr\r")
+    ;
+}
+
+TEST_CASE ("escape_json and unescape_json are inverse") {
+  std::string input = "He said \"hello\"\nand\\then\tleft\r\n";
+  CHECK (unescape_json(escape_json(input)) == input)
+    ;
+}
+
+TEST_CASE ("unescape_json preserves unknown escapes") {
+  CHECK (unescape_json("\\x") == "\\x")
+    ;
+  CHECK (unescape_json("trailing\\") == "trailing\\")
+    ;
+}

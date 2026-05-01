@@ -282,3 +282,55 @@ SCENARIO ("fix_malformed_tags repairs broken closing tags") {
     }
   }
 }
+
+SCENARIO ("parsing search annotations") {
+  GIVEN ("a search annotation") {
+    std::string text = R"(<search>how to parse JSON in C++</search>)";
+    auto actions = parse_search_annotations(text);
+    THEN ("query is extracted") {
+      REQUIRE (actions.size() == 1)
+        ;
+      CHECK (actions[0].query == "how to parse JSON in C++")
+        ;
+    }
+  }
+  GIVEN ("no search annotations") {
+    auto actions = parse_search_annotations("just plain text");
+    THEN ("result is empty") {
+      CHECK (actions.empty())
+        ;
+    }
+  }
+}
+
+SCENARIO ("parsing add_line annotations") {
+  GIVEN ("an add_line annotation") {
+    std::string text = R"(<add_line path="test.txt" line_number="3" content="new line content"/>)";
+    auto actions = parse_add_line_annotations(text);
+    THEN ("action is extracted") {
+      REQUIRE (actions.size() == 1)
+        ;
+      CHECK (actions[0].path == "test.txt")
+        ;
+      CHECK (actions[0].line_number == 3)
+        ;
+      CHECK (actions[0].content == "new line content")
+        ;
+    }
+  }
+}
+
+SCENARIO ("parsing delete_line annotations") {
+  GIVEN ("a delete_line annotation") {
+    std::string text = R"(<delete_line path="test.txt" content="old line"/>)";
+    auto actions = parse_delete_line_annotations(text);
+    THEN ("action is extracted") {
+      REQUIRE (actions.size() == 1)
+        ;
+      CHECK (actions[0].path == "test.txt")
+        ;
+      CHECK (actions[0].content == "old line")
+        ;
+    }
+  }
+}

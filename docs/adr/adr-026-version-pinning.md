@@ -1,6 +1,6 @@
 # ADR-026: Tool Version Pinning
 
-*Status*: Accepted · *Date*: 2026-04-12 · *Context*: CI used `ubuntu-latest` and `apt-get install clang-format` without pinning versions. This caused format checks to pass locally (clang-format 21) but fail in CI (clang-format 18), and risks silent breakage when `ubuntu-latest` upgrades.
+*Status*: Implemented · *Date*: 2026-04-12 · *Context*: CI used `ubuntu-latest` and `apt-get install clang-format` without pinning versions. This caused format checks to pass locally (clang-format 21) but fail in CI (clang-format 18), and risks silent breakage when `ubuntu-latest` upgrades.
 
 ## Problem
 

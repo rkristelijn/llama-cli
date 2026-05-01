@@ -1,6 +1,6 @@
 # ADR-045: Fix Release Pipeline
 
-*Status*: Proposed · *Date*: 2026-04-17
+*Status*: Accepted · *Date*: 2026-04-17
 
 ## Context
 

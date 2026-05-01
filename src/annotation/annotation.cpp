@@ -16,12 +16,12 @@ static std::string attr(const std::string& tag, const std::string& name) {
   auto key = name + "=\"";
   auto pos = tag.find(key);
   if (pos == std::string::npos) {
-    return "";
+    return "";  // error-handling:ok — not-found is normal for optional attributes
   }
   pos += key.size();
   auto end = tag.find('"', pos);
   if (end == std::string::npos) {
-    return "";
+    return "";  // error-handling:ok — malformed tag, caller handles empty result
   }
   return tag.substr(pos, end - pos);
 }
@@ -51,13 +51,7 @@ static size_t find_block(const std::string& text, const std::string& tag_name, s
   }
 
   content = text.substr(content_start, content_end - content_start);
-  // trim one leading/trailing newline
-  if (!content.empty() && content.front() == '\n') {
-    content.erase(0, 1);
-  }
-  if (!content.empty() && content.back() == '\n') {
-    content.pop_back();
-  }
+  // We no longer trim newlines to preserve exact content for replacements
 
   pos = content_end + close_tag.size();
   return start;
@@ -92,7 +86,7 @@ static std::string child_content(const std::string& text, const std::string& tag
   if (find_block(text, tag, pos, opening, content) != std::string::npos) {
     return content;
   }
-  return "";
+  return "";  // error-handling:ok — no matching block found, normal for parsing
 }
 
 /**
@@ -177,6 +171,86 @@ std::vector<SearchAction> parse_search_annotations(const std::string& text) {
     if (!content.empty()) {
       actions.push_back({content});
     }
+  }
+  return actions;
+}
+
+// --- <add_line> --------------------------------------------------------------
+
+/**
+ * @brief Extract all <add_line path="..." line_number="..." content="..."/> annotations.
+ * @param text Input string to scan.
+ * @return Vector of AddLineAction with path, line_number, and content.
+ */
+std::vector<AddLineAction> parse_add_line_annotations(const std::string& text) {
+  std::vector<AddLineAction> actions;
+  std::string open_start = "<add_line ";
+  size_t pos = 0;
+  while (true) {
+    auto start = text.find(open_start, pos);
+    if (start == std::string::npos) {
+      break;
+    }
+    auto tag_end = text.find('>', start);
+    if (tag_end == std::string::npos) {
+      break;
+    }
+    std::string tag = text.substr(start, tag_end - start + 1);
+    pos = tag_end + 1;
+
+    AddLineAction action;
+    action.path = attr(tag, "path");
+    auto line_number_str = attr(tag, "line_number");
+    action.content = attr(tag, "content");
+
+    if (action.path.empty() || line_number_str.empty()) {
+      continue;
+    }
+
+    try {
+      action.line_number = std::stoi(line_number_str);
+    } catch (...) {
+      // Malformed line_number from LLM, skip this action
+      continue;
+    }
+
+    actions.push_back(action);
+  }
+  return actions;
+}
+
+// --- <delete_line> -----------------------------------------------------------
+
+/**
+ * @brief Extract all <delete_line path="..." content="..."/> annotations.
+ * @param text Input string to scan.
+ * @return Vector of DeleteLineAction with path and content.
+ */
+std::vector<DeleteLineAction> parse_delete_line_annotations(const std::string& text) {
+  std::vector<DeleteLineAction> actions;
+  std::string open_start = "<delete_line ";
+  size_t pos = 0;
+  while (true) {
+    auto start = text.find(open_start, pos);
+    if (start == std::string::npos) {
+      break;
+    }
+    auto tag_end = text.find('>', start);
+    if (tag_end == std::string::npos) {
+      break;
+    }
+    std::string tag = text.substr(start, tag_end - start + 1);
+    pos = tag_end + 1;
+
+    DeleteLineAction action;
+    action.path = attr(tag, "path");
+    action.content = attr(tag, "content");
+
+    if (action.path.empty() || action.content.empty()) {
+      continue;
+    }
+
+    actions.push_back(action);
   }
   return actions;
 }
@@ -270,6 +344,36 @@ std::string strip_annotations(const std::string& text) {
     result.replace(start, end + 9 - start, "\033[1;37m[search: " + query + "]\033[0m");
   }
 
+  // strip <add_line .../>
+  while (true) {
+    auto start = result.find("<add_line ");
+    if (start == std::string::npos) {
+      break;
+    }
+    auto end = result.find("/>", start);
+    if (end == std::string::npos) {
+      break;
+    }
+    std::string tag = result.substr(start, end - start + 2);
+    std::string path = attr(tag, "path");
+    result.replace(start, end + 2 - start, "\033[1;37m[proposed: add line to " + path + "]\033[0m");
+  }
+
+  // strip <delete_line .../>
+  while (true) {
+    auto start = result.find("<delete_line ");
+    if (start == std::string::npos) {
+      break;
+    }
+    auto end = result.find("/>", start);
+    if (end == std::string::npos) {
+      break;
+    }
+    std::string tag = result.substr(start, end - start + 2);
+    std::string path = attr(tag, "path");
+    result.replace(start, end + 2 - start, "\033[1;37m[proposed: delete line from " + path + "]\033[0m");
+  }
+
   return result;
 }
 
@@ -287,10 +391,9 @@ std::string fix_malformed_tags(const std::string& text) {
     const char* open;
     const char* close;
   } tags[] = {
-      {"<exec>", "</exec>"},
-      {"<write ", "</write>"},
-      {"<str_replace ", "</str_replace>"},
-      {"<search>", "</search>"},
+      {"<exec>", "</exec>"},     {"<write ", "</write>"}, {"<str_replace ", "</str_replace>"},
+      {"<search>", "</search>"}, {"<add_line ", ""},  // Self-closing, no </add_line>
+      {"<delete_line ", ""},                          // Self-closing, no </delete_line>
   };
   for (const auto& t : tags) {
     size_t pos = 0;
@@ -299,6 +402,12 @@ std::string fix_malformed_tags(const std::string& text) {
       if (start == std::string::npos) {
         break;
       }
+      // If it's a self-closing tag, there's no closing tag to look for or fix.
+      if (std::string(t.close).empty()) {
+        pos = start + std::string(t.open).size();
+        continue;
+      }
+
       // Already has correct closer? Skip.
       auto correct = result.find(t.close, start);
       auto next_open = result.find(t.open, start + 1);

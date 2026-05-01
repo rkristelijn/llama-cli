@@ -1,6 +1,6 @@
 # ADR-009: Code Formatting
 
-*Status*: Accepted · *Date*: 2026-04-10 · *Context*: Inconsistent indentation (2 vs 4 spaces) across the codebase. A single formatting standard is needed that is enforced automatically.
+*Status*: Implemented · *Date*: 2026-04-10 · *Context*: Inconsistent indentation (2 vs 4 spaces) across the codebase. A single formatting standard is needed that is enforced automatically.
 
 ## Decision
 

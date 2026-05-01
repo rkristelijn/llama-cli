@@ -8,11 +8,16 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <csignal>
+
+extern volatile sig_atomic_t g_interrupted;
+
 #include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -21,26 +26,12 @@
 #include "exec/exec.h"
 #include "help.h"
 #include "json/json.h"
+#include "logging/logger.h"
 #include "ollama/ollama.h"
 #include "repl/repl.h"
+#include "session/session.h"
+#include "sync/sync.h"
 #include "tui/tui.h"
-
-/// Extract "file://path" entries from a JSON resources array.
-/// Minimal parser — just finds "file://" strings between quotes.
-static std::vector<std::string> extract_resources(const std::string& json) {
-  std::vector<std::string> paths;
-  const std::string prefix = "\"file://";
-  size_t pos = 0;
-  while ((pos = json.find(prefix, pos)) != std::string::npos) {
-    size_t start = pos + prefix.size();
-    size_t end = json.find('"', start);
-    if (end != std::string::npos) {
-      paths.push_back(json.substr(start, end - start));
-    }
-    pos = (end != std::string::npos) ? end + 1 : start;
-  }
-  return paths;
-}
 
 /// Load .kiro/agents/*.json: append agent prompt to system prompt,
 /// read resource files into initial context string.
@@ -92,93 +83,6 @@ static std::string load_kiro_context(Config& cfg, bool color) {
  *
  * @return int Exit code: `0` on normal completion.
  */
-/// Check if a capability is enabled in the comma-separated capabilities string
-static bool has_cap(const std::string& caps, const std::string& cap) {
-  // Search for cap as a whole word within comma-separated list
-  size_t pos = 0;
-  while ((pos = caps.find(cap, pos)) != std::string::npos) {
-    bool at_start = (pos == 0 || caps[pos - 1] == ',');
-    bool at_end = (pos + cap.size() >= caps.size() || caps[pos + cap.size()] == ',');
-    if (at_start && at_end) return true;
-    pos += cap.size();
-  }
-  return false;
-}
-
-/// Commands safe to auto-execute with the "read" capability.
-/// These cannot modify files, network, or system state.
-static const std::vector<std::string> READ_ONLY_COMMANDS = {"cat",  "ls",   "find", "grep",     "head",    "tail",    "wc",   "stat",
-                                                            "tree", "du",   "df",   "file",     "diff",    "sort",    "uniq", "awk",
-                                                            "sed",  "less", "more", "realpath", "dirname", "basename"};
-
-/// Check if a command is read-only (first word in allowlist, no redirects)
-static bool is_read_only(const std::string& cmd) {
-  // Block redirects and destructive operators
-  if (cmd.find('>') != std::string::npos) return false;
-  // Extract first word from each pipe segment
-  std::istringstream segments(cmd);
-  std::string segment;
-  while (std::getline(segments, segment, '|')) {
-    // Trim leading whitespace
-    size_t start = segment.find_first_not_of(" \t");
-    if (start == std::string::npos) continue;
-    // Extract first word (the command)
-    size_t end = segment.find_first_of(" \t", start);
-    std::string word = segment.substr(start, end - start);
-    bool found = false;
-    for (const auto& safe : READ_ONLY_COMMANDS) {
-      if (word == safe) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) return false;
-  }
-  return true;
-}
-
-/// Parse <exec>cmd</exec> tags from LLM response text
-static std::vector<std::string> parse_exec_tags(const std::string& text) {
-  std::vector<std::string> cmds;
-  const std::string open = "<exec>";
-  const std::string close = "</exec>";
-  size_t pos = 0;
-  while ((pos = text.find(open, pos)) != std::string::npos) {
-    size_t start = pos + open.size();
-    size_t end = text.find(close, start);
-    if (end == std::string::npos) break;
-    cmds.push_back(text.substr(start, end - start));
-    pos = end + close.size();
-  }
-  return cmds;
-}
-
-/// Check if a file path is within the sandbox directory (ADR-056).
-/// Resolves both paths to absolute form to catch ".." traversal.
-/// For non-existent files (writes), checks the parent directory.
-static bool path_allowed(const std::string& path, const std::string& sandbox) {
-  // Resolve sandbox to absolute path
-  char sandbox_real[PATH_MAX];
-  if (!realpath(sandbox.c_str(), sandbox_real)) return false;
-  std::string sandbox_prefix(sandbox_real);
-  sandbox_prefix += "/";
-
-  // For existing files, resolve directly
-  char path_real[PATH_MAX];
-  if (realpath(path.c_str(), path_real)) {
-    std::string resolved(path_real);
-    // Allow exact match (sandbox dir itself) or prefix match
-    return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
-  }
-
-  // For new files, resolve the parent directory
-  size_t slash = path.rfind('/');
-  std::string parent = (slash != std::string::npos) ? path.substr(0, slash) : ".";
-  if (!realpath(parent.c_str(), path_real)) return false;
-  std::string resolved(path_real);
-  return resolved == sandbox_real || resolved.rfind(sandbox_prefix, 0) == 0;
-}
-
 /// Process annotations in sync mode response based on capabilities (ADR-056).
 /// Returns context to feed back to the model (read/exec output).
 // pmccabe:skip-complexity — handles all annotation types in one pass
@@ -208,11 +112,14 @@ static std::string process_sync_annotations(const std::string& response, const C
   // Process <exec> annotations (requires "read" for safe cmds, "exec" for all)
   auto execs = parse_exec_tags(response);
   for (const auto& cmd : execs) {
+    LOG_FEATURE("exec_annotation");
     bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
     if (!allowed) {
+      LOG_FEATURE("exec_blocked");
       std::cerr << "[blocked: " << cmd << "]\n";
       continue;
     }
+    LOG_FEATURE("exec_allowed");
     auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
     followup += "[command: " + cmd + "]\n" + r.output + "\n";
     std::cerr << "[exec " << cmd << "]\n";
@@ -223,6 +130,8 @@ static std::string process_sync_annotations(const std::string& response, const C
     auto writes = parse_write_annotations(response);
     for (const auto& action : writes) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        LOG_FEATURE("sync_write_sandbox_blocked");
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
@@ -230,20 +139,30 @@ static std::string process_sync_annotations(const std::string& response, const C
       if (f) {
         f << action.content;
         std::cerr << "[wrote " << action.path << "]\n";
+      } else {
+        followup += "[error: could not write " + action.path + "]\n";
       }
     }
     auto replaces = parse_str_replace_annotations(response);
     for (const auto& action : replaces) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
       std::ifstream rf(action.path);
-      if (!rf) continue;
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
       std::string content((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
       rf.close();
       size_t pos = content.find(action.old_str);
-      if (pos == std::string::npos) continue;
+      if (pos == std::string::npos) {
+        LOG_FEATURE("sync_str_replace_not_found");
+        followup += "[error: old text not found in " + action.path + "]\n";
+        continue;
+      }
       content.replace(pos, action.old_str.size(), action.new_str);
       std::ofstream wf(action.path);
       if (wf) {
@@ -251,102 +170,73 @@ static std::string process_sync_annotations(const std::string& response, const C
         std::cerr << "[str_replace " << action.path << "]\n";
       }
     }
+
+    // Process <add_line> annotations — insert a line at a specific position
+    auto adds = parse_add_line_annotations(response);
+    for (const auto& action : adds) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
+      std::ifstream rf(action.path);
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
+      std::vector<std::string> lines;
+      std::string line;
+      while (std::getline(rf, line)) lines.push_back(line);
+      rf.close();
+      int idx = action.line_number - 1;
+      if (idx < 0) idx = 0;
+      if (idx > static_cast<int>(lines.size())) idx = static_cast<int>(lines.size());
+      lines.insert(lines.begin() + idx, action.content);
+      std::ofstream wf(action.path);
+      if (wf) {
+        for (const auto& l : lines) wf << l << "\n";
+        std::cerr << "[add_line " << action.path << " at " << action.line_number << "]\n";
+      }
+    }
+
+    // Process <delete_line> annotations — remove a line matching content
+    auto deletes = parse_delete_line_annotations(response);
+    for (const auto& action : deletes) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
+      std::ifstream rf(action.path);
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
+      std::vector<std::string> lines;
+      std::string line;
+      while (std::getline(rf, line)) lines.push_back(line);
+      rf.close();
+      bool found = false;
+      for (auto it = lines.begin(); it != lines.end(); ++it) {
+        if (*it == action.content) {
+          lines.erase(it);
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        std::ofstream wf(action.path);
+        if (wf) {
+          for (const auto& l : lines) wf << l << "\n";
+          std::cerr << "[delete_line " << action.path << "]\n";
+        }
+      } else {
+        followup += "[error: line not found in " + action.path + ": " + action.content + "]\n";
+      }
+    }
   }
 
   return followup;
-}
-
-/// Escape a string for JSON output (quotes, backslashes, control chars)
-static std::string escape_json(const std::string& s) {
-  std::string out;
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        out += "\\\"";
-        break;
-      case '\\':
-        out += "\\\\";
-        break;
-      case '\n':
-        out += "\\n";
-        break;
-      case '\r':
-        out += "\\r";
-        break;
-      case '\t':
-        out += "\\t";
-        break;
-      default:
-        out += c;
-    }
-  }
-  return out;
-}
-
-/// Unescape JSON string escape sequences (\\n, \\t, \\", \\\\, etc.)
-static std::string unescape_json(const std::string& s) {
-  std::string out;
-  for (size_t i = 0; i < s.size(); i++) {
-    if (s[i] == '\\' && i + 1 < s.size()) {
-      switch (s[++i]) {
-        case '"':
-          out += '"';
-          break;
-        case '\\':
-          out += '\\';
-          break;
-        case 'n':
-          out += '\n';
-          break;
-        case 'r':
-          out += '\r';
-          break;
-        case 't':
-          out += '\t';
-          break;
-        default:
-          out += '\\';
-          out += s[i];
-      }
-    } else {
-      out += s[i];
-    }
-  }
-  return out;
-}
-
-/// Load conversation history from a session JSON file (ADR-056).
-/// Returns empty vector if file doesn't exist yet.
-static std::vector<Message> load_session(const std::string& path) {
-  std::vector<Message> msgs;
-  std::ifstream f(path);
-  if (!f) {
-    return msgs;  // new session — file will be created on save
-  }
-  std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  // Minimal parser: find each {"role":"...","content":"..."} object
-  size_t pos = 0;
-  while ((pos = json.find("\"role\"", pos)) != std::string::npos) {
-    std::string role = json_extract_string(json.substr(pos - 1), "role");
-    std::string content = json_extract_string(json.substr(pos - 1), "content");
-    if (!role.empty()) {
-      msgs.push_back({role, unescape_json(content)});
-    }
-    pos += 6;  // advance past "role"
-  }
-  return msgs;
-}
-
-/// Save conversation history to a session JSON file (ADR-056)
-static void save_session(const std::string& path, const std::vector<Message>& msgs) {
-  std::ofstream f(path);
-  f << "[\n";
-  for (size_t i = 0; i < msgs.size(); i++) {
-    f << "  {\"role\":\"" << msgs[i].role << "\",\"content\":\"" << escape_json(msgs[i].content) << "\"}";
-    if (i + 1 < msgs.size()) f << ",";
-    f << "\n";
-  }
-  f << "]\n";
 }
 
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic
@@ -375,6 +265,7 @@ int main(int argc, char* argv[]) {
   // Build context from --files or stdin pipe (ADR-030)
   std::string context;
   if (!cfg.files.empty()) {
+    LOG_FEATURE("files_flag");
     for (const auto& path : cfg.files) {
       std::ifstream f(path);
       if (!f) {
@@ -393,12 +284,30 @@ int main(int argc, char* argv[]) {
     cfg.mode = Mode::Sync;
   }
 
+  // Auto-detect model for sync mode (skip for mock provider)
+  if (cfg.model == "auto" && cfg.mode == Mode::Sync && cfg.provider != "mock") {
+    auto models = get_available_models(cfg);
+    if (!models.empty()) {
+      cfg.model = models[0];
+      Config::instance().model = models[0];
+    } else {
+      tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
+      return 1;
+    }
+  }
+
   if (cfg.mode == Mode::Sync) {
+    LOG_FEATURE("sync_mode");
     // Sync mode: one-shot, response to stdout (ADR-007)
     // Mock provider goes through the same flow — echoes prompt as response
     // so annotation processing and session work identically in tests.
     auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
+        LOG_FEATURE("mock_provider");
+        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
+        if (mock_response_env) {
+          return mock_response_env;
+        }
         return "mock response: " + msgs.back().content;
       }
       tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
@@ -409,7 +318,11 @@ int main(int argc, char* argv[]) {
     };
 
     // Load session history if --session is set (ADR-056)
-    std::vector<Message> messages = cfg.session_path.empty() ? std::vector<Message>{} : load_session(cfg.session_path);
+    std::vector<Message> messages;
+    if (!cfg.session_path.empty()) {
+      LOG_FEATURE("session_load");
+      messages = load_session(cfg.session_path);
+    }
     // Add system prompt only if starting a new conversation
     if (messages.empty() && !cfg.system_prompt.empty()) {
       messages.push_back({"system", cfg.system_prompt});
@@ -423,10 +336,14 @@ int main(int argc, char* argv[]) {
       int max_rounds = 10;
       while (!cfg.capabilities.empty() && max_rounds-- > 0) {
         std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
-        if (followup.empty()) break;
+        if (followup.empty()) {
+          break;
+        }
         messages.push_back({"user", followup});
         response = generate_response(messages);
-        if (response.empty()) break;
+        if (response.empty()) {
+          break;
+        }
         std::cout << response << "\n";
         messages.push_back({"assistant", response});
       }
@@ -437,10 +354,78 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Interactive mode: REPL loop (ADR-012)
+    LOG_FEATURE("repl_mode");
+    // Auto-detect model from server when set to "auto"
+    if (cfg.model == "auto" && cfg.provider != "mock") {
+      auto models = get_available_models(cfg);
+      auto infos = get_model_info(cfg);
+      std::map<std::string, ModelInfo> info_map;
+      for (const auto& info : infos) info_map[info.name] = info;
+
+      // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
+      struct Candidate {
+        std::string name;
+        double params;
+        bool sweet;
+      };
+      std::vector<Candidate> candidates;
+
+      for (const auto& m : models) {
+        double p = 0;
+        try {
+          p = std::stod(info_map[m].params);
+        } catch (...) {
+        }
+        candidates.push_back({m, p, (p >= 11.0 && p <= 28.0)});
+      }
+
+      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+        // Prioritize models in sweetspot range (11B-28B)
+        if (a.sweet != b.sweet) return a.sweet > b.sweet;
+        // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
+        return a.params < b.params;
+      });
+
+      if (!candidates.empty()) {
+        cfg.model = candidates[0].name;
+        Config::instance().model = candidates[0].name;
+        HardwareInfo hw = detect_hardware();
+        tui::system_msg(std::cerr, color,
+                        "Detected hardware: " + hw.cpu + " | " + std::to_string(hw.ram_gb) + "GB RAM | " + std::to_string(hw.vram_gb) +
+                            "GB VRAM estimated.");
+        tui::system_msg(std::cerr, color, "Auto-selected " + cfg.model + " as the optimal sweetspot model for your hardware.");
+      } else {
+        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3.6:27b");
+        return 1;
+      }
+    }
+
     if (!cfg.no_banner) {
       tui::banner(std::cerr, color);
     }
-    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + cfg.model + ")");
+
+    // Optional model warmup (only if not already running)
+    if (Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
+      tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
+      // Simple spinner loop
+      const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
+      int frame = 0;
+      std::vector<Message> warmup_msg = {{"user", "hi"}};
+
+      // We need to run this in a way that allows us to check progress
+      // ollama_chat_stream doesn't expose the http object for cancellation easily,
+      // but we can at least show a spinner.
+      ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
+        if (g_interrupted) return false;
+        std::cerr << "\r" << spinner[frame % 10] << " loading..." << std::flush;
+        frame++;
+        return true;
+      });
+      std::cerr << "\r" << "   " << std::flush;  // Clear spinner
+    }
+
+    tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + Config::instance().model + ")");
+    tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }
@@ -450,16 +435,20 @@ int main(int argc, char* argv[]) {
     if (!kiro_ctx.empty()) {
       cfg.system_prompt += "\n\n## Project context\n" + kiro_ctx;
     }
-    auto generate = [&cfg](const std::vector<Message>& msgs) {
+    auto generate = [&cfg](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
+        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
+        if (mock_response_env) {
+          return std::string(mock_response_env);
+        }
         return "mock response: " + msgs.back().content;
       }
       return ollama_chat(Config::instance(), msgs);
     };
     auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
       if (cfg.provider == "mock") {
-        // Simulate streaming by sending the response through the callback
-        std::string response = "mock response: " + msgs.back().content;
+        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
+        std::string response = mock_response_env ? std::string(mock_response_env) : "mock response: " + msgs.back().content;
         on_token(response);
         return response;
       }

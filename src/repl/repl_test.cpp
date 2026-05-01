@@ -8,6 +8,10 @@
 
 #include <doctest/doctest.h>
 
+#include <csignal>
+
+extern volatile sig_atomic_t g_interrupted;
+
 #include <fstream>
 #include <sstream>
 
@@ -16,10 +20,24 @@
 // Mock chat: returns last user message prefixed with "echo: "
 static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }
 
+// Mock model info: returns metadata matching the test model list
+// Params are set so sort-by-params gives expected order: gemma4:e4b(4B), gemma4:26b(26B), llama3:8b(8B), mistral:7b(7B), phi3:mini(3B)
+static std::vector<ModelInfo> mock_model_info(const Config&) {
+  return {{"gemma4:e4b", "4.0B", "Q4_0", "gemma4", 2.5},
+          {"gemma4:26b", "26.0B", "Q4_K_M", "gemma4", 15.0},
+          {"llama3:8b", "8.0B", "Q4_0", "llama3", 4.5},
+          {"mistral:7b", "7.0B", "Q4_0", "mistral", 4.0},
+          {"phi3:mini", "3.8B", "Q4_0", "phi3", 2.0}};
+}
+
+// Mock hardware: returns dummy hardware info
+static HardwareInfo mock_hw() { return {16, 8, "mock-cpu", "mock-gpu"}; }
+
 // Config with empty system prompt for simpler test assertions
 static Config test_cfg() {
   Config c;
   c.system_prompt = "";
+  c.warmup = false;
   return c;
 }
 
@@ -430,7 +448,7 @@ SCENARIO ("REPL /model with no models available") {
     std::istringstream in("/model\nexit\n");
     std::ostringstream out;
     WHEN ("the user runs /model") {
-      run_repl(echo_chat, test_cfg(), in, out, no_models);
+      run_repl(echo_chat, test_cfg(), in, out, no_models, nullptr, mock_hw, mock_model_info);
       THEN ("no models message is shown") {
         CHECK (out.str().find("No models available") != std::string::npos)
           ;
@@ -447,15 +465,17 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user picks model 2") {
       std::istringstream in("/model\n2\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
       THEN ("all 5 models are listed") {
-        CHECK (out.str().find("1. gemma4:e4b") != std::string::npos)
+        // Sorted by params descending: 26B, 8B, 7B, 4B, 3.8B
+        CHECK (out.str().find("1. gemma4:26b") != std::string::npos)
           ;
         CHECK (out.str().find("5. phi3:mini") != std::string::npos)
           ;
       }
       THEN ("model is set to the selected one") {
-        CHECK (out.str().find("[model set to gemma4:26b]") != std::string::npos)
+        // Model 2 in params-sorted order is llama3:8b
+        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
           ;
       }
     }
@@ -463,7 +483,7 @@ SCENARIO ("REPL /model select from list") {
       ModelsFn one_model = [](const Config&) { return std::vector<std::string>{"gemma4:e4b"}; };
       std::istringstream in("/model\n1\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, one_model);
+      run_repl(echo_chat, test_cfg(), in, out, one_model, nullptr, mock_hw, mock_model_info);
       THEN ("model is set") {
         CHECK (out.str().find("[model set to gemma4:e4b]") != std::string::npos)
           ;
@@ -472,7 +492,7 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user enters an out-of-range number") {
       std::istringstream in("/model\n99\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
       THEN ("out of range message is shown") {
         CHECK (out.str().find("[out of range]") != std::string::npos)
           ;
@@ -481,9 +501,9 @@ SCENARIO ("REPL /model select from list") {
     WHEN ("the user enters invalid input") {
       std::istringstream in("/model\nabc\nexit\n");
       std::ostringstream out;
-      run_repl(echo_chat, test_cfg(), in, out, five_models);
+      run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
       THEN ("invalid input message is shown") {
-        CHECK (out.str().find("[invalid input]") != std::string::npos)
+        CHECK (out.str().find("[invalid input") != std::string::npos)
           ;
       }
     }
@@ -497,3 +517,109 @@ SCENARIO ("REPL /model select from list") {
 // TODO: test interruptible_chat timeout behavior (needs mock HTTP or thread control)
 // TODO: test !! command injects output into history
 // TODO: test ! command does NOT inject output into history
+
+// TODO: CSV descriptions in /model (not yet implemented)
+
+SCENARIO ("default_model is auto") {
+  GIVEN ("no model override") {
+    Config c;
+    THEN ("default model is auto") {
+      CHECK (c.model == std::string("auto"))
+        ;
+    }
+  }
+}
+// Rating prompt only shows in interactive TTY mode (not testable via stringstream).
+// /rate command is testable because it's a regular slash command.
+
+SCENARIO ("REPL /rate command") {
+  GIVEN ("user rates last response via /rate") {
+    std::istringstream in("hello\n/rate last +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates last response as negative") {
+    std::istringstream in("hello\n/rate last -\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: negative]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user saves last response for review") {
+    std::istringstream in("hello\n/rate last s\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("rating is confirmed") {
+      CHECK (out.str().find("[rated: saved]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user lists rated responses after /rate") {
+    std::istringstream in("hello\n/rate last +\n/rate list\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("list shows rated responses") {
+      CHECK (out.str().find("1. [positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user lists with no ratings") {
+    std::istringstream in("hello\n/rate list\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("no rated responses message is shown") {
+      CHECK (out.str().find("[no rated responses]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user provides invalid /rate syntax") {
+    std::istringstream in("/rate\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("usage help is shown") {
+      CHECK (out.str().find("Usage: /rate") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user provides invalid rating value") {
+    std::istringstream in("hello\n/rate last x\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("invalid rating message is shown") {
+      CHECK (out.str().find("Invalid rating") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates a specific response by index") {
+    std::istringstream in("first\nsecond\n/rate 1 +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("first response is rated") {
+      CHECK (out.str().find("[rated: positive]") != std::string::npos)
+        ;
+    }
+  }
+
+  GIVEN ("user rates with no prior response") {
+    std::istringstream in("/rate last +\nexit\n");
+    std::ostringstream out;
+    run_repl(echo_chat, test_cfg(), in, out);
+    THEN ("response not found message is shown") {
+      CHECK (out.str().find("Response not found") != std::string::npos)
+        ;
+    }
+  }
+}

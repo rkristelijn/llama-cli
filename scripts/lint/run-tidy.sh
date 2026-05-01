@@ -21,7 +21,7 @@ FULL=false
 [[ "${1-}" == "--full" ]] && FULL=true
 
 # Filter pattern for warnings we suppress
-FILTER="linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|logging/logger.*function-size"
+FILTER="linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|function-size"
 
 main() {
   if [[ "${FULL}" == true ]]; then

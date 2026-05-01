@@ -1,6 +1,6 @@
 # ADR-032: E2E Test Improvements
 
-*Status*: Accepted · *Date*: 2026-04-13 · *Context*: E2E tests had code duplication, weak assertions, and missing cleanup.
+*Status*: Implemented · *Date*: 2026-04-13 · *Context*: E2E tests had code duplication, weak assertions, and missing cleanup.
 
 ## Decision
 

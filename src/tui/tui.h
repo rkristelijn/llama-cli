@@ -292,7 +292,7 @@ inline std::string try_list(const std::string& line, bool color) {
 
 /** Get terminal width in columns via ioctl. Falls back to 80. */
 inline int get_terminal_width() {
-  struct winsize w{};
+  struct winsize w = {};
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
     return w.ws_col;
   }
@@ -679,6 +679,16 @@ class StreamRenderer {
     std::string line = buf_;
     buf_.clear();
     std::string content = line.substr(0, line.size() - 1);
+
+    // Hide annotation tags — they are processed separately after streaming
+    if (content.find("<exec>") != std::string::npos || content.find("</exec>") != std::string::npos ||
+        content.find("<write ") != std::string::npos || content.find("</write>") != std::string::npos ||
+        content.find("<str_replace ") != std::string::npos || content.find("</str_replace>") != std::string::npos ||
+        content.find("<add_line ") != std::string::npos || content.find("<delete_line ") != std::string::npos ||
+        content.find("<read ") != std::string::npos || content.find("<search>") != std::string::npos ||
+        content.find("</search>") != std::string::npos) {
+      return;  // suppress tag lines from stream output
+    }
 
     if (!color_) {
       flush_line_plain(content, line);

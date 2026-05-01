@@ -32,6 +32,7 @@ struct MockLLM {
 inline Config test_cfg() {
   Config c;
   c.system_prompt = "";
+  c.warmup = false;
   return c;
 }
 

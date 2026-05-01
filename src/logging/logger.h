@@ -7,6 +7,9 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <string>
 
 /// Event data for structured logging
@@ -19,6 +22,7 @@ struct Event {
   int duration_ms = 0;        ///< Execution time in milliseconds
   int tokens_prompt = 0;      ///< Prompt tokens
   int tokens_completion = 0;  ///< Completion tokens
+  std::string rating;         ///< Rating: "positive", "negative", "saved", or empty
 };
 
 /// Append-only JSONL logger for agent events
@@ -50,6 +54,23 @@ class Logger {
     e.tokens_prompt = _tp_;                                           \
     e.tokens_completion = _tc_;                                       \
     Logger::instance().log(e);                                        \
+  } while (0)
+
+/// Emit a feature token to stderr when TRACE is enabled (ADR-063).
+/// If LLAMA_FEATURE_LOG is set, also append to that file for e2e verification.
+#define LOG_FEATURE(_id_)                                \
+  do {                                                   \
+    if (std::getenv("TRACE")) {                          \
+      std::cerr << "[FEATURE: " _id_ "]\n";              \
+    }                                                    \
+    const char* flog = std::getenv("LLAMA_FEATURE_LOG"); \
+    if (flog) {                                          \
+      FILE* fp = std::fopen(flog, "a");                  \
+      if (fp) {                                          \
+        std::fputs("[FEATURE: " _id_ "]\n", fp);         \
+        std::fclose(fp);                                 \
+      }                                                  \
+    }                                                    \
   } while (0)
 
 #endif  // LOGGER_H

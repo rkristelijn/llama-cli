@@ -14,7 +14,7 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] json_extract_object: brace counting doesn't handle braces inside quoted strings
 - [ ] log-viewer.sh: JSON regex patterns break on spaced JSON (allow `[[:space:]]*` around colons)
 - [ ] INDEX.md: duplicate ADR-003 numbering (0003-kiro-cli-as-reference.md vs adr-003-v-model-workflow.md)
-- [ ] `/version` in REPL is malformed — possibly depending on dynamic value
+- [x] `/version` in REPL is malformed — possibly depending on dynamic value
 
 ## Small fixes
 
@@ -48,3 +48,4 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [x] Add e2e/integration test for retry on connection failure (ollama.cpp) — needs HTTP mock or test server
 - [ ] Add integration test for `.kiro/agents/` context loading (main.cpp) — needs filesystem fixture + main() entry
 - [ ] Add test for linenoise `/model` input path — TTY-specific, needs pseudo-terminal or e2e test
+- [ ] summarize has hardcoded model, I think when running it, you should be able to pick it, and if not not an existing model it should pull or fail

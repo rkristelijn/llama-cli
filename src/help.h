@@ -3,7 +3,8 @@
  * @brief Central help text — single source of truth for --help and /help
  * output.
  */
-#pragma once
+#ifndef HELP_H
+#define HELP_H
 
 #include <string>
 
@@ -37,7 +38,7 @@ inline std::string cli() {
              "default: 11434)\n"
              "  --model=MODEL     LLM model name          (env: OLLAMA_MODEL,   "
              "default: ") +
-         DEFAULT_MODEL +
+         default_model +
          std::string(
              ")\n"
              "  --timeout=SECS    HTTP timeout in seconds (env: OLLAMA_TIMEOUT, "
@@ -76,9 +77,15 @@ constexpr const char* repl =
     "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
     "  /mem          Show memories (/mem add <fact>, /mem clear)\n"
     "  /pref         Show preferences (/pref add <pref>, /pref clear)\n"
+    "  /rate         Rate last response (/rate last +/-, /rate list)\n"
+    "  /copy (/c)    Copy last response to clipboard\n"
+    "  /paste (/p)   Paste clipboard as LLM context\n"
     "  /version      Show version info\n"
     "  /help         Show this help\n"
     "  exit, quit    Exit the REPL\n"
+    "\n"
+    "Rating: After each response, press y/n/s/Enter to rate.\n"
+    "  y (+) = good, n (-) = bad, s = save for review\n"
     "\n"
     "The LLM can use these tools (you confirm before apply):\n"
     "  <write file=\"path\">       Write/create a file (auto-diff shown)\n"
@@ -87,3 +94,5 @@ constexpr const char* repl =
     "  <exec>command</exec>      Run a shell command\n";
 
 }  // namespace help
+
+#endif  // HELP_H

@@ -1,6 +1,6 @@
 # ADR-055: Layered Test Strategy — From Unit Tests to Fuzzing
 
-*Status*: Accepted · *Date*: 2026-04-23 · *Extends*: [ADR-048](adr-048-quality-framework.md) (CMMI 0→1), [ADR-017](adr-017-integration-tests.md), [ADR-008](adr-008-test-framework.md)
+*Status*: Implemented · *Date*: 2026-04-23 · *Extends*: [ADR-048](adr-048-quality-framework.md) (CMMI 0→1), [ADR-017](adr-017-integration-tests.md), [ADR-008](adr-008-test-framework.md)
 
 ## Context
 
