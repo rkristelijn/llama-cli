@@ -228,6 +228,7 @@ static std::string process_sync_annotations(const std::string& response, const C
     auto writes = parse_write_annotations(response);
     for (const auto& action : writes) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
@@ -235,20 +236,29 @@ static std::string process_sync_annotations(const std::string& response, const C
       if (f) {
         f << action.content;
         std::cerr << "[wrote " << action.path << "]\n";
+      } else {
+        followup += "[error: could not write " + action.path + "]\n";
       }
     }
     auto replaces = parse_str_replace_annotations(response);
     for (const auto& action : replaces) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
       std::ifstream rf(action.path);
-      if (!rf) continue;
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
       std::string content((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
       rf.close();
       size_t pos = content.find(action.old_str);
-      if (pos == std::string::npos) continue;
+      if (pos == std::string::npos) {
+        followup += "[error: old text not found in " + action.path + "]\n";
+        continue;
+      }
       content.replace(pos, action.old_str.size(), action.new_str);
       std::ofstream wf(action.path);
       if (wf) {
@@ -261,11 +271,15 @@ static std::string process_sync_annotations(const std::string& response, const C
     auto adds = parse_add_line_annotations(response);
     for (const auto& action : adds) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
       std::ifstream rf(action.path);
-      if (!rf) continue;
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
       std::vector<std::string> lines;
       std::string line;
       while (std::getline(rf, line)) lines.push_back(line);
@@ -285,16 +299,19 @@ static std::string process_sync_annotations(const std::string& response, const C
     auto deletes = parse_delete_line_annotations(response);
     for (const auto& action : deletes) {
       if (!path_allowed(action.path, cfg.sandbox)) {
+        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
         std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
         continue;
       }
       std::ifstream rf(action.path);
-      if (!rf) continue;
+      if (!rf) {
+        followup += "[error: file not found: " + action.path + "]\n";
+        continue;
+      }
       std::vector<std::string> lines;
       std::string line;
       while (std::getline(rf, line)) lines.push_back(line);
       rf.close();
-      // Remove first line matching content (trimmed comparison)
       bool found = false;
       for (auto it = lines.begin(); it != lines.end(); ++it) {
         if (*it == action.content) {
@@ -309,6 +326,8 @@ static std::string process_sync_annotations(const std::string& response, const C
           for (const auto& l : lines) wf << l << "\n";
           std::cerr << "[delete_line " << action.path << "]\n";
         }
+      } else {
+        followup += "[error: line not found in " + action.path + ": " + action.content + "]\n";
       }
     }
   }
