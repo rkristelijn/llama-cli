@@ -34,15 +34,15 @@ struct SearchAction {
 
 /// A proposed line insertion in an existing file
 struct AddLineAction {
-  std::string path;      ///< Target file path
-  int line_number;       ///< 1-based line number to insert at
-  std::string content;   ///< Line content to add
+  std::string path;     ///< Target file path
+  int line_number;      ///< 1-based line number to insert at
+  std::string content;  ///< Line content to add
 };
 
 /// A proposed line deletion in an existing file
 struct DeleteLineAction {
-  std::string path;    ///< Target file path
-  std::string content; ///< Exact line content to delete
+  std::string path;     ///< Target file path
+  std::string content;  ///< Exact line content to delete
 };
 
 // Extract all <write> annotations from response text

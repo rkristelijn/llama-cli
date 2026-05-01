@@ -56,6 +56,7 @@ struct ReplState {
   ChatFn& chat;                     ///< Injected chat function (real or mock)
   StreamChatFn stream_chat;         ///< Streaming chat function (nullable)
   ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
+  ModelInfoFn model_info_fn;        ///< Injected model info fetcher (real or mock)
   HardwareFn hw_fn;                 ///< Injected hardware detector (real or mock)
   const Config& cfg;                ///< Configuration (timeouts, etc.)
   std::vector<Message>& history;    ///< Conversation history
@@ -302,7 +303,7 @@ static void handle_model_selection(ReplState& s, const std::string& arg) {
   }
 
   // Fetch metadata from Ollama (params, quant, size)
-  auto infos = get_model_info(s.cfg);
+  auto infos = s.model_info_fn(s.cfg);
   std::map<std::string, ModelInfo> info_map;
   for (const auto& info : infos) {
     info_map[info.name] = info;
@@ -898,20 +899,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
   }
 
   if (Config::instance().auto_confirm_write) {
-    // Optionally, still show diff/content for user awareness, as per ADR-019.
-    std::ifstream check(action.path);
-    bool file_exists = check.good();
-    check.close();
-
-    if (file_exists) {
-      // Assuming read_file is accessible within this scope.
-      std::string existing_content = read_file(action.path);
-      show_diff(existing_content, action.content, out, color);
-    } else {
-      out << action.content << "\n";
-    }
-
-    // Proceed directly to write the file without interactive prompt.
+    // Diff/content already shown above — proceed directly to write.
     LOG_EVENT("repl", "file_write", action.path, "auto-confirmed", 0, 0, 0);
     out << "[auto-written: " << action.path << "]\n";  // User feedback
 
@@ -1937,7 +1925,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat,
-             HardwareFn hw_fn) {
+             HardwareFn hw_fn, ModelInfoFn model_info_fn) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -1980,6 +1968,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   ReplState state = {chat,
                      stream_chat,
                      models_fn,
+                     model_info_fn,
                      hw_fn,
                      cfg,
                      history,

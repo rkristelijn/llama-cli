@@ -16,7 +16,7 @@ SCENARIO ("Full conversation with history") {
     std::istringstream in("hello\nwhat did I say?\nexit\n");
     std::ostringstream out;
     WHEN ("the user sends two messages") {
-      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+      run_repl(chat, test_cfg(), in, out);
       THEN ("the LLM is called twice") {
         CHECK (llm.calls == 2)
           ;
@@ -42,7 +42,7 @@ SCENARIO ("Command chaining — read file then ask about it") {
     std::istringstream in("!!echo file content here\nwhat was in the file?\nexit\n");
     std::ostringstream out;
     WHEN ("the user runs !! then asks about it") {
-      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+      run_repl(chat, test_cfg(), in, out);
       THEN ("the LLM sees command output in history") {
         bool found = false;
         for (const auto& m : llm.last_history) {
@@ -64,7 +64,7 @@ SCENARIO ("Clear history resets conversation") {
     std::istringstream in("remember this\n/clear\nwhat did I say?\nexit\n");
     std::ostringstream out;
     WHEN ("the user sends a message, clears, then asks") {
-      run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+      run_repl(chat, test_cfg(), in, out);
       THEN ("the LLM does not see the first message after clear") {
         CHECK (llm.last_history.size() == 1)
           ;

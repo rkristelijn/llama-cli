@@ -15,7 +15,7 @@ SCENARIO ("Version and help commands") {
   std::istringstream in("/version\n/help\nexit\n");
   std::ostringstream out;
   WHEN ("the user runs /version and /help") {
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    run_repl(chat, test_cfg(), in, out);
     THEN ("/version shows llama-cli") {
       CHECK (out.str().find("llama-cli") != std::string::npos)
         ;
@@ -39,7 +39,7 @@ SCENARIO ("Unknown command shows error") {
   std::istringstream in("/foobar\nexit\n");
   std::ostringstream out;
   WHEN ("the user runs /foobar") {
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    run_repl(chat, test_cfg(), in, out);
     THEN ("error is shown") {
       CHECK (out.str().find("Unknown command") != std::string::npos)
         ;
@@ -58,7 +58,7 @@ SCENARIO ("Shell command with ! and !!") {
   GIVEN ("user runs ! command") {
     std::istringstream in("!echo direct\nexit\n");
     std::ostringstream out;
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    run_repl(chat, test_cfg(), in, out);
     THEN ("output is shown") {
       CHECK (out.str().find("direct") != std::string::npos)
         ;
@@ -72,7 +72,7 @@ SCENARIO ("Shell command with ! and !!") {
   GIVEN ("user runs !! command then asks about it") {
     std::istringstream in("!!echo context\nwhat was that?\nexit\n");
     std::ostringstream out;
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    run_repl(chat, test_cfg(), in, out);
     THEN ("output is shown") {
       CHECK (out.str().find("context") != std::string::npos)
         ;
@@ -96,7 +96,7 @@ SCENARIO ("Empty lines are skipped") {
   std::istringstream in("\n\n\nhello\n\nexit\n");
   std::ostringstream out;
   WHEN ("the user sends empty lines between prompts") {
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    run_repl(chat, test_cfg(), in, out);
     THEN ("only one LLM call is made") {
       CHECK (llm.calls == 1)
         ;
@@ -110,7 +110,7 @@ SCENARIO ("Quit exits the REPL") {
   std::istringstream in("quit\n");
   std::ostringstream out;
   WHEN ("the user types quit") {
-    int count = run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out);
+    int count = run_repl(chat, test_cfg(), in, out);
     THEN ("REPL exits with 0 prompts") {
       CHECK (count == 0)
         ;
@@ -130,7 +130,7 @@ SCENARIO ("/model command with no models") {
   std::istringstream in("/model\nexit\n");
   std::ostringstream out;
   WHEN ("the user runs /model with no models available") {
-    run_repl(chat, cfg, in, out, models_fn, nullptr, mock_hw)chat, test_cfg(), in, out, no_models);
+    run_repl(chat, test_cfg(), in, out, no_models);
     THEN ("no models message is shown") {
       CHECK (out.str().find("No models available") != std::string::npos)
         ;

@@ -20,6 +20,7 @@
 using ChatFn = std::function<std::string(const std::vector<Message>&)>;
 using StreamChatFn = std::function<std::string(const std::vector<Message>&, StreamCallback on_token)>;
 using ModelsFn = std::function<std::vector<std::string>(const Config&)>;
+using ModelInfoFn = std::function<std::vector<ModelInfo>(const Config&)>;
 using HardwareFn = std::function<HardwareInfo()>;
 
 // Run the REPL loop with conversation memory.
@@ -27,6 +28,7 @@ using HardwareFn = std::function<HardwareInfo()>;
 // models_fn defaults to get_available_models (real HTTP call to Ollama).
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout,
-             ModelsFn models_fn = get_available_models, StreamChatFn stream_chat = nullptr, HardwareFn hw_fn = detect_hardware);
+             ModelsFn models_fn = get_available_models, StreamChatFn stream_chat = nullptr, HardwareFn hw_fn = detect_hardware,
+             ModelInfoFn model_info_fn = get_model_info);
 
 #endif

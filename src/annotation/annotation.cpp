@@ -6,7 +6,7 @@
 
 #include "annotation/annotation.h"
 
-#include <iostream> // Added for std::cerr
+#include <iostream>  // Added for std::cerr
 #include <sstream>
 
 // --- helpers -----------------------------------------------------------------
@@ -203,8 +203,6 @@ std::vector<AddLineAction> parse_add_line_annotations(const std::string& text) {
     action.path = attr(tag, "path");
     auto line_number_str = attr(tag, "line_number");
     action.content = attr(tag, "content");
-
-
 
     if (action.path.empty() || line_number_str.empty()) {
       continue;

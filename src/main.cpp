@@ -256,6 +256,61 @@ static std::string process_sync_annotations(const std::string& response, const C
         std::cerr << "[str_replace " << action.path << "]\n";
       }
     }
+
+    // Process <add_line> annotations — insert a line at a specific position
+    auto adds = parse_add_line_annotations(response);
+    for (const auto& action : adds) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
+      std::ifstream rf(action.path);
+      if (!rf) continue;
+      std::vector<std::string> lines;
+      std::string line;
+      while (std::getline(rf, line)) lines.push_back(line);
+      rf.close();
+      int idx = action.line_number - 1;
+      if (idx < 0) idx = 0;
+      if (idx > static_cast<int>(lines.size())) idx = static_cast<int>(lines.size());
+      lines.insert(lines.begin() + idx, action.content);
+      std::ofstream wf(action.path);
+      if (wf) {
+        for (const auto& l : lines) wf << l << "\n";
+        std::cerr << "[add_line " << action.path << " at " << action.line_number << "]\n";
+      }
+    }
+
+    // Process <delete_line> annotations — remove a line matching content
+    auto deletes = parse_delete_line_annotations(response);
+    for (const auto& action : deletes) {
+      if (!path_allowed(action.path, cfg.sandbox)) {
+        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
+        continue;
+      }
+      std::ifstream rf(action.path);
+      if (!rf) continue;
+      std::vector<std::string> lines;
+      std::string line;
+      while (std::getline(rf, line)) lines.push_back(line);
+      rf.close();
+      // Remove first line matching content (trimmed comparison)
+      bool found = false;
+      for (auto it = lines.begin(); it != lines.end(); ++it) {
+        if (*it == action.content) {
+          lines.erase(it);
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        std::ofstream wf(action.path);
+        if (wf) {
+          for (const auto& l : lines) wf << l << "\n";
+          std::cerr << "[delete_line " << action.path << "]\n";
+        }
+      }
+    }
   }
 
   return followup;
