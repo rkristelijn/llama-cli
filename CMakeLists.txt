@@ -228,6 +228,10 @@ add_executable(test_diagram src/tui/mermaid/renderer_test.cpp src/tui/mermaid/re
 target_include_directories(test_diagram PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_diagram PRIVATE doctest::doctest)
 
+add_executable(test_diagram_extra src/tui/mermaid/renderer_extra_test.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/mermaid/mermaid.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/table.cpp)
+target_include_directories(test_diagram_extra PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_diagram_extra PRIVATE doctest::doctest)
+
 add_executable(test_trace src/trace/trace_test.cpp src/trace/trace.cpp)
 target_include_directories(test_trace PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_trace PRIVATE doctest::doctest)
