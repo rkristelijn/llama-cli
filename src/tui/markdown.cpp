@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <sstream>
 
 #include "tui/highlight.h"
 #include "tui/mermaid/mermaid.h"
