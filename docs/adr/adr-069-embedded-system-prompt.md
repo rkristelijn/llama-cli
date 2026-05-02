@@ -27,7 +27,7 @@ The prompt needs to be easily editable as plain text while remaining a compile-t
 
 ### Build pipeline
 
-```
+```text
 res/system-prompt.txt
         │
         ▼  (cmake configure_file)

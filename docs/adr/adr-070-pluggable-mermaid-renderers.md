@@ -20,7 +20,7 @@ LLMs frequently generate sequence diagrams and pie charts. We need:
 
 ### Architecture: Strategy pattern with registry
 
-```
+```text
 DiagramRenderer (interface)
 ├── FlowchartRenderer  — braille art (existing engine)
 ├── SequenceRenderer   — ASCII columns with arrows
@@ -48,7 +48,7 @@ Unsupported types (gantt, classDiagram, erDiagram, etc.) are rendered as a norma
 
 ### File layout
 
-```
+```text
 src/tui/mermaid/
 ├── renderer.h       — DiagramRenderer interface + DiagramRegistry
 ├── renderer.cpp     — Registry implementation + global instance
