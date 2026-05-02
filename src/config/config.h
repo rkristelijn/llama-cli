@@ -45,6 +45,7 @@ struct Config {
   int timeout = 120;                                       ///< HTTP request timeout in seconds
   int exec_timeout = 30;                                   ///< Max seconds for command execution
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
+  int max_history = 0;                                     ///< Max message pairs to keep (0=unlimited, sliding window)
   bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)
   bool no_banner = false;                                  ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
   bool bofh = false;                                       ///< BOFH mode: sarcastic spinner messages (--why-so-serious)

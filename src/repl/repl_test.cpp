@@ -165,6 +165,38 @@ SCENARIO ("REPL conversation history") {
   }
 }
 
+SCENARIO ("REPL sliding window trims old messages") {
+  GIVEN ("max_history is set to 2 pairs") {
+    std::vector<size_t> sizes;
+    auto tracking_chat = [&](const std::vector<Message>& msgs) {
+      sizes.push_back(msgs.size());
+      return "ok";
+    };
+    // 4 prompts: after 3rd, history should be trimmed to system + last 2 pairs
+    std::istringstream in("a\nb\nc\nd\nexit\n");
+    std::ostringstream out;
+    WHEN ("the REPL runs") {
+      Config cfg = test_cfg();
+      cfg.max_history = 2;
+      run_repl(tracking_chat, cfg, in, out);
+      THEN ("history is capped at 4 non-system messages") {
+        // Prompt 1: [user] = 1 msg
+        CHECK (sizes[0] == 1)
+          ;
+        // Prompt 2: [user, assistant, user] = 3 msgs
+        CHECK (sizes[1] == 3)
+          ;
+        // Prompt 3: trimmed to last 2 pairs = 4 msgs
+        CHECK (sizes[2] == 4)
+          ;
+        // Prompt 4: still 4 (old trimmed away)
+        CHECK (sizes[3] == 4)
+          ;
+      }
+    }
+  }
+}
+
 SCENARIO ("REPL slash commands") {
   GIVEN ("user types /help") {
     std::istringstream in("/help\nexit\n");

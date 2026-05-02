@@ -136,6 +136,8 @@ void load_dotenv(const std::string& path, Config& c) {
       c.exec_timeout = safe_stoi(val, 30);
     } else if (key == "LLAMA_MAX_OUTPUT") {
       c.max_output = safe_stoi(val, 10000);
+    } else if (key == "LLAMA_MAX_HISTORY") {
+      c.max_history = safe_stoi(val, 0);
     } else if (key == "OLLAMA_SYSTEM_PROMPT") {
       c.system_prompt = val;
       c.system_prompt_override = true;
@@ -234,6 +236,9 @@ Config load_env(const Config& defaults) {
   if (env_get("LLAMA_MAX_OUTPUT", val)) {
     c.max_output = safe_stoi(val, 10000);
   }
+  if (env_get("LLAMA_MAX_HISTORY", val)) {
+    c.max_history = safe_stoi(val, 0);
+  }
   if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
     c.system_prompt = val;
     c.system_prompt_override = true;
@@ -317,6 +322,7 @@ static const IntOptDef int_opts[] = {
     {"--timeout=", "-t", &Config::timeout},
     {"--exec-timeout=", nullptr, &Config::exec_timeout},
     {"--max-output=", nullptr, &Config::max_output},
+    {"--max-history=", nullptr, &Config::max_history},
 };
 
 /** Try to match arg against a long option prefix (e.g. "--host=value").
@@ -509,6 +515,7 @@ void print_default_env() {
             << "# OLLAMA_TIMEOUT=" << c.timeout << " # HTTP timeout in seconds for LLM generation\n"
             << "# LLAMA_EXEC_TIMEOUT=" << c.exec_timeout << " # Max seconds for shell command execution\n"
             << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"
+            << "# LLAMA_MAX_HISTORY=" << c.max_history << " # Max message pairs to keep (0=unlimited)\n"
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"

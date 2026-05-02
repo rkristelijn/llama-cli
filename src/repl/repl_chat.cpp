@@ -54,6 +54,26 @@ static std::string colorize_ai(const std::string& text, const ReplState& s) {
   return result;
 }
 
+// --- Sliding window ---
+// Trims history to keep system prompt + last N message pairs.
+// Future: replace with context compression (backlog/019).
+
+static void trim_history(std::vector<Message>& history, int max_pairs) {
+  if (max_pairs <= 0) {
+    return;
+  }
+  // Keep system prompt(s) at the front, trim the rest to last N*2 messages
+  size_t sys_count = 0;
+  while (sys_count < history.size() && history[sys_count].role == "system") {
+    ++sys_count;
+  }
+  size_t keep = static_cast<size_t>(max_pairs) * 2;
+  size_t non_sys = history.size() - sys_count;
+  if (non_sys > keep) {
+    history.erase(history.begin() + static_cast<long>(sys_count), history.begin() + static_cast<long>(history.size() - keep));
+  }
+}
+
 // --- Chat execution ---
 // interruptible_chat: runs LLM on a thread, polls g_interrupted every 50ms.
 // Thread safety: history is copied into a shared_ptr so detach is safe.
@@ -73,16 +93,17 @@ static std::string interruptible_chat(ReplState& s) {
     // After that, tokens are rendered directly via StreamRenderer.
     auto first_token = std::make_shared<std::atomic<bool>>(false);
     auto renderer = std::make_shared<StreamRenderer>(s.out, s.color && s.markdown);
-    Spinner spin(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
-    // Copy history so the thread owns its data — safe to detach after interrupt
+    auto spin = std::make_shared<Spinner>(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+    // Copy history and stream_chat so the thread owns its data — safe to detach
     auto history_copy = std::make_shared<std::vector<Message>>(s.history);
-    std::thread t([&s, result, done, first_token, &spin, renderer, history_copy] {
-      *result = s.stream_chat(*history_copy, [first_token, &spin, renderer](const std::string& token) {
+    auto chat_fn = s.stream_chat;
+    std::thread t([chat_fn, result, done, first_token, spin, renderer, history_copy] {
+      *result = chat_fn(*history_copy, [first_token, spin, renderer](const std::string& token) {
         if (g_interrupted) {
           return false;
         }
         if (!first_token->exchange(true)) {
-          spin.stop();
+          spin->stop();
         }
         renderer->write(token);
         return true;
@@ -93,7 +114,7 @@ static std::string interruptible_chat(ReplState& s) {
     while (!*done && !g_interrupted) {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    spin.stop();
+    spin->stop();
     if (*done) {
       t.join();
     } else {
@@ -107,10 +128,11 @@ static std::string interruptible_chat(ReplState& s) {
   }
 
   // Buffered mode (mock/fallback): use spinner while waiting.
-  // Same thread-safety pattern: history copied into shared_ptr.
+  // Same thread-safety pattern: chat function and history copied for safe detach.
   auto history_copy2 = std::make_shared<std::vector<Message>>(s.history);
-  std::thread t([&s, result, done, history_copy2] {
-    *result = s.chat(*history_copy2);
+  ChatFn chat_fn2 = s.chat;
+  std::thread t([chat_fn2, result, done, history_copy2] {
+    *result = chat_fn2(*history_copy2);
     *done = true;
   });
   while (!*done && !g_interrupted) {
@@ -221,6 +243,9 @@ void send_prompt(const std::string& line, ReplState& s) {
     inserted_reminder = true;
   }
   s.history.push_back({"user", line});
+
+  // Sliding window: trim old messages before sending to LLM
+  trim_history(s.history, s.cfg.max_history);
 
   // Time the LLM call for user feedback
   auto t0 = std::chrono::steady_clock::now();
