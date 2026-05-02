@@ -119,8 +119,8 @@ bool KanbanRenderer::render(const std::string& input, std::ostream& out, int col
   // Header row: │ Name │ Name │
   out << "\xe2\x94\x82";
   for (int i = 0; i < num_cols; i++) {
-    std::string name = " \033[1m" + columns[i].name + "\033[0m";
-    out << name;
+    std::string hdr = " \033[1m" + columns[i].name + "\033[0m";
+    out << hdr;
     // Pad to col_w (account for ANSI escape length)
     int visible_len = static_cast<int>(columns[i].name.size()) + 1;
     for (int j = visible_len; j < col_w; j++) out << ' ';

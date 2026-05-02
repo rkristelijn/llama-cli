@@ -36,7 +36,6 @@ struct Node {
 struct Edge {
   int from = 0;
   int to = 0;
-  std::string label;
 };
 
 struct Graph {
@@ -151,8 +150,7 @@ static void parse_edge_line(Graph& g, const std::string& line) {
 
   // Build edges from chain
   for (size_t i = 1; i < chain.size(); i++) {
-    std::string elabel = (i - 1 < edge_labels.size()) ? edge_labels[i - 1] : "";
-    g.edges.push_back({chain[i - 1], chain[i], elabel});
+    g.edges.push_back({chain[i - 1], chain[i]});
   }
 }
 

@@ -2,7 +2,6 @@
 // Uses injectable chat function and string streams for I/O
 // Tests: basic flow, history, commands, write y/n/s, exec !/!!/<exec>,
 // /set toggles, /version
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "repl/repl.h"
 
@@ -17,6 +16,7 @@ extern volatile sig_atomic_t g_interrupted;
 
 #include "config/config.h"
 #include "repl/repl_commands.h"
+#include "test_helpers.h"
 
 // Mock chat: returns last user message prefixed with "echo: "
 static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }
@@ -33,14 +33,6 @@ static std::vector<ModelInfo> mock_model_info(const Config&) {
 
 // Mock hardware: returns dummy hardware info
 static HardwareInfo mock_hw() { return {16, 8, "mock-cpu", "mock-gpu"}; }
-
-// Config with empty system prompt for simpler test assertions
-static Config test_cfg() {
-  Config c;
-  c.system_prompt = "";
-  c.warmup = false;
-  return c;
-}
 
 SCENARIO ("REPL basic flow") {
   GIVEN ("user types a prompt and then exits") {

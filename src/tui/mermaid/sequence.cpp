@@ -158,11 +158,11 @@ bool SequenceRenderer::render(const std::string& input, std::ostream& out, int c
     if (line.find("participant") == 0) {
       std::string rest = trim(line.substr(11));
       auto as_pos = rest.find(" as ");
-      std::string name = (as_pos != std::string::npos) ? trim(rest.substr(as_pos + 4)) : rest;
+      std::string pname = (as_pos != std::string::npos) ? trim(rest.substr(as_pos + 4)) : rest;
       std::string id = (as_pos != std::string::npos) ? trim(rest.substr(0, as_pos)) : rest;
       int idx = find_participant(participants, id);
       if (as_pos != std::string::npos) {
-        participants[idx].name = name;
+        participants[idx].name = pname;
       }
       continue;
     }
@@ -264,17 +264,17 @@ bool SequenceRenderer::render(const std::string& input, std::ostream& out, int c
   // Print participant header (truncate names that exceed column width)
   std::string header(total_width, ' ');
   for (const auto& p : participants) {
-    std::string name = p.name;
+    std::string pname = p.name;
     int max_name = col_width - 2;
-    if (static_cast<int>(name.size()) > max_name) {
-      name = name.substr(0, max_name - 1) + "\xe2\x80\xa6";  // …
+    if (static_cast<int>(pname.size()) > max_name) {
+      pname = pname.substr(0, max_name - 1) + "\xe2\x80\xa6";  // …
     }
-    int start = p.col - static_cast<int>(name.size()) / 2;
+    int start = p.col - static_cast<int>(pname.size()) / 2;
     if (start < 0) {
       start = 0;
     }
-    for (size_t i = 0; i < name.size() && start + static_cast<int>(i) < total_width; i++) {
-      header[start + i] = name[i];
+    for (size_t i = 0; i < pname.size() && start + static_cast<int>(i) < total_width; i++) {
+      header[start + i] = pname[i];
     }
   }
   out << header << "\n";
@@ -311,7 +311,7 @@ bool SequenceRenderer::render(const std::string& input, std::ostream& out, int c
         }
       }
       // Draw arrow line between from and to
-      char fill = (action.msg.style == ArrowStyle::DASHED) ? '-' : '-';
+      char fill = '-';
       for (int c = left + 1; c < right; c++) {
         row[c] = fill;
       }

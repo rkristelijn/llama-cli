@@ -126,6 +126,7 @@ static const std::vector<std::string> go_keywords = {
 
 // --- Determine language family from fence tag ---
 
+/// Language families for syntax highlighting keyword selection.
 enum class LangFamily { Unknown, Cpp, Python, Bash, Js, Java, Php, Swift, Rust, Go };
 
 static LangFamily classify_lang(const std::string& lang) {

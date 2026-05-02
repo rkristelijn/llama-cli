@@ -1,6 +1,6 @@
 # ADR-071: Markdown Module Split
 
-*Status*: Implementing
+*Status*: Implemented
 
 ## Date
 

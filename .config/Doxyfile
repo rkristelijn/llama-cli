@@ -9,4 +9,4 @@ WARN_NO_PARAMDOC       = NO
 QUIET                  = YES
 GENERATE_HTML          = NO
 GENERATE_LATEX         = NO
-EXCLUDE_PATTERNS       = *_test.cpp *_it.cpp
+EXCLUDE_PATTERNS       = *_test.cpp *_it.cpp */mermaid/*

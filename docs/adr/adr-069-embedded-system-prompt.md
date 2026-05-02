@@ -1,6 +1,6 @@
 # ADR-069: Embedded System Prompt from Text File
 
-*Status*: Implementing
+*Status*: Implemented
 
 ## Date
 
