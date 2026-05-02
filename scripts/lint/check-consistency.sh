@@ -59,7 +59,7 @@ if [ -f docs/adr/README.md ]; then
     if [ ! -f "docs/adr/$link" ]; then
       BROKEN="${BROKEN}  broken link: $link\n"
     fi
-  done < <(grep -oP '\(adr-[^)]+\.md\)' docs/adr/README.md | tr -d '()' || true)
+  done < <(grep -oE '\(adr-[^)]+\.md\)' docs/adr/README.md | tr -d '()' || true)
   # Also check for wrong prefix (adr/adr- instead of adr-)
   WRONG_PREFIX=$(grep -n '(adr/adr-' docs/adr/README.md || true)
   if [ -n "$WRONG_PREFIX" ]; then

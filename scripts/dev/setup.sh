@@ -245,6 +245,38 @@ install_rumdl() {
 }
 
 #######################################
+# Install mull (mutation testing).
+# brew: `brew install mull-project/mull/mull@19`
+# linux: cloudsmith repo + apt install mull-19
+#######################################
+install_mull() {
+  local ver="${MULL_VERSION}"
+
+  if has "mull-runner-${ver}" || has mull-runner; then
+    return 0
+  fi
+
+  if [[ "${IS_MAC}" == true ]]; then
+    echo "  Installing mull@${ver} (brew install mull-project/mull/mull@${ver})..."
+    brew install "mull-project/mull/mull@${ver}"
+  else
+    echo "  Installing mull-${ver} (cloudsmith repo + apt)..."
+    curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' | sudo -E bash
+    sudo apt-get update -qq
+    sudo apt-get install -y "mull-${ver}"
+  fi
+
+  # Create unversioned symlink if needed
+  if has "mull-runner-${ver}" && ! has mull-runner; then
+    if [[ "${IS_MAC}" == true ]]; then
+      ln -sf "$(which "mull-runner-${ver}")" "$(dirname "$(which "mull-runner-${ver}")")/mull-runner"
+    else
+      sudo ln -sf "/usr/bin/mull-runner-${ver}" /usr/bin/mull-runner
+    fi
+  fi
+}
+
+#######################################
 install_ollama() {
   if has ollama; then
     return 0
@@ -297,6 +329,9 @@ main() {
   # Runtime
   install_ollama
 
+  # Mutation testing (optional but recommended)
+  install_mull
+
   local clang_tidy="clang-tidy"
   if ! has clang-tidy && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
     clang_tidy="/opt/homebrew/opt/llvm/bin/clang-tidy"
@@ -318,6 +353,7 @@ main() {
   printf "  %-20s %s\n" "gitleaks"     "$(dpkg -s gitleaks 2>/dev/null | grep '^Version:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "$(has gitleaks && echo 'installed' || echo 'missing')")"
   printf "  %-20s %s\n" "git-cliff"    "$(git-cliff --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
   printf "  %-20s %s\n" "ollama"       "$(ollama --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo 'missing')"
+  printf "  %-20s %s\n" "mull-runner"  "$(mull-runner --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo 'missing')"
 
   # Install git hooks (without requiring make/cmake)
   if [[ -d .git ]]; then

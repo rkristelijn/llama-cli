@@ -1,10 +1,6 @@
 # ADR-059: Persistent Memory & Preferences
 
-## Status
-
-Implemented
-
-Proposed
+*Status*: Implemented
 
 ## Context
 

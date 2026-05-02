@@ -16,6 +16,7 @@ extern volatile sig_atomic_t g_interrupted;
 #include <sstream>
 
 #include "config/config.h"
+#include "repl/repl_commands.h"
 
 // Mock chat: returns last user message prefixed with "echo: "
 static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }
@@ -620,6 +621,55 @@ SCENARIO ("REPL /rate command") {
     THEN ("response not found message is shown") {
       CHECK (out.str().find("Response not found") != std::string::npos)
         ;
+    }
+  }
+}
+
+SCENARIO ("dispatch_command handles slash commands") {
+  GIVEN ("a ReplState with mock functions") {
+    ChatFn chat = echo_chat;
+    ModelsFn models = [](const Config&) { return std::vector<std::string>{"model1"}; };
+    Config cfg;
+    std::vector<Message> history;
+    std::istringstream in("");
+    std::ostringstream out;
+    ReplState s = {chat, nullptr, models, nullptr, nullptr, nullptr, cfg, history, in, out};
+
+    WHEN ("dispatch_command is called with /clear") {
+      history.push_back({"user", "hello"});
+      dispatch_command("clear", "", s);
+      THEN ("history is cleared") {
+        CHECK (history.empty())
+          ;
+        CHECK (out.str().find("[history cleared]") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with /version") {
+      dispatch_command("version", "", s);
+      THEN ("version is printed") {
+        CHECK (out.str().find("llama-cli") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with unknown command") {
+      dispatch_command("nonexistent", "", s);
+      THEN ("error message is shown") {
+        CHECK (out.str().find("Unknown command") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with /set without args") {
+      dispatch_command("set", "", s);
+      THEN ("options are listed") {
+        CHECK (out.str().find("markdown") != std::string::npos)
+          ;
+        CHECK (out.str().find("color") != std::string::npos)
+          ;
+      }
     }
   }
 }

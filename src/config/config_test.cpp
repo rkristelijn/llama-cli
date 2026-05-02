@@ -222,6 +222,23 @@ SCENARIO ("config from CLI arguments") {
     }
     clean_env();
   }
+
+  GIVEN ("long flags with space-separated values (--model VALUE)") {
+    const char* argv[] = {"llama-cli", "--model", "gemma4:26b", "--host", "10.0.0.5", "hello", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(6, argv);
+      THEN ("space-separated values are parsed correctly") {
+        CHECK (c.model == "gemma4:26b")
+          ;
+        CHECK (c.host == "10.0.0.5")
+          ;
+        CHECK (c.prompt == "hello")
+          ;
+        CHECK (c.mode == Mode::Sync)
+          ;
+      }
+    }
+  }
 }
 
 SCENARIO ("config precedence chain") {

@@ -1,10 +1,6 @@
 # ADR-019: Safe File Writes — Auto-Diff, Backup, and Targeted Edits
 
-## Status
-
-Implemented
-
-Implemented (updated 2026-04-16)
+*Status*: Implemented (updated 2026-04-16)
 
 ## Date
 

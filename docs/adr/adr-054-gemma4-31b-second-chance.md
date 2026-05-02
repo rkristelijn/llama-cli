@@ -1,10 +1,6 @@
 # ADR-054: gemma4:31b — Second Chance with Tweaks
 
-## Status
-
-Accepted
-
-Proposed
+*Status*: Accepted
 
 ## Date
 

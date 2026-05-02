@@ -1,0 +1,19 @@
+FROM ubuntu:24.04
+
+# Base tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget curl gnupg ca-certificates cmake make git cloc \
+    clang-19 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Mull from cloudsmith
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' | bash \
+    && apt-get update && apt-get install -y mull-19 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Symlinks for unversioned commands
+RUN ln -sf /usr/bin/clang++-19 /usr/bin/clang++ \
+    && ln -sf /usr/bin/clang-19 /usr/bin/clang \
+    && ln -sf /usr/bin/mull-runner-19 /usr/bin/mull-runner
+
+WORKDIR /src

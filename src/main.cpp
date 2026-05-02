@@ -35,6 +35,7 @@ extern volatile sig_atomic_t g_interrupted;
 
 /// Load .kiro/agents/*.json: append agent prompt to system prompt,
 /// read resource files into initial context string.
+/// Only used in REPL mode — sync mode skips this for speed (ADR-066).
 static std::string load_kiro_context(Config& cfg, bool color) {
   DIR* dir = opendir(".kiro/agents");
   if (!dir) {
@@ -84,160 +85,11 @@ static std::string load_kiro_context(Config& cfg, bool color) {
  * @return int Exit code: `0` on normal completion.
  */
 /// Process annotations in sync mode response based on capabilities (ADR-056).
-/// Returns context to feed back to the model (read/exec output).
+/// Handles read, exec, write, str_replace, add_line, delete_line annotations.
+/// Returns context string to feed back to the model for follow-up turns.
+/// Respects sandbox restrictions — blocks operations outside allowed path.
 // pmccabe:skip-complexity — handles all annotation types in one pass
-static std::string process_sync_annotations(const std::string& response, const Config& cfg) {
-  std::string caps = cfg.capabilities;
-  std::string followup;
-
-  // Process <read> annotations (requires "read" capability)
-  if (has_cap(caps, "read")) {
-    auto reads = parse_read_annotations(response);
-    for (const auto& action : reads) {
-      if (!path_allowed(action.path, cfg.sandbox)) {
-        std::cerr << "[blocked: read outside sandbox: " << action.path << "]\n";
-        continue;
-      }
-      std::ifstream f(action.path);
-      if (!f) {
-        std::cerr << "[read: file not found: " << action.path << "]\n";
-        continue;
-      }
-      std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-      followup += "[file: " + action.path + "]\n" + content + "\n";
-      std::cerr << "[read " << action.path << "]\n";
-    }
-  }
-
-  // Process <exec> annotations (requires "read" for safe cmds, "exec" for all)
-  auto execs = parse_exec_tags(response);
-  for (const auto& cmd : execs) {
-    LOG_FEATURE("exec_annotation");
-    bool allowed = has_cap(caps, "exec") || (has_cap(caps, "read") && is_read_only(cmd));
-    if (!allowed) {
-      LOG_FEATURE("exec_blocked");
-      std::cerr << "[blocked: " << cmd << "]\n";
-      continue;
-    }
-    LOG_FEATURE("exec_allowed");
-    auto r = cmd_exec(cmd, cfg.exec_timeout, cfg.max_output);
-    followup += "[command: " + cmd + "]\n" + r.output + "\n";
-    std::cerr << "[exec " << cmd << "]\n";
-  }
-
-  // Process <write> and <str_replace> annotations (requires "write" capability)
-  if (has_cap(caps, "write")) {
-    auto writes = parse_write_annotations(response);
-    for (const auto& action : writes) {
-      if (!path_allowed(action.path, cfg.sandbox)) {
-        LOG_FEATURE("sync_write_sandbox_blocked");
-        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
-        continue;
-      }
-      std::ofstream f(action.path);
-      if (f) {
-        f << action.content;
-        std::cerr << "[wrote " << action.path << "]\n";
-      } else {
-        followup += "[error: could not write " + action.path + "]\n";
-      }
-    }
-    auto replaces = parse_str_replace_annotations(response);
-    for (const auto& action : replaces) {
-      if (!path_allowed(action.path, cfg.sandbox)) {
-        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
-        continue;
-      }
-      std::ifstream rf(action.path);
-      if (!rf) {
-        followup += "[error: file not found: " + action.path + "]\n";
-        continue;
-      }
-      std::string content((std::istreambuf_iterator<char>(rf)), std::istreambuf_iterator<char>());
-      rf.close();
-      size_t pos = content.find(action.old_str);
-      if (pos == std::string::npos) {
-        LOG_FEATURE("sync_str_replace_not_found");
-        followup += "[error: old text not found in " + action.path + "]\n";
-        continue;
-      }
-      content.replace(pos, action.old_str.size(), action.new_str);
-      std::ofstream wf(action.path);
-      if (wf) {
-        wf << content;
-        std::cerr << "[str_replace " << action.path << "]\n";
-      }
-    }
-
-    // Process <add_line> annotations — insert a line at a specific position
-    auto adds = parse_add_line_annotations(response);
-    for (const auto& action : adds) {
-      if (!path_allowed(action.path, cfg.sandbox)) {
-        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
-        continue;
-      }
-      std::ifstream rf(action.path);
-      if (!rf) {
-        followup += "[error: file not found: " + action.path + "]\n";
-        continue;
-      }
-      std::vector<std::string> lines;
-      std::string line;
-      while (std::getline(rf, line)) lines.push_back(line);
-      rf.close();
-      int idx = action.line_number - 1;
-      if (idx < 0) idx = 0;
-      if (idx > static_cast<int>(lines.size())) idx = static_cast<int>(lines.size());
-      lines.insert(lines.begin() + idx, action.content);
-      std::ofstream wf(action.path);
-      if (wf) {
-        for (const auto& l : lines) wf << l << "\n";
-        std::cerr << "[add_line " << action.path << " at " << action.line_number << "]\n";
-      }
-    }
-
-    // Process <delete_line> annotations — remove a line matching content
-    auto deletes = parse_delete_line_annotations(response);
-    for (const auto& action : deletes) {
-      if (!path_allowed(action.path, cfg.sandbox)) {
-        followup += "[error: write blocked — outside sandbox: " + action.path + "]\n";
-        std::cerr << "[blocked: write outside sandbox: " << action.path << "]\n";
-        continue;
-      }
-      std::ifstream rf(action.path);
-      if (!rf) {
-        followup += "[error: file not found: " + action.path + "]\n";
-        continue;
-      }
-      std::vector<std::string> lines;
-      std::string line;
-      while (std::getline(rf, line)) lines.push_back(line);
-      rf.close();
-      bool found = false;
-      for (auto it = lines.begin(); it != lines.end(); ++it) {
-        if (*it == action.content) {
-          lines.erase(it);
-          found = true;
-          break;
-        }
-      }
-      if (found) {
-        std::ofstream wf(action.path);
-        if (wf) {
-          for (const auto& l : lines) wf << l << "\n";
-          std::cerr << "[delete_line " << action.path << "]\n";
-        }
-      } else {
-        followup += "[error: line not found in " + action.path + ": " + action.content + "]\n";
-      }
-    }
-  }
-
-  return followup;
-}
+#include "sync/sync_annotations.h"
 
 // pmccabe:skip-complexity — TODO: refactor main dispatch logic
 // NOLINTNEXTLINE(readability-function-size)
@@ -298,9 +150,18 @@ int main(int argc, char* argv[]) {
 
   if (cfg.mode == Mode::Sync) {
     LOG_FEATURE("sync_mode");
+    // DIP: Sync mode uses a lean system prompt unless capabilities are set.
+    // Tool annotations are useless without capabilities, and the full prompt
+    // adds ~500 tokens of overhead that slows down thinking models (ADR-066).
+    // With --system-prompt override, the user's choice is respected.
+    if (cfg.capabilities.empty() && !cfg.system_prompt_override) {
+      cfg.system_prompt = "You are a helpful assistant. Be concise and direct.";
+    }
     // Sync mode: one-shot, response to stdout (ADR-007)
     // Mock provider goes through the same flow — echoes prompt as response
     // so annotation processing and session work identically in tests.
+    // Streaming: tokens are printed to stdout as they arrive.
+    // The full response is returned for annotation processing.
     auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
         LOG_FEATURE("mock_provider");
@@ -330,7 +191,12 @@ int main(int argc, char* argv[]) {
     messages.push_back({"user", cfg.prompt});
     std::string response = generate_response(messages);
     if (!response.empty()) {
-      std::cout << response << "\n";
+      // Streaming already printed tokens to stdout — just add newline
+      if (cfg.provider != "mock") {
+        std::cout << "\n";
+      } else {
+        std::cout << response << "\n";
+      }
       messages.push_back({"assistant", response});
       // Process annotations if capabilities are set (ADR-056)
       int max_rounds = 10;
@@ -344,7 +210,12 @@ int main(int argc, char* argv[]) {
         if (response.empty()) {
           break;
         }
-        std::cout << response << "\n";
+        // Streaming already printed — just newline
+        if (cfg.provider != "mock") {
+          std::cout << "\n";
+        } else {
+          std::cout << response << "\n";
+        }
         messages.push_back({"assistant", response});
       }
       // Save updated history if --session is set (ADR-056)
@@ -360,7 +231,9 @@ int main(int argc, char* argv[]) {
       auto models = get_available_models(cfg);
       auto infos = get_model_info(cfg);
       std::map<std::string, ModelInfo> info_map;
-      for (const auto& info : infos) info_map[info.name] = info;
+      for (const auto& info : infos) {
+        info_map[info.name] = info;
+      }
 
       // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
       struct Candidate {
@@ -381,7 +254,9 @@ int main(int argc, char* argv[]) {
 
       std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
         // Prioritize models in sweetspot range (11B-28B)
-        if (a.sweet != b.sweet) return a.sweet > b.sweet;
+        if (a.sweet != b.sweet) {
+          return a.sweet > b.sweet;
+        }
         // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
         return a.params < b.params;
       });
@@ -416,7 +291,9 @@ int main(int argc, char* argv[]) {
       // ollama_chat_stream doesn't expose the http object for cancellation easily,
       // but we can at least show a spinner.
       ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
-        if (g_interrupted) return false;
+        if (g_interrupted) {
+          return false;
+        }
         std::cerr << "\r" << spinner[frame % 10] << " loading..." << std::flush;
         frame++;
         return true;

@@ -18,6 +18,10 @@
 #include <sys/types.h>
 #endif
 
+/// Detect hardware info (CPU, GPU, RAM, VRAM) for model selection.
+/// Uses sysctl on macOS, /proc on Linux. VRAM is estimated from GPU type.
+/// Returns a HardwareInfo struct used by /model to show sweetspot range.
+/// Sweetspot: models between 11B-27B params fit well in 16-24GB VRAM.
 HardwareInfo detect_hardware() {
   HardwareInfo hw;
 

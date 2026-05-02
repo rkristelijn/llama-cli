@@ -59,6 +59,7 @@ struct Config {
   std::string session_path;                                ///< Session file for multi-turn sync (--session, ADR-056)
   std::string capabilities;                                ///< Capability flags: read,write,exec (--capabilities, ADR-056)
   std::string sandbox = ".";                               ///< Sandbox root for file ops (--sandbox, ADR-056)
+  bool system_prompt_override = false;                     ///< True if user explicitly set --system-prompt
   bool allow_web_search = false;                           ///< Enable web search tool (--web-search, ADR-057)
   std::string search_url = "http://localhost:8888";        ///< SearXNG-compatible JSON API base URL (ADR-057)
   std::string search_lang = "en-US";                       ///< Search language, e.g. en-US, nl-NL (ADR-057)

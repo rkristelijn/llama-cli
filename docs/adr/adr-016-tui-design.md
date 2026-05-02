@@ -1,10 +1,6 @@
 # ADR-016: TUI Design
 
-## Status
-
-Accepted
-
-Accepted
+*Status*: Accepted
 
 ## Date
 

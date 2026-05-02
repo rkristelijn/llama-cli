@@ -46,7 +46,7 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   // stream:false = wait for complete response (no chunked streaming yet)
   std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "prompt": ")" + escaped_prompt + R"(", "stream": false})";
 
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] POST %s/api/generate model=%s\n", url.c_str(), cfg.model.c_str());
   }
 
@@ -77,7 +77,7 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   int completion_tokens = json_extract_int(res->body, "eval_count");
 
   // Trace: show HTTP status, timing, and token usage
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] %d %dms tokens=%d/%d\n", res->status, duration, prompt_tokens, completion_tokens);
   }
 
@@ -115,7 +115,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   std::string body =
       R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + R"(, "stream": false})";
 
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
   }
 
@@ -148,7 +148,7 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
   int completion_tokens = json_extract_int(res->body, "eval_count");
 
   // Trace: show HTTP status, timing, token usage, and truncated response
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] %d %dms tokens=%d/%d response=%.80s\n", res->status, duration, prompt_tokens, completion_tokens,
                       response_text.c_str());
   }
@@ -169,7 +169,7 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   // stream:true (default) — Ollama sends newline-delimited JSON chunks
   std::string body = R"({"model": ")" + escape_json(cfg.model) + R"(", "messages": )" + build_messages_json(messages) + "}";
 
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] POST %s/api/chat (stream) model=%s messages=%zu\n", url.c_str(), cfg.model.c_str(), messages.size());
   }
 
@@ -245,7 +245,7 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
     return "";
   }
 
-  if (Config::instance().trace) {
+  if (cfg.trace) {
     stderr_trace->log("[TRACE] stream %dms tokens=%d/%d response=%.80s\n", duration, prompt_tokens, completion_tokens,
                       full_response.c_str());
   }

@@ -57,6 +57,14 @@ set(LIB_SOURCES
   src/json/json.cpp
   src/ollama/ollama.cpp
   src/repl/repl.cpp
+  src/repl/repl_commands.cpp
+  src/repl/repl_annotations.cpp
+  src/repl/repl_chat.cpp
+  src/repl/repl_search.cpp
+  src/repl/repl_model.cpp
+  src/tui/markdown.cpp
+  src/tui/table.cpp
+  src/tui/spinner.cpp
   src/command/command.cpp
   src/annotation/annotation.cpp
   src/exec/exec.cpp
@@ -66,6 +74,7 @@ set(LIB_SOURCES
   src/logging/logger.cpp
   src/session/session.cpp
   src/sync/sync.cpp
+  src/sync/sync_annotations.cpp
   src/util/util.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
@@ -155,7 +164,7 @@ add_executable(test_util src/util/util_test.cpp src/util/util.cpp)
 target_include_directories(test_util PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_util PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/util/util.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
