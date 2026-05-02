@@ -59,6 +59,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-065-code-consistency-refactor.md`](docs/adr/adr-065-code-consistency-refactor.md) — ADR-065: Code Consistency Refactor Plan
 - [`docs/adr/adr-066-solid-refactoring.md`](docs/adr/adr-066-solid-refactoring.md) — ADR-066: SOLID Refactoring Strategy
 - [`docs/adr/adr-067-mutation-testing.md`](docs/adr/adr-067-mutation-testing.md) — ADR-067: Mutation Testing via Mull
+- [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md)
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -275,4 +276,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_272 files indexed._
+_273 files indexed._

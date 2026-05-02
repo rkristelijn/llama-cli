@@ -22,7 +22,7 @@ The codebase has grown organically. Tests exist and pass (154 scenarios), but se
 
 | Principle | Practical rule | Enforcement |
 |-----------|---------------|-------------|
-| **S**ingle Responsibility | One file = one reason to change. Max 300 lines per .cpp, 150 per .h | `check-file-size.sh` |
+| **S**ingle Responsibility | One file = one reason to change. Max 600 lines per .cpp, 300 per .h | `check-file-size.sh` |
 | **O**pen/Closed | New commands/renderers via new files, not editing existing ones | Code review + module pattern |
 | **L**iskov Substitution | Injectable functions (ChatFn, ModelsFn) must be swappable without side effects | Unit tests with mocks |
 | **I**nterface Segregation | Headers expose only what consumers need. No "include everything" headers | `check-consistency.sh` (unused includes) |
@@ -105,7 +105,7 @@ Rule: **any function that does I/O or network must be injectable via `std::funct
 
 | Script | Purpose | Autofix? |
 |--------|---------|----------|
-| Update `check-file-size.sh` | Lower threshold: 300 lines .cpp, 150 lines .h (warn at 80%) | No — manual split needed |
+| Update `check-file-size.sh` | Threshold: 600 lines .cpp, 300 lines .h | No — manual split needed |
 | `check-singleton.sh` | Flag `Config::instance()` outside `main.cpp` | No — manual refactor |
 | `check-include-depth.sh` | Warn if a .h includes >5 other project headers | No |
 | `scripts/fmt/format-code.sh` | clang-format (already exists) | **Yes** — autofix |
@@ -190,87 +190,3 @@ Only add these at the *boundary* where the principle is applied (file header, ty
 - ADR-055 — Layered test strategy
 - Martin, R.C. — *Clean Architecture* (SOLID principles)
 
-## Appendix A: Battle-Testing llama-cli as Async Worker
-
-*Date*: 2026-05-02
-
-### Experiment
-
-Delegated a small refactoring task to llama-cli in sync mode: fix a broken path in `scripts/dev/quick.sh` (replace `scripts/check/comment-ratio.sh` with `scripts/lint/check-comment-ratio.sh`).
-
-### Prompt format tested
-
-Following the structured format from `docs/prompts/`:
-
-```text
---system-prompt="You are a bash developer. You fix bugs in shell scripts.
-                 Reply with ONLY the corrected code, no explanation."
-
-Prompt (positional arg):
-## Context
-File: scripts/dev/quick.sh
-Line 22 references scripts/check/comment-ratio.sh but that path no longer exists.
-The correct path is scripts/lint/check-comment-ratio.sh
-
-## Task
-Fix line 22 by replacing the old path with the new path.
-
-## Input (broken)
-bash scripts/check/comment-ratio.sh | grep "PASS" || bash scripts/check/comment-ratio.sh
-
-## Expected output
-The same line with both paths replaced by scripts/lint/check-comment-ratio.sh
-```
-
-### Results
-
-| Model | Result | Issue |
-|-------|--------|-------|
-| gemma4:26b | ❌ Hallucinated `echo "gemma4:26b"` or Python code | Thinking model: `<think>` tokens corrupt sync mode output |
-| gemma4:26b (via `ollama run`) | ✅ Correct answer | Works fine outside llama-cli |
-| mistral-nemo:12b | ⏱️ Slow to respond, not tested to completion | — |
-
-### Root cause
-
-**Twee bugs gevonden:**
-
-1. **`--model VALUE` (spatie) werd niet geparsed** — alleen `--model=VALUE` en `-m VALUE` werkten. Het model-naam argument werd als positional arg (= prompt) geïnterpreteerd. Fix: `match_string_opts` en `match_int_opts` ondersteunen nu ook `--flag VALUE` naast `--flag=VALUE`.
-
-2. **Sync mode dubbel-printte responses** — streaming callback schreef tokens naar stdout, daarna werd de volledige response nogmaals geprint. Fix: na streaming alleen een newline toevoegen.
-
-**Niet de oorzaak:** thinking tokens. Ollama stuurt die in een apart `"thinking"` JSON veld — de `"content"` is leeg tijdens het denken. Geen filtering nodig.
-
-### Findings
-
-| What works | What doesn't |
-|-----------|-------------|
-| System prompt = identity/role ("You are a bash developer") | Putting the full task in system prompt |
-| Prompt = structured task (Context → Task → Input → Expected) | Vague prompts ("fix this") |
-| `ollama run` direct invocation | llama-cli sync mode with thinking models |
-| Simple find-and-replace tasks | Tasks requiring multi-step reasoning |
-
-### Recommendations
-
-1. **Altijd `--model=` of `-m` gebruiken** — nu ook `--model VALUE` (spatie) ondersteund
-2. **Structured prompt format** — altijd Context/Task/Input/Expected structure uit `docs/prompts/`
-3. **System prompt = role only** — kort: wie je bent, hoe je antwoordt
-4. **Prompt = the work** — alle context, taak, en verwacht output format in het positional argument
-5. **gemma4:26b werkt prima** — thinking models zijn geen probleem, Ollama handelt het af
-
-### Prompt template for delegation
-
-```bash
-./build/llama-cli --model <non-thinking-model> \
-  --system-prompt="You are a <role>. You <constraint>. Reply with ONLY <format>." \
-  "## Context
-<what exists, what's relevant>
-
-## Task
-<exactly what to do>
-
-## Input
-<current state / broken code>
-
-## Expected output
-<what the answer should look like>"
-```

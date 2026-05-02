@@ -45,25 +45,14 @@ mutation: ## Run mutation testing on changed files (PR only)
 	@bash scripts/test/run-mutation.sh
 ```
 
-### Script design (`scripts/test/run-mutation.sh`)
+### Script design
 
-```bash
-#!/usr/bin/env bash
-set -o errexit; set -o nounset; set -o pipefail
+See `scripts/test/run-mutation.sh` for the implementation. Key behavior:
 
-# Build with coverage + Mull instrumentation
-cmake -B build-mull -DCMAKE_CXX_FLAGS="-fpass-plugin=/usr/lib/mull-ir-frontend" \
-  -DCMAKE_CXX_COMPILER=clang++
-cmake --build build-mull --target test_config test_json test_annotation test_exec
-
-# Run Mull on each test binary (only mutates changed files via --git-diff-filter)
-CHANGED=$(git diff --name-only origin/main...HEAD -- 'src/*.cpp' | tr '\n' ',')
-for bin in build-mull/test_config build-mull/test_json build-mull/test_annotation; do
-  mull-runner "$bin" --reporters=Elements --git-diff-filter="$CHANGED"
-done
-
-echo "  [done] mutation"
-```
+- On Linux (CI): runs Mull natively against test binaries
+- On macOS: skips (Apple libc++ incompatible with Mull's LLVM IR instrumentation)
+- Targets: `test_config`, `test_json`, `test_annotation`, `test_exec`
+- Config: `.config/mull.yml` (arithmetic, comparison, boundary, logical mutators)
 
 ### Thresholds
 
