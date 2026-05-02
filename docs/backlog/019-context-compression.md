@@ -1,12 +1,16 @@
 # 019: Context Compression
 
-*Status*: Idea · *Date*: 2026-04-19 · *Issue*: [#83](https://github.com/rkristelijn/llama-cli/issues/83)
+*Status*: 🔧 Partial (sliding window) · *Date*: 2026-04-19 · *Issue*: [#83](https://github.com/rkristelijn/llama-cli/issues/83)
 
 ## Problem
 
 Conversation history grows unbounded. Long sessions burn tokens re-sending old context that the LLM has already processed. Context window overflow causes silent truncation or errors.
 
-## Idea
+## Implemented: Sliding Window
+
+Configurable `LLAMA_MAX_HISTORY` (or `--max-history=N`) trims old messages, keeping system prompts + last N message pairs. Default: 0 (unlimited). Old messages are still in the event log for reference.
+
+## Future: LLM-based Compression
 
 Compress conversation history while preserving key information:
 

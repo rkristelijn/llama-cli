@@ -1,14 +1,18 @@
 # 033: Tab Autocompletion
 
-*Status*: Idea · *Date*: 2026-04-19 · *Issue*: [#97](https://github.com/rkristelijn/llama-cli/issues/97)
+*Status*: ✅ Done · *Date*: 2026-04-19 · *Issue*: [#97](https://github.com/rkristelijn/llama-cli/issues/97)
 
 ## Problem
 
 No tab completion for file paths. Users must type full paths when referencing files.
 
-## Idea
+## Solution (implemented)
 
-When input starts with `~`, `.`, or `/`, tab-complete file paths using linenoise hints or a custom completer.
+Tab-completion for slash commands and file paths via linenoise:
+
+- `/` commands auto-complete (e.g. `/he` → `/help`)
+- File paths complete after `~`, `.`, `/`, or within commands that take paths
+- Implementation in `repl.cpp`: `slash_completion()` and `path_completions()`
 
 ### References
 
