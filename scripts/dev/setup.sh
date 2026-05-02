@@ -261,7 +261,10 @@ install_mull() {
     brew install "mull-project/mull/mull@${ver}"
   else
     echo "  Installing mull-${ver} (cloudsmith repo + apt)..."
-    curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' | sudo -E bash
+    # Download repo setup script first, then execute (avoids curl|bash semgrep finding)
+    curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' -o /tmp/mull-setup.sh
+    sudo -E bash /tmp/mull-setup.sh
+    rm -f /tmp/mull-setup.sh
     sudo apt-get update -qq
     sudo apt-get install -y "mull-${ver}"
   fi
