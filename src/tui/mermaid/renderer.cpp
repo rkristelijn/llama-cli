@@ -7,10 +7,18 @@
  */
 #include "tui/mermaid/renderer.h"
 
+#include "tui/mermaid/barchart.h"
 #include "tui/mermaid/flowchart.h"
+#include "tui/mermaid/gantt.h"
+#include "tui/mermaid/kanban.h"
+#include "tui/mermaid/mindmap.h"
+#include "tui/mermaid/orgchart.h"
 #include "tui/mermaid/pie.h"
+#include "tui/mermaid/quadrant.h"
 #include "tui/mermaid/sequence.h"
 #include "tui/mermaid/state.h"
+#include "tui/mermaid/timeline.h"
+#include "tui/mermaid/venn.h"
 
 namespace tui {
 
@@ -34,6 +42,14 @@ DiagramRegistry& diagram_registry() {
     r.add(std::make_unique<SequenceRenderer>());
     r.add(std::make_unique<PieRenderer>());
     r.add(std::make_unique<StateRenderer>());
+    r.add(std::make_unique<VennRenderer>());
+    r.add(std::make_unique<GanttRenderer>());
+    r.add(std::make_unique<MindmapRenderer>());
+    r.add(std::make_unique<QuadrantRenderer>());
+    r.add(std::make_unique<TimelineRenderer>());
+    r.add(std::make_unique<KanbanRenderer>());
+    r.add(std::make_unique<BarChartRenderer>());
+    r.add(std::make_unique<OrgChartRenderer>());
     return r;
   }();
   return reg;

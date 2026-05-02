@@ -117,11 +117,24 @@ bool PieRenderer::render(const std::string& input, std::ostream& out, int cols, 
     out << title << "\n\n";
   }
 
-  // Render each slice as a horizontal bar
-  // Use block characters: █ (full) and ░ (empty)
-  for (const auto& s : slices) {
+  // ANSI color palette for slice bars (cycles if more slices than colors)
+  // Colors chosen for contrast on dark terminals: red, green, yellow, blue, magenta, cyan
+  static const char* colors[] = {
+      "\033[31m",  // red
+      "\033[32m",  // green
+      "\033[33m",  // yellow
+      "\033[34m",  // blue
+      "\033[35m",  // magenta
+      "\033[36m",  // cyan
+  };
+  static const int num_colors = 6;
+
+  // Render each slice as a colored horizontal bar
+  for (size_t idx = 0; idx < slices.size(); idx++) {
+    const auto& s = slices[idx];
     double pct = (s.value / total) * 100.0;
     int filled = static_cast<int>((s.value / total) * bar_width);
+    const char* color = colors[idx % num_colors];
 
     // Label (right-padded)
     out << s.label;
@@ -129,13 +142,16 @@ bool PieRenderer::render(const std::string& input, std::ostream& out, int cols, 
       out << ' ';
     }
 
-    // Bar: filled portion with █, empty with ░
+    // Bar: colored filled portion with █, dim empty with ░
+    out << color;
     for (int i = 0; i < filled; i++) {
       out << "\xe2\x96\x88";  // █ (U+2588)
     }
+    out << "\033[0m\033[2m";
     for (int i = filled; i < bar_width; i++) {
       out << "\xe2\x96\x91";  // ░ (U+2591)
     }
+    out << "\033[0m";
 
     // Percentage
     out << " " << std::fixed << std::setprecision(0) << pct << "%\n";

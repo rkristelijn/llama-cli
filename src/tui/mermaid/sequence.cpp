@@ -15,6 +15,9 @@
  */
 #include "tui/mermaid/sequence.h"
 
+#include <sys/ioctl.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -126,7 +129,7 @@ bool SequenceRenderer::can_render(const std::string& input) const {
   return input.compare(pos, 15, "sequenceDiagram") == 0;
 }
 
-bool SequenceRenderer::render(const std::string& input, std::ostream& out, int /*cols*/, int /*rows*/) const {
+bool SequenceRenderer::render(const std::string& input, std::ostream& out, int cols, int /*rows*/) const {
   std::vector<Participant> participants;
   std::vector<Action> actions;
 
@@ -223,15 +226,29 @@ bool SequenceRenderer::render(const std::string& input, std::ostream& out, int /
     }
   }
 
-  // Layout: assign column positions with enough room for labels
-  // Each column needs at least: max(name_len, label_len + 4) width
-  constexpr int COL_PADDING = 6;
-  int col_width = std::max(max_label_len + COL_PADDING, 16);
-  for (int i = 0; i < static_cast<int>(participants.size()); i++) {
-    int name_width = std::max(static_cast<int>(participants[i].name.size()), col_width);
-    participants[i].col = (i == 0) ? name_width / 2 : participants[i - 1].col + col_width;
+  // Layout: assign column positions, constrained by terminal width
+  // Auto-detect terminal width if not specified
+  int term_cols = cols;
+  if (term_cols <= 0) {
+    struct winsize w = {};
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
+      term_cols = w.ws_col;
+    } else {
+      term_cols = 80;
+    }
   }
-  int total_width = participants.back().col + col_width / 2;
+
+  int num_parts = static_cast<int>(participants.size());
+  // Divide available width evenly among participants
+  int col_width = term_cols / std::max(num_parts, 1);
+  // Ensure minimum usable width
+  if (col_width < 10) {
+    col_width = 10;
+  }
+  for (int i = 0; i < num_parts; i++) {
+    participants[i].col = i * col_width + col_width / 2;
+  }
+  int total_width = term_cols;
 
   // Helper: draw a lifeline row (just vertical bars at each participant column)
   auto lifeline = [&]() -> std::string {
@@ -244,15 +261,20 @@ bool SequenceRenderer::render(const std::string& input, std::ostream& out, int /
     return row;
   };
 
-  // Print participant header
+  // Print participant header (truncate names that exceed column width)
   std::string header(total_width, ' ');
   for (const auto& p : participants) {
-    int start = p.col - static_cast<int>(p.name.size()) / 2;
+    std::string name = p.name;
+    int max_name = col_width - 2;
+    if (static_cast<int>(name.size()) > max_name) {
+      name = name.substr(0, max_name - 1) + "\xe2\x80\xa6";  // …
+    }
+    int start = p.col - static_cast<int>(name.size()) / 2;
     if (start < 0) {
       start = 0;
     }
-    for (size_t i = 0; i < p.name.size() && start + static_cast<int>(i) < total_width; i++) {
-      header[start + i] = p.name[i];
+    for (size_t i = 0; i < name.size() && start + static_cast<int>(i) < total_width; i++) {
+      header[start + i] = name[i];
     }
   }
   out << header << "\n";

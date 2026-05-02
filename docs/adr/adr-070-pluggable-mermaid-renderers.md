@@ -37,10 +37,11 @@ DiagramRenderer (interface)
 
 | Type | Keyword | Rendering |
 |------|---------|-----------|
-| Flowchart | `graph TD/LR`, `flowchart` | Braille art (existing) |
+| Flowchart | `graph TD/LR`, `flowchart` | Box-drawing (`┌─┐│└─┘`) with labels inside |
 | Sequence | `sequenceDiagram` | ASCII: participant columns + labeled arrows |
 | Pie chart | `pie` | Horizontal bar chart with █/░ and percentages |
-| State | `stateDiagram-v2` | Converted to flowchart → braille art |
+| State | `stateDiagram-v2` | Converted to flowchart → box-drawing |
+| Venn | `venn` | Braille circles with ANSI colors + legend |
 
 ### Fallback behavior
 
@@ -56,7 +57,8 @@ src/tui/mermaid/
 ├── sequence.h/cpp   — SequenceRenderer
 ├── pie.h/cpp        — PieRenderer
 ├── state.h/cpp      — StateRenderer
-├── mermaid.h/cpp    — Original braille engine (unchanged)
+├── venn.h/cpp       — VennRenderer (braille circles)
+├── mermaid.h/cpp    — Box-drawing flowchart engine
 └── renderer_test.cpp — Unit tests for all renderers
 ```
 
