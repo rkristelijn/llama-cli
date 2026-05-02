@@ -189,4 +189,3 @@ Only add these at the *boundary* where the principle is applied (file header, ty
 - ADR-008 — Test framework and naming
 - ADR-055 — Layered test strategy
 - Martin, R.C. — *Clean Architecture* (SOLID principles)
-
