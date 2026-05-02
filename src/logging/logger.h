@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <mutex>
 #include <string>
 
 /// Event data for structured logging
@@ -40,6 +41,7 @@ class Logger {
  private:
   Logger();
   std::string log_path_;
+  static std::mutex log_mutex_;
 };
 
 /// Convenience macro for logging

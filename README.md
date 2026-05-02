@@ -70,6 +70,8 @@ sudo make install
 
 ## Usage
 
+> The package will be publised once stable:
+
 ```bash
 hello                          # chat with the LLM
 !ls src/                       # run command, output to terminal
@@ -131,26 +133,26 @@ Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by
 |---|---------|--------|---------|
 | 1 | Streaming responses | ✅ Done | [005](docs/backlog/005-streaming.md) |
 | 2 | Inline code / markdown rendering | ✅ Done | [031](docs/backlog/031-inline-code-rendering.md) |
-| 3 | Fix release pipeline | 🔧 In progress | [034](docs/backlog/034-fix-release.md) |
-| 4 | Tab autocompletion | ⬚ Planned | [033](docs/backlog/033-tab-autocompletion.md) |
+| 3 | Fix release pipeline | ✅ Done | [034](docs/backlog/034-fix-release.md) |
+| 4 | Tab autocompletion | ✅ Done | [033](docs/backlog/033-tab-autocompletion.md) |
 
 ### Priority 2 — Developer Experience
 
-| # | Feature | Backlog |
-|---|---------|---------|
-| 5 | Context compression | [019](docs/backlog/019-context-compression.md) |
-| 6 | Prompt templates | [021](docs/backlog/021-prompt-templates.md) |
-| 7 | Exec output tuning | [007](docs/backlog/007-exec-output-tuning.md) |
-| 8 | Smart confirmation | [004](docs/backlog/004-smart-confirmation.md) |
+| # | Feature | Status | Backlog |
+|---|---------|--------|---------|
+| 5 | Context compression | 🔧 Sliding window | [019](docs/backlog/019-context-compression.md) |
+| 6 | Prompt templates | ⬚ Planned | [021](docs/backlog/021-prompt-templates.md) |
+| 7 | Exec output tuning | ✅ Done | [007](docs/backlog/007-exec-output-tuning.md) |
+| 8 | Smart confirmation | ✅ Done | [004](docs/backlog/004-smart-confirmation.md) |
 
 ### Priority 3 — Robustness
 
-| # | Feature | Backlog |
-|---|---------|---------|
-| 9 | Execution sandbox | [016](docs/backlog/016-execution-sandbox.md) |
-| 10 | Command permissions | [010](docs/backlog/010-command-permissions.md) |
-| 11 | Coverage bump 55→60% | [027](docs/backlog/027-coverage-bump.md) |
-| 12 | Reduce complexity | [018](docs/backlog/018-reduce-complexity.md) |
+| # | Feature | Status | Backlog |
+|---|---------|--------|---------|
+| 9 | Execution sandbox | ⬚ Planned | [016](docs/backlog/016-execution-sandbox.md) |
+| 10 | Command permissions | ⬚ Planned | [010](docs/backlog/010-command-permissions.md) |
+| 11 | Coverage bump 55→60% | ✅ Done | [027](docs/backlog/027-coverage-bump.md) |
+| 12 | Reduce complexity | ⬚ Planned | [018](docs/backlog/018-reduce-complexity.md) |
 
 ### Priority 4 — Future Differentiation
 

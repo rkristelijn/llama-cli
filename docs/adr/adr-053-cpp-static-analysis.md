@@ -1,10 +1,6 @@
 # ADR-053: C++ Static Analysis Coverage
 
-## Status
-
-Accepted
-
-Proposed
+*Status*: Accepted
 
 ## Date
 

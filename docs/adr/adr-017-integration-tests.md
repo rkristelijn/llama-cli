@@ -1,10 +1,6 @@
 # ADR-017: Integration Tests
 
-## Status
-
-Implemented
-
-Implemented
+*Status*: Implemented
 
 ## Date
 

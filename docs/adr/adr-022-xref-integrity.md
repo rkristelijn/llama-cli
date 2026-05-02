@@ -1,10 +1,6 @@
 # ADR-022: Cross-Reference Integrity Checks
 
-## Status
-
-Proposed
-
-Proposed
+*Status*: Proposed
 
 ## Context
 

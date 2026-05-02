@@ -1,10 +1,6 @@
 # ADR-018: Feature Module Layout
 
-## Status
-
-Accepted
-
-Proposed
+*Status*: Accepted
 
 ## Date
 

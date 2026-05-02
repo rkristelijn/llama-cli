@@ -15,6 +15,8 @@
 #include <string>
 
 /** Safe string-to-int conversion. Returns fallback on invalid input. */
+/// Safe string-to-int conversion with fallback value.
+/// Returns fallback on parse failure instead of throwing.
 static int safe_stoi(const std::string& val, int fallback) {
   try {
     return std::stoi(val);
@@ -56,6 +58,7 @@ static void parse_host_port(const std::string& val, std::string& host, std::stri
 }
 
 /** Read an environment variable into a string, return true if set */
+/// Read an environment variable into out. Returns true if set and non-empty.
 static bool env_get(const char* name, std::string& out) {
   const char* val = std::getenv(name);
   if (val) {
@@ -119,7 +122,9 @@ void load_dotenv(const std::string& path, Config& c) {
       std::istringstream ss(val);
       std::string token;
       while (std::getline(ss, token, ',')) {
-        if (!token.empty()) c.hosts.push_back(token);
+        if (!token.empty()) {
+          c.hosts.push_back(token);
+        }
       }
     } else if (key == "OLLAMA_PORT") {
       c.port = val;
@@ -131,8 +136,11 @@ void load_dotenv(const std::string& path, Config& c) {
       c.exec_timeout = safe_stoi(val, 30);
     } else if (key == "LLAMA_MAX_OUTPUT") {
       c.max_output = safe_stoi(val, 10000);
+    } else if (key == "LLAMA_MAX_HISTORY") {
+      c.max_history = safe_stoi(val, 0);
     } else if (key == "OLLAMA_SYSTEM_PROMPT") {
       c.system_prompt = val;
+      c.system_prompt_override = true;
     } else if (key == "LLAMA_PROVIDER") {
       c.provider = val;
     } else if (key == "LLAMA_PROMPT_COLOR") {
@@ -161,6 +169,9 @@ void load_dotenv(const std::string& path, Config& c) {
 }
 
 /** Validate the configuration, print errors and exit on failure */
+/// Validate config values after all sources are merged.
+/// Checks port range, timeout positivity, model non-empty.
+/// Prints errors to stderr and returns false on failure.
 static bool validate_config(const Config& c) {
   bool ok = true;
   if (c.host.empty()) {
@@ -225,8 +236,12 @@ Config load_env(const Config& defaults) {
   if (env_get("LLAMA_MAX_OUTPUT", val)) {
     c.max_output = safe_stoi(val, 10000);
   }
+  if (env_get("LLAMA_MAX_HISTORY", val)) {
+    c.max_history = safe_stoi(val, 0);
+  }
   if (env_get("OLLAMA_SYSTEM_PROMPT", val)) {
     c.system_prompt = val;
+    c.system_prompt_override = true;
   }
   if (std::getenv("NO_COLOR")) {
     c.no_color = true;
@@ -307,6 +322,7 @@ static const IntOptDef int_opts[] = {
     {"--timeout=", "-t", &Config::timeout},
     {"--exec-timeout=", nullptr, &Config::exec_timeout},
     {"--max-output=", nullptr, &Config::max_output},
+    {"--max-history=", nullptr, &Config::max_history},
 };
 
 /** Try to match arg against a long option prefix (e.g. "--host=value").
@@ -327,6 +343,15 @@ static bool match_string_opts(const std::string& arg, int& i, int argc, const ch
     if (val.empty() && opt.short_flag && arg == opt.short_flag && i + 1 < argc) {
       val = argv[++i];
     }
+    // Support --key value (space-separated) in addition to --key=value
+    if (val.empty()) {
+      std::string prefix(opt.long_prefix);
+      // Strip trailing '=' to get bare flag name (e.g. "--model=" -> "--model")
+      std::string bare = prefix.substr(0, prefix.size() - 1);
+      if (arg == bare && i + 1 < argc) {
+        val = argv[++i];
+      }
+    }
     if (!val.empty()) {
       c.*opt.field = val;
       return true;
@@ -342,6 +367,14 @@ static bool match_int_opts(const std::string& arg, int& i, int argc, const char*
     std::string val = match_long(arg, opt.long_prefix);
     if (val.empty() && opt.short_flag && arg == opt.short_flag && i + 1 < argc) {
       val = argv[++i];
+    }
+    // Support --key value (space-separated) in addition to --key=value
+    if (val.empty()) {
+      std::string prefix(opt.long_prefix);
+      std::string bare = prefix.substr(0, prefix.size() - 1);
+      if (arg == bare && i + 1 < argc) {
+        val = argv[++i];
+      }
     }
     if (!val.empty()) {
       c.*opt.field = safe_stoi(val, c.*opt.field);
@@ -437,6 +470,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
       c.mode = Mode::Sync;
     }
   }
+  // Detect if --system-prompt was explicitly set via CLI
+  if (c.system_prompt != base.system_prompt) {
+    c.system_prompt_override = true;
+  }
   return c;
 }
 
@@ -478,6 +515,7 @@ void print_default_env() {
             << "# OLLAMA_TIMEOUT=" << c.timeout << " # HTTP timeout in seconds for LLM generation\n"
             << "# LLAMA_EXEC_TIMEOUT=" << c.exec_timeout << " # Max seconds for shell command execution\n"
             << "# LLAMA_MAX_OUTPUT=" << c.max_output << " # Max chars of command output for LLM context\n"
+            << "# LLAMA_MAX_HISTORY=" << c.max_history << " # Max message pairs to keep (0=unlimited)\n"
             << "# NO_COLOR=1 # Disable colored terminal output\n"
             << "# LLAMA_NO_BANNER=1 # Suppress ASCII banner on startup\n"
             << "# TRACE=1 # Enable trace mode (show HTTP calls and timing)\n"

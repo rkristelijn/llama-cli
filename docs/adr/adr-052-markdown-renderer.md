@@ -1,10 +1,6 @@
 # ADR-052: Markdown Renderer
 
-## Status
-
-Implemented
-
-Implemented
+*Status*: Implemented
 
 ## Date
 

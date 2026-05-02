@@ -14,7 +14,10 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
+#include <mutex>
 #include <sstream>
+
+std::mutex Logger::log_mutex_;
 
 Logger::Logger() {
   // Dev mode: if Makefile exists in cwd, we're running from the repo — log to .tmp/
@@ -31,14 +34,21 @@ Logger::Logger() {
   }
 }
 
+/// Singleton accessor — creates the logger on first call.
+/// Path is auto-detected: .tmp/ for dev, ~/.llama-cli/ for installed.
 Logger& Logger::instance() {
   static Logger instance;
   return instance;
 }
 
+/// Return the resolved log file path (for /log command and tests).
 const std::string& Logger::path() const { return log_path_; }
 
+/// Write a structured event to the JSONL log file.
+/// Each event is one JSON line with timestamp, agent, action, I/O, and metrics.
+/// Writes are serialized via a mutex to ensure each JSONL record is emitted atomically.
 void Logger::log(const Event& e) {
+  std::lock_guard<std::mutex> lock(log_mutex_);
   // Get current timestamp in UTC
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
@@ -48,7 +58,9 @@ void Logger::log(const Event& e) {
   ts << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
   ts << '.' << std::setfill('0') << std::setw(3) << ms.count() << 'Z';
 
-  // Escape special characters for JSON (complete per RFC 8259)
+  // Escape special characters for JSON (complete per RFC 8259).
+  // Handles quotes, backslashes, control chars, and non-printable bytes.
+  // Returns a string safe for embedding in a JSON string value.
   auto escape = [](const std::string& s) {
     std::string r;
     for (unsigned char c : s) {

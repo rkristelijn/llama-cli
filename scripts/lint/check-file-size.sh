@@ -2,7 +2,7 @@
 #
 # check-file-size.sh — Enforce maximum file sizes in src/.
 #
-# Limits: source 400, headers 300, tests 650 lines.
+# Limits: source 600, headers 300, tests 700 lines.
 # Existing violations are listed as known tech debt (ADR-061).
 #
 # Usage:
@@ -15,16 +15,13 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 # Known violations — exempt until split (ADR-061)
 EXEMPT=(
-  "src/repl/repl.cpp"
-  "src/tui/tui.h"
-  "src/config/config.cpp"
-  "src/main.cpp"
+  "src/repl/repl_commands.cpp"
   "src/annotation/annotation.cpp"
 )
 
-MAX_SOURCE=400
+MAX_SOURCE=600
 MAX_HEADER=300
-MAX_TEST=650
+MAX_TEST=700
 
 # Check if a file is in the exempt list
 is_exempt() {

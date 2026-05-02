@@ -2,7 +2,6 @@
 // Uses injectable chat function and string streams for I/O
 // Tests: basic flow, history, commands, write y/n/s, exec !/!!/<exec>,
 // /set toggles, /version
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "repl/repl.h"
 
@@ -16,6 +15,8 @@ extern volatile sig_atomic_t g_interrupted;
 #include <sstream>
 
 #include "config/config.h"
+#include "repl/repl_commands.h"
+#include "test_helpers.h"
 
 // Mock chat: returns last user message prefixed with "echo: "
 static std::string echo_chat(const std::vector<Message>& messages) { return "echo: " + messages.back().content; }
@@ -32,14 +33,6 @@ static std::vector<ModelInfo> mock_model_info(const Config&) {
 
 // Mock hardware: returns dummy hardware info
 static HardwareInfo mock_hw() { return {16, 8, "mock-cpu", "mock-gpu"}; }
-
-// Config with empty system prompt for simpler test assertions
-static Config test_cfg() {
-  Config c;
-  c.system_prompt = "";
-  c.warmup = false;
-  return c;
-}
 
 SCENARIO ("REPL basic flow") {
   GIVEN ("user types a prompt and then exits") {
@@ -160,6 +153,38 @@ SCENARIO ("REPL conversation history") {
       cfg.memory_path = "";
       cfg.preferences_path = "";
       run_repl(sys_chat, cfg, in, out);
+    }
+  }
+}
+
+SCENARIO ("REPL sliding window trims old messages") {
+  GIVEN ("max_history is set to 2 pairs") {
+    std::vector<size_t> sizes;
+    auto tracking_chat = [&](const std::vector<Message>& msgs) {
+      sizes.push_back(msgs.size());
+      return "ok";
+    };
+    // 4 prompts: after 3rd, history should be trimmed to system + last 2 pairs
+    std::istringstream in("a\nb\nc\nd\nexit\n");
+    std::ostringstream out;
+    WHEN ("the REPL runs") {
+      Config cfg = test_cfg();
+      cfg.max_history = 2;
+      run_repl(tracking_chat, cfg, in, out);
+      THEN ("history is capped at 4 non-system messages") {
+        // Prompt 1: [user] = 1 msg
+        CHECK (sizes[0] == 1)
+          ;
+        // Prompt 2: [user, assistant, user] = 3 msgs
+        CHECK (sizes[1] == 3)
+          ;
+        // Prompt 3: trimmed to last 2 pairs = 4 msgs
+        CHECK (sizes[2] == 4)
+          ;
+        // Prompt 4: still 4 (old trimmed away)
+        CHECK (sizes[3] == 4)
+          ;
+      }
     }
   }
 }
@@ -620,6 +645,55 @@ SCENARIO ("REPL /rate command") {
     THEN ("response not found message is shown") {
       CHECK (out.str().find("Response not found") != std::string::npos)
         ;
+    }
+  }
+}
+
+SCENARIO ("dispatch_command handles slash commands") {
+  GIVEN ("a ReplState with mock functions") {
+    ChatFn chat = echo_chat;
+    ModelsFn models = [](const Config&) { return std::vector<std::string>{"model1"}; };
+    Config cfg;
+    std::vector<Message> history;
+    std::istringstream in("");
+    std::ostringstream out;
+    ReplState s = {chat, nullptr, models, nullptr, nullptr, nullptr, cfg, history, in, out};
+
+    WHEN ("dispatch_command is called with /clear") {
+      history.push_back({"user", "hello"});
+      dispatch_command("clear", "", s);
+      THEN ("history is cleared") {
+        CHECK (history.empty())
+          ;
+        CHECK (out.str().find("[history cleared]") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with /version") {
+      dispatch_command("version", "", s);
+      THEN ("version is printed") {
+        CHECK (out.str().find("llama-cli") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with unknown command") {
+      dispatch_command("nonexistent", "", s);
+      THEN ("error message is shown") {
+        CHECK (out.str().find("Unknown command") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with /set without args") {
+      dispatch_command("set", "", s);
+      THEN ("options are listed") {
+        CHECK (out.str().find("markdown") != std::string::npos)
+          ;
+        CHECK (out.str().find("color") != std::string::npos)
+          ;
+      }
     }
   }
 }

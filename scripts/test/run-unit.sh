@@ -16,10 +16,17 @@ BUILD_DIR="${1:-build}"
 
 main() {
   echo "==> make test-unit"
+  if [[ ! -f "${BUILD_DIR}/CMakeCache.txt" ]]; then
+    echo "  [error] No build found in ${BUILD_DIR}/. Run 'make build' first." >&2
+    exit 1
+  fi
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
     name="$(basename "$t")"
-    cmake --build "${BUILD_DIR}" --target "${name}" > /dev/null
+    if ! cmake --build "${BUILD_DIR}" --target "${name}" > /dev/null 2>&1; then
+      echo "  [error] Failed to build ${name}. Run 'make build' to see errors." >&2
+      exit 1
+    fi
   done
   # Remove stale coverage data after rebuild to prevent gcda merge errors
   find "${BUILD_DIR}" -name "*.gcda" -delete 2>/dev/null || true

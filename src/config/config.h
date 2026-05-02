@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "system_prompt_generated.h"
+
 /**
  * Application configuration container for the CLI.
  *
@@ -45,6 +47,7 @@ struct Config {
   int timeout = 120;                                       ///< HTTP request timeout in seconds
   int exec_timeout = 30;                                   ///< Max seconds for command execution
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
+  int max_history = 0;                                     ///< Max message pairs to keep (0=unlimited, sliding window)
   bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)
   bool no_banner = false;                                  ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
   bool bofh = false;                                       ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
@@ -59,37 +62,14 @@ struct Config {
   std::string session_path;                                ///< Session file for multi-turn sync (--session, ADR-056)
   std::string capabilities;                                ///< Capability flags: read,write,exec (--capabilities, ADR-056)
   std::string sandbox = ".";                               ///< Sandbox root for file ops (--sandbox, ADR-056)
+  bool system_prompt_override = false;                     ///< True if user explicitly set --system-prompt
   bool allow_web_search = false;                           ///< Enable web search tool (--web-search, ADR-057)
   std::string search_url = "http://localhost:8888";        ///< SearXNG-compatible JSON API base URL (ADR-057)
   std::string search_lang = "en-US";                       ///< Search language, e.g. en-US, nl-NL (ADR-057)
   std::string search_location;                             ///< Search location, e.g. "Eindhoven, NL" (ADR-057)
   std::string memory_path = ".cache/llama-memory.md";      ///< Memory file (ADR-059)
   std::string preferences_path = ".preferences/style.md";  ///< Preferences file (ADR-059)
-  std::string system_prompt =                              ///< System prompt for conversation context
-      "You are llama-cli, a local AI assistant running in a terminal. "
-      "Keep responses concise and relevant. Always respond in the same "
-      "language as the user's message. "
-      "You can run shell commands with <exec>command</exec> — use this "
-      "proactively "
-      "to explore files, find information, and verify your work. "
-      "To read a file, use <read path=\"file\" lines=\"10-20\"/> for a line "
-      "range, "
-      "<read path=\"file\" search=\"term\"/> to search, or <read "
-      "path=\"file\"/> for the full file. "
-      "To modify an existing file, prefer <str_replace "
-      "path=\"file\"><old>exact old text</old><new>replacement</new>"
-      "</str_replace> — this is safer than rewriting the whole file. "
-      "Use <write file=\"path\">full content</write> only for new files. "
-      "The user will confirm before any write. Output is fed back to you. "
-      "When you receive command output, ANALYZE it — do not repeat it "
-      "verbatim. "
-      "Do NOT ask for confirmation or file paths — the client handles that. "
-      "Just include the tags directly in your response. "
-      "Always put your explanation BEFORE the tags, never after. "
-      "IMPORTANT: Never claim code contains specific patterns, functions, "
-      "or design choices unless you have read the actual file content in "
-      "this conversation. If you have not read a file, say so instead of "
-      "guessing. Do not give scores or ratings without measurable criteria.";
+  std::string system_prompt = DEFAULT_SYSTEM_PROMPT;       ///< System prompt (ADR-069: from res/system-prompt.txt)
   /// Web search tool prompt fragment — appended when allow_web_search is true
   static constexpr const char* web_search_prompt =
       " You can search the web with <search>query</search>. "

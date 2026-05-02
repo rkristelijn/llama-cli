@@ -112,6 +112,8 @@ static std::string extract_braced(const std::string& json, size_t pos) {
 
 /** Extract a JSON string value by key: "key":"value" or "key": "value"
  * Walks the string char-by-char, decoding escape sequences */
+/// Extract a string value for a given key from a JSON object.
+/// Handles escaped quotes within the value. Returns "" if key not found.
 std::string json_extract_string(const std::string& json, const std::string& key) {
   size_t pos = find_key_value(json, key);
   if (pos == std::string::npos || pos >= json.size() || json[pos] != '"') {
@@ -140,6 +142,8 @@ std::string json_extract_string(const std::string& json, const std::string& key)
  *   {"message":{"role":"assistant","content":"hello"}}
  * Returns the full object including braces, e.g. {"role":"assistant",...}
  * Tracks brace nesting depth to find the matching closing brace. */
+/// Extract a nested JSON object for a given key using brace counting.
+/// Returns the full object string including braces, or "" if not found.
 std::string json_extract_object(const std::string& json, const std::string& key) {
   size_t pos = find_key_value(json, key);
   if (pos == std::string::npos || pos >= json.size() || json[pos] != '{') {
@@ -150,6 +154,7 @@ std::string json_extract_object(const std::string& json, const std::string& key)
 
 /** Extract a JSON object starting at a given position.
  * pos must point to '{'. Used to walk arrays of objects. */
+/// Extract a JSON object starting at a known position (brace counting).
 std::string json_extract_object_at(const std::string& json, size_t pos) {
   if (pos >= json.size() || json[pos] != '{') {
     return "";
@@ -160,6 +165,7 @@ std::string json_extract_object_at(const std::string& json, size_t pos) {
 /** Extract a JSON integer value by key: "key":123
  * Skips whitespace after the colon, then reads consecutive digits.
  * Returns 0 if the key is not found (sufficient for token counts). */
+/// Extract an integer value for a given key. Returns 0 if not found.
 int json_extract_int(const std::string& json, const std::string& key) {
   size_t pos = find_key_value(json, key);
   if (pos == std::string::npos) {
@@ -176,6 +182,8 @@ int json_extract_int(const std::string& json, const std::string& key) {
 }
 
 /// Escape a string for JSON output (RFC 8259: quotes, backslashes, control chars)
+/// Escape a string for safe embedding in JSON (quotes, backslashes, control chars).
+/// Used when building request bodies for the Ollama API.
 std::string escape_json(const std::string& s) {
   std::string out;
   for (char c : s) {

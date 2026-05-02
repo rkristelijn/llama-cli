@@ -19,7 +19,7 @@ main() {
   for t in "${TESTS[@]}"; do
     ./"${BUILD_DIR}/${t}" --quiet
   done
-  bash scripts/check/comment-ratio.sh | grep "PASS" || bash scripts/check/comment-ratio.sh
+  bash scripts/lint/check-comment-ratio.sh | grep "PASS" || bash scripts/lint/check-comment-ratio.sh
 }
 
 main "$@"

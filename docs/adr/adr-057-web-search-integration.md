@@ -1,10 +1,6 @@
 # ADR-057: Web Search Integration via Tool Annotations
 
-## Status
-
-Implemented
-
-Implemented
+*Status*: Implemented
 
 ## Context
 

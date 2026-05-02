@@ -6,7 +6,7 @@ FULL ?= 0
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build clean run start s log test t test-unit e2e check full-check check-ai \
+.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-full full-check mutation check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
 	tidy complexity comment-ratio docs file-size sast sast-secret sast-security consistency \
@@ -21,7 +21,10 @@ setup: ## Install all dependencies
 	@bash scripts/dev/setup.sh
 
 build: all ## Build the project
-	@echo "build ✓"
+#      	   shellcheck           ✓
+#          yamllint             ✓
+#          rumdl                ✓
+	@echo "  build                ✓"
 
 start: all ## Build and run the REPL (alias: s)
 	@./$(BINARY) $(ARGS)
@@ -52,10 +55,17 @@ lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity com
 
 test: build test-unit e2e ## Run all tests (builds first)
 
-check: build lint test sast ## Full quality gate (CI/pre-push)
+check-fast: build format ## Tier 1: format + build (AI auto-fix loop)
+
+check: build lint test sast ## Tier 2: full quality gate (CI/pre-push)
+
+check-full: check mutation ## Tier 3: exhaustive + mutation (PR gate)
 
 full-check: ## Run exhaustive quality checks (FULL=1)
 	@$(MAKE) FULL=1 check
+
+mutation: ## Run mutation testing (Mull, slow — PR only)
+	@bash scripts/test/run-mutation.sh
 
 check-ai: ## Run checks with condensed output
 	@$(MAKE) -s check 2>&1 | grep -E "^\s*([0-9]+|src/|==>|\[|FAIL|All|knownCondition|always false|too many|warning:|error:)" | grep -v "^$$"

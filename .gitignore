@@ -1,6 +1,7 @@
 build/
 build-fuzz/
 build-cov/
+build-mull/
 .cache/
 .preferences/
 .tmp/

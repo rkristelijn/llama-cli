@@ -1,18 +1,16 @@
 # 007: Exec Output Tuning
 
-*Status*: Idea · *Date*: 2026-04-19 · *Issue*: [#27](https://github.com/rkristelijn/llama-cli/issues/27)
+*Status*: ✅ Done · *Date*: 2026-04-19 · *Issue*: [#27](https://github.com/rkristelijn/llama-cli/issues/27)
 
 ## Problem
 
 After `<exec>` output is fed back to the LLM, it tends to repeat the output verbatim instead of interpreting it. Wastes tokens and provides no value.
 
-## Idea
+## Solution (implemented)
 
-Tune the system prompt to instruct the LLM to analyze exec output, not parrot it. Possible additions:
-
-- "When you receive command output, summarize findings — do not repeat the output."
-- Truncate large outputs before feeding back (keep first/last N lines)
-- Add a `[command output — analyze, don't repeat]` wrapper around exec results
+1. **System prompt instruction**: "When you receive command output, ANALYZE it — do not repeat it verbatim." (see `config.h`)
+2. **Output truncation**: `LLAMA_MAX_OUTPUT` (default 10000 chars) truncates large outputs with a `[truncated at N chars]` marker before feeding back to the LLM (see `exec.cpp`)
+3. **Configurable**: `--max-output` CLI flag, `LLAMA_MAX_OUTPUT` env var, `.env` support
 
 ### References
 

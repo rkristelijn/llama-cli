@@ -1,0 +1,7 @@
+// Auto-generated from res/system-prompt.txt — do not edit manually.
+#ifndef LLAMA_CLI_SYSTEM_PROMPT_GENERATED_H
+#define LLAMA_CLI_SYSTEM_PROMPT_GENERATED_H
+
+inline constexpr const char* DEFAULT_SYSTEM_PROMPT = R"PROMPT(@SYSTEM_PROMPT_CONTENT@)PROMPT";
+
+#endif  // LLAMA_CLI_SYSTEM_PROMPT_GENERATED_H

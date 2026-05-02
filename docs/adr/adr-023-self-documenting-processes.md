@@ -1,10 +1,6 @@
 # ADR-023: Self-Documenting Processes
 
-## Status
-
-Implemented
-
-Implemented
+*Status*: Implemented
 
 ## Context
 

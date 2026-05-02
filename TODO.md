@@ -33,6 +33,7 @@ Feature ideas and larger tasks live in [docs/backlog/](docs/backlog/README.md). 
 - [ ] Evaluate remaining 12-factor principles (#10)
 - [x] The Makefile is a mess again, need to generate a tree view with what is calling what and verify the functionality is clean, maybe we should think about subcommands or grouping things
 - [-] add !p and !c commands to copy the result or paste or should it be /copy /paste to keep it in line, should have a user/developer interaction design to keep things consistent and logic/intuitive (partial: `c` option added to all confirmation prompts)
+- [ ] Smart confirmation: free-text input as follow-up prompt (e.g. "n, use a switch instead") — currently unrecognized input just re-prompts ([004](docs/backlog/004-smart-confirmation.md))
 - [x] version should be bumped in pipeline not in merge request and it should bump properly feat/fix/breaking
 - [ ] we should have /private to avoid logging
 - [x] Logger should detect dev vs installed context: log to `./events.jsonl` (repo-local) when running from source, `~/.llama-cli/events.jsonl` when installed — keeps dev and production logs separate

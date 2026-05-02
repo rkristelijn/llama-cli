@@ -1,16 +1,19 @@
 # 034: Fix Release Pipeline
 
-*Status*: Idea · *Date*: 2026-04-19 · *Issue*: [#98](https://github.com/rkristelijn/llama-cli/issues/98)
+*Status*: ✅ Done · *Date*: 2026-04-19 · *Issue*: [#98](https://github.com/rkristelijn/llama-cli/issues/98)
 
 ## Problem
 
 Release is broken: version shows just `v`, download filenames are wrong. Users can't easily download the tool.
 
-## Idea
+## Solution (implemented)
 
-- Fix VERSION file / tag extraction in release workflow
-- Correct binary artifact naming in CI
-- Update README install section with working download links
+- Auto-versioning from conventional commits (patch/minor/major detection)
+- Multi-platform builds: linux x64/arm64, macOS arm64
+- Correct binary naming (`llama-cli-linux-x64`, etc.)
+- Changelog generation via git-cliff
+- GitHub Release with artifacts and checksums
+- One-liner install script in README
 
 ### References
 
