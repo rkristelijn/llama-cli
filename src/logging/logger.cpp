@@ -14,7 +14,10 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
+#include <mutex>
 #include <sstream>
+
+std::mutex Logger::log_mutex_;
 
 Logger::Logger() {
   // Dev mode: if Makefile exists in cwd, we're running from the repo — log to .tmp/
@@ -43,8 +46,9 @@ const std::string& Logger::path() const { return log_path_; }
 
 /// Write a structured event to the JSONL log file.
 /// Each event is one JSON line with timestamp, agent, action, I/O, and metrics.
-/// File is opened in append mode — safe for concurrent writes.
+/// Writes are serialized via a mutex to ensure each JSONL record is emitted atomically.
 void Logger::log(const Event& e) {
+  std::lock_guard<std::mutex> lock(log_mutex_);
   // Get current timestamp in UTC
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);

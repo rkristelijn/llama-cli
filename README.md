@@ -70,6 +70,8 @@ sudo make install
 
 ## Usage
 
+> The package will be publised once stable:
+
 ```bash
 hello                          # chat with the LLM
 !ls src/                       # run command, output to terminal
