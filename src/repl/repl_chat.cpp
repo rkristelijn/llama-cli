@@ -14,9 +14,11 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <memory>
 #include <set>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "annotation/annotation.h"
 #include "logging/logger.h"
