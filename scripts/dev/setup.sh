@@ -332,8 +332,8 @@ main() {
   # Runtime
   install_ollama
 
-  # Mutation testing (optional but recommended)
-  install_mull
+  # Mutation testing (optional — failure should not abort setup)
+  install_mull || echo "  [warn] mull install failed (optional, continuing)"
 
   local clang_tidy="clang-tidy"
   if ! has clang-tidy && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
