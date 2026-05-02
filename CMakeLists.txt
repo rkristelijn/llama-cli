@@ -63,6 +63,14 @@ set(LIB_SOURCES
   src/repl/repl_search.cpp
   src/repl/repl_model.cpp
   src/tui/markdown.cpp
+  src/tui/markdown_stream.cpp
+  src/tui/highlight.cpp
+  src/tui/mermaid/mermaid.cpp
+  src/tui/mermaid/renderer.cpp
+  src/tui/mermaid/flowchart.cpp
+  src/tui/mermaid/sequence.cpp
+  src/tui/mermaid/pie.cpp
+  src/tui/mermaid/state.cpp
   src/tui/table.cpp
   src/tui/spinner.cpp
   src/command/command.cpp
@@ -77,7 +85,7 @@ set(LIB_SOURCES
   src/sync/sync_annotations.cpp
   src/util/util.cpp
 )
-set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging)
+set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging ${CMAKE_BINARY_DIR}/generated)
 
 # Get version from git tags (e.g. v0.19.0 → 0.19.0)
 execute_process(
@@ -100,6 +108,15 @@ if(BUILD_TZ STREQUAL "")
   set(BUILD_TZ "+0000")
 endif()
 add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
+
+# Embed system prompt from res/system-prompt.txt (ADR-069)
+file(READ "${CMAKE_SOURCE_DIR}/res/system-prompt.txt" SYSTEM_PROMPT_CONTENT)
+string(STRIP "${SYSTEM_PROMPT_CONTENT}" SYSTEM_PROMPT_CONTENT)
+configure_file(
+  "${CMAKE_SOURCE_DIR}/res/system_prompt.h.in"
+  "${CMAKE_BINARY_DIR}/generated/system_prompt_generated.h"
+  @ONLY
+)
 
 # Inject git commit SHA at compile time for session logging
 execute_process(
@@ -164,7 +181,7 @@ add_executable(test_util src/util/util_test.cpp src/util/util.cpp)
 target_include_directories(test_util PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_util PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
@@ -194,6 +211,14 @@ target_link_libraries(test_annotations PRIVATE doctest::doctest httplib::httplib
 add_executable(test_markdown src/tui/markdown_it.cpp ${REPL_LIBS})
 target_include_directories(test_markdown PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_markdown PRIVATE doctest::doctest httplib::httplib)
+
+add_executable(test_highlight src/tui/highlight_test.cpp src/tui/highlight.cpp)
+target_include_directories(test_highlight PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_highlight PRIVATE doctest::doctest)
+
+add_executable(test_diagram src/tui/mermaid/renderer_test.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/mermaid.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/table.cpp)
+target_include_directories(test_diagram PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_diagram PRIVATE doctest::doctest)
 
 add_executable(test_trace src/trace/trace_test.cpp src/trace/trace.cpp)
 target_include_directories(test_trace PRIVATE ${SRC_INCLUDE})

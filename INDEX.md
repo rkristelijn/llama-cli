@@ -60,6 +60,10 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-066-solid-refactoring.md`](docs/adr/adr-066-solid-refactoring.md) — ADR-066: SOLID Refactoring Strategy
 - [`docs/adr/adr-067-mutation-testing.md`](docs/adr/adr-067-mutation-testing.md) — ADR-067: Mutation Testing via Mull
 - [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md)
+- [`docs/adr/adr-069-embedded-system-prompt.md`](docs/adr/adr-069-embedded-system-prompt.md) — ADR-069: Embedded System Prompt from Text File
+- [`docs/adr/adr-069-memory-safety-verification-strategy.md`](docs/adr/adr-069-memory-safety-verification-strategy.md)
+- [`docs/adr/adr-070-pluggable-mermaid-renderers.md`](docs/adr/adr-070-pluggable-mermaid-renderers.md) — ADR-070: Pluggable Mermaid Diagram Renderers
+- [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -264,9 +268,26 @@ Auto-generated overview of all files in this repo.
 - [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
+- [`src/tui/highlight_test.cpp`](src/tui/highlight_test.cpp) — /**
+- [`src/tui/highlight.cpp`](src/tui/highlight.cpp) — /**
+- [`src/tui/highlight.h`](src/tui/highlight.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
+- [`src/tui/markdown_stream.cpp`](src/tui/markdown_stream.cpp) — /**
 - [`src/tui/markdown.cpp`](src/tui/markdown.cpp) — /**
 - [`src/tui/markdown.h`](src/tui/markdown.h) — /**
+- [`src/tui/mermaid/flowchart.cpp`](src/tui/mermaid/flowchart.cpp) — /**
+- [`src/tui/mermaid/flowchart.h`](src/tui/mermaid/flowchart.h) — /**
+- [`src/tui/mermaid/mermaid.cpp`](src/tui/mermaid/mermaid.cpp) — /**
+- [`src/tui/mermaid/mermaid.h`](src/tui/mermaid/mermaid.h) — /**
+- [`src/tui/mermaid/pie.cpp`](src/tui/mermaid/pie.cpp) — /**
+- [`src/tui/mermaid/pie.h`](src/tui/mermaid/pie.h) — /**
+- [`src/tui/mermaid/renderer_test.cpp`](src/tui/mermaid/renderer_test.cpp) — /**
+- [`src/tui/mermaid/renderer.cpp`](src/tui/mermaid/renderer.cpp) — /**
+- [`src/tui/mermaid/renderer.h`](src/tui/mermaid/renderer.h) — /**
+- [`src/tui/mermaid/sequence.cpp`](src/tui/mermaid/sequence.cpp) — /**
+- [`src/tui/mermaid/sequence.h`](src/tui/mermaid/sequence.h) — /**
+- [`src/tui/mermaid/state.cpp`](src/tui/mermaid/state.cpp) — /**
+- [`src/tui/mermaid/state.h`](src/tui/mermaid/state.h) — /**
 - [`src/tui/spinner.cpp`](src/tui/spinner.cpp) — /**
 - [`src/tui/spinner.h`](src/tui/spinner.h) — /**
 - [`src/tui/table.cpp`](src/tui/table.cpp) — /**
@@ -276,4 +297,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_273 files indexed._
+_294 files indexed._

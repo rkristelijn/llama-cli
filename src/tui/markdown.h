@@ -35,7 +35,7 @@ std::string try_list(const std::string& line, bool color);
 
 // --- Full rendering ---
 std::string render_line(const std::string& line, bool color);
-std::string render_code_block_line(const std::string& line, bool& in_code_block);
+std::string render_code_block_line(const std::string& line, bool& in_code_block, std::string& code_lang);
 std::string render_lines(const std::string& text, bool color);
 std::string render_markdown(const std::string& text, bool color);
 
@@ -65,6 +65,8 @@ class StreamRenderer {
   std::string buf_;
   std::vector<std::string> table_buf_;
   bool in_code_block_ = false;
+  std::string code_lang_;
+  std::string mermaid_buf_;
 };
 
 #endif  // LLAMA_CLI_MARKDOWN_H

@@ -14,6 +14,9 @@
 
 #include <algorithm>
 
+#include "tui/highlight.h"
+#include "tui/mermaid/mermaid.h"
+#include "tui/mermaid/renderer.h"
 #include "tui/table.h"
 #include "tui/tui.h"
 
@@ -253,18 +256,33 @@ std::string render_line(const std::string& line, bool color) {
   return render_inline(line, color) + "\n";
 }
 
-/// Render a line inside a code block (cyan). Toggles state on ``` fences.
-std::string render_code_block_line(const std::string& line, bool& in_code_block) {
+/// Render a line inside a code block with syntax highlighting.
+/// Extracts language from opening fence, applies highlighter to content lines.
+std::string render_code_block_line(const std::string& line, bool& in_code_block, std::string& code_lang) {
   if (line.rfind("```", 0) == 0) {
+    if (!in_code_block) {
+      // Opening fence — extract language tag
+      code_lang = line.size() > 3 ? line.substr(3) : "";
+      // Strip whitespace from language tag
+      while (!code_lang.empty() && code_lang.back() == ' ') {
+        code_lang.pop_back();
+      }
+    } else {
+      code_lang.clear();
+    }
     in_code_block = !in_code_block;
+    return "\033[2m" + line + "\033[0m\n";
   }
-  return "\033[36m" + line + "\033[0m\n";
+  // Content line — apply syntax highlighting
+  return active_highlighter().highlight_line(line, code_lang) + "\n";
 }
 
 /// Render multiline text: splits on newlines, handles code fences and tables.
 std::string render_lines(const std::string& text, bool color) {
   std::string result;
   bool in_code_block = false;
+  std::string code_lang;
+  std::string mermaid_buf;
   std::vector<std::string> table_buf;
   size_t pos = 0;
   while (pos < text.size()) {
@@ -276,7 +294,40 @@ std::string render_lines(const std::string& text, bool color) {
         result += render_table(table_buf, color);
         table_buf.clear();
       }
-      result += render_code_block_line(line, in_code_block);
+      // Handle mermaid blocks: buffer content, render on close
+      if (in_code_block && code_lang == "mermaid") {
+        if (line.rfind("```", 0) == 0) {
+          // Closing fence — render the diagram
+          std::ostringstream mout;
+          if (tui::diagram_registry().render(mermaid_buf, mout)) {
+            result += mout.str();
+          } else {
+            // Fallback: show as normal code block
+            result += "\033[2m```mermaid\033[0m\n";
+            result += mermaid_buf;
+            result += "\033[2m```\033[0m\n";
+          }
+          mermaid_buf.clear();
+          in_code_block = false;
+          code_lang.clear();
+        } else {
+          mermaid_buf += line + "\n";
+        }
+      } else if (!in_code_block && line.rfind("```", 0) == 0) {
+        // Opening fence — extract language, check if mermaid
+        code_lang = line.size() > 3 ? line.substr(3) : "";
+        while (!code_lang.empty() && code_lang.back() == ' ') {
+          code_lang.pop_back();
+        }
+        in_code_block = true;
+        if (code_lang == "mermaid") {
+          mermaid_buf.clear();
+        } else {
+          result += "\033[2m" + line + "\033[0m\n";
+        }
+      } else {
+        result += render_code_block_line(line, in_code_block, code_lang);
+      }
     } else if (is_table_row(line)) {
       table_buf.push_back(line);
     } else {
@@ -310,120 +361,3 @@ std::string render_markdown(const std::string& text, bool color) {
 }
 
 }  // namespace tui
-
-// --- StreamRenderer implementation ---
-// Processes tokens character-by-character, buffering until newline.
-// On newline: renders the complete line using block-level markdown rules.
-// Annotation tags (<exec>, <write>, etc.) are suppressed from output.
-
-StreamRenderer::StreamRenderer(std::ostream& out, bool color) : out_(out), color_(color) {}
-
-void StreamRenderer::write(const std::string& token) {
-  try {
-    for (char c : token) {
-      buf_ += c;
-      if (c == '\n') {
-        flush_line();
-      }
-    }
-  } catch (...) {
-    out_ << token;
-  }
-}
-
-void StreamRenderer::finish() {
-  try {
-    flush_table_buf();
-    if (!buf_.empty()) {
-      buf_ += '\n';
-      flush_line();
-    }
-    if (in_code_block_) {
-      out_ << "\033[0m";
-    }
-  } catch (...) {
-    out_ << buf_;
-    buf_.clear();
-  }
-}
-
-void StreamRenderer::flush_line() {
-  std::string line = buf_;
-  buf_.clear();
-  std::string content = line.substr(0, line.size() - 1);
-
-  // Hide annotation tags — processed separately after streaming
-  if (content.find("<exec>") != std::string::npos || content.find("</exec>") != std::string::npos ||
-      content.find("<write ") != std::string::npos || content.find("</write>") != std::string::npos ||
-      content.find("<str_replace ") != std::string::npos || content.find("</str_replace>") != std::string::npos ||
-      content.find("<add_line ") != std::string::npos || content.find("<delete_line ") != std::string::npos ||
-      content.find("<read ") != std::string::npos || content.find("<search>") != std::string::npos ||
-      content.find("</search>") != std::string::npos) {
-    return;
-  }
-
-  // Plain mode: no ANSI rendering, just buffer tables
-  if (!color_) {
-    flush_line_plain(content, line);
-    return;
-  }
-  // Buffer table rows until a non-table line triggers rendering
-  if (!in_code_block_ && tui::is_table_row(content)) {
-    table_buf_.push_back(content);
-    return;
-  }
-  flush_table_buf();
-
-  // Toggle code fence state and apply dim styling
-  if (line.size() >= 4 && line.substr(0, 3) == "```") {
-    in_code_block_ = !in_code_block_;
-    out_ << (in_code_block_ ? "\033[2m" : "") << line << (in_code_block_ ? "" : "\033[0m");
-    return;
-  }
-  if (in_code_block_) {
-    out_ << line;
-    return;
-  }
-  render_content_line(content);
-}
-
-void StreamRenderer::flush_line_plain(const std::string& content, const std::string& line) {
-  if (tui::is_table_row(content)) {
-    table_buf_.push_back(content);
-    return;
-  }
-  flush_table_buf();
-  out_ << line;
-}
-
-void StreamRenderer::flush_table_buf() {
-  if (!table_buf_.empty()) {
-    out_ << tui::render_table(table_buf_, color_);
-    table_buf_.clear();
-  }
-}
-
-void StreamRenderer::render_content_line(const std::string& content) {
-  if (!content.empty() && content[0] == '#') {
-    std::string h = tui::try_heading(content);
-    if (!h.empty()) {
-      out_ << h;
-      return;
-    }
-  }
-  if (tui::is_horizontal_rule(content)) {
-    out_ << "\033[2m────────────────────\033[0m\n";
-    return;
-  }
-  if (!content.empty() && content[0] == '>') {
-    std::string bq = (content.size() > 1 && content[1] == ' ') ? content.substr(2) : content.substr(1);
-    out_ << "\033[2m│\033[0m " << tui::render_inline(bq, color_) << "\n";
-    return;
-  }
-  std::string li = tui::try_list(content, color_);
-  if (!li.empty()) {
-    out_ << li;
-    return;
-  }
-  out_ << tui::render_inline(content, color_) << "\n";
-}
