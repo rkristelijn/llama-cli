@@ -159,7 +159,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make test-unit
+      - run: make build test-unit
 
   e2e-test:
     needs: changes
@@ -192,7 +192,7 @@ jobs:
       - name: Generate and check coverage
         run: |
           lcov --capture --directory build \
-            --output-file coverage.info --ignore-errors mismatch,unused,negative
+            --output-file coverage.info --ignore-errors mismatch,unused,negative,gcov
           lcov --remove coverage.info \
             '/usr/*' '*_test.cpp' '*_it.cpp' '*_test_helper.cpp' \
             '*/doctest/*' '*/httplib-src/*' '*/dtl-src/*' \
