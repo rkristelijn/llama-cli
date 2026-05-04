@@ -1,0 +1,8 @@
+# trufflehog.yaml — secret verification scanner configuration
+#
+# Paths to exclude from scanning
+# @see https://github.com/trufflesecurity/trufflehog
+
+# Detectors to exclude (reduce noise for known false positives)
+detectors:
+  - "URI"

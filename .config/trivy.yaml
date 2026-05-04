@@ -1,0 +1,11 @@
+# Trivy configuration
+# @see https://aquasecurity.github.io/trivy/latest/docs/references/configuration/config-file/
+
+scan:
+  skip-dirs:
+    - build
+    - build-fuzz
+    - _deps
+    - .tmp
+    - .cache
+    - node_modules

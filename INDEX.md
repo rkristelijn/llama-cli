@@ -64,6 +64,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-069-memory-safety-verification-strategy.md`](docs/adr/adr-069-memory-safety-verification-strategy.md)
 - [`docs/adr/adr-070-pluggable-mermaid-renderers.md`](docs/adr/adr-070-pluggable-mermaid-renderers.md) — ADR-070: Pluggable Mermaid Diagram Renderers
 - [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
+- [`docs/adr/adr-072-diagram-visualization-strategy.md`](docs/adr/adr-072-diagram-visualization-strategy.md) — ADR-072: Diagram Visualization Strategy & Element Limits
+- [`docs/adr/adr-073-unified-diagram-model.md`](docs/adr/adr-073-unified-diagram-model.md) — ADR-073: Unified Diagram Model — Cross-Diagram Consistency
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -169,6 +171,8 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/ssh-serve.sh`](scripts/dev/ssh-serve.sh)
 - [`scripts/dev/summarize-headers.sh`](scripts/dev/summarize-headers.sh)
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
+- [`scripts/dev/trivi.sh`](scripts/dev/trivi.sh)
+- [`scripts/dev/update-tools.sh`](scripts/dev/update-tools.sh)
 - [`scripts/fmt/format-code.sh`](scripts/fmt/format-code.sh) — format-code.sh — Auto-format C++ source files using clang-format.
 - [`scripts/fmt/format-md.sh`](scripts/fmt/format-md.sh) — format-md.sh — Auto-format Markdown files using rumdl.
 - [`scripts/fmt/format-scripts.sh`](scripts/fmt/format-scripts.sh) — format-scripts.sh — Auto-format shell scripts using shfmt.
@@ -193,11 +197,22 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
+- [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
 - [`scripts/lint/lint-code.sh`](scripts/lint/lint-code.sh) — lint-code.sh — Run cppcheck static analysis on C++ code.
 - [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
 - [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
 - [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
+- [`scripts/security/checkov-scan.sh`](scripts/security/checkov-scan.sh)
+- [`scripts/security/codeql-scan.sh`](scripts/security/codeql-scan.sh)
+- [`scripts/security/docker-check.sh`](scripts/security/docker-check.sh)
+- [`scripts/security/gen-test-images.sh`](scripts/security/gen-test-images.sh)
+- [`scripts/security/grype-scan.sh`](scripts/security/grype-scan.sh)
+- [`scripts/security/osv-scan.sh`](scripts/security/osv-scan.sh)
+- [`scripts/security/sonar-scan.sh`](scripts/security/sonar-scan.sh)
+- [`scripts/security/steg-check.sh`](scripts/security/steg-check.sh)
+- [`scripts/security/syft-sbom.sh`](scripts/security/syft-sbom.sh)
+- [`scripts/security/trufflehog-scan.sh`](scripts/security/trufflehog-scan.sh)
 - [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
 - [`scripts/test/check-feature-coverage.sh`](scripts/test/check-feature-coverage.sh)
 - [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
@@ -275,12 +290,25 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/markdown_stream.cpp`](src/tui/markdown_stream.cpp) — /**
 - [`src/tui/markdown.cpp`](src/tui/markdown.cpp) — /**
 - [`src/tui/markdown.h`](src/tui/markdown.h) — /**
+- [`src/tui/mermaid/barchart.cpp`](src/tui/mermaid/barchart.cpp) — /**
+- [`src/tui/mermaid/barchart.h`](src/tui/mermaid/barchart.h) — /**
 - [`src/tui/mermaid/flowchart.cpp`](src/tui/mermaid/flowchart.cpp) — /**
 - [`src/tui/mermaid/flowchart.h`](src/tui/mermaid/flowchart.h) — /**
+- [`src/tui/mermaid/gantt.cpp`](src/tui/mermaid/gantt.cpp) — /**
+- [`src/tui/mermaid/gantt.h`](src/tui/mermaid/gantt.h) — /**
+- [`src/tui/mermaid/kanban.cpp`](src/tui/mermaid/kanban.cpp) — /**
+- [`src/tui/mermaid/kanban.h`](src/tui/mermaid/kanban.h) — /**
 - [`src/tui/mermaid/mermaid.cpp`](src/tui/mermaid/mermaid.cpp) — /**
 - [`src/tui/mermaid/mermaid.h`](src/tui/mermaid/mermaid.h) — /**
+- [`src/tui/mermaid/mindmap.cpp`](src/tui/mermaid/mindmap.cpp) — /**
+- [`src/tui/mermaid/mindmap.h`](src/tui/mermaid/mindmap.h) — /**
+- [`src/tui/mermaid/orgchart.cpp`](src/tui/mermaid/orgchart.cpp) — /**
+- [`src/tui/mermaid/orgchart.h`](src/tui/mermaid/orgchart.h) — /**
 - [`src/tui/mermaid/pie.cpp`](src/tui/mermaid/pie.cpp) — /**
 - [`src/tui/mermaid/pie.h`](src/tui/mermaid/pie.h) — /**
+- [`src/tui/mermaid/quadrant.cpp`](src/tui/mermaid/quadrant.cpp) — /**
+- [`src/tui/mermaid/quadrant.h`](src/tui/mermaid/quadrant.h) — /**
+- [`src/tui/mermaid/renderer_extra_test.cpp`](src/tui/mermaid/renderer_extra_test.cpp) — /**
 - [`src/tui/mermaid/renderer_test.cpp`](src/tui/mermaid/renderer_test.cpp) — /**
 - [`src/tui/mermaid/renderer.cpp`](src/tui/mermaid/renderer.cpp) — /**
 - [`src/tui/mermaid/renderer.h`](src/tui/mermaid/renderer.h) — /**
@@ -288,6 +316,10 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/mermaid/sequence.h`](src/tui/mermaid/sequence.h) — /**
 - [`src/tui/mermaid/state.cpp`](src/tui/mermaid/state.cpp) — /**
 - [`src/tui/mermaid/state.h`](src/tui/mermaid/state.h) — /**
+- [`src/tui/mermaid/timeline.cpp`](src/tui/mermaid/timeline.cpp) — /**
+- [`src/tui/mermaid/timeline.h`](src/tui/mermaid/timeline.h) — /**
+- [`src/tui/mermaid/venn.cpp`](src/tui/mermaid/venn.cpp) — /**
+- [`src/tui/mermaid/venn.h`](src/tui/mermaid/venn.h) — /**
 - [`src/tui/spinner.cpp`](src/tui/spinner.cpp) — /**
 - [`src/tui/spinner.h`](src/tui/spinner.h) — /**
 - [`src/tui/table.cpp`](src/tui/table.cpp) — /**
@@ -297,4 +329,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_294 files indexed._
+_326 files indexed._
