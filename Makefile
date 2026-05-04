@@ -6,11 +6,11 @@ FULL ?= 0
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-full full-check mutation check-ai \
+.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-full full-check mutation check-ai check-all \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
-	tidy complexity comment-ratio docs file-size sast sast-secret sast-security consistency \
-	coverage coverage-report todo quick index setup install hooks bench features fuzz \
+	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
+	coverage coverage-report todo quick index setup install hooks bench features fuzz update \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch
@@ -51,7 +51,7 @@ clean: ## Remove build artifacts
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts tidy complexity comment-ratio docs file-size consistency ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -107,6 +107,9 @@ lint-makefile: ## Check Makefile conventions
 
 lint-scripts: ## Check shell script conventions (shellcheck)
 	@bash scripts/lint/check-scripts.sh
+
+lint-versions: ## Check version pinning (no hardcoded versions)
+	@bash scripts/lint/check-version-pins.sh
 
 tidy: ## Run clang-tidy (smart: changed files only)
 	@bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
@@ -168,14 +171,22 @@ fuzz: ## Run annotation fuzzer (60s, requires llvm)
 
 ##@ Security
 
-sast: sast-security sast-secret ## Run all SAST checks
+sast: sast-security sast-stegano sast-iac sast-secret sast-trufflehog sast-grype sast-osv sast-checkov ## Run all SAST checks
 
 sast-security: ## Run semgrep security scan
 	@echo "==> running sast-security (semgrep)..."
 	@if command -v semgrep >/dev/null; then \
 		semgrep scan --config auto --error --quiet 2>&1 | grep -v "┌────\|Semgrep CLI\|└─────────────" || true; \
 	else echo "  [skip] semgrep not installed"; fi
-	@echo "  [done] sast-security"
+
+sast-stegano: ## Run steganography scan (zsteg)
+	@bash scripts/security/steg-check.sh
+
+sast-iac: ## Run IaC security scan (trivy)
+	@if command -v trivy >/dev/null; then \
+		trivy fs --scanners misconfig --severity HIGH,CRITICAL \
+			--skip-dirs build --skip-dirs build-fuzz --skip-dirs _deps --skip-dirs .tmp --skip-dirs .cache . ; \
+	else echo "  [skip] trivy not installed"; fi
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
@@ -184,10 +195,39 @@ sast-secret: ## Run gitleaks secret scan
 	else echo "  [skip] gitleaks not installed"; fi
 	@echo "  [done] sast-secret"
 
+sast-trufflehog: ## Run trufflehog verified secret scan
+	@bash scripts/security/trufflehog-scan.sh
+
+sast-grype: ## Run grype vulnerability scan
+	@bash scripts/security/grype-scan.sh
+
+sast-osv: ## Run osv-scanner vulnerability scan
+	@bash scripts/security/osv-scan.sh
+
+sast-checkov: ## Run checkov IaC policy scan
+	@bash scripts/security/checkov-scan.sh
+
+sast-codeql: ## Run CodeQL deep analysis (slow)
+	@bash scripts/security/codeql-scan.sh
+
+sbom: ## Generate SBOM with syft
+	@bash scripts/security/syft-sbom.sh
+
+check-all: check sast sbom ## Run ALL checks (quality + security + SBOM)
+
+sonar: ## Start SonarQube (docker) and run scan
+	@bash scripts/security/sonar-scan.sh
+
 ##@ Development
+
+update: ## Update all development tools to pinned versions
+	@bash scripts/dev/update-tools.sh
 
 bump: ## Bump version (make bump PART=patch|minor|major)
 	@bash scripts/dev/bump.sh "$(or $(PART),$(filter major minor patch,$(MAKECMDGOALS)))"
+
+trivi: ## Run implicit decision scan
+	@bash scripts/dev/trivi.sh
 
 major minor patch:
 	@true
