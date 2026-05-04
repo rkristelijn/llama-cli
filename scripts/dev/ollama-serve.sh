@@ -121,7 +121,7 @@ start_ollama() {
   for setting in "${OLLAMA_SETTINGS[@]}"; do
     export "${setting?}"
   done
-  nohup ollama serve > "$LOG" 2>&1 &
+  nohup ollama serve >"$LOG" 2>&1 &
   sleep 2
 }
 
@@ -136,18 +136,21 @@ verify() {
 
   if [ "$MODE" = "down" ]; then
     if pgrep -f "ollama serve" >/dev/null 2>&1; then
-      echo "  ✗ Process still running"; OK=false
+      echo "  ✗ Process still running"
+      OK=false
     else
       echo "  ✓ No ollama process"
     fi
     if lsof -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then
-      echo "  ✗ Port $PORT still open"; OK=false
+      echo "  ✗ Port $PORT still open"
+      OK=false
     else
       echo "  ✓ Port $PORT free"
     fi
   else
     if ! curl -s --connect-timeout 2 http://127.0.0.1:$PORT >/dev/null; then
-      echo "  ✗ Not reachable on localhost"; OK=false
+      echo "  ✗ Not reachable on localhost"
+      OK=false
     else
       echo "  ✓ Reachable on localhost"
     fi
@@ -160,13 +163,15 @@ verify() {
 
     if [ "$MODE" = "net" ]; then
       if ! curl -s --connect-timeout 2 "http://$MY_IP:$PORT" >/dev/null; then
-        echo "  ✗ Not reachable on $MY_IP"; OK=false
+        echo "  ✗ Not reachable on $MY_IP"
+        OK=false
       else
         echo "  ✓ Reachable on $MY_IP (network exposed)"
       fi
     else
       if curl -s --connect-timeout 2 "http://$MY_IP:$PORT" >/dev/null 2>&1; then
-        echo "  ✗ Still reachable on $MY_IP (should be localhost only)"; OK=false
+        echo "  ✗ Still reachable on $MY_IP (should be localhost only)"
+        OK=false
       else
         echo "  ✓ Not reachable on $MY_IP (localhost only)"
       fi
@@ -177,45 +182,45 @@ verify() {
 }
 
 case "${1:-help}" in
-  up)
-    stop_ollama
-    start_ollama 127.0.0.1
-    echo "✓ Ollama running on 127.0.0.1:$PORT (localhost only)"
-    echo "  Log: $LOG"
-    verify up
-    ;;
-  net)
-    stop_ollama
-    start_ollama 0.0.0.0
-    echo "✓ Ollama running on 0.0.0.0:$PORT (network exposed)"
-    echo "  Log: $LOG"
-    verify net
-    ;;
-  down)
-    stop_ollama
-    echo "✓ Ollama stopped"
-    verify down
-    ;;
-  status)
-    if ! pgrep -f "ollama serve" >/dev/null 2>&1; then
-      echo "Ollama: stopped"
-    elif lsof -iTCP:$PORT -sTCP:LISTEN -nP 2>/dev/null | tail -n +2 | grep -v '127.0.0.1\|\[::1\]' | grep -q .; then
-      echo "Ollama: running (network exposed on 0.0.0.0:$PORT)"
-    else
-      echo "Ollama: running (localhost only on 127.0.0.1:$PORT)"
-    fi
-    ;;
-  help|--help|-h)
-    echo "Usage: ollama-serve.sh <up|net|down|status>"
-    echo ""
-    echo "  up      Start on localhost only (safe)"
-    echo "  net     Start exposed to network (share models)"
-    echo "  down    Stop completely (free resources)"
-    echo "  status  Show current state"
-    ;;
-  *)
-    echo "Unknown command: $1"
-    echo "Run: ollama-serve.sh help"
-    exit 1
-    ;;
+up)
+  stop_ollama
+  start_ollama 127.0.0.1
+  echo "✓ Ollama running on 127.0.0.1:$PORT (localhost only)"
+  echo "  Log: $LOG"
+  verify up
+  ;;
+net)
+  stop_ollama
+  start_ollama 0.0.0.0
+  echo "✓ Ollama running on 0.0.0.0:$PORT (network exposed)"
+  echo "  Log: $LOG"
+  verify net
+  ;;
+down)
+  stop_ollama
+  echo "✓ Ollama stopped"
+  verify down
+  ;;
+status)
+  if ! pgrep -f "ollama serve" >/dev/null 2>&1; then
+    echo "Ollama: stopped"
+  elif lsof -iTCP:$PORT -sTCP:LISTEN -nP 2>/dev/null | tail -n +2 | grep -v '127.0.0.1\|\[::1\]' | grep -q .; then
+    echo "Ollama: running (network exposed on 0.0.0.0:$PORT)"
+  else
+    echo "Ollama: running (localhost only on 127.0.0.1:$PORT)"
+  fi
+  ;;
+help | --help | -h)
+  echo "Usage: ollama-serve.sh <up|net|down|status>"
+  echo ""
+  echo "  up      Start on localhost only (safe)"
+  echo "  net     Start exposed to network (share models)"
+  echo "  down    Stop completely (free resources)"
+  echo "  status  Show current state"
+  ;;
+*)
+  echo "Unknown command: $1"
+  echo "Run: ollama-serve.sh help"
+  exit 1
+  ;;
 esac

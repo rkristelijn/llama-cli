@@ -17,11 +17,11 @@ fi
 echo "==> running e2e tests..."
 for t in e2e/*.sh; do
   case "$t" in
-    *test_live*|*helpers*) continue ;;
+  *test_live* | *helpers*) continue ;;
   esac
-  
+
   echo "  [test] $t"
-  bash "$t" "$BINARY" > /dev/null || {
+  bash "$t" "$BINARY" >/dev/null || {
     echo "FAIL: $t"
     exit 1
   }

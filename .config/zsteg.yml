@@ -1,0 +1,10 @@
+# zsteg-stegano configuration
+#
+# List of files to ignore (glob patterns)
+ignore_files:
+  - "tests/security/steg.png"  # This is our test file, it's expected to fail
+
+# List of strings to ignore in zsteg output
+ignore_strings:
+  - "metadata"
+  - "nothing found"

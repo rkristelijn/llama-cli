@@ -22,14 +22,14 @@ if [[ "${1-}" == "--verbose" ]]; then VERBOSE=1; fi
 SRC_DIR="src"
 ERRFILE=$(mktemp)
 trap 'rm -f "$ERRFILE"' EXIT
-echo 0 > "$ERRFILE"
+echo 0 >"$ERRFILE"
 
 # Increment error count (file-based to survive subshells)
-bump() { echo $(( $(cat "$ERRFILE") + 1 )) > "$ERRFILE"; }
+bump() { echo $(($(cat "$ERRFILE") + 1)) >"$ERRFILE"; }
 
 # Collect source files (skip test, integration, and fuzz files)
-FILES=$(find "$SRC_DIR" -name '*.cpp' -o -name '*.h' \
-  | grep -vE '_test\.|_it\.|fuzz_|test_helpers' | sort)
+FILES=$(find "$SRC_DIR" -name '*.cpp' -o -name '*.h' |
+  grep -vE '_test\.|_it\.|fuzz_|test_helpers' | sort)
 
 echo "==> checking error handling..."
 
@@ -87,7 +87,7 @@ for file in $FILES; do
       fi
     fi
 
-  done < "$file"
+  done <"$file"
 done
 
 ERRORS=$(cat "$ERRFILE")

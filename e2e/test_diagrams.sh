@@ -48,7 +48,7 @@ assert_not_contains() {
 DEMO_SRC=$(mktemp /tmp/diagram_e2e_XXXX.cpp)
 DEMO_BIN=$(mktemp /tmp/diagram_e2e_XXXX)
 
-cat > "$DEMO_SRC" <<'CPP'
+cat >"$DEMO_SRC" <<'CPP'
 #include <iostream>
 #include <sstream>
 #include "tui/mermaid/renderer.h"

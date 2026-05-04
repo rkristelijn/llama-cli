@@ -19,7 +19,7 @@ failures=0
 
 fail() {
   echo "  FAIL: $1"
-  (( failures++ )) || true
+  ((failures++)) || true
 }
 
 main() {
@@ -47,8 +47,8 @@ main() {
     fi
 
     # Safety flags
-    grep -q 'set -o errexit' "${script}"  || fail "${script}: missing set -o errexit"
-    grep -q 'set -o nounset' "${script}"  || fail "${script}: missing set -o nounset"
+    grep -q 'set -o errexit' "${script}" || fail "${script}: missing set -o errexit"
+    grep -q 'set -o nounset' "${script}" || fail "${script}: missing set -o nounset"
     grep -q 'set -o pipefail' "${script}" || fail "${script}: missing set -o pipefail"
 
     # Header comment in first 5 lines (excluding shebang)
@@ -59,7 +59,7 @@ main() {
   done < <(find scripts -name '*.sh' -type f | sort)
 
   echo ""
-  if (( failures > 0 )); then
+  if ((failures > 0)); then
     echo "  ${failures} convention violation(s) found."
     return 1
   fi

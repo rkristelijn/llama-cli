@@ -17,7 +17,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 # TODO: !! move clang-tidy and pmccabe back to REQUIRED after brew install llvm
 # See docs/backlog/022-fix-make-setup.md for install instructions
 REQUIRED=(cmake clang-format cppcheck cloc doxygen)
-OPTIONAL=(clang-tidy pmccabe semgrep gitleaks shellcheck yamllint rumdl)
+OPTIONAL=(clang-tidy pmccabe semgrep zsteg gitleaks shellcheck yamllint rumdl)
 
 missing=0
 warnings=0
@@ -33,6 +33,14 @@ find_tool() {
     echo "/opt/homebrew/opt/llvm/bin/clang-tidy"
     return 0
   fi
+  # Ruby user gem path fallback
+  if [[ "${tool}" == "zsteg" ]]; then
+    USER_GEM_BIN=$(ruby -e 'puts File.join(Gem.user_dir, "bin")' 2>/dev/null || echo "")
+    if [[ -n "${USER_GEM_BIN}" && -f "${USER_GEM_BIN}/zsteg" ]]; then
+      echo "${USER_GEM_BIN}/zsteg"
+      return 0
+    fi
+  fi
   return 1
 }
 
@@ -43,7 +51,7 @@ main() {
       printf "  %-20s ✓\n" "${tool}"
     else
       printf "  %-20s MISSING\n" "${tool}"
-      (( missing++ )) || true
+      ((missing++)) || true
     fi
   done
 
@@ -54,16 +62,16 @@ main() {
       printf "  %-20s ✓\n" "${tool}"
     else
       printf "  %-20s not installed (optional)\n" "${tool}"
-      (( warnings++ )) || true
+      ((warnings++)) || true
     fi
   done
 
   echo ""
-  if (( missing > 0 )); then
+  if ((missing > 0)); then
     echo "${missing} required tool(s) missing. Run 'make setup' to install."
     exit 1
   fi
-  if (( warnings > 0 )); then
+  if ((warnings > 0)); then
     echo "All required tools present. ${warnings} optional tool(s) missing."
   else
     echo "All tools present."

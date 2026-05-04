@@ -8,12 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Mull from cloudsmith
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' | bash \
-    && apt-get update && apt-get install -y mull-19 \
+    && apt-get update && apt-get install -y --no-install-recommends mull-19 \
     && rm -rf /var/lib/apt/lists/*
 
 # Symlinks for unversioned commands
 RUN ln -sf /usr/bin/clang++-19 /usr/bin/clang++ \
     && ln -sf /usr/bin/clang-19 /usr/bin/clang \
     && ln -sf /usr/bin/mull-runner-19 /usr/bin/mull-runner
+
+# Create a non-root user
+RUN groupadd -r devuser && useradd -r -g devuser devuser
+USER devuser
 
 WORKDIR /src

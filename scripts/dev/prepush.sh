@@ -27,7 +27,10 @@ main() {
   else
     echo "==> make index (docs only)"
     make -s index
-    git diff --quiet INDEX.md || { echo "FAIL: INDEX.md outdated"; exit 1; }
+    git diff --quiet INDEX.md || {
+      echo "FAIL: INDEX.md outdated"
+      exit 1
+    }
     echo "All checks passed."
   fi
 }

@@ -8,7 +8,7 @@ set -o pipefail
 
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 VER="${LAST_TAG#v}"
-IFS='.' read -r major minor patch <<< "$VER"
+IFS='.' read -r major minor patch <<<"$VER"
 
 PART="${1:-}"
 if [[ -z "$PART" ]]; then
@@ -22,10 +22,20 @@ if [[ -z "$PART" ]]; then
 fi
 
 case "$PART" in
-  major) major=$((major + 1)); minor=0; patch=0 ;;
-  minor) minor=$((minor + 1)); patch=0 ;;
-  patch) patch=$((patch + 1)) ;;
-  *) echo "Usage: bump.sh [major|minor|patch]"; exit 1 ;;
+major)
+  major=$((major + 1))
+  minor=0
+  patch=0
+  ;;
+minor)
+  minor=$((minor + 1))
+  patch=0
+  ;;
+patch) patch=$((patch + 1)) ;;
+*)
+  echo "Usage: bump.sh [major|minor|patch]"
+  exit 1
+  ;;
 esac
 
 NEW="${major}.${minor}.${patch}"

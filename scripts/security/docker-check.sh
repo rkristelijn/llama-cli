@@ -18,7 +18,7 @@ DOCKERFILES=$(find . -name "Dockerfile*")
 FAILED=0
 for df in ${DOCKERFILES}; do
   echo "  Checking ${df}..."
-  
+
   # Rule: Must contain a USER instruction
   if ! grep -qi "^USER" "${df}"; then
     echo "  [FAIL] ${df} is running as root! Add a 'USER' instruction."

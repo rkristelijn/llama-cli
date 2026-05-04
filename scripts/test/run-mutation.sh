@@ -41,7 +41,7 @@ fi
 # Find mull plugin
 MULL_PLUGIN=""
 for p in /usr/lib/mull-ir-frontend-19 /usr/lib/mull-ir-frontend \
-         /usr/local/lib/mull-ir-frontend-19; do
+  /usr/local/lib/mull-ir-frontend-19; do
   if [[ -f "$p" ]]; then
     MULL_PLUGIN="$p"
     break
@@ -63,7 +63,7 @@ cp .config/mull.yml mull.yml 2>/dev/null || true
 # Configure (fetches dependencies)
 cmake -B "$BUILD_DIR" -S . \
   -DCMAKE_CXX_COMPILER="$CXX" \
-  -DCMAKE_CXX_FLAGS="-g -O0 -grecord-command-line" > /dev/null 2>&1
+  -DCMAKE_CXX_FLAGS="-g -O0 -grecord-command-line" >/dev/null 2>&1
 
 # Inject mull plugin and force rebuild
 sed -i "s|CMAKE_CXX_FLAGS:STRING=.*|CMAKE_CXX_FLAGS:STRING=-g -O0 -grecord-command-line -fpass-plugin=$MULL_PLUGIN|" \
@@ -73,7 +73,7 @@ find "$BUILD_DIR" -name "*.o" -delete 2>/dev/null || true
 # Build test binaries
 TARGETS=(test_config test_json test_annotation test_exec)
 for target in "${TARGETS[@]}"; do
-  cmake --build "$BUILD_DIR" --target "$target" > /dev/null 2>&1 || true
+  cmake --build "$BUILD_DIR" --target "$target" >/dev/null 2>&1 || true
 done
 
 # Run mull-runner on each binary

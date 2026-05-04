@@ -22,9 +22,9 @@ main() {
     files="$(ls "${BUILD_DIR}"/CMakeFiles/*.dir/"${dir}"/*.cpp.o 2>/dev/null || true)"
     if [[ -n "${files}" ]]; then
       printf "  %-20s " "${dir}/"
-      gcov -n ${files} 2>/dev/null \
-        | sed 's/,/./g' \
-        | awk '/Lines executed/ {
+      gcov -n ${files} 2>/dev/null |
+        sed 's/,/./g' |
+        awk '/Lines executed/ {
             split($2, a, ":"); split(a[2], b, "%");
             exec_lines += b[1] * $4 / 100;
             total_lines += $4;

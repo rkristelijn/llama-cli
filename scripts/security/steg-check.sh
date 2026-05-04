@@ -74,11 +74,11 @@ for img in ${IMAGES}; do
   fi
 
   echo "  Checking ${img}..."
-  # zsteg returns details if it finds something. 
+  # zsteg returns details if it finds something.
   RESULT=$(zsteg --all --min-str-len 8 "${img}" 2>&1 || true)
-  
+
   # Heuristic: if zsteg finds something that looks like a hidden file or large extradata
-  if echo "${RESULT}" | grep -Ei "found|extradata|payload" | grep -v "metadata" > /dev/null; then
+  if echo "${RESULT}" | grep -Ei "found|extradata|payload" | grep -v "metadata" >/dev/null; then
     echo "  [FAIL] Potential steganography detected in ${img}:"
     echo "${RESULT}" | grep -Ei "found|extradata|payload" | head -n 5
     FAILED=1

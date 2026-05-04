@@ -22,7 +22,7 @@ LOGFILE="$LOGDIR/run-$(date +%Y%m%d-%H%M)-${MODEL//[:\/]/-}.md"
 mkdir -p "$LOGDIR"
 
 # Write log header
-cat > "$LOGFILE" << EOF
+cat >"$LOGFILE" <<EOF
 # Index Test Run
 
 - **Model**: $MODEL
@@ -40,8 +40,8 @@ fail=0
 
 # Find files without frontmatter summary
 find "$REPO" -type f \( -name "*.md" -o -name "*.txt" \) \
-  ! -path "*/.git/*" ! -path "*/node_modules/*" ! -name "INDEX.md" \
-  | sort | while read -r file; do
+  ! -path "*/.git/*" ! -path "*/node_modules/*" ! -name "INDEX.md" |
+  sort | while read -r file; do
 
   # Skip files that already have a summary
   if head -1 "$file" | grep -q '^---$' && sed -n '2,/^---$/p' "$file" | grep -q '^summary:'; then
@@ -59,25 +59,25 @@ find "$REPO" -type f \( -name "*.md" -o -name "*.txt" \) \
   start=$(date +%s)
 
   summary=$(timeout "$TIMEOUT" "$LLAMA" --model="$MODEL" --timeout="$TIMEOUT" \
-    "Vat samen in 1 zin (Nederlands, max 120 tekens, geen aanhalingstekens, geen markdown): $content" 2>/dev/null \
-    | tr '\n' ' ' | sed 's/^ *//;s/ *$//' | head -c 80) || true
+    "Vat samen in 1 zin (Nederlands, max 120 tekens, geen aanhalingstekens, geen markdown): $content" 2>/dev/null |
+    tr '\n' ' ' | sed 's/^ *//;s/ *$//' | head -c 80) || true
 
   end=$(date +%s)
   dur=$((end - start))
 
   if [ -n "$summary" ]; then
     echo "  ✅ ${dur}s — $summary"
-    echo "| $count | $(basename "$file") | ${dur}s | $summary | ✅ |" >> "$LOGFILE"
+    echo "| $count | $(basename "$file") | ${dur}s | $summary | ✅ |" >>"$LOGFILE"
     pass=$((pass + 1))
   else
     echo "  ❌ ${dur}s — timeout/error"
-    echo "| $count | $(basename "$file") | ${dur}s | — | ❌ |" >> "$LOGFILE"
+    echo "| $count | $(basename "$file") | ${dur}s | — | ❌ |" >>"$LOGFILE"
     fail=$((fail + 1))
   fi
 done
 
 # Write summary
-cat >> "$LOGFILE" << EOF
+cat >>"$LOGFILE" <<EOF
 
 ## Results
 

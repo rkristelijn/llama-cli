@@ -57,8 +57,8 @@ main() {
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
       echo "- \`${line//\`/\\\`}\`"
-      (( code_count++ )) || true
-    done <<< "${code_todos}"
+      ((code_count++)) || true
+    done <<<"${code_todos}"
     echo ""
     echo "**Total code TODOs: ${code_count}**"
     echo ""
@@ -67,11 +67,11 @@ main() {
     local md_count=0
     while IFS= read -r line; do
       echo "- \`${line//\`/\\\`}\`"
-      (( md_count++ )) || true
+      ((md_count++)) || true
     done < <(grep -rn "\- \[ \]" . --include="*.md" --exclude-dir=build --exclude-dir=.git --exclude-dir=.cache --exclude-dir=.tmp --exclude-dir=.github --exclude="TECHDEBT.md" 2>/dev/null || true)
     echo ""
     echo "**Total markdown TODOs: ${md_count}**"
-  } > TECHDEBT.md
+  } >TECHDEBT.md
 
   echo ""
   echo "==> TECHDEBT.md updated"

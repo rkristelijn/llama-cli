@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 # DEPRECATED: use 'make coverage' instead. See ADR-044.
-echo "DEPRECATED: scripts/check/coverage.sh — use 'make coverage' instead" >&2; exit 1
+echo "DEPRECATED: scripts/check/coverage.sh — use 'make coverage' instead" >&2
+exit 1
 
 set -o errexit
 set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-
 THRESHOLD=80
 BUILD_DIR=build-cov
 
 # Build with coverage
-cmake -B "$BUILD_DIR" -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" > /dev/null 2>&1
-cmake --build "$BUILD_DIR" > /dev/null 2>&1
+cmake -B "$BUILD_DIR" -S . -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" >/dev/null 2>&1
+cmake --build "$BUILD_DIR" >/dev/null 2>&1
 
 # Run all tests
 for t in test_config test_json test_repl test_command test_annotation; do
-  ./"$BUILD_DIR"/"$t" > /dev/null 2>&1
+  ./"$BUILD_DIR"/"$t" >/dev/null 2>&1
 done
 
 # Check coverage per source file
