@@ -184,8 +184,7 @@ sast-stegano: ## Run steganography scan (zsteg)
 
 sast-iac: ## Run IaC security scan (trivy)
 	@if command -v trivy >/dev/null; then \
-		trivy fs --scanners misconfig --severity HIGH,CRITICAL \
-			--skip-dirs build --skip-dirs build-fuzz --skip-dirs _deps --skip-dirs .tmp --skip-dirs .cache . ; \
+		trivy fs --config .config/trivy.yaml --scanners misconfig --severity HIGH,CRITICAL . ; \
 	else echo "  [skip] trivy not installed"; fi
 
 sast-secret: ## Run gitleaks secret scan

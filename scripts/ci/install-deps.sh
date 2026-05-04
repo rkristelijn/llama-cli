@@ -60,6 +60,10 @@ install_grype() {
     sudo sh -s -- -b /usr/local/bin "v${GRYPE_VERSION}"
 }
 
+install_checkov() {
+  pip install --quiet "checkov==${CHECKOV_VERSION}"
+}
+
 main() {
   for tool in "$@"; do
     case "${tool}" in
@@ -68,6 +72,7 @@ main() {
     rumdl) install_rumdl ;;
     trufflehog) install_trufflehog ;;
     grype) install_grype ;;
+    checkov) install_checkov ;;
     *) sudo apt-get install -y "${tool}" ;;
     esac
   done
