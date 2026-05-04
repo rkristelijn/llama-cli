@@ -87,7 +87,7 @@ for img in ${IMAGES}; do
 done
 
 if [[ "${FAILED}" -eq 1 ]]; then
-  echo "ERROR: Steganography check failed."
+  echo "ERROR: Steganography check failed." >&2
   exit 1
 fi
 

@@ -23,7 +23,7 @@ cd "$(dirname "$0")/../.."
 [[ -f .env ]] && source .env
 
 if [[ -z "${SONAR_TOKEN:-}" ]]; then
-  echo "  ERROR: SONAR_TOKEN not set. See: https://sonarcloud.io/account/security"
+  echo "  ERROR: SONAR_TOKEN not set. See: https://sonarcloud.io/account/security" >&2
   exit 1
 fi
 
@@ -104,4 +104,4 @@ main() {
   fi
 }
 
-main "\$@"
+main "$@"

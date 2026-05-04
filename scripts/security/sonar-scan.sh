@@ -24,9 +24,9 @@ cd "$(dirname "$0")/../.."
 [[ -f .env ]] && source .env
 
 if [[ -z "${SONAR_TOKEN:-}" ]]; then
-  echo "  ERROR: SONAR_TOKEN not set."
-  echo "  Generate one at: https://sonarcloud.io/account/security"
-  echo "  Then: export SONAR_TOKEN=your_token"
+  echo "  ERROR: SONAR_TOKEN not set." >&2
+  echo "  Generate one at: https://sonarcloud.io/account/security" >&2
+  echo "  Then: export SONAR_TOKEN=your_token" >&2
   exit 1
 fi
 

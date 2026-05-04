@@ -27,7 +27,7 @@ for df in ${DOCKERFILES}; do
 done
 
 if [[ "${FAILED}" -eq 1 ]]; then
-  echo "ERROR: Docker security check failed."
+  echo "ERROR: Docker security check failed." >&2
   exit 1
 fi
 
