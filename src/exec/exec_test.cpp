@@ -111,3 +111,29 @@ SCENARIO ("command execution: failed command") {
 
 // TODO: test popen failure path (cmd_exec returns "Error: could not execute command")
 // TODO: test WIFSIGNALED path (command killed by signal)
+
+SCENARIO ("command execution: edge cases") {
+  GIVEN ("a command with no output") {
+    auto r = cmd_exec("true", 5, 10000);
+    THEN ("output is empty") {
+      CHECK (r.output.empty())
+        ;
+    }
+    THEN ("exit code is 0") {
+      CHECK (r.exit_code == 0)
+        ;
+    }
+  }
+
+  GIVEN ("a command with very short timeout") {
+    auto r = cmd_exec("sleep 2", 1, 1000);
+    THEN ("timeout is detected") {
+      CHECK (r.timed_out)
+        ;
+    }
+    THEN ("output is empty") {
+      CHECK (r.output.empty())
+        ;
+    }
+  }
+}

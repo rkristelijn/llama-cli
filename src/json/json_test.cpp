@@ -295,3 +295,56 @@ TEST_CASE ("unescape_json preserves unknown escapes") {
   CHECK (unescape_json("trailing\\") == "trailing\\")
     ;
 }
+SCENARIO ("json: null value handling") {
+  GIVEN ("a JSON string with a null value") {
+    std::string json = R"({"key":null})";
+    THEN ("extracting as string returns empty") {
+      CHECK (json_extract_string(json, "key").empty())
+        ;
+    }
+    THEN ("extracting as int returns 0") {
+      CHECK (json_extract_int(json, "key") == 0)
+        ;
+    }
+    THEN ("extracting as object returns empty") {
+      CHECK (json_extract_object(json, "key").empty())
+        ;
+    }
+  }
+}
+
+SCENARIO ("json: empty JSON string") {
+  GIVEN ("an empty JSON string") {
+    std::string json = "{}";
+    THEN ("extracting any key returns empty string") {
+      CHECK (json_extract_string(json, "anykey").empty())
+        ;
+    }
+    THEN ("extracting as int returns 0") {
+      CHECK (json_extract_int(json, "anykey") == 0)
+        ;
+    }
+    THEN ("extracting as object returns empty") {
+      CHECK (json_extract_object(json, "anykey").empty())
+        ;
+    }
+  }
+}
+
+SCENARIO ("json: JSON string with only a number") {
+  GIVEN ("a JSON string with only a number") {
+    std::string json = R"({"num":42})";
+    THEN ("extracting as int returns the number") {
+      CHECK (json_extract_int(json, "num") == 42)
+        ;
+    }
+    THEN ("extracting as string returns the number as string") {
+      CHECK (json_extract_string(json, "num") == "42")
+        ;
+    }
+    THEN ("extracting as object returns empty") {
+      CHECK (json_extract_object(json, "num").empty())
+        ;
+    }
+  }
+}

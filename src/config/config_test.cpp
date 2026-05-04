@@ -490,3 +490,47 @@ SCENARIO ("config: --sandbox flag") {
 // TODO: test malformed numeric env/CLI values (stoi crash — see TODO.md)
 // TODO: test TRACE env var handling (inconsistent between .env and env var)
 // TODO: test validate_config rejects invalid port strings like "11434abc"
+
+SCENARIO ("config from CLI with default prompt") {
+  GIVEN ("only the executable name is provided") {
+    const char* argv[] = {"llama-cli", nullptr};
+    WHEN ("config is loaded from CLI") {
+      Config c = load_cli(1, argv);
+      THEN ("default prompt is used") {
+        CHECK (c.prompt == "Enter your query:")
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("config from .env with invalid key format") {
+  GIVEN ("a .env file with an invalid key format") {
+    clean_env();
+    TmpEnvFile env("/tmp/llama-test10.env", "OLLAMA_HOST=localhost:9999\n");
+    Config c;
+    load_dotenv("/tmp/llama-test10.env", c);
+    THEN ("invalid keys are ignored") {
+      CHECK (c.host == "localhost")
+        ;
+      CHECK (c.port != "9999")
+        ;
+    }
+    clean_env();
+  }
+}
+
+SCENARIO ("config from env with invalid numeric value") {
+  GIVEN ("an environment variable with an invalid numeric value") {
+    clean_env();
+    setenv("OLLAMA_TIMEOUT", "abc", 1);
+    WHEN ("config is loaded from env") {
+      Config c = load_env();
+      THEN ("invalid values are ignored, defaults used") {
+        CHECK (c.timeout == 120)
+          ;
+      }
+    }
+    clean_env();
+  }
+}
