@@ -50,12 +50,18 @@ install_rumdl() {
     sudo tar xzf - -C /usr/local/bin
 }
 
+install_trufflehog() {
+  curl -sSfL "https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh" |
+    sudo sh -s -- -b /usr/local/bin "v${TRUFFLEHOG_VERSION}"
+}
+
 main() {
   for tool in "$@"; do
     case "${tool}" in
     llvm) install_llvm ;;
     doxygen) install_doxygen ;;
     rumdl) install_rumdl ;;
+    trufflehog) install_trufflehog ;;
     *) sudo apt-get install -y "${tool}" ;;
     esac
   done
