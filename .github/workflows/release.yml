@@ -10,7 +10,7 @@ jobs:
       version: ${{ steps.calc.outputs.VERSION }}
       tag: ${{ steps.calc.outputs.TAG }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
       - name: Calculate next version from commits
@@ -68,7 +68,7 @@ jobs:
             target: aarch64-apple-darwin
             binary: llama-cli-macos-arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
@@ -85,7 +85,7 @@ jobs:
           ls -la ${{ matrix.binary }}
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ matrix.binary }}
           path: ${{ matrix.binary }}
@@ -97,12 +97,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
       - name: Download all binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
         with:
           path: release
           merge-multiple: true
@@ -133,7 +133,7 @@ jobs:
         run: git-cliff --config .config/cliff.toml --output CHANGELOG.md
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: release/*
           tag_name: ${{ needs.version.outputs.tag }}
