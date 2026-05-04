@@ -1,3 +1,21 @@
+# =============================================================================
+# Docker services voor lokale development
+#
+# Gebruik:
+#   docker compose -f .config/docker-compose.yml up -d
+#   docker compose -f .config/docker-compose.yml down
+#
+# Status en logs bekijken:
+#   docker stats sonarqube --no-stream
+#   docker logs sonarqube --tail 50
+#
+# Vereist: je user moet in de docker groep zitten, anders sudo gebruiken.
+#   sudo usermod -aG docker $USER   (eenmalig, opnieuw inloggen vereist)
+#
+# SonarQube is beschikbaar op http://localhost:9000
+# SearXNG  is beschikbaar op http://localhost:8888
+# =============================================================================
+
 services:
   searxng:
     image: searxng/searxng
@@ -9,7 +27,7 @@ services:
     restart: unless-stopped
 
   sonarqube:
-    image: sonarqube:community
+    image: sonarqube:developer
     container_name: sonarqube
     ports:
       - "127.0.0.1:9000:9000"
@@ -19,6 +37,13 @@ services:
       - sonar_data:/opt/sonarqube/data
       - sonar_logs:/opt/sonarqube/logs
       - sonar_extensions:/opt/sonarqube/extensions
+    # Sonar + embedded Elasticsearch zijn resource-intensief;
+    # zonder limieten eet het alle beschikbare CPU en geheugen op
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+          cpus: "2"
     restart: unless-stopped
 
 volumes:

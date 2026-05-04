@@ -115,12 +115,15 @@ install_llvm_tools() {
       sudo apt-get update -qq
       sudo apt-get install -y "clang-format-${ver}" "clang-tidy-${ver}"
 
-      # Create symlinks so bare `clang-format` / `clang-tidy` work
+      # Create symlinks so bare `clang-format` / `clang-tidy` / `clang++` work
       if ! has clang-format; then
         sudo ln -sf "/usr/bin/clang-format-${ver}" /usr/bin/clang-format
       fi
       if ! has clang-tidy; then
         sudo ln -sf "/usr/bin/clang-tidy-${ver}" /usr/bin/clang-tidy
+      fi
+      if ! has clang++; then
+        sudo ln -sf "/usr/bin/clang++-${ver}" /usr/bin/clang++
       fi
     fi
   fi
@@ -226,9 +229,16 @@ install_trivy() {
   else
     echo "  Installing trivy (apt)..."
     sudo apt-get install -y wget apt-transport-https gnupg
-    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-    echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-    sudo apt-get update
+    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key |
+      sudo tee /etc/apt/trusted.gpg.d/trivy.asc >/dev/null
+    # Use UBUNTU_CODENAME for Mint/derivative compatibility (Mint's VERSION_CODENAME
+    # is e.g. "zena" which Trivy's repo doesn't carry — need the Ubuntu base "noble")
+    # shellcheck source=/dev/null
+    source /etc/os-release
+    local codename="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
+    echo "deb https://aquasecurity.github.io/trivy-repo/deb ${codename} main" |
+      sudo tee /etc/apt/sources.list.d/trivy.list >/dev/null
+    sudo apt-get update -qq
     sudo apt-get install -y trivy
   fi
 }
@@ -315,6 +325,17 @@ install_mull() {
     curl -1sLf 'https://dl.cloudsmith.io/public/mull-project/mull-stable/setup.deb.sh' -o /tmp/mull-setup.sh
     sudo -E bash /tmp/mull-setup.sh
     rm -f /tmp/mull-setup.sh
+    # Cloudsmith detects Mint as its own distro, but mull only publishes Ubuntu
+    # packages. Patch the repo to use the Ubuntu base codename (ADR-068).
+    # shellcheck source=/dev/null
+    source /etc/os-release
+    local base="${UBUNTU_CODENAME:-}"
+    if [[ -n "${base}" && "${ID}" != "ubuntu" ]]; then
+      local repo_file="/etc/apt/sources.list.d/mull-project-mull-stable.list"
+      if [[ -f "${repo_file}" ]]; then
+        sudo sed -i "s|deb/${ID} [a-z]*|deb/ubuntu ${base}|g" "${repo_file}"
+      fi
+    fi
     sudo apt-get update -qq
     sudo apt-get install -y "mull-${ver}"
   fi
@@ -344,7 +365,7 @@ install_trufflehog() {
     brew install trufflehog
   else
     echo "  Installing trufflehog (curl installer)..."
-    curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+    curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin
   fi
 }
 
@@ -363,7 +384,7 @@ install_grype() {
     brew install grype
   else
     echo "  Installing grype (curl installer)..."
-    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
   fi
 }
 
@@ -382,7 +403,7 @@ install_syft() {
     brew install syft
   else
     echo "  Installing syft (curl installer)..."
-    curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
   fi
 }
 

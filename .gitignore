@@ -1,3 +1,4 @@
+.scannerworks/
 build/
 build-fuzz/
 build-cov/
@@ -15,3 +16,4 @@ compile_commands.json
 /llama-cli
 coverage.info
 events.jsonl
+.scannerwork/
