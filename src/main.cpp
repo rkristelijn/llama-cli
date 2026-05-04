@@ -200,7 +200,8 @@ int main(int argc, char* argv[]) {
       messages.push_back({"assistant", response});
       // Process annotations if capabilities are set (ADR-056)
       int max_rounds = 10;
-      while (!cfg.capabilities.empty() && max_rounds-- > 0) {
+      while (!cfg.capabilities.empty() && max_rounds > 0) {
+        --max_rounds;
         std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
         if (followup.empty()) {
           break;

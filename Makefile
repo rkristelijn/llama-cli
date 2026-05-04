@@ -215,8 +215,11 @@ sbom: ## Generate SBOM with syft
 
 check-all: check sast sbom ## Run ALL checks (quality + security + SBOM)
 
-sonar: ## Start SonarQube (docker) and run scan
+sonar: ## Run SonarCloud scan (requires SONAR_TOKEN)
 	@bash scripts/security/sonar-scan.sh
+
+sonar-report: ## Show SonarCloud issue summary (ARGS=BLOCKER for detail)
+	@bash scripts/security/sonar-report.sh $(ARGS)
 
 ##@ Development
 

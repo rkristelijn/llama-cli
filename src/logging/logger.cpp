@@ -24,13 +24,13 @@ Logger::Logger() {
   // Installed mode: log to ~/.llama-cli/ so user logs are separate from dev logs.
   struct stat st;
   if (stat("Makefile", &st) == 0) {
-    mkdir(".tmp", 0755);
+    mkdir(".tmp", 0750);
     log_path_ = ".tmp/events.jsonl";
   } else {
     const char* home = getenv("HOME");
     log_path_ = std::string(home ? home : ".") + "/.llama-cli/events.jsonl";
     std::string dir = log_path_.substr(0, log_path_.rfind('/'));
-    mkdir(dir.c_str(), 0755);
+    mkdir(dir.c_str(), 0750);
   }
 }
 
@@ -55,7 +55,10 @@ void Logger::log(const Event& e) {
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
   std::ostringstream ts;
-  ts << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
+  // gmtime_r is thread-safe (S1912)
+  struct tm tm_buf{};
+  gmtime_r(&time, &tm_buf);
+  ts << std::put_time(&tm_buf, "%Y-%m-%dT%H:%M:%S");
   ts << '.' << std::setfill('0') << std::setw(3) << ms.count() << 'Z';
 
   // Escape special characters for JSON (complete per RFC 8259).

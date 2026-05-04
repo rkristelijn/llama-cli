@@ -50,6 +50,7 @@ IMAGES=$(find "${TARGET_DIR}" -type f \( -name "*.png" -o -name "*.bmp" \) \
   -not -path "*/.*" \
   -not -path "*/build/*" \
   -not -path "*/build-fuzz/*" \
+  -not -path "*/_deps/*" \
   -not -path "*/node_modules/*")
 
 if [[ -z "${IMAGES}" ]]; then

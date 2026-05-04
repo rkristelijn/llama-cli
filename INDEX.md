@@ -67,6 +67,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
 - [`docs/adr/adr-072-diagram-visualization-strategy.md`](docs/adr/adr-072-diagram-visualization-strategy.md) — ADR-072: Diagram Visualization Strategy & Element Limits
 - [`docs/adr/adr-073-unified-diagram-model.md`](docs/adr/adr-073-unified-diagram-model.md) — ADR-073: Unified Diagram Model — Cross-Diagram Consistency
+- [`docs/adr/adr-074-sonarcloud-integration.md`](docs/adr/adr-074-sonarcloud-integration.md) — ADR-074: SonarCloud Integration and Local Check Coverage
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -210,6 +211,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/security/gen-test-images.sh`](scripts/security/gen-test-images.sh)
 - [`scripts/security/grype-scan.sh`](scripts/security/grype-scan.sh)
 - [`scripts/security/osv-scan.sh`](scripts/security/osv-scan.sh)
+- [`scripts/security/sonar-report.sh`](scripts/security/sonar-report.sh)
 - [`scripts/security/sonar-scan.sh`](scripts/security/sonar-scan.sh)
 - [`scripts/security/steg-check.sh`](scripts/security/steg-check.sh)
 - [`scripts/security/syft-sbom.sh`](scripts/security/syft-sbom.sh)
@@ -330,4 +332,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_327 files indexed._
+_329 files indexed._

@@ -27,7 +27,7 @@ fi
 trufflehog filesystem . \
   --no-update \
   --fail \
-  --exclude-paths=<(printf '%s\n' '^build/' '^build-fuzz/' '_deps/' '^\.tmp/' '^\.cache/' '^\.git/' 'node_modules/' 'sast\.log') \
+  --exclude-paths=<(printf '%s\n' '^build/' '^build-fuzz/' '_deps/' '^\.tmp/' '^\.cache/' '^\.git/' 'node_modules/' 'sast\.log' '^\.env') \
   --exclude-detectors=URI
 
 echo "  [done] trufflehog"
