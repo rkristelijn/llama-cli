@@ -165,6 +165,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
+- [`scripts/dev/docker-serve.sh`](scripts/dev/docker-serve.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/ollama-serve.sh`](scripts/dev/ollama-serve.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
@@ -332,4 +333,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_329 files indexed._
+_330 files indexed._

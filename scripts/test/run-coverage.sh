@@ -22,7 +22,7 @@ main() {
   echo "==> make coverage (running tests...)"
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
-    "$t" --quiet
+    "$t" --no-version --quiet
   done
   echo "  [done] coverage"
 }

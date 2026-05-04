@@ -32,7 +32,7 @@ main() {
   find "${BUILD_DIR}" -name "*.gcda" -delete 2>/dev/null || true
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
-    "$t" --quiet
+    "$t" --no-version --quiet
   done
   echo "  [done] test-unit"
 }

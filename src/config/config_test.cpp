@@ -493,27 +493,29 @@ SCENARIO ("config: --sandbox flag") {
 
 SCENARIO ("config from CLI with default prompt") {
   GIVEN ("only the executable name is provided") {
+    clean_env();
+    unsetenv("OLLAMA_SYSTEM_PROMPT");
     const char* argv[] = {"llama-cli", nullptr};
     WHEN ("config is loaded from CLI") {
       Config c = load_cli(1, argv);
-      THEN ("default prompt is used") {
-        CHECK (c.prompt == "Enter your query:")
+      THEN ("prompt is empty (no sync-mode query)") {
+        CHECK (c.prompt.empty())
           ;
       }
     }
   }
 }
 
-SCENARIO ("config from .env with invalid key format") {
-  GIVEN ("a .env file with an invalid key format") {
+SCENARIO ("config from .env with host:port format") {
+  GIVEN ("a .env file with host:port format") {
     clean_env();
     TmpEnvFile env("/tmp/llama-test10.env", "OLLAMA_HOST=localhost:9999\n");
     Config c;
     load_dotenv("/tmp/llama-test10.env", c);
-    THEN ("invalid keys are ignored") {
+    THEN ("host and port are parsed correctly") {
       CHECK (c.host == "localhost")
         ;
-      CHECK (c.port != "9999")
+      CHECK (c.port == "9999")
         ;
     }
     clean_env();
