@@ -55,6 +55,11 @@ install_trufflehog() {
     sudo sh -s -- -b /usr/local/bin "v${TRUFFLEHOG_VERSION}"
 }
 
+install_grype() {
+  curl -sSfL "https://raw.githubusercontent.com/anchore/grype/main/install.sh" |
+    sudo sh -s -- -b /usr/local/bin "v${GRYPE_VERSION}"
+}
+
 main() {
   for tool in "$@"; do
     case "${tool}" in
@@ -62,6 +67,7 @@ main() {
     doxygen) install_doxygen ;;
     rumdl) install_rumdl ;;
     trufflehog) install_trufflehog ;;
+    grype) install_grype ;;
     *) sudo apt-get install -y "${tool}" ;;
     esac
   done
