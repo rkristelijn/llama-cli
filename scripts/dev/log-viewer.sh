@@ -15,14 +15,21 @@ PATTERN=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    -n) COUNT="$2"; shift 2 ;;
-    -h|--help)
-      echo "Usage: $0 [pattern] [-n COUNT]"
-      echo "  pattern   Show only events matching this string"
-      echo "  -n COUNT  Number of recent events (default: 50)"
-      echo "  LLAMA_LOG_FILE env var overrides default log path"
-      exit 0 ;;
-    *) PATTERN="$1"; shift ;;
+  -n)
+    COUNT="$2"
+    shift 2
+    ;;
+  -h | --help)
+    echo "Usage: $0 [pattern] [-n COUNT]"
+    echo "  pattern   Show only events matching this string"
+    echo "  -n COUNT  Number of recent events (default: 50)"
+    echo "  LLAMA_LOG_FILE env var overrides default log path"
+    exit 0
+    ;;
+  *)
+    PATTERN="$1"
+    shift
+    ;;
   esac
 done
 

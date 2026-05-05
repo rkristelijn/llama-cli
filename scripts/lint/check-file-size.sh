@@ -39,7 +39,7 @@ main() {
   local failed=0
 
   while IFS= read -r file; do
-    lines=$(wc -l < "$file")
+    lines=$(wc -l <"$file")
     # Determine limit based on file type
     if [[ "$file" == *_test.cpp || "$file" == *_it.cpp ]]; then
       max=$MAX_TEST
@@ -49,7 +49,7 @@ main() {
       max=$MAX_SOURCE
     fi
 
-    if (( lines > max )); then
+    if ((lines > max)); then
       if is_exempt "$file"; then
         echo "  [exempt] $file ($lines > $max) — tech debt, see ADR-061"
       else
@@ -59,7 +59,7 @@ main() {
     fi
   done < <(find src -name '*.cpp' -o -name '*.h')
 
-  if (( failed )); then
+  if ((failed)); then
     echo "  FAIL: files exceed size limit. Split them or add to EXEMPT in ADR-061."
     exit 1
   fi

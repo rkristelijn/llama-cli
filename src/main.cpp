@@ -200,7 +200,8 @@ int main(int argc, char* argv[]) {
       messages.push_back({"assistant", response});
       // Process annotations if capabilities are set (ADR-056)
       int max_rounds = 10;
-      while (!cfg.capabilities.empty() && max_rounds-- > 0) {
+      while (!cfg.capabilities.empty() && max_rounds > 0) {
+        --max_rounds;
         std::string followup = process_sync_annotations(fix_malformed_tags(response), cfg);
         if (followup.empty()) {
           break;
@@ -279,8 +280,8 @@ int main(int argc, char* argv[]) {
       tui::banner(std::cerr, color);
     }
 
-    // Optional model warmup (only if not already running)
-    if (Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
+    // Optional model warmup (only if not already running, skip for mock provider)
+    if (cfg.provider != "mock" && Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
       tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
       // Simple spinner loop
       const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";

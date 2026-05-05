@@ -49,7 +49,7 @@ echo "PASS: session follow-up preserves history"
 
 echo "Testing: capabilities=read processes <read> tags..."
 SESSION="$TMPDIR_TEST/cap-read.json"
-echo "test-content-123" > "$TMPDIR_TEST/testfile.txt"
+echo "test-content-123" >"$TMPDIR_TEST/testfile.txt"
 # Mock echoes prompt back — the <read> tag in the response triggers file read
 OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
   --capabilities=read --sandbox="$TMPDIR_TEST" \
@@ -152,7 +152,7 @@ echo "PASS: pipe with unsafe command blocked"
 
 echo "Testing: str_replace with wrong old text..."
 SESSION="$TMPDIR_TEST/str-notfound.json"
-printf 'hello world\n' > "$TMPDIR_TEST/str-test.txt"
+printf 'hello world\n' >"$TMPDIR_TEST/str-test.txt"
 OUTPUT=$("$BINARY" --provider=mock --session="$SESSION" \
   --capabilities=read,write --sandbox="$TMPDIR_TEST" \
   '<str_replace path="'"$TMPDIR_TEST"'/str-test.txt"><old>nonexistent text</old><new>replaced</new></str_replace>' 2>&1)

@@ -24,20 +24,20 @@ trap 'rm -f "$TMP_WRITE" "$TMP_WRITE.bak" "$TMP_REPLACE" "$TMP_REPLACE.bak" "$TM
 # the user prompt is echoed back as the LLM response, which handle_response
 # then processes.
 run_repl_with() {
-    local prompt="$1"
-    local confirm="$2"
-    printf '%s\n%s\nexit\n' "$prompt" "$confirm" \
-        | LLAMA_PROVIDER=mock "$BINARY" --repl 2>&1
+  local prompt="$1"
+  local confirm="$2"
+  printf '%s\n%s\nexit\n' "$prompt" "$confirm" |
+    LLAMA_PROVIDER=mock "$BINARY" --repl 2>&1
 }
 
 # --- test 1: write diff shown automatically for existing file ----------------
 echo "--- test 1: write diff shown automatically ---"
 
-echo "existing content" > "$TMP_WRITE"
+echo "existing content" >"$TMP_WRITE"
 
 OUTPUT=$(run_repl_with \
-    "<write file=\"$TMP_WRITE\">new content</write>" \
-    "y")
+  "<write file=\"$TMP_WRITE\">new content</write>" \
+  "y")
 
 assert_contains "$OUTPUT" "existing content" "diff shows removed line"
 assert_contains "$OUTPUT" "new content" "diff shows added line"
@@ -49,8 +49,8 @@ echo "--- test 2: write confirmed ---"
 
 rm -f "$TMP_WRITE"
 OUTPUT=$(run_repl_with \
-    "<write file=\"$TMP_WRITE\">hello world</write>" \
-    "y")
+  "<write file=\"$TMP_WRITE\">hello world</write>" \
+  "y")
 
 assert_contains "$OUTPUT" "wrote" "wrote confirmation"
 [ -f "$TMP_WRITE" ] || die "file was not written"
@@ -62,8 +62,8 @@ echo "--- test 3: write declined ---"
 
 rm -f "$TMP_WRITE"
 OUTPUT=$(run_repl_with \
-    "<write file=\"$TMP_WRITE\">hello world</write>" \
-    "n")
+  "<write file=\"$TMP_WRITE\">hello world</write>" \
+  "n")
 
 assert_contains "$OUTPUT" "skipped" "skipped shown"
 [ ! -f "$TMP_WRITE" ] || die "file should not have been written"
@@ -72,11 +72,11 @@ echo "PASS: write declined"
 # --- test 4: str_replace ------------------------------------------------------
 echo "--- test 4: str_replace ---"
 
-printf 'line one\nline two\nline three\n' > "$TMP_REPLACE"
+printf 'line one\nline two\nline three\n' >"$TMP_REPLACE"
 
 OUTPUT=$(run_repl_with \
-    "<str_replace path=\"$TMP_REPLACE\"><old>line two</old><new>line TWO</new></str_replace>" \
-    "y")
+  "<str_replace path=\"$TMP_REPLACE\"><old>line two</old><new>line TWO</new></str_replace>" \
+  "y")
 
 assert_contains "$OUTPUT" "wrote" "str_replace wrote confirmation"
 grep -q "line TWO" "$TMP_REPLACE" || die "str_replace did not apply replacement"
@@ -86,11 +86,11 @@ echo "PASS: str_replace applied"
 # --- test 5: str_replace diff shown ------------------------------------------
 echo "--- test 5: str_replace diff shown ---"
 
-printf 'foo\nbar\nbaz\n' > "$TMP_REPLACE"
+printf 'foo\nbar\nbaz\n' >"$TMP_REPLACE"
 
 OUTPUT=$(run_repl_with \
-    "<str_replace path=\"$TMP_REPLACE\"><old>bar</old><new>BAR</new></str_replace>" \
-    "n")
+  "<str_replace path=\"$TMP_REPLACE\"><old>bar</old><new>BAR</new></str_replace>" \
+  "n")
 
 assert_contains "$OUTPUT" "bar" "str_replace diff shows removed"
 assert_contains "$OUTPUT" "BAR" "str_replace diff shows added"
@@ -99,11 +99,11 @@ echo "PASS: str_replace diff shown"
 # --- test 6: read injects context and triggers follow-up ---------------------
 echo "--- test 6: read annotation ---"
 
-printf 'alpha\nbeta\ngamma\n' > "$TMP_READ"
+printf 'alpha\nbeta\ngamma\n' >"$TMP_READ"
 
 OUTPUT=$(run_repl_with \
-    "<read path=\"$TMP_READ\" lines=\"1-2\"/>" \
-    "")  # no confirmation needed for read
+  "<read path=\"$TMP_READ\" lines=\"1-2\"/>" \
+  "") # no confirmation needed for read
 
 assert_contains "$OUTPUT" "alpha" "read file content in follow-up"
 echo "PASS: read annotation processed"
@@ -111,11 +111,11 @@ echo "PASS: read annotation processed"
 # --- test 7: read full file --------------------------------------------------
 echo "--- test 7: read full file ---"
 
-printf 'one\ntwo\nthree\n' > "$TMP_READ"
+printf 'one\ntwo\nthree\n' >"$TMP_READ"
 
 OUTPUT=$(run_repl_with \
-    "<read path=\"$TMP_READ\"/>" \
-    "")
+  "<read path=\"$TMP_READ\"/>" \
+  "")
 
 assert_contains "$OUTPUT" "one" "full file read contains first line"
 assert_contains "$OUTPUT" "three" "full file read contains last line"
@@ -125,8 +125,8 @@ echo "PASS: read full file"
 echo "--- test 8: read not found ---"
 
 OUTPUT=$(run_repl_with \
-    "<read path=\"/tmp/llama-e2e-nonexistent-file.txt\"/>" \
-    "")
+  "<read path=\"/tmp/llama-e2e-nonexistent-file.txt\"/>" \
+  "")
 
 assert_contains "$OUTPUT" "not found" "read not found error shown"
 echo "PASS: read not found"
@@ -134,11 +134,11 @@ echo "PASS: read not found"
 # --- test 9: read with search ------------------------------------------------
 echo "--- test 9: read with search ---"
 
-printf 'aaa\nbbb\ntarget_line\nccc\nddd\n' > "$TMP_READ"
+printf 'aaa\nbbb\ntarget_line\nccc\nddd\n' >"$TMP_READ"
 
 OUTPUT=$(run_repl_with \
-    "<read path=\"$TMP_READ\" search=\"target_line\"/>" \
-    "")
+  "<read path=\"$TMP_READ\" search=\"target_line\"/>" \
+  "")
 
 assert_contains "$OUTPUT" "target_line" "search found the target line"
 echo "PASS: read with search"

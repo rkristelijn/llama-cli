@@ -144,7 +144,7 @@ static void ensure_parent_dir(const std::string& path) {
   if (slash != std::string::npos) {
     std::string dir = path.substr(0, slash);
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-    mkdir(dir.c_str(), 0755);
+    mkdir(dir.c_str(), 0750);
   }
 }
 

@@ -116,8 +116,20 @@ static std::string extract_braced(const std::string& json, size_t pos) {
 /// Handles escaped quotes within the value. Returns "" if key not found.
 std::string json_extract_string(const std::string& json, const std::string& key) {
   size_t pos = find_key_value(json, key);
-  if (pos == std::string::npos || pos >= json.size() || json[pos] != '"') {
+  if (pos == std::string::npos || pos >= json.size()) {
     return "";
+  }
+  // Handle unquoted numeric values (e.g. "num":42 -> "42")
+  // Skip null, true, false — those are not meaningful as strings
+  if (json[pos] != '"') {
+    if (json.compare(pos, 4, "null") == 0 || json.compare(pos, 4, "true") == 0 || json.compare(pos, 5, "false") == 0) {
+      return "";
+    }
+    std::string result;
+    for (size_t i = pos; i < json.size() && json[i] != ',' && json[i] != '}' && json[i] != ' '; i++) {
+      result += json[i];
+    }
+    return result;
   }
   pos++;  // skip opening quote
   std::string result;

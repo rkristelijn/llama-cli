@@ -25,13 +25,13 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 source .config/versions.env
 
 install_llvm() {
-  wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
-    | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+  wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key |
+    sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc >/dev/null
   # shellcheck source=/dev/null
   source /etc/os-release
   local codename="${UBUNTU_CODENAME:-${VERSION_CODENAME}}"
-  echo "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main" \
-    | sudo tee /etc/apt/sources.list.d/llvm.list > /dev/null
+  echo "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main" |
+    sudo tee /etc/apt/sources.list.d/llvm.list >/dev/null
   sudo apt-get update -qq
   sudo apt-get install -y "clang-format-${LLVM_VERSION}" "clang-tidy-${LLVM_VERSION}"
   sudo ln -sf "/usr/bin/clang-format-${LLVM_VERSION}" /usr/bin/clang-format
@@ -46,17 +46,34 @@ install_doxygen() {
 }
 
 install_rumdl() {
-  curl -LsSf "https://github.com/rvben/rumdl/releases/download/v${RUMDL_VERSION}/rumdl-v${RUMDL_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
-    | sudo tar xzf - -C /usr/local/bin
+  curl -LsSf "https://github.com/rvben/rumdl/releases/download/v${RUMDL_VERSION}/rumdl-v${RUMDL_VERSION}-x86_64-unknown-linux-gnu.tar.gz" |
+    sudo tar xzf - -C /usr/local/bin
+}
+
+install_trufflehog() {
+  curl -sSfL "https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh" |
+    sudo sh -s -- -b /usr/local/bin "v${TRUFFLEHOG_VERSION}"
+}
+
+install_grype() {
+  curl -sSfL "https://raw.githubusercontent.com/anchore/grype/main/install.sh" |
+    sudo sh -s -- -b /usr/local/bin "v${GRYPE_VERSION}"
+}
+
+install_checkov() {
+  pip install --quiet "checkov==${CHECKOV_VERSION}"
 }
 
 main() {
   for tool in "$@"; do
     case "${tool}" in
-      llvm)      install_llvm ;;
-      doxygen)   install_doxygen ;;
-      rumdl)     install_rumdl ;;
-      *)         sudo apt-get install -y "${tool}" ;;
+    llvm) install_llvm ;;
+    doxygen) install_doxygen ;;
+    rumdl) install_rumdl ;;
+    trufflehog) install_trufflehog ;;
+    grype) install_grype ;;
+    checkov) install_checkov ;;
+    *) sudo apt-get install -y "${tool}" ;;
     esac
   done
 }

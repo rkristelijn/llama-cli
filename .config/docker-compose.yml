@@ -1,3 +1,14 @@
+# =============================================================================
+# Docker services voor lokale development
+#
+# Gebruik:
+#   docker compose -f .config/docker-compose.yml up -d
+#   docker compose -f .config/docker-compose.yml down
+#
+# SearXNG  is beschikbaar op http://localhost:8888
+# SonarQube analyse draait via SonarCloud (geen lokale container meer nodig)
+# =============================================================================
+
 services:
   searxng:
     image: searxng/searxng

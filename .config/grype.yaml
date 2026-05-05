@@ -1,0 +1,10 @@
+# grype.yaml — vulnerability scanner configuration
+#
+# @see https://github.com/anchore/grype#configuration
+
+# Only fail on high/critical vulnerabilities
+fail-on-severity: high
+
+# Ignore unfixed vulnerabilities (reduce noise)
+ignore:
+  - fix-state: not-fixed

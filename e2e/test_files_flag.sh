@@ -18,7 +18,7 @@ trap 'rm -f "$TEMP_FILE"' EXIT
 check_binary "$BINARY"
 
 # Create test file
-echo "The answer to life, the universe, and everything is 42." > "$TEMP_FILE"
+echo "The answer to life, the universe, and everything is 42." >"$TEMP_FILE"
 
 # Run with --files
 OUTPUT=$("$BINARY" --files="$TEMP_FILE" "what is the answer?" 2>&1) || die "binary exited with error"

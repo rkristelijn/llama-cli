@@ -1,0 +1,9 @@
+# osv-scanner.toml — Google OSV vulnerability scanner configuration
+#
+# Placed in project root, applies to all lockfiles in this directory.
+# @see https://google.github.io/osv-scanner/configuration/
+
+# No vulnerabilities to ignore yet — add entries as needed:
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# reason = "Not applicable to this project"

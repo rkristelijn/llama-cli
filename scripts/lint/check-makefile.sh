@@ -24,8 +24,14 @@ MAKEFILE="Makefile"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --max) MAX_LINES="$2"; shift 2 ;;
-    *)     MAKEFILE="$1"; shift ;;
+  --max)
+    MAX_LINES="$2"
+    shift 2
+    ;;
+  *)
+    MAKEFILE="$1"
+    shift
+    ;;
   esac
 done
 
@@ -41,9 +47,9 @@ main() {
   while IFS= read -r line; do
     # New target (not a variable assignment)
     if [[ "${line}" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*:.* ]] && [[ ! "${line}" =~ ^[A-Z_]+[[:space:]]*[\?:]?= ]]; then
-      if [[ -n "${target}" ]] && (( count > MAX_LINES )); then
+      if [[ -n "${target}" ]] && ((count > MAX_LINES)); then
         printf "  %-25s %d lines (max %d)\n" "${target}" "${count}" "${MAX_LINES}"
-        (( failures++ )) || true
+        ((failures++)) || true
       fi
       target="${line%%:*}"
       count=0
@@ -60,27 +66,27 @@ main() {
       # Skip $(MAKE) delegation
       [[ "${stripped}" =~ ^\$\(MAKE\) ]] && continue
 
-      (( count++ )) || true
+      ((count++)) || true
     elif [[ -z "${line}" ]]; then
       : # blank line inside target — ignore
     else
       # Non-recipe, non-blank — end of target
-      if [[ -n "${target}" ]] && (( count > MAX_LINES )); then
+      if [[ -n "${target}" ]] && ((count > MAX_LINES)); then
         printf "  %-25s %d lines (max %d)\n" "${target}" "${count}" "${MAX_LINES}"
-        (( failures++ )) || true
+        ((failures++)) || true
       fi
       target=""
       count=0
     fi
-  done < "${MAKEFILE}"
+  done <"${MAKEFILE}"
 
   # Last target
-  if [[ -n "${target}" ]] && (( count > MAX_LINES )); then
+  if [[ -n "${target}" ]] && ((count > MAX_LINES)); then
     printf "  %-25s %d lines (max %d)\n" "${target}" "${count}" "${MAX_LINES}"
-    (( failures++ )) || true
+    ((failures++)) || true
   fi
 
-  if (( failures > 0 )); then
+  if ((failures > 0)); then
     echo ""
     echo "  ${failures} target(s) exceed ${MAX_LINES}-line limit. Extract to scripts/."
     return 1

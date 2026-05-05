@@ -28,8 +28,8 @@ DRY_RUN=false
 
 for arg in "$@"; do
   case "$arg" in
-    --dry-run) DRY_RUN=true ;;
-    --model=*) MODEL="${arg#--model=}" ;;
+  --dry-run) DRY_RUN=true ;;
+  --model=*) MODEL="${arg#--model=}" ;;
   esac
 done
 
@@ -39,7 +39,7 @@ percentBar() {
   local prct totlen=$((8 * $2))
   local -a chars=('▏' '▎' '▍' '▌' '▋' '▊' '▉')
   printf -v prct %.2f "$1"
-  prct=${prct/.}
+  prct=${prct/./}
   prct=$((10#$prct * totlen / 10000))
   local remainder=$((prct % 8))
   local lastchar=""
@@ -56,31 +56,31 @@ percentBar() {
 needs_summary() {
   local file="$1"
   case "$file" in
-    *.md)
-      # Has frontmatter summary? Good enough.
-      sed -n '/^---$/,/^---$/p' "$file" 2>/dev/null | grep -q '^summary:' && return 1
-      # No frontmatter? First heading or line ≥ 20 chars is fine (can't inject without frontmatter)
-      if ! head -1 "$file" | grep -q '^---$'; then return 1; fi
-      # Has frontmatter but no summary — check if first non-frontmatter line is useful
-      local first
-      first=$(awk '/^---$/{n++; next} n>=2{print; exit}' "$file" | sed 's/^[# ]*//' | cut -c1-80)
-      [[ ${#first} -ge 20 ]] && return 1
-      return 0
-      ;;
-    *.cpp | *.h)
-      # Has @brief in doxygen block?
-      head -10 "$file" | grep -q '@brief' && return 1
-      # Has a meaningful // comment on line 1? (≥ 20 chars)
-      local first
-      first=$(head -1 "$file" | sed 's|^// *||')
-      [[ ${#first} -ge 20 ]] && return 1
-      return 0
-      ;;
-    *.sh)
-      # Line 3 should have a description (after shebang + blank)
-      sed -n '3p' "$file" | grep -qE '^# .{15,}' && return 1
-      return 0
-      ;;
+  *.md)
+    # Has frontmatter summary? Good enough.
+    sed -n '/^---$/,/^---$/p' "$file" 2>/dev/null | grep -q '^summary:' && return 1
+    # No frontmatter? First heading or line ≥ 20 chars is fine (can't inject without frontmatter)
+    if ! head -1 "$file" | grep -q '^---$'; then return 1; fi
+    # Has frontmatter but no summary — check if first non-frontmatter line is useful
+    local first
+    first=$(awk '/^---$/{n++; next} n>=2{print; exit}' "$file" | sed 's/^[# ]*//' | cut -c1-80)
+    [[ ${#first} -ge 20 ]] && return 1
+    return 0
+    ;;
+  *.cpp | *.h)
+    # Has @brief in doxygen block?
+    head -10 "$file" | grep -q '@brief' && return 1
+    # Has a meaningful // comment on line 1? (≥ 20 chars)
+    local first
+    first=$(head -1 "$file" | sed 's|^// *||')
+    [[ ${#first} -ge 20 ]] && return 1
+    return 0
+    ;;
+  *.sh)
+    # Line 3 should have a description (after shebang + blank)
+    sed -n '3p' "$file" | grep -qE '^# .{15,}' && return 1
+    return 0
+    ;;
   esac
   return 1
 }
@@ -95,8 +95,8 @@ ask_ollama() {
   local response
   response=$(curl -s --max-time 30 "http://${HOST}:${PORT}/api/generate" \
     -d "$(jq -n --arg model "$MODEL" --arg prompt "$prompt" \
-      '{model: $model, prompt: $prompt, stream: false}')" \
-    | jq -r '.response // empty' 2>/dev/null)
+      '{model: $model, prompt: $prompt, stream: false}')" |
+    jq -r '.response // empty' 2>/dev/null)
 
   # Clean: single line, trim whitespace, cap at 120 chars
   echo "$response" | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | cut -c1-120
@@ -105,7 +105,7 @@ ask_ollama() {
 # --- Portable sed -i (BSD vs GNU) ---
 
 sed_inplace() {
-  if sed --version > /dev/null 2>&1; then
+  if sed --version >/dev/null 2>&1; then
     sed -i "$@"
   else
     sed -i '' "$@"
@@ -119,38 +119,38 @@ inject_summary() {
   [[ "$DRY_RUN" == "true" ]] && return
 
   case "$file" in
-    *.md)
-      if head -1 "$file" | grep -q '^---$'; then
-        # Add summary: into existing frontmatter
-        sed_inplace "/^---$/,/^---$/{
+  *.md)
+    if head -1 "$file" | grep -q '^---$'; then
+      # Add summary: into existing frontmatter
+      sed_inplace "/^---$/,/^---$/{
           /^---$/{
             n
             /^summary:/!i\\
 summary: ${summary}
           }
         }" "$file"
-      fi
-      ;;
-    *.cpp | *.h)
-      if head -1 "$file" | grep -q '^/\*\*'; then
-        if head -10 "$file" | grep -q '@brief'; then
-          sed_inplace "s|@brief .*|@brief ${summary}|" "$file"
-        else
-          sed_inplace "2a\\
- * @brief ${summary}" "$file"
-        fi
+    fi
+    ;;
+  *.cpp | *.h)
+    if head -1 "$file" | grep -q '^/\*\*'; then
+      if head -10 "$file" | grep -q '@brief'; then
+        sed_inplace "s|@brief .*|@brief ${summary}|" "$file"
       else
-        # No doxygen block — add a comment at line 1 for .h files
-        if [[ "$file" == *.h ]]; then
-          local existing
-          existing=$(head -1 "$file")
-          if [[ "$existing" == "//"* ]]; then
-            # Replace first comment line
-            sed_inplace "1s|// .*|// ${summary}|" "$file"
-          fi
+        sed_inplace "2a\\
+ * @brief ${summary}" "$file"
+      fi
+    else
+      # No doxygen block — add a comment at line 1 for .h files
+      if [[ "$file" == *.h ]]; then
+        local existing
+        existing=$(head -1 "$file")
+        if [[ "$existing" == "//"* ]]; then
+          # Replace first comment line
+          sed_inplace "1s|// .*|// ${summary}|" "$file"
         fi
       fi
-      ;;
+    fi
+    ;;
   esac
 }
 
@@ -160,7 +160,7 @@ main() {
   echo "==> Summarizing file headers with ${MODEL}..."
 
   # Verify Ollama
-  if ! curl -s --max-time 5 "http://${HOST}:${PORT}/api/tags" > /dev/null 2>&1; then
+  if ! curl -s --max-time 5 "http://${HOST}:${PORT}/api/tags" >/dev/null 2>&1; then
     echo "Error: cannot reach Ollama at ${HOST}:${PORT}"
     exit 1
   fi

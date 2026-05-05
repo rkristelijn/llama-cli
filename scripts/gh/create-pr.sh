@@ -8,7 +8,6 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-
 set -euo pipefail
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)

@@ -8,25 +8,26 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 # Detect which file types changed vs main
 CHANGED=$(git diff --name-only main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)
-HAS_CPP=false; HAS_SH=false
+HAS_CPP=false
+HAS_SH=false
 
 while IFS= read -r f; do
   case "$f" in
-    src/*.cpp|src/*.h|CMakeLists.txt|.config/*) HAS_CPP=true ;;
-    scripts/*|Makefile) HAS_SH=true ;;
+  src/*.cpp | src/*.h | CMakeLists.txt | .config/*) HAS_CPP=true ;;
+  scripts/* | Makefile) HAS_SH=true ;;
   esac
-done <<< "$CHANGED"
+done <<<"$CHANGED"
 
 # Build the step list dynamically
 STEPS=()
-$HAS_SH   && STEPS+=("Lint|lint-makefile|make -s lint-makefile")
-$HAS_SH   && STEPS+=("Lint|lint-scripts|make -s lint-scripts")
-$HAS_CPP  && STEPS+=("Analysis|tidy|make -s tidy")
-$HAS_CPP  && STEPS+=("Build|build|make -s build")
-$HAS_CPP  && STEPS+=("Test|test-unit|make -s test-unit")
-$HAS_CPP  && STEPS+=("Test|e2e|make -s e2e")
+$HAS_SH && STEPS+=("Lint|lint-makefile|make -s lint-makefile")
+$HAS_SH && STEPS+=("Lint|lint-scripts|make -s lint-scripts")
+$HAS_CPP && STEPS+=("Analysis|tidy|make -s tidy")
+$HAS_CPP && STEPS+=("Build|build|make -s build")
+$HAS_CPP && STEPS+=("Test|test-unit|make -s test-unit")
+$HAS_CPP && STEPS+=("Test|e2e|make -s e2e")
 STEPS+=("Security|sast-security|make -s sast-security")
-$HAS_CPP  && STEPS+=("Metrics|comment-ratio|make -s comment-ratio")
+$HAS_CPP && STEPS+=("Metrics|comment-ratio|make -s comment-ratio")
 
 # If nothing code-related changed, minimal checks
 if [[ ${#STEPS[@]} -eq 1 ]]; then
@@ -53,20 +54,20 @@ declare -A HINTS=(
 
 run_step() {
   local phase="$1" name="$2" cmd="$3"
-  (( STEP++ )) || true
+  ((STEP++)) || true
   local output start elapsed
   printf "  [%d/%d] %s... " "${STEP}" "${TOTAL}" "${name}"
   start="$(date +%s)"
   if output="$(eval "${cmd}" 2>&1)"; then
-    elapsed="$(( $(date +%s) - start ))"
+    elapsed="$(($(date +%s) - start))"
     printf "✓ (%ds)\n" "${elapsed}"
-    (( PASSED++ )) || true
+    ((PASSED++)) || true
   else
-    elapsed="$(( $(date +%s) - start ))"
+    elapsed="$(($(date +%s) - start))"
     printf "✗ (%ds)\n" "${elapsed}"
     echo "${output}" | sed 's/^/    /'
     FAILED_NAMES+=("${name}")
-    (( FAILED++ )) || true
+    ((FAILED++)) || true
   fi
 }
 
@@ -88,7 +89,7 @@ main() {
   done
 
   echo ""
-  if (( FAILED > 0 )); then
+  if ((FAILED > 0)); then
     echo "Failed:"
     for name in "${FAILED_NAMES[@]}"; do
       local hint="${HINTS[${name}]:-run: make ${name}}"

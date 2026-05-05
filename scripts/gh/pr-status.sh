@@ -41,30 +41,30 @@ fi
 
 # Display each job with status, conclusion, and timing
 echo "$JOBS_JSON" | jq -r '.jobs[] | "\(.status)|\(.conclusion // "-")|\(.name)|\(.startedAt // "")|\(.completedAt // "")"' | while IFS='|' read -r STATUS CONCLUSION NAME STARTED COMPLETED; do
-    # Calculate duration
-    DURATION=""
-    if [ -n "$STARTED" ] && [ "$STARTED" != "null" ]; then
-      START_S=$(date -d "$STARTED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${STARTED%%.*}" +%s 2>/dev/null || echo "")
-      if [ -n "$START_S" ]; then
-        if [ -n "$COMPLETED" ] && [ "$COMPLETED" != "null" ] && [ "$COMPLETED" != "0001-01-01T00:00:00Z" ]; then
-          END_S=$(date -d "$COMPLETED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${COMPLETED%%.*}" +%s 2>/dev/null || echo "")
-          [ -n "$END_S" ] && DURATION=" ${DIM}($(( END_S - START_S ))s)${NC}"
-        else
-          NOW_S=$(date +%s)
-          DURATION=" ${YELLOW}($(( NOW_S - START_S ))s running)${NC}"
-        fi
+  # Calculate duration
+  DURATION=""
+  if [ -n "$STARTED" ] && [ "$STARTED" != "null" ]; then
+    START_S=$(date -d "$STARTED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${STARTED%%.*}" +%s 2>/dev/null || echo "")
+    if [ -n "$START_S" ]; then
+      if [ -n "$COMPLETED" ] && [ "$COMPLETED" != "null" ] && [ "$COMPLETED" != "0001-01-01T00:00:00Z" ]; then
+        END_S=$(date -d "$COMPLETED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${COMPLETED%%.*}" +%s 2>/dev/null || echo "")
+        [ -n "$END_S" ] && DURATION=" ${DIM}($((END_S - START_S))s)${NC}"
+      else
+        NOW_S=$(date +%s)
+        DURATION=" ${YELLOW}($((NOW_S - START_S))s running)${NC}"
       fi
     fi
+  fi
 
-    if [ "$STATUS" != "completed" ]; then
-        printf "${YELLOW}󱎫 %-12s${NC} %s${DURATION}\n" "$STATUS" "$NAME"
-    elif [ "$CONCLUSION" = "success" ]; then
-        printf "${GREEN}✔ %-12s${NC} %s${DURATION}\n" "success" "$NAME"
-    elif [ "$CONCLUSION" = "failure" ]; then
-        printf "${RED}✘ %-12s${NC} %s${DURATION}\n" "failure" "$NAME"
-    else
-        printf "${NC}󰄱 %-12s${NC} %s${DURATION}\n" "$CONCLUSION" "$NAME"
-    fi
+  if [ "$STATUS" != "completed" ]; then
+    printf "${YELLOW}󱎫 %-12s${NC} %s${DURATION}\n" "$STATUS" "$NAME"
+  elif [ "$CONCLUSION" = "success" ]; then
+    printf "${GREEN}✔ %-12s${NC} %s${DURATION}\n" "success" "$NAME"
+  elif [ "$CONCLUSION" = "failure" ]; then
+    printf "${RED}✘ %-12s${NC} %s${DURATION}\n" "failure" "$NAME"
+  else
+    printf "${NC}󰄱 %-12s${NC} %s${DURATION}\n" "$CONCLUSION" "$NAME"
+  fi
 done
 
 # Check for failures
@@ -73,23 +73,13 @@ FAILED_JOBS=$(echo "$JOBS_JSON" | jq -r '.jobs[] | select(.conclusion == "failur
 if [ -n "$FAILED_JOBS" ]; then
   printf "\n${RED}Failed jobs detail:${NC}\n"
 
-  LOG_FILE="$(mktemp)"
-  trap 'rm -f "$LOG_FILE"' EXIT
-  gh run view "$RUN_ID" --log-failed > "$LOG_FILE" 2>/dev/null
-
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
-    printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"
-    # Anchor grep to job name at start of line (log format: "JOBNAME\tSTEP\tLINE")
-    snippet=$(grep "^${JOB_NAME}	" "$LOG_FILE" | grep -i "error\|fail\|missing\|warning\|\#\#\[error\]" | tail -n 30 || true)
-    if [ -n "$snippet" ]; then
-      # Strip job name prefix and timestamps for readability
-      printf '%s\n' "$snippet" | sed "s/^${JOB_NAME}\t//" | sed 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //'
-    else
-      echo "  No error lines found. Run with --debug or check GitHub Actions UI."
-    fi
-  done <<< "$FAILED_JOBS"
-  rm -f "$LOG_FILE"
-  trap - EXIT
+    printf "\n${RED}=== %s ===${NC}\n" "$JOB_NAME"
+    # Fetch job log, strip timestamps, show last 30 lines (skips GH setup noise)
+    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
+      | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
+      | tail -n 30
+  done <<<"$FAILED_JOBS"
   exit 1
 fi
 

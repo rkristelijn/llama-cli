@@ -1,3 +1,4 @@
+.scannerwork/
 build/
 build-fuzz/
 build-cov/
@@ -12,6 +13,7 @@ compile_commands.json
 *.gcno
 *.log
 .env
+*.swp
 /llama-cli
 coverage.info
 events.jsonl

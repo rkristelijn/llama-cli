@@ -1,0 +1,25 @@
+# checkov.yaml — IaC policy scanner configuration
+#
+# @see https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+
+# Scan directories
+directory:
+  - .
+
+# Skip build artifacts
+skip-path:
+  - build
+  - build-fuzz
+  - _deps
+  - .tmp
+  - node_modules
+
+# Frameworks to scan (auto-detect if not specified)
+framework:
+  - dockerfile
+  - github_actions
+  - yaml
+
+# Compact output
+compact: true
+quiet: true

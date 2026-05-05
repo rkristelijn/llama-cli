@@ -1,0 +1,109 @@
+# patterns.yml — Semgrep rules learned from codebase analysis
+# Run with: semgrep scan --config .config/patterns.yml
+#
+# Rules are auto-discovered by scripts/dev/learn.sh and manually curated.
+# See ADR-076 for the decomposition philosophy behind these rules.
+rules:
+  - id: learn-extract-complex-condition
+    patterns:
+      - pattern: |
+          if ($X && $Y && $Z) { ... }
+    message: "Complex condition with 3+ clauses — consider Extract Method (ADR-076)"
+    languages: [cpp]
+    severity: WARNING
+
+  - id: learn-no-sleep-in-tests
+    patterns:
+      - pattern: |
+          cmd_exec("sleep $X", ...)
+    message: "sleep in tests is timing-sensitive — use output-producing commands (ADR-075)"
+    languages: [cpp]
+    severity: ERROR
+    paths:
+      include:
+        - "*_test.cpp"
+
+  - id: learn-test-empty-after-sideeffect
+    patterns:
+      - pattern: |
+          auto $R = cmd_exec(...);
+          ...
+          CHECK($R.output.empty());
+    message: "Asserting empty output after exec — test the contract, not side-effects (ADR-075)"
+    languages: [cpp]
+    severity: WARNING
+    paths:
+      include:
+        - "*_test.cpp"
+
+  - id: learn-long-parameter-list
+    patterns:
+      - pattern: |
+          $RET $FN($A, $B, $C, $D, $E) { ... }
+    message: "5+ parameters — consider a config struct or builder (ADR-076)"
+    languages: [cpp]
+    severity: WARNING
+
+# Learned 2026-05-05 from complexity analysis
+```yaml
+rules:
+  - id: learn-complex-inline-condition
+    patterns:
+      - pattern-inside: |
+          $FUNC($PARAMS) {
+            if ($COMPLEX_CONDITION) { ... }
+            ...
+          }
+    message: "Complex inline condition detected. Consider extracting to a separate function."
+    severity: warning
+
+  - id: learn-mixed-abstraction-levels
+    patterns:
+      - pattern-inside: |
+          $FUNC($PARAMS) {
+            $LOW_ABSTRACTION;
+            $HIGH_ABSTRACTION;
+            ...
+          }
+    message: "Function mixes different levels of abstraction. Consider refactoring for clarity."
+    severity: warning
+
+  - id: learn-long-parameter-list
+    patterns:
+      - pattern-inside: |
+          $FUNC($PARAM1, $PARAM2, $PARAM3, ...) {
+            ...
+          }
+    message: "Long parameter list detected. Consider creating an abstraction or using a configuration object."
+    severity: warning
+```
+
+# Learned 2026-05-05 from complexity analysis
+```yaml
+rules:
+  - id: learn-complex-inline-condition
+    patterns:
+      - pattern-inside: |
+          if ($X) {
+            ...
+          }
+        context: inside_if_condition
+        message: "Complex inline condition detected. Consider extracting it into a separate function."
+        languages: [cpp]
+
+  - id: learn-mixed-abstraction-levels
+    patterns:
+      - pattern: |
+          $HIGH_LEVEL_API($LOW_LEVEL_API(...))
+        context: mixed_abstraction_levels
+        message: "Function mixes high-level and low-level abstractions. Consider refactoring to separate concerns."
+        languages: [cpp]
+
+  - id: learn-long-parameter-list
+    patterns:
+      - pattern: |
+          function_name($ARG1, $ARG2, $ARG3, ...)
+        context: long_parameter_list
+        message: "Long parameter list detected. Consider creating a struct or using named parameters to improve abstraction."
+        languages: [cpp]
+```

@@ -40,8 +40,8 @@ check "no #pragma once in headers" \
 
 # 2. No exit() in library code (only allowed in main.cpp and load_config)
 check "no exit() in library code" \
-  "$(grep -rn 'exit(1)\|std::exit(1)' src/ --include='*.cpp' --include='*.h' \
-    | grep -v 'main.cpp\|config.cpp' || true)"
+  "$(grep -rn 'exit(1)\|std::exit(1)' src/ --include='*.cpp' --include='*.h' |
+    grep -v 'main.cpp\|config.cpp' || true)"
 
 # 3. No duplicate escape_json implementations
 check "no duplicate escape_json" \

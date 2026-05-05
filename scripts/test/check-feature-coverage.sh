@@ -23,7 +23,7 @@ EXPECTED=$(grep -roh 'LOG_FEATURE("[^"]*")' src/ | sed 's/LOG_FEATURE("//;s/")//
 LOG=$(mktemp)
 trap 'rm -f "$LOG"' EXIT
 echo "==> running e2e with feature logging..."
-LLAMA_FEATURE_LOG="$LOG" bash scripts/test/run-e2e.sh "$BUILD_DIR" "$BINARY" > /dev/null 2>&1 || true
+LLAMA_FEATURE_LOG="$LOG" bash scripts/test/run-e2e.sh "$BUILD_DIR" "$BINARY" >/dev/null 2>&1 || true
 
 # Check which features were hit
 PASS=0

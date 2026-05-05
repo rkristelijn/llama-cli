@@ -12,9 +12,9 @@ BINARY="${1:-./build/llama-cli}"
 check_binary "$BINARY"
 
 # Check Ollama is running
-if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo "SKIP: Ollama not running on localhost:11434"
-    exit 0
+if ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
+  echo "SKIP: Ollama not running on localhost:11434"
+  exit 0
 fi
 
 echo "=== LIVE integration test (real LLM) ==="
@@ -26,7 +26,7 @@ trap 'rm -f "$TMP" "${TMP}.bak" "${TMP}.skip"' EXIT
 # $1 = newline-separated prompts
 # Returns: combined stdout+stderr
 run() {
-    echo "$1" | timeout 120 "$BINARY" --repl 2>&1
+  echo "$1" | timeout 120 "$BINARY" --repl 2>&1
 }
 
 # --- test 1: basic chat responds ---
@@ -42,7 +42,7 @@ OUTPUT=$(echo "hallo
 exit" | timeout 120 env TRACE=1 "$BINARY" --repl 2>&1)
 # Timestamp format: [HH:MM:SS]
 if ! echo "$OUTPUT" | grep -qE '\[[0-9]{2}:[0-9]{2}:[0-9]{2}\]'; then
-    die "no timestamp found in trace output"
+  die "no timestamp found in trace output"
 fi
 echo "PASS"
 
@@ -54,36 +54,36 @@ y
 exit")
 # If LLM didn't produce the annotation, we gave it literally — should still work
 if echo "$OUTPUT" | grep -qi "wrote"; then
-    [ -f "$TMP" ] || die "file not created"
-    assert_contains "$(cat "$TMP")" "live test ok" "file content"
-    echo "PASS"
+  [ -f "$TMP" ] || die "file not created"
+  assert_contains "$(cat "$TMP")" "live test ok" "file content"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not produce write annotation)"
+  echo "SKIP (LLM did not produce write annotation)"
 fi
 
 # --- test 4: write existing file shows diff ---
 echo "--- test 4: auto-diff on existing file ---"
-echo "old content" > "$TMP"
+echo "old content" >"$TMP"
 OUTPUT=$(run "overschrijf $TMP met \"new content\"
 y
 exit")
 if echo "$OUTPUT" | grep -q "^- \|^-old\|- old"; then
-    echo "PASS"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not produce write annotation for existing file)"
+  echo "SKIP (LLM did not produce write annotation for existing file)"
 fi
 
 # --- test 5: str_replace ---
 echo "--- test 5: str_replace ---"
-echo "alpha beta gamma" > "$TMP"
+echo "alpha beta gamma" >"$TMP"
 OUTPUT=$(run "vervang \"beta\" door \"BETA\" in $TMP
 y
 exit")
 if echo "$OUTPUT" | grep -qi "wrote"; then
-    assert_contains "$(cat "$TMP")" "BETA" "replacement in file"
-    echo "PASS"
+  assert_contains "$(cat "$TMP")" "BETA" "replacement in file"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not produce str_replace annotation)"
+  echo "SKIP (LLM did not produce str_replace annotation)"
 fi
 
 # --- test 6: read triggers follow-up ---
@@ -92,9 +92,9 @@ OUTPUT=$(echo "lees regels 1-3 van src/main.cpp
 exit" | timeout 120 env TRACE=1 "$BINARY" --repl 2>&1)
 POST_COUNT=$(echo "$OUTPUT" | grep -c "POST.*api/chat" || true)
 if [ "$POST_COUNT" -ge 2 ]; then
-    echo "PASS"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not use <read> annotation, got $POST_COUNT calls)"
+  echo "SKIP (LLM did not use <read> annotation, got $POST_COUNT calls)"
 fi
 
 # --- test 7: decline write ---
@@ -104,10 +104,10 @@ OUTPUT=$(run "maak een bestand ${TMP}.skip met \"should not exist\"
 n
 exit")
 if echo "$OUTPUT" | grep -qi "skipped"; then
-    [ ! -f "${TMP}.skip" ] || die "file should not exist"
-    echo "PASS"
+  [ ! -f "${TMP}.skip" ] || die "file should not exist"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not produce write annotation)"
+  echo "SKIP (LLM did not produce write annotation)"
 fi
 
 # --- test 8: /version shows build date ---
@@ -122,9 +122,9 @@ echo "--- test 9: language follow ---"
 OUTPUT=$(run "what is the capital of France?
 exit")
 if echo "$OUTPUT" | grep -qi "Paris"; then
-    echo "PASS"
+  echo "PASS"
 else
-    echo "SKIP (LLM did not mention Paris)"
+  echo "SKIP (LLM did not mention Paris)"
 fi
 
 echo ""

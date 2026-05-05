@@ -111,3 +111,31 @@ SCENARIO ("command execution: failed command") {
 
 // TODO: test popen failure path (cmd_exec returns "Error: could not execute command")
 // TODO: test WIFSIGNALED path (command killed by signal)
+
+SCENARIO ("command execution: edge cases") {
+  GIVEN ("a command with no output") {
+    auto r = cmd_exec("true", 5, 10000);
+    THEN ("output is empty") {
+      CHECK (r.output.empty())
+        ;
+    }
+    THEN ("exit code is 0") {
+      CHECK (r.exit_code == 0)
+        ;
+    }
+  }
+
+  // TODO: flaky on coverage builds — timeout race with instrumentation overhead
+  GIVEN ("a command with very short timeout") {
+    // Use a loop that produces output so the timeout check in fgets triggers
+    auto r = cmd_exec("for i in $(seq 1 100); do echo x; sleep 0.1; done", 1, 1000);
+    THEN ("timeout is detected") {
+      CHECK (r.timed_out)
+        ;
+    }
+    THEN ("output contains timeout marker") {
+      CHECK (r.output.find("[killed: timeout") != std::string::npos)
+        ;
+    }
+  }
+}

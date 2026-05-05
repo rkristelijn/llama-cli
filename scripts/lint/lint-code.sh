@@ -30,9 +30,9 @@ output=$(cppcheck --enable=all \
   --suppress='knownConditionTrueFalse:*repl_chat.cpp' \
   --suppress='variableScope:*highlight.cpp' \
   --error-exitcode=1 -I src/ src/ 2>&1) || {
-    echo "$output" | grep -v "Checking\|files checked"
-    exit 1
-  }
+  echo "$output" | grep -v "Checking\|files checked"
+  exit 1
+}
 
 echo "$output" | grep -v "Checking\|files checked" || true
 echo "  [done] lint-code"

@@ -23,7 +23,7 @@ main() {
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
     name="$(basename "$t")"
-    if ! cmake --build "${BUILD_DIR}" --target "${name}" > /dev/null 2>&1; then
+    if ! cmake --build "${BUILD_DIR}" --target "${name}" >/dev/null 2>&1; then
       echo "  [error] Failed to build ${name}. Run 'make build' to see errors." >&2
       exit 1
     fi
@@ -32,7 +32,7 @@ main() {
   find "${BUILD_DIR}" -name "*.gcda" -delete 2>/dev/null || true
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
-    "$t" --quiet
+    "$t" --no-version --quiet
   done
   echo "  [done] test-unit"
 }

@@ -18,13 +18,13 @@ PROMPTS=("what is 2 plus 2?" "hello")
 EXPECTED=("2" "hello")
 
 for i in "${!PROMPTS[@]}"; do
-    prompt="${PROMPTS[$i]}"
-    expected="${EXPECTED[$i]}"
-    
-    echo "Testing: '$prompt'..."
-    OUTPUT=$("$BINARY" "$prompt" 2>&1)
-    
-    assert_nonempty "$OUTPUT" "$prompt"
-    assert_contains "$OUTPUT" "$expected" "$prompt"
-    echo "PASS: '$prompt' -> contains '$expected'"
+  prompt="${PROMPTS[$i]}"
+  expected="${EXPECTED[$i]}"
+
+  echo "Testing: '$prompt'..."
+  OUTPUT=$("$BINARY" "$prompt" 2>&1)
+
+  assert_nonempty "$OUTPUT" "$prompt"
+  assert_contains "$OUTPUT" "$expected" "$prompt"
+  echo "PASS: '$prompt' -> contains '$expected'"
 done
