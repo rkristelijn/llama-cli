@@ -38,11 +38,16 @@ extern volatile sig_atomic_t g_interrupted;
 /// Load .kiro/agents/*.json: append agent prompt to system prompt,
 /// read resource files into initial context string.
 /// Only used in REPL mode — sync mode skips this for speed (ADR-066).
+/// Respects system prompt budget: skips resources if prompt already exceeds
+/// 4096 chars (~1024 tokens) to avoid overwhelming small models (ADR-087).
 static std::string load_kiro_context(Config& cfg, bool color) {
   DIR* dir = opendir(".kiro/agents");
   if (!dir) {
     return "";
   }
+  // Budget: max chars for system prompt before we stop adding resources
+  constexpr size_t max_prompt_chars = 4096;
+
   std::string context;
   const struct dirent* entry = nullptr;
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
@@ -60,6 +65,11 @@ static std::string load_kiro_context(Config& cfg, bool color) {
     std::string prompt = json_extract_string(json, "prompt");
     if (!prompt.empty()) {
       cfg.system_prompt += "\n\n" + prompt;
+    }
+    // Skip resource loading if system prompt already exceeds budget (ADR-087)
+    if (cfg.system_prompt.size() > max_prompt_chars) {
+      tui::system_msg(std::cerr, color, "[skipping resources — prompt budget exceeded]\n");
+      continue;
     }
     // Read resource files into context
     for (const auto& path : extract_resources(json)) {

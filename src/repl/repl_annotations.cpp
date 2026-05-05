@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -21,6 +22,19 @@
 #include "logging/logger.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
+
+/// Read a single line for y/n confirmation. Terminal is in cooked mode here
+/// because linenoise::Readline restores it after each REPL prompt. Strip \r
+/// in case of piped input or unexpected raw mode.
+static bool read_answer(std::istream& in, std::string& answer) {
+  if (!std::getline(in, answer)) {
+    return false;
+  }
+  if (!answer.empty() && answer.back() == '\r') {
+    answer.pop_back();
+  }
+  return true;
+}
 
 // --- File I/O helpers ---
 // These are file-local utilities used by the annotation handlers.
@@ -187,10 +201,10 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     out << "[auto-written: " << action.path << "]\n";
     return true;
   }
-  std::string opts = "[y/n/s/t/c]";
+  std::string opts = "[y/n/s/t/c/?]";
   out << "Write to " << action.path << "? " << opts << " " << std::flush;
   std::string answer;
-  while (std::getline(in, answer)) {
+  while (read_answer(in, answer)) {
     if (answer == "y" || answer == "yes") {
       return true;
     }
@@ -199,12 +213,10 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
-    }
-    if (answer == "t" || answer == "trust") {
+    } else if (answer == "t" || answer == "trust") {
       trust = true;
       return true;
-    }
-    if (answer == "c" || answer == "copy") {
+    } else if (answer == "c" || answer == "copy") {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
       FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
       if (pipe) {
@@ -212,6 +224,12 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
         pclose(pipe);
         out << "[copied to clipboard]\n";
       }
+    } else if (answer == "?") {
+      out << "  y = apply this change\n";
+      out << "  n = skip this change\n";
+      out << "  s = show full content again\n";
+      out << "  t = trust — auto-approve all remaining changes this session\n";
+      out << "  c = copy content to clipboard\n";
     }
     out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
@@ -306,28 +324,46 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
   updated.replace(replace_pos, action.old_str.size(), action.new_str);
   show_diff(existing, updated, out, color);
 
-  out << "Apply str_replace to " << action.path << "? [y/n/t/c] " << std::flush;
+  out << "Apply str_replace to " << action.path << "? [y/n/t/c/?] " << std::flush;
   std::string answer;
-  if (!std::getline(in, answer)) {
-    out << "[skipped]\n";
-    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-    return;
-  }
-  if (answer == "t" || answer == "trust") {
-    trust = true;
-  } else if (answer == "c" || answer == "copy") {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-    FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
-    if (pipe) {
-      fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
-      pclose(pipe);
-      out << "[copied to clipboard]\n";
+  while (true) {
+    if (!read_answer(in, answer)) {
+      out << "[skipped]\n";
+      LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+      return;
     }
-    return;
-  } else if (answer != "y" && answer != "yes") {
-    out << "[skipped]\n";
-    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-    return;
+    // Strip \r from raw terminal mode
+    if (!answer.empty() && answer.back() == '\r') {
+      answer.pop_back();
+    }
+    if (answer == "y" || answer == "yes") {
+      break;
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+      break;
+    }
+    if (answer == "c" || answer == "copy") {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
+      return;
+    }
+    if (answer == "?") {
+      out << "  y = apply this change\n";
+      out << "  n = skip this change\n";
+      out << "  t = trust — auto-approve all remaining changes this session\n";
+      out << "  c = copy new content to clipboard\n";
+    } else {
+      out << "[skipped]\n";
+      LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+      return;
+    }
+    out << "Apply str_replace to " << action.path << "? [y/n/t/c/?] " << std::flush;
   }
 
   // Backup and write
@@ -445,26 +481,44 @@ std::string strip_exec_annotations(const std::string& text) {
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
   if (!trust) {
-    out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c] " << std::flush;
+    out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c/?] " << std::flush;
     std::string answer;
-    if (!std::getline(in, answer)) {
-      return "";
-    }
-    if (answer == "t" || answer == "trust") {
-      trust = true;
-    } else if (answer == "c" || answer == "copy") {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
-      if (pipe) {
-        fwrite(cmd.c_str(), 1, cmd.size(), pipe);
-        pclose(pipe);
-        out << "[copied to clipboard]\n";
+    while (true) {
+      if (!read_answer(in, answer)) {
+        return "";
       }
-      return "";
-    } else if (answer != "y" && answer != "yes") {
-      LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
-      out << "[skipped]\n";
-      return "";
+      // Strip \r from raw terminal mode
+      if (!answer.empty() && answer.back() == '\r') {
+        answer.pop_back();
+      }
+      if (answer == "y" || answer == "yes") {
+        break;
+      }
+      if (answer == "t" || answer == "trust") {
+        trust = true;
+        break;
+      }
+      if (answer == "c" || answer == "copy") {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+        FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+        if (pipe) {
+          fwrite(cmd.c_str(), 1, cmd.size(), pipe);
+          pclose(pipe);
+          out << "[copied to clipboard]\n";
+        }
+        return "";
+      }
+      if (answer == "?") {
+        out << "  y = run this command\n";
+        out << "  n = skip this command\n";
+        out << "  t = trust — auto-run all remaining commands this session\n";
+        out << "  c = copy command to clipboard\n";
+      } else {
+        LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
+        out << "[skipped]\n";
+        return "";
+      }
+      out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c/?] " << std::flush;
     }
   }
   auto t0 = std::chrono::steady_clock::now();

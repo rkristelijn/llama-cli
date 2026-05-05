@@ -6,6 +6,7 @@
 #include "provider/provider_factory.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 
 #include "provider/gemini_provider.h"
@@ -64,7 +65,13 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
   if (cfg.provider == "ollama" || cfg.provider.empty()) {
     // Multi-host: if OLLAMA_HOSTS has multiple entries, use routing provider
     if (cfg.hosts.size() > 1) {
+      if (cfg.trace) {
+        std::cerr << "[TRACE] Factory: MultiHostProvider hosts=" << cfg.hosts.size() << " model=" << cfg.model << "\n";
+      }
       return std::make_unique<MultiHostProvider>(cfg.hosts, cfg.model);
+    }
+    if (cfg.trace) {
+      std::cerr << "[TRACE] Factory: OllamaProvider host=" << cfg.host << ":" << cfg.port << " model=" << cfg.model << "\n";
     }
     return std::make_unique<OllamaProvider>(cfg);
   }

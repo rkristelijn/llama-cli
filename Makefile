@@ -64,6 +64,9 @@ hooks: ## Install git hooks (pre-commit, commit-msg, pre-push)
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR) llama-cli
 
+kill: ## Kill running llama-cli instances
+	@pkill -xf '(\./)?llama-cli|build/llama-cli' 2>/dev/null && echo "  killed llama-cli" || echo "  no llama-cli running"
+
 ##@ Aggregators
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files

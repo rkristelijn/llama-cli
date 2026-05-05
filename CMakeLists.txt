@@ -204,6 +204,10 @@ add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_repl PRIVATE doctest::doctest httplib::httplib)
 
+add_executable(test_rate src/repl/repl_rate_test.cpp ${REPL_LIBS})
+target_include_directories(test_rate PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_rate PRIVATE doctest::doctest httplib::httplib)
+
 # Integration tests
 add_executable(test_conversation src/repl/conversation_it.cpp ${REPL_LIBS})
 target_include_directories(test_conversation PRIVATE ${SRC_INCLUDE})
@@ -249,7 +253,7 @@ add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
 target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_logger PRIVATE doctest::doctest)
 
-add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp)
+add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/multi_host_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/provider/kiro_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp)
 target_include_directories(test_provider PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_provider PRIVATE doctest::doctest httplib::httplib)
 

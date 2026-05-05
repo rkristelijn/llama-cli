@@ -12,26 +12,41 @@
 #include <algorithm>
 #include <iostream>
 
+#include "config/config.h"
 #include "logging/logger.h"
+#include "trace/trace.h"
 
 MultiHostProvider::MultiHostProvider(const std::vector<std::string>& hosts, const std::string& model) : model_(model) {
+  bool trace = Config::instance().trace;
+  if (trace) {
+    stderr_trace->log("[TRACE] MultiHost: creating with model=%s hosts=%zu\n", model.c_str(), hosts.size());
+  }
   // Create a provider per host and probe for available models
   for (const auto& hp : hosts) {
     Config cfg;
     auto colon = hp.find(':');
     cfg.host = (colon != std::string::npos) ? hp.substr(0, colon) : hp;
     cfg.port = (colon != std::string::npos) ? hp.substr(colon + 1) : "11434";
-    cfg.timeout = 5;  // Short timeout for probing
+    cfg.timeout = Config::instance().timeout;  // Use real timeout for chat requests
+    cfg.model = model;                         // Pass model so chat requests include it
+    cfg.trace = Config::instance().trace;
+    cfg.no_color = Config::instance().no_color;
 
     auto prov = std::make_unique<OllamaProvider>(cfg);
     auto models = prov->list_models();
     bool healthy = !models.empty();
 
+    if (trace) {
+      stderr_trace->log("[TRACE] MultiHost: %s:%s healthy=%d models=%zu\n", cfg.host.c_str(), cfg.port.c_str(), healthy, models.size());
+    }
     hosts_.push_back({std::move(prov), models, healthy});
   }
 
   // Select initial host based on model-match
   active_idx_ = find_host_for_model(model_);
+  if (trace) {
+    stderr_trace->log("[TRACE] MultiHost: active_idx=%d host=%s\n", active_idx_, hosts_[active_idx_].provider->host().c_str());
+  }
 }
 
 int MultiHostProvider::find_host_for_model(const std::string& model_name) {
@@ -78,8 +93,14 @@ std::string MultiHostProvider::chat(const std::vector<Message>& messages) {
 }
 
 std::string MultiHostProvider::chat_stream(const std::vector<Message>& messages, StreamCallback on_token) {
+  if (Config::instance().trace) {
+    stderr_trace->log("[TRACE] MultiHost: chat_stream → %s model=%s\n", hosts_[active_idx_].provider->host().c_str(), model_.c_str());
+  }
   std::string result = hosts_[active_idx_].provider->chat_stream(messages, on_token);
   if (result.empty() && failover()) {
+    if (Config::instance().trace) {
+      stderr_trace->log("[TRACE] MultiHost: failover → %s\n", hosts_[active_idx_].provider->host().c_str());
+    }
     result = hosts_[active_idx_].provider->chat_stream(messages, on_token);
   }
   return result;

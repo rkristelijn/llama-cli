@@ -147,3 +147,41 @@ SCENARIO ("CapturingTrace truncates messages over 256 chars") {
     }
   }
 }
+
+SCENARIO ("StderrTrace output does not contain carriage return") {
+  GIVEN ("the stderr trace writing to a pipe") {
+    // Capture actual stderr output to verify no \r is present
+    int pipefd[2];
+    REQUIRE (pipe(pipefd) == 0)
+      ;
+    int saved_stderr = dup(STDERR_FILENO);
+    dup2(pipefd[1], STDERR_FILENO);
+
+    WHEN ("a trace message is logged") {
+      stderr_trace->log("[TRACE] test message\n");
+      fflush(stderr);
+      close(pipefd[1]);
+      dup2(saved_stderr, STDERR_FILENO);
+      close(saved_stderr);
+
+      // Read captured output
+      char buf[512] = {};
+      read(pipefd[0], buf, sizeof(buf) - 1);
+      close(pipefd[0]);
+      std::string output(buf);
+
+      THEN ("output does not start with CR (would corrupt input prompts)") {
+        CHECK (output.find('\r') == std::string::npos)
+          ;
+      }
+      THEN ("output contains the message") {
+        CHECK (output.find("test message") != std::string::npos)
+          ;
+      }
+      THEN ("output contains ISO timestamp with Z") {
+        CHECK (output.find("Z]") != std::string::npos)
+          ;
+      }
+    }
+  }
+}

@@ -21,12 +21,9 @@ echo "==> checking for code duplication..."
 
 # Option 1: jscpd via npx (no install needed, supports C++)
 if command -v npx >/dev/null 2>&1; then
+  # TODO: refactor mermaid renderers to extract shared parsing logic (ADR-073)
   output=$(npx --yes jscpd src/ \
-    --min-tokens "$MIN_TOKENS" \
-    --min-lines "$MIN_LINES" \
-    --threshold "$THRESHOLD" \
-    --ignore "*_test.cpp,*_it.cpp" \
-    --reporters console \
+    --config .config/.jscpd.json \
     --silent 2>&1) || {
     # jscpd exits non-zero when threshold exceeded
     echo "$output" | grep -E "Clone|duplicate|%|Total" | head -20

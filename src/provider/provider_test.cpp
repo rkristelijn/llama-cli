@@ -5,10 +5,13 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
+#include <httplib.h>
 
 #include <cstdlib>
 #include <stdexcept>
+#include <thread>
 
+#include "provider/multi_host_provider.h"
 #include "provider/provider_factory.h"
 
 // NOLINTNEXTLINE(readability-function-size)
@@ -196,6 +199,68 @@ SCENARIO ("provider factory: gemini provider has correct metadata") {
         CHECK (models.size() == 1)
           ;
         CHECK (models[0] == "gemini-cli")
+          ;
+      }
+    }
+  }
+}
+
+// --- MultiHostProvider tests (ADR-078) ---
+
+/// RAII mock server for Ollama API
+struct MockOllama {
+  httplib::Server svr;
+  std::thread thr;
+  int port = 0;
+
+  void start() {
+    port = svr.bind_to_any_port("127.0.0.1");
+    thr = std::thread([this]() { svr.listen_after_bind(); });
+    while (!svr.is_running()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }
+
+  ~MockOllama() {
+    svr.stop();
+    if (thr.joinable()) {
+      thr.join();
+    }
+  }
+};
+
+SCENARIO ("multi_host: model is passed to per-host providers for chat") {
+  GIVEN ("a mock Ollama server that validates the model field") {
+    MockOllama m;
+    // Return model list for probing
+    m.svr.Get("/api/tags", [](const httplib::Request&, httplib::Response& res) {
+      res.set_content(R"({"models":[{"name":"test-model"}]})", "application/json");
+    });
+    m.svr.Get("/api/ps", [](const httplib::Request&, httplib::Response& res) { res.set_content(R"({"models":[]})", "application/json"); });
+    // Chat endpoint: 404 if model is empty, 200 if correct
+    m.svr.Post("/api/chat", [](const httplib::Request& req, httplib::Response& res) {
+      if (req.body.find("\"model\": \"test-model\"") == std::string::npos) {
+        res.status = 404;
+        res.set_content(R"({"error":"model not found"})", "application/json");
+        return;
+      }
+      // Return a simple streaming response
+      res.set_content(
+          "{\"message\":{\"content\":\"hi\"},\"done\":true,"
+          "\"prompt_eval_count\":1,\"eval_count\":1}\n",
+          "application/json");
+    });
+    m.start();
+
+    WHEN ("creating a MultiHostProvider with a specific model") {
+      std::vector<std::string> hosts = {"127.0.0.1:" + std::to_string(m.port)};
+      MultiHostProvider provider(hosts, "test-model");
+
+      THEN ("chat_stream sends the model and gets a response") {
+        std::vector<Message> msgs = {{"user", "hello"}};
+        std::string result = provider.chat_stream(msgs, nullptr);
+        // Should NOT be empty — empty means 404 (model not passed)
+        CHECK_FALSE (result.empty())
           ;
       }
     }

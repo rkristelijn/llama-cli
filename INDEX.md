@@ -80,6 +80,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-084-planner-executor.md`](docs/adr/adr-084-planner-executor.md) — ADR-084: Planner / Executor Separation
 - [`docs/adr/adr-085-multi-agent.md`](docs/adr/adr-085-multi-agent.md) — ADR-085: Multi-Agent Support
 - [`docs/adr/adr-086-tree-sitter-highlighting.md`](docs/adr/adr-086-tree-sitter-highlighting.md) — ADR-086: Syntax Highlighting via tree-sitter
+- [`docs/adr/adr-087-adaptive-system-prompt.md`](docs/adr/adr-087-adaptive-system-prompt.md) — ADR-087: Adaptive System Prompt
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -259,6 +260,7 @@ Auto-generated overview of all files in this repo.
 - [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
 - [`src/repl/repl_model.cpp`](src/repl/repl_model.cpp) — /**
 - [`src/repl/repl_model.h`](src/repl/repl_model.h) — /**
+- [`src/repl/repl_rate_test.cpp`](src/repl/repl_rate_test.cpp) — /**
 - [`src/repl/repl_search.cpp`](src/repl/repl_search.cpp) — /**
 - [`src/repl/repl_search.h`](src/repl/repl_search.h) — /**
 - [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
@@ -321,4 +323,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_318 files indexed._
+_320 files indexed._

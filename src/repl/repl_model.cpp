@@ -67,9 +67,26 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
     s.out << "\n  Select [1-" << models.size() << "] or /model <name>: ";
     s.out.flush();
 
-    // Read selection
+    // Read selection — use linenoise in interactive mode for proper terminal handling
     std::string input;
-    if (!std::getline(s.in, input) || input.empty()) {
+#ifdef LINENOISE_HPP
+    if (&s.in == &std::cin) {
+      auto quit = linenoise::Readline("", input);
+      if (quit || input.empty()) {
+        return;
+      }
+    } else
+#endif
+    {
+      if (!std::getline(s.in, input) || input.empty()) {
+        return;
+      }
+    }
+    // Strip trailing \r (raw terminal mode can leave it)
+    if (input.back() == '\r') {
+      input.pop_back();
+    }
+    if (input.empty()) {
       return;
     }
     // Try numeric selection

@@ -6,7 +6,7 @@
  * regex highlighter and an optional external tool adapter (bat/pygmentize).
  * The active highlighter is selected at startup based on tool availability.
  *
- * @see docs/backlog/041-tree-sitter-highlighting.md
+ * @see docs/adr/adr-086-tree-sitter-highlighting.md
  */
 #ifndef LLAMA_CLI_HIGHLIGHT_H
 #define LLAMA_CLI_HIGHLIGHT_H
