@@ -71,6 +71,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-075-test-best-practices.md`](docs/adr/adr-075-test-best-practices.md) — ADR-075: Test Best Practices — Lessons Learned
 - [`docs/adr/adr-076-code-decomposition-patterns.md`](docs/adr/adr-076-code-decomposition-patterns.md) — ADR-076: Code Decomposition Patterns
 - [`docs/adr/adr-077-free-oss-dev-services.md`](docs/adr/adr-077-free-oss-dev-services.md) — ADR-077: Free Open-Source Development Services Strategy
+- [`docs/adr/adr-078-credit-efficient-multi-host.md`](docs/adr/adr-078-credit-efficient-multi-host.md) — ADR-078: Credit-Efficient Multi-Host AI Development
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -338,4 +339,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_335 files indexed._
+_336 files indexed._

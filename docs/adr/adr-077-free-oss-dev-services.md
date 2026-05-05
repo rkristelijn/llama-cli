@@ -44,7 +44,7 @@ As a solo developer maintaining an open-source C++ project, we need to maximize 
 
 ### Strategy: layered quality with zero cost
 
-```
+```text
 Local (instant)          → make check (clang-tidy, cppcheck, shellcheck, etc.)
 PR gate (minutes)        → GitHub Actions CI + CodeRabbit AI review
 Cloud analysis (async)   → SonarCloud deep scan + Codecov trends
