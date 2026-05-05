@@ -73,33 +73,13 @@ FAILED_JOBS=$(echo "$JOBS_JSON" | jq -r '.jobs[] | select(.conclusion == "failur
 if [ -n "$FAILED_JOBS" ]; then
   printf "\n${RED}Failed jobs detail:${NC}\n"
 
-  LOG_FILE="$(mktemp)"
-  trap 'rm -f "$LOG_FILE"' EXIT
-  gh run view "$RUN_ID" --log-failed >"$LOG_FILE" 2>/dev/null
-
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
-    printf "\n${RED}=== %s (id: %s) ===${NC}\n" "$JOB_NAME" "$JOB_ID"
-    # Anchor grep to job name at start of line (log format: "JOBNAME\tSTEP\tLINE")
-    snippet=$(grep "^${JOB_NAME}	" "$LOG_FILE" | grep -i "error\|fail\|missing\|warning\|\#\#\[error\]" | tail -n 30 || true)
-    if [ -n "$snippet" ]; then
-      # Strip job name prefix and timestamps for readability
-      printf '%s\n' "$snippet" | sed "s/^${JOB_NAME}\t//" | sed 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //'
-    else
-      # Fallback: fetch job log via API (--log-failed sometimes returns empty)
-      api_snippet=$(gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
-        | grep -iE "error|fail|missing|##\[error\]|ASAN|UBSAN|CHECK\(|MD[0-9]{3}" \
-        | grep -v "endgroup\|Node.js\|hint:\|set-safe-directory\|gc.auto\|Reading database\|0 failed" \
-        | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
-        | tail -n 15 || true)
-      if [ -n "$api_snippet" ]; then
-        printf '%s\n' "$api_snippet"
-      else
-        echo "  No error lines found. Run with --debug or check GitHub Actions UI."
-      fi
-    fi
+    printf "\n${RED}=== %s ===${NC}\n" "$JOB_NAME"
+    # Fetch job log, strip timestamps, show last 30 lines (skips GH setup noise)
+    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
+      | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
+      | tail -n 30
   done <<<"$FAILED_JOBS"
-  rm -f "$LOG_FILE"
-  trap - EXIT
   exit 1
 fi
 

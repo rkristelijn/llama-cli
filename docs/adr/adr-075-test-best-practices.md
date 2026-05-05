@@ -57,6 +57,7 @@ This makes flakiness visible in `make todo` output and prevents wasted debugging
 ### Rule 5: CI-reproducible tests
 
 Every test must pass in these environments:
+
 - Local macOS (developer machine)
 - CI Ubuntu 24.04 (GitHub Actions)
 - Coverage build (--coverage flags, ~2x slower)
