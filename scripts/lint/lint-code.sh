@@ -20,6 +20,7 @@ output=$(cppcheck --enable=all \
   --suppress=unusedFunction \
   --suppress=unmatchedSuppression \
   --suppress=normalCheckLevelMaxBranches \
+  --suppress=checkLevelNormal \
   --suppress=checkersReport \
   --suppress=useStlAlgorithm \
   --suppress=stlIfStrFind \

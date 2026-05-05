@@ -69,3 +69,29 @@ These decisions are currently being debated or are awaiting formal acceptance.
 
 - [ADR-064](adr-064-dead-code-enforcement.md) - Enforcement of Dead Code Detection
 - [ADR-065](adr-065-code-consistency-refactor.md) - Code Consistency Refactor Plan
+- [ADR-066](adr-066-windows-binary-support.md) - Windows Binary Support
+- [ADR-073](adr-073-unified-diagram-model.md) - Unified Diagram Model — Cross-Diagram Consistency
+- [ADR-078](adr-078-credit-efficient-multi-host.md) - Credit-Efficient Multi-Host AI Development
+- [ADR-081](adr-081-unified-entity-model.md) - Unified Provider-Host-Model Entity Model
+- [ADR-082](adr-082-centralized-state.md) - Centralized Application State
+- [ADR-083](adr-083-package-distribution.md) - Package Distribution
+- [ADR-084](adr-084-planner-executor.md) - Planner / Executor Separation
+- [ADR-085](adr-085-multi-agent.md) - Multi-Agent Support
+- [ADR-086](adr-086-tree-sitter-highlighting.md) - Syntax Highlighting via tree-sitter
+
+### ✅ Accepted (Recent)
+
+- [ADR-066](adr-066-solid-refactoring.md) - SOLID Refactoring Strategy
+- [ADR-067](adr-067-mutation-testing.md) - Mutation Testing via Mull
+- [ADR-068](adr-068-toolchain-environment-strategy.md) - Toolchain Environment Strategy
+- [ADR-069](adr-069-embedded-system-prompt.md) - Embedded System Prompt from Text File
+- [ADR-069](adr-069-memory-safety-verification-strategy.md) - Memory Safety Verification Strategy
+- [ADR-070](adr-070-pluggable-mermaid-renderers.md) - Pluggable Mermaid Diagram Renderers
+- [ADR-071](adr-071-markdown-module-split.md) - Markdown Module Split
+- [ADR-072](adr-072-diagram-visualization-strategy.md) - Diagram Visualization Strategy & Element Limits
+- [ADR-074](adr-074-sonarcloud-integration.md) - SonarCloud Integration
+- [ADR-075](adr-075-test-best-practices.md) - Test Best Practices — Lessons Learned
+- [ADR-076](adr-076-code-decomposition-patterns.md) - Code Decomposition Patterns
+- [ADR-077](adr-077-free-oss-dev-services.md) - Free Open-Source Development Services Strategy
+- [ADR-079](adr-079-auto-routing.md) - Auto-Routing Multi-Provider Architecture
+- [ADR-080](adr-080-theme-system.md) - Terminal Theme System

@@ -139,39 +139,39 @@ Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by
 
 ### Priority 1 — Core UX
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 1 | Streaming responses | ✅ Done | [005](docs/backlog/005-streaming.md) |
-| 2 | Inline code / markdown rendering | ✅ Done | [031](docs/backlog/031-inline-code-rendering.md) |
-| 3 | Fix release pipeline | ✅ Done | [034](docs/backlog/034-fix-release.md) |
-| 4 | Tab autocompletion | ✅ Done | [033](docs/backlog/033-tab-autocompletion.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 1 | Streaming responses | ✅ Done | — |
+| 2 | Inline code / markdown rendering | ✅ Done | [052](docs/adr/adr-052-markdown-renderer.md) |
+| 3 | Fix release pipeline | ✅ Done | [045](docs/adr/adr-045-fix-release-pipeline.md) |
+| 4 | Tab autocompletion | ✅ Done | — |
 
 ### Priority 2 — Developer Experience
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 5 | Context compression | 🔧 Sliding window | [019](docs/backlog/019-context-compression.md) |
-| 6 | Prompt templates | ⬚ Planned | [021](docs/backlog/021-prompt-templates.md) |
-| 7 | Exec output tuning | ✅ Done | [007](docs/backlog/007-exec-output-tuning.md) |
-| 8 | Smart confirmation | ✅ Done | [004](docs/backlog/004-smart-confirmation.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 5 | Context compression | 🔧 Sliding window | — |
+| 6 | Prompt templates | ⬚ Planned | — |
+| 7 | Exec output tuning | ✅ Done | [015](docs/adr/adr-015-command-execution.md) |
+| 8 | Smart confirmation | ✅ Done | — |
 
 ### Priority 3 — Robustness
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 9 | Execution sandbox | ⬚ Planned | [016](docs/backlog/016-execution-sandbox.md) |
-| 10 | Command permissions | ⬚ Planned | [010](docs/backlog/010-command-permissions.md) |
-| 11 | Coverage bump 55→60% | ✅ Done | [027](docs/backlog/027-coverage-bump.md) |
-| 12 | Reduce complexity | ⬚ Planned | [018](docs/backlog/018-reduce-complexity.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 9 | Execution sandbox | ⬚ Planned | — |
+| 10 | Command permissions | ⬚ Planned | — |
+| 11 | Coverage bump 55→60% | ✅ Done | — |
+| 12 | Reduce complexity | ⬚ Planned | [076](docs/adr/adr-076-code-decomposition-patterns.md) |
 
 ### Priority 4 — Future Differentiation
 
-| # | Feature | Backlog |
-|---|---------|---------|
-| 13 | Provider abstraction | [014](docs/backlog/014-provider-abstraction.md) |
-| 14 | Planner/executor | [015](docs/backlog/015-planner-executor.md) |
-| 15 | Distributed Ollama | [006](docs/backlog/006-distributed-ollama.md) |
-| 16 | Multi-agent | [017](docs/backlog/017-multi-agent.md) |
+| # | Feature | ADR |
+|---|---------|-----|
+| 13 | Provider abstraction | [020](docs/adr/adr-020-provider-abstraction.md) |
+| 14 | Planner/executor | [084](docs/adr/adr-084-planner-executor.md) |
+| 15 | Distributed Ollama | — |
+| 16 | Multi-agent | [085](docs/adr/adr-085-multi-agent.md) |
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 

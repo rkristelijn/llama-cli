@@ -1,5 +1,7 @@
 # Roadmap
 
+> **Note**: This roadmap previously linked to `docs/backlog/` items which have been consolidated into ADRs. See [docs/adr/README.md](../adr/README.md) for the current list of proposed features. The main [README.md](../../README.md) roadmap section is the canonical source.
+
 The goal: make llama-cli a **daily driver** — fast, smart with resources, and reliable enough to replace expensive cloud models for most tasks.
 
 ## Current state

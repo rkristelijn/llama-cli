@@ -6,7 +6,7 @@ FULL ?= 0
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-full full-check mutation check-ai check-all \
+.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-all full-check mutation check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts lint-versions \
 	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-stegano sast-iac sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
@@ -57,17 +57,17 @@ lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy 
 test: build test-unit e2e ## Run all tests (builds first)
 
 check-fast: build format ## Tier 1: format + build (AI auto-fix loop)
+	@mkdir -p .tmp
+	@$(MAKE) build format 2>&1 | tee .tmp/check-fast.log
 
 check: ## Tier 2: full quality gate (CI/pre-push)
 	@mkdir -p .tmp
 	@$(MAKE) build lint test sast 2>&1 | tee .tmp/check.log
 
-check-full: ## Tier 3: exhaustive + mutation (PR gate)
+check-all: ## Tier 3: everything — exhaustive lint, mutation, SBOM, docs (alias: full-check)
 	@mkdir -p .tmp
-	@$(MAKE) check mutation 2>&1 | tee .tmp/check-full.log
-
-full-check: ## Run exhaustive quality checks (FULL=1)
-	@$(MAKE) FULL=1 check
+	@$(MAKE) FULL=1 build lint test sast mutation sbom todo summarize-safe index dead-code dead-docs 2>&1 | tee .tmp/check-all.log
+full-check: check-all
 
 mutation: ## Run mutation testing (Mull, slow — PR only)
 	@bash scripts/test/run-mutation.sh
@@ -136,6 +136,12 @@ check-xref: ## Validate ADR cross-references in code (ADR-022)
 
 dead-code: ## Detect unused functions and orphaned scripts (ADR-064)
 	@bash scripts/lint/check-dead-code.sh
+
+dead-docs: ## Detect unreferenced docs, configs, and backlog items
+	@bash scripts/lint/check-dead-docs.sh
+
+feature-density: ## Check LOG_FEATURE marker density (ADR-063)
+	@bash scripts/test/check-feature-density.sh
 
 docs: ## Check doxygen warnings
 	@echo "==> checking doxygen..."
@@ -229,7 +235,12 @@ sast-codeql: ## Run CodeQL deep analysis (slow)
 sbom: ## Generate SBOM with syft
 	@bash scripts/security/syft-sbom.sh
 
-check-all: check sbom todo index dead-code ## Run ALL checks (quality + security + SBOM + docs)
+summarize-safe: ## Summarize headers (skips if Ollama unavailable)
+	@if curl -s --max-time 3 "http://$${OLLAMA_HOST:-localhost}:$${OLLAMA_PORT:-11434}/api/tags" >/dev/null 2>&1; then \
+		bash scripts/dev/summarize-headers.sh; \
+	else \
+		echo "  [skip] summarize — Ollama not reachable"; \
+	fi
 
 sonar: ## Run SonarCloud scan (requires SONAR_TOKEN)
 	@bash scripts/security/sonar-scan.sh

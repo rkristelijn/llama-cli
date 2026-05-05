@@ -116,7 +116,7 @@ std::vector<ModelInfo> KiroProvider::get_model_info() {
   while ((pos = result.output.find("\"model_name\":\"", pos)) != std::string::npos) {
     pos += 14;
     auto end = result.output.find("\"", pos);
-    std::string name = result.output.substr(pos, end - pos);
+    std::string model_name = result.output.substr(pos, end - pos);
     // Extract rate_multiplier as "params" field for display
     std::string rate = "1.0x";
     auto rate_pos = result.output.find("\"rate_multiplier\":", pos);
@@ -125,7 +125,7 @@ std::vector<ModelInfo> KiroProvider::get_model_info() {
       auto rate_end = result.output.find_first_of(",}", rate_start);
       rate = result.output.substr(rate_start, rate_end - rate_start) + "x credits";
     }
-    infos.push_back({name, rate, "none", "kiro", 0});
+    infos.push_back({model_name, rate, "none", "kiro", 0});
     pos = end;
   }
   return infos;

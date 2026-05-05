@@ -76,52 +76,13 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-080-theme-system.md`](docs/adr/adr-080-theme-system.md) — ADR-080: Terminal Theme System
 - [`docs/adr/adr-081-unified-entity-model.md`](docs/adr/adr-081-unified-entity-model.md) — ADR-081: Unified Provider-Host-Model Entity Model
 - [`docs/adr/adr-082-centralized-state.md`](docs/adr/adr-082-centralized-state.md) — ADR-082: Centralized Application State
+- [`docs/adr/adr-083-package-distribution.md`](docs/adr/adr-083-package-distribution.md) — ADR-083: Package Distribution
+- [`docs/adr/adr-084-planner-executor.md`](docs/adr/adr-084-planner-executor.md) — ADR-084: Planner / Executor Separation
+- [`docs/adr/adr-085-multi-agent.md`](docs/adr/adr-085-multi-agent.md) — ADR-085: Multi-Agent Support
+- [`docs/adr/adr-086-tree-sitter-highlighting.md`](docs/adr/adr-086-tree-sitter-highlighting.md) — ADR-086: Syntax Highlighting via tree-sitter
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
-- [`docs/backlog/001-log-optimization.md`](docs/backlog/001-log-optimization.md) — 001: Log Optimization for Usage Analysis
-- [`docs/backlog/002-wingman-command-tips.md`](docs/backlog/002-wingman-command-tips.md) — 002: Wingman — Command Tips
-- [`docs/backlog/003-wingman-preflight.md`](docs/backlog/003-wingman-preflight.md) — 003: Wingman — Prompt Preflight
-- [`docs/backlog/004-smart-confirmation.md`](docs/backlog/004-smart-confirmation.md) — 004: Smart Confirmation Prompt
-- [`docs/backlog/005-streaming.md`](docs/backlog/005-streaming.md) — 005: Streaming Responses
-- [`docs/backlog/006-distributed-ollama.md`](docs/backlog/006-distributed-ollama.md) — 006: Distributed Ollama
-- [`docs/backlog/007-exec-output-tuning.md`](docs/backlog/007-exec-output-tuning.md) — 007: Exec Output Tuning
-- [`docs/backlog/008-project-rename.md`](docs/backlog/008-project-rename.md) — 008: Project Rename
-- [`docs/backlog/009-package-distribution.md`](docs/backlog/009-package-distribution.md) — 009: Package Distribution
-- [`docs/backlog/010-command-permissions.md`](docs/backlog/010-command-permissions.md) — 010: Command Permissions
-- [`docs/backlog/011-model-switching.md`](docs/backlog/011-model-switching.md) — 011: Runtime Model Switching
-- [`docs/backlog/012-nick-prompt.md`](docs/backlog/012-nick-prompt.md) — 012: Nick / Custom Prompt
-- [`docs/backlog/013-diff-preview.md`](docs/backlog/013-diff-preview.md) — 013: Diff Preview Before Overwrite
-- [`docs/backlog/014-provider-abstraction.md`](docs/backlog/014-provider-abstraction.md) — 014: Provider Abstraction
-- [`docs/backlog/015-planner-executor.md`](docs/backlog/015-planner-executor.md) — 015: Planner / Executor Separation
-- [`docs/backlog/016-execution-sandbox.md`](docs/backlog/016-execution-sandbox.md) — 016: Execution Sandbox
-- [`docs/backlog/017-multi-agent.md`](docs/backlog/017-multi-agent.md) — 017: Multi-Agent Support
-- [`docs/backlog/018-reduce-complexity.md`](docs/backlog/018-reduce-complexity.md) — 018: Reduce Complexity
-- [`docs/backlog/019-context-compression.md`](docs/backlog/019-context-compression.md) — 019: Context Compression
-- [`docs/backlog/020-temperature-tuning.md`](docs/backlog/020-temperature-tuning.md) — 020: Temperature Tuning
-- [`docs/backlog/021-prompt-templates.md`](docs/backlog/021-prompt-templates.md) — 021: Prompt Templates
-- [`docs/backlog/022-fix-make-setup.md`](docs/backlog/022-fix-make-setup.md) — 022: Fix `make setup` — Missing Tools
-- [`docs/backlog/023-commit-msg-hook.md`](docs/backlog/023-commit-msg-hook.md) — 023: Commit Message Validation
-- [`docs/backlog/024-branch-naming.md`](docs/backlog/024-branch-naming.md) — 024: Branch Naming Validation
-- [`docs/backlog/025-issue-pr-templates.md`](docs/backlog/025-issue-pr-templates.md) — 025: Issue and PR Templates
-- [`docs/backlog/026-changelog.md`](docs/backlog/026-changelog.md) — 026: CHANGELOG.md
-- [`docs/backlog/027-coverage-bump.md`](docs/backlog/027-coverage-bump.md) — 027: Coverage Bump 55% → 60%
-- [`docs/backlog/028-todo-scraping.md`](docs/backlog/028-todo-scraping.md) — 028: TODO Scraping → TECHDEBT.md
-- [`docs/backlog/029-branch-protection.md`](docs/backlog/029-branch-protection.md) — 029: Branch Protection (Peer Review)
-- [`docs/backlog/030-doc-change-ci.md`](docs/backlog/030-doc-change-ci.md) — 030: Doc-Change CI Enforcement
-- [`docs/backlog/031-inline-code-rendering.md`](docs/backlog/031-inline-code-rendering.md) — 031: Inline Code Rendering
-- [`docs/backlog/032-mermaid-rendering.md`](docs/backlog/032-mermaid-rendering.md) — 032: Mermaid Diagram Rendering
-- [`docs/backlog/033-tab-autocompletion.md`](docs/backlog/033-tab-autocompletion.md) — 033: Tab Autocompletion
-- [`docs/backlog/034-fix-release.md`](docs/backlog/034-fix-release.md) — 034: Fix Release Pipeline
-- [`docs/backlog/035-code-spell-check.md`](docs/backlog/035-code-spell-check.md) — 035: Code Spell Check
-- [`docs/backlog/036-documentation-coverage.md`](docs/backlog/036-documentation-coverage.md) — 036: Documentation Coverage
-- [`docs/backlog/037-dependency-check.md`](docs/backlog/037-dependency-check.md) — 037: Dependency Outdated Check
-- [`docs/backlog/038-license-audit.md`](docs/backlog/038-license-audit.md) — 038: License Audit
-- [`docs/backlog/039-local-ci.md`](docs/backlog/039-local-ci.md) — 039: Local CI Testing
-- [`docs/backlog/040-ci-caching.md`](docs/backlog/040-ci-caching.md) — 040: CI Check Caching
-- [`docs/backlog/041-tree-sitter-highlighting.md`](docs/backlog/041-tree-sitter-highlighting.md) — 041: Syntax Highlighting via tree-sitter
-- [`docs/backlog/042-unified-error-output.md`](docs/backlog/042-unified-error-output.md) — 042: Unified Error Output Stream
-- [`docs/backlog/README.md`](docs/backlog/README.md) — Backlog
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
@@ -168,20 +129,13 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User Guide
-- [`scripts/check/coverage.sh`](scripts/check/coverage.sh) — DEPRECATED: use 'make coverage' instead. See ADR-044.
-- [`scripts/check/run-all.sh`](scripts/check/run-all.sh) — DEPRECATED: use 'make check' instead. See ADR-044.
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
-- [`scripts/dev/docker-serve.sh`](scripts/dev/docker-serve.sh)
 - [`scripts/dev/learn.sh`](scripts/dev/learn.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
-- [`scripts/dev/ollama-remote.sh`](scripts/dev/ollama-remote.sh)
-- [`scripts/dev/ollama-serve.sh`](scripts/dev/ollama-serve.sh)
-- [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
 - [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
-- [`scripts/dev/ssh-serve.sh`](scripts/dev/ssh-serve.sh)
 - [`scripts/dev/summarize-headers.sh`](scripts/dev/summarize-headers.sh)
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
 - [`scripts/dev/trivi.sh`](scripts/dev/trivi.sh)
@@ -197,7 +151,6 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-resolve.sh`](scripts/gh/pr-resolve.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
-- [`scripts/gh/sync-backlog.sh`](scripts/gh/sync-backlog.sh)
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
 - [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
@@ -207,8 +160,8 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
 - [`scripts/lint/check-dead-code.sh`](scripts/lint/check-dead-code.sh)
+- [`scripts/lint/check-dead-docs.sh`](scripts/lint/check-dead-docs.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
-- [`scripts/lint/check-error-handling.sh`](scripts/lint/check-error-handling.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
@@ -222,8 +175,6 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
 - [`scripts/security/checkov-scan.sh`](scripts/security/checkov-scan.sh)
 - [`scripts/security/codeql-scan.sh`](scripts/security/codeql-scan.sh)
-- [`scripts/security/docker-check.sh`](scripts/security/docker-check.sh)
-- [`scripts/security/gen-test-images.sh`](scripts/security/gen-test-images.sh)
 - [`scripts/security/grype-scan.sh`](scripts/security/grype-scan.sh)
 - [`scripts/security/osv-scan.sh`](scripts/security/osv-scan.sh)
 - [`scripts/security/sonar-report.sh`](scripts/security/sonar-report.sh)
@@ -240,8 +191,6 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test/run-e2e.sh`](scripts/test/run-e2e.sh) — run-e2e.sh — Run all end-to-end tests.
 - [`scripts/test/run-mutation.sh`](scripts/test/run-mutation.sh)
 - [`scripts/test/run-unit.sh`](scripts/test/run-unit.sh)
-- [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
-- [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
 - [`src/agent/agent.cpp`](src/agent/agent.cpp) — /**
 - [`src/agent/agent.h`](src/agent/agent.h) — /**
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
@@ -370,4 +319,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_367 files indexed._
+_316 files indexed._

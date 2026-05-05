@@ -1,3 +1,0 @@
-FROM gemma4:31b
-PARAMETER num_ctx 4096
-PARAMETER num_predict 2048

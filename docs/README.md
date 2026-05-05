@@ -8,7 +8,20 @@ Llama CLI is a C++ TUI that connects to a local [Ollama](https://ollama.com) ins
 - [Task Status](task-status.md) — checkbox convention: `[ ]` `[-]` `[>]` `[~]` `[x]` `[/]`
 - [Clang-Tidy Guide](clang-tidy.md) — static analysis, best practices, and suppressions
 - [Architecture](architecture.md) — how it works internally
+- [Architecture V2](architecture-v2.md) — multi-model provider system
 - [Ollama Setup](ollama-setup.md) — install and configure Ollama
+- [Multi-Model Guide](multi-model-guide.md) — Ollama & Gemini integration
+- [Provider Roadmap](provider-roadmap.md) — implementation plan for multi-model providers
+- [Testing](testing.md) — testing & coverage guide
+- [Full Test Script](full-test-script.md) — manual test script
+- [Model Benchmark](model-bench.md) — model comparison results
+- [PR Workflow](pr-workflow.md) — pull request & release workflow
+- [Release](release.md) — release process
+- [Credits in AI](credits-in-ai.md) — using AI efficiently
+- [Make Commands](make.md) — make command tree
+- [GitHub Integration](github-integration.md) — working with GitHub from CLI
+- [GitHub CLI Manual](gh-manual.md) — gh command reference
+- [CodeRabbit](code-rabbit.md) — CodeRabbit PR review integration
 
 ## Tools
 
@@ -31,10 +44,6 @@ All tools are pinned in [`.config/versions.env`](../.config/versions.env). Run `
 ## Architecture Decision Records
 
 See [adr/](adr/README.md) for all decisions and their rationale.
-
-## Backlog
-
-See [backlog/](backlog/README.md) for feature ideas under consideration.
 
 ## Roadmap
 

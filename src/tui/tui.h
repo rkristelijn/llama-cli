@@ -58,9 +58,6 @@ inline void banner(std::ostream& out, bool color) {
   }
 }
 
-/** Print colored prompt marker */
-inline void prompt(std::ostream& out, bool color) { out << (color ? active_theme().prompt.ansi() + "> " + Style::reset() : "> "); }
-
 /** Print a dim system message */
 inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
   out << (color ? active_theme().system.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
@@ -74,11 +71,6 @@ inline void error(std::ostream& out, bool color, const std::string& msg) {
 /** Print cyan command output */
 inline void cmd_output(std::ostream& out, bool color, const std::string& msg) {
   out << (color ? active_theme().info.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
-}
-
-/** Print yellow write proposal */
-inline void write_proposal(std::ostream& out, bool color, const std::string& path) {
-  out << (color ? active_theme().warning.ansi() : "") << "[proposed: write " << path << "]" << (color ? Style::reset() : "") << "\n";
 }
 
 /** Default spinner messages — shown while waiting for LLM response */
