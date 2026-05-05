@@ -197,3 +197,128 @@ Auto-generated overview of all files in this repo.
 - [`src/agent/agent.h`](src/agent/agent.h) — /**
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // Tool extracts and processes LLM response annotations.
+- [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
+- [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
+- [`src/command/command.cpp`](src/command/command.cpp) — /**
+- [`src/command/command.h`](src/command/command.h) — // Parses user input for interactive mode commands and executes specified actions.
+- [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/config/config.cpp`](src/config/config.cpp) — /**
+- [`src/config/config.h`](src/config/config.h) — // Application configuration for the Ollama server with customizable settings.
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
+- [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
+- [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — /**
+- [`src/exec/hardware.h`](src/exec/hardware.h) — /**
+- [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
+- [`src/help.h`](src/help.h) — /**
+- [`src/json/json.cpp`](src/json/json.cpp) — /**
+- [`src/json/json.h`](src/json/json.h) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
+- [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
+- [`src/logging/logger.h`](src/logging/logger.h) — /**
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
+- [`src/main.cpp`](src/main.cpp) — /**
+- [`src/net/scan.cpp`](src/net/scan.cpp) — /**
+- [`src/net/scan.h`](src/net/scan.h) — // Network scanner — discovers Ollama servers on the local subnet.
+- [`src/net/scan_test.cpp`](src/net/scan_test.cpp) — /**
+- [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
+- [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
+- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
+- [`src/planner/planner.cpp`](src/planner/planner.cpp) — /**
+- [`src/planner/planner.h`](src/planner/planner.h) — /**
+- [`src/provider/gemini_provider.cpp`](src/provider/gemini_provider.cpp) — /**
+- [`src/provider/gemini_provider.h`](src/provider/gemini_provider.h) — /**
+- [`src/provider/kiro_provider.cpp`](src/provider/kiro_provider.cpp) — /**
+- [`src/provider/kiro_provider.h`](src/provider/kiro_provider.h) — /**
+- [`src/provider/multi_host_provider.cpp`](src/provider/multi_host_provider.cpp) — /**
+- [`src/provider/multi_host_provider.h`](src/provider/multi_host_provider.h) — /**
+- [`src/provider/ollama_provider.cpp`](src/provider/ollama_provider.cpp) — /**
+- [`src/provider/ollama_provider.h`](src/provider/ollama_provider.h) — /**
+- [`src/provider/provider_factory.cpp`](src/provider/provider_factory.cpp) — /**
+- [`src/provider/provider_factory.h`](src/provider/provider_factory.h) — /**
+- [`src/provider/provider.h`](src/provider/provider.h) — /**
+- [`src/provider/provider_test.cpp`](src/provider/provider_test.cpp) — /**
+- [`src/provider/registry.cpp`](src/provider/registry.cpp) — /**
+- [`src/provider/registry.h`](src/provider/registry.h) — /**
+- [`src/provider/tgpt_provider.cpp`](src/provider/tgpt_provider.cpp) — /**
+- [`src/provider/tgpt_provider.h`](src/provider/tgpt_provider.h) — /**
+- [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
+- [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
+- [`src/repl/repl_annotations.cpp`](src/repl/repl_annotations.cpp) — /**
+- [`src/repl/repl_annotations.h`](src/repl/repl_annotations.h) — /**
+- [`src/repl/repl_chat.cpp`](src/repl/repl_chat.cpp) — /**
+- [`src/repl/repl_chat.h`](src/repl/repl_chat.h) — /**
+- [`src/repl/repl_commands.cpp`](src/repl/repl_commands.cpp) — /**
+- [`src/repl/repl_commands.h`](src/repl/repl_commands.h) — /**
+- [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
+- [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
+- [`src/repl/repl_model.cpp`](src/repl/repl_model.cpp) — /**
+- [`src/repl/repl_model.h`](src/repl/repl_model.h) — /**
+- [`src/repl/repl_search.cpp`](src/repl/repl_search.cpp) — /**
+- [`src/repl/repl_search.h`](src/repl/repl_search.h) — /**
+- [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
+- [`src/session/session.cpp`](src/session/session.cpp) — /**
+- [`src/session/session.h`](src/session/session.h) — /**
+- [`src/session/session_test.cpp`](src/session/session_test.cpp) — /**
+- [`src/sync/sync_annotations.cpp`](src/sync/sync_annotations.cpp) — /**
+- [`src/sync/sync_annotations.h`](src/sync/sync_annotations.h) — /**
+- [`src/sync/sync.cpp`](src/sync/sync.cpp) — /**
+- [`src/sync/sync.h`](src/sync/sync.h) — /**
+- [`src/sync/sync_test.cpp`](src/sync/sync_test.cpp) — /**
+- [`src/test_helpers.h`](src/test_helpers.h) — /**
+- [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
+- [`src/trace/trace.h`](src/trace/trace.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
+- [`src/tui/highlight.cpp`](src/tui/highlight.cpp) — /**
+- [`src/tui/highlight.h`](src/tui/highlight.h) — /**
+- [`src/tui/highlight_test.cpp`](src/tui/highlight_test.cpp) — /**
+- [`src/tui/markdown.cpp`](src/tui/markdown.cpp) — /**
+- [`src/tui/markdown.h`](src/tui/markdown.h) — /**
+- [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
+- [`src/tui/markdown_stream.cpp`](src/tui/markdown_stream.cpp) — /**
+- [`src/tui/mermaid/barchart.cpp`](src/tui/mermaid/barchart.cpp) — /**
+- [`src/tui/mermaid/barchart.h`](src/tui/mermaid/barchart.h) — /**
+- [`src/tui/mermaid/flowchart.cpp`](src/tui/mermaid/flowchart.cpp) — /**
+- [`src/tui/mermaid/flowchart.h`](src/tui/mermaid/flowchart.h) — /**
+- [`src/tui/mermaid/gantt.cpp`](src/tui/mermaid/gantt.cpp) — /**
+- [`src/tui/mermaid/gantt.h`](src/tui/mermaid/gantt.h) — /**
+- [`src/tui/mermaid/kanban.cpp`](src/tui/mermaid/kanban.cpp) — /**
+- [`src/tui/mermaid/kanban.h`](src/tui/mermaid/kanban.h) — /**
+- [`src/tui/mermaid/mermaid.cpp`](src/tui/mermaid/mermaid.cpp) — /**
+- [`src/tui/mermaid/mermaid.h`](src/tui/mermaid/mermaid.h) — /**
+- [`src/tui/mermaid/mindmap.cpp`](src/tui/mermaid/mindmap.cpp) — /**
+- [`src/tui/mermaid/mindmap.h`](src/tui/mermaid/mindmap.h) — /**
+- [`src/tui/mermaid/orgchart.cpp`](src/tui/mermaid/orgchart.cpp) — /**
+- [`src/tui/mermaid/orgchart.h`](src/tui/mermaid/orgchart.h) — /**
+- [`src/tui/mermaid/pie.cpp`](src/tui/mermaid/pie.cpp) — /**
+- [`src/tui/mermaid/pie.h`](src/tui/mermaid/pie.h) — /**
+- [`src/tui/mermaid/quadrant.cpp`](src/tui/mermaid/quadrant.cpp) — /**
+- [`src/tui/mermaid/quadrant.h`](src/tui/mermaid/quadrant.h) — /**
+- [`src/tui/mermaid/renderer.cpp`](src/tui/mermaid/renderer.cpp) — /**
+- [`src/tui/mermaid/renderer_extra_test.cpp`](src/tui/mermaid/renderer_extra_test.cpp) — /**
+- [`src/tui/mermaid/renderer.h`](src/tui/mermaid/renderer.h) — /**
+- [`src/tui/mermaid/renderer_test.cpp`](src/tui/mermaid/renderer_test.cpp) — /**
+- [`src/tui/mermaid/sequence.cpp`](src/tui/mermaid/sequence.cpp) — /**
+- [`src/tui/mermaid/sequence.h`](src/tui/mermaid/sequence.h) — /**
+- [`src/tui/mermaid/state.cpp`](src/tui/mermaid/state.cpp) — /**
+- [`src/tui/mermaid/state.h`](src/tui/mermaid/state.h) — /**
+- [`src/tui/mermaid/timeline.cpp`](src/tui/mermaid/timeline.cpp) — /**
+- [`src/tui/mermaid/timeline.h`](src/tui/mermaid/timeline.h) — /**
+- [`src/tui/mermaid/venn.cpp`](src/tui/mermaid/venn.cpp) — /**
+- [`src/tui/mermaid/venn.h`](src/tui/mermaid/venn.h) — /**
+- [`src/tui/spinner.cpp`](src/tui/spinner.cpp) — /**
+- [`src/tui/spinner.h`](src/tui/spinner.h) — /**
+- [`src/tui/table.cpp`](src/tui/table.cpp) — /**
+- [`src/tui/table.h`](src/tui/table.h) — /**
+- [`src/tui/theme.h`](src/tui/theme.h) — /**
+- [`src/tui/tui.h`](src/tui/tui.h) — /**
+- [`src/util/util.cpp`](src/util/util.cpp) — /**
+- [`src/util/util.h`](src/util/util.h) — /**
+- [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
+
+_318 files indexed._

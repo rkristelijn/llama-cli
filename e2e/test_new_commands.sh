@@ -78,6 +78,64 @@ output=$(printf "/provider\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_contains "$output" "current:" "/provider shows current"
 assert_feature "provider_list"
 
+# --- /help ---
+output=$(printf "/help\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "/model" "/help lists commands"
+assert_feature "cmd_help"
+
+# --- /version ---
+output=$(printf "/version\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "llama-cli" "/version shows version"
+assert_feature "cmd_version"
+
+# --- /set ---
+output=$(printf "/set\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "trace" "/set shows options"
+assert_feature "cmd_set"
+
+# --- /clear ---
+output=$(printf "hello\n/clear\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "history cleared" "/clear works"
+assert_feature "cmd_clear"
+
+# --- /color ---
+output=$(printf "/color prompt red\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "prompt" "/color sets color"
+assert_feature "cmd_color"
+
+# --- /model ---
+output=$(printf "/model\n1\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "model" "/model shows list"
+assert_feature "model_selection"
+
+# --- /copy ---
+output=$(printf "hello\n/copy\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_copy"
+
+# --- /paste ---
+output=$(printf "/paste\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_paste"
+
+# --- /mem ---
+output=$(printf "/mem\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_mem"
+
+# --- /pref ---
+output=$(printf "/pref\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_pref"
+
+# --- /rate ---
+output=$(printf "/rate\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_rate"
+
+# --- /image ---
+output=$(printf "/image\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_image"
+
+# --- /scan ---
+output=$(printf "/scan\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_scan"
+
 # Cleanup
 rm -f "$LLAMA_FEATURE_LOG"
 
