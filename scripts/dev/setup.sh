@@ -486,8 +486,7 @@ install_providers() {
     if [[ "${IS_MAC}" == true ]]; then
       brew install tgpt || echo "  [warn] tgpt install failed"
     else
-      # nosemgrep: bash.curl-pipe-bash — tgpt only provides this install method
-      curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | sudo bash -s /usr/local/bin || echo "  [warn] tgpt install failed"
+      curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | sudo bash -s /usr/local/bin || echo "  [warn] tgpt install failed" # nosemgrep: bash.curl-pipe-bash
     fi
   else
     echo "  tgpt                 ✓"

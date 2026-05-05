@@ -215,7 +215,9 @@ inline Theme theme_light() {
 
 /// Mono theme — no colors
 inline Theme theme_mono() {
+  // clang-format off
   return {"mono", {}, {}, {}, {}, {}, {}, {}, {}};
+  // clang-format on
 }
 
 /// Hacker theme — all green
