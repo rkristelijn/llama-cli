@@ -28,6 +28,7 @@ extern volatile sig_atomic_t g_interrupted;
 #include "json/json.h"
 #include "logging/logger.h"
 #include "ollama/ollama.h"
+#include "provider/provider_factory.h"
 #include "repl/repl.h"
 #include "session/session.h"
 #include "sync/sync.h"
@@ -136,9 +137,12 @@ int main(int argc, char* argv[]) {
     cfg.mode = Mode::Sync;
   }
 
+  // Create provider early — used for both sync and REPL mode (ADR-020)
+  auto provider = create_provider(cfg);
+
   // Auto-detect model for sync mode (skip for mock provider)
   if (cfg.model == "auto" && cfg.mode == Mode::Sync && cfg.provider != "mock") {
-    auto models = get_available_models(cfg);
+    auto models = provider->list_models();
     if (!models.empty()) {
       cfg.model = models[0];
       Config::instance().model = models[0];
@@ -162,17 +166,13 @@ int main(int argc, char* argv[]) {
     // so annotation processing and session work identically in tests.
     // Streaming: tokens are printed to stdout as they arrive.
     // The full response is returned for annotation processing.
-    auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
+    // Provider-based response generation (ADR-020).
+    auto generate_response = [&provider, &cfg, color](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
         LOG_FEATURE("mock_provider");
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        if (mock_response_env) {
-          return mock_response_env;
-        }
-        return "mock response: " + msgs.back().content;
       }
-      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-      return ollama_chat_stream(cfg, msgs, [](const std::string& token) {
+      tui::system_msg(std::cerr, color, "Connecting to " + provider->host() + " with model " + cfg.model + "...");
+      return provider->chat_stream(msgs, [](const std::string& token) {
         std::cout << token << std::flush;
         return true;
       });
@@ -229,8 +229,8 @@ int main(int argc, char* argv[]) {
     LOG_FEATURE("repl_mode");
     // Auto-detect model from server when set to "auto"
     if (cfg.model == "auto" && cfg.provider != "mock") {
-      auto models = get_available_models(cfg);
-      auto infos = get_model_info(cfg);
+      auto models = provider->list_models();
+      auto infos = provider->get_model_info();
       std::map<std::string, ModelInfo> info_map;
       for (const auto& info : infos) {
         info_map[info.name] = info;
@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Optional model warmup (only if not already running, skip for mock provider)
-    if (cfg.provider != "mock" && Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
+    if (cfg.provider != "mock" && Config::instance().warmup && !provider->is_model_running(Config::instance().model)) {
       tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
       // Simple spinner loop
       const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
@@ -289,9 +289,9 @@ int main(int argc, char* argv[]) {
       std::vector<Message> warmup_msg = {{"user", "hi"}};
 
       // We need to run this in a way that allows us to check progress
-      // ollama_chat_stream doesn't expose the http object for cancellation easily,
+      // provider->chat_stream doesn't expose the http object for cancellation easily,
       // but we can at least show a spinner.
-      ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
+      provider->chat_stream(warmup_msg, [&](const std::string&) {
         if (g_interrupted) {
           return false;
         }
@@ -313,26 +313,16 @@ int main(int argc, char* argv[]) {
     if (!kiro_ctx.empty()) {
       cfg.system_prompt += "\n\n## Project context\n" + kiro_ctx;
     }
-    auto generate = [&cfg](const std::vector<Message>& msgs) -> std::string {
-      if (cfg.provider == "mock") {
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        if (mock_response_env) {
-          return std::string(mock_response_env);
-        }
-        return "mock response: " + msgs.back().content;
-      }
-      return ollama_chat(Config::instance(), msgs);
+    auto generate = [&provider](const std::vector<Message>& msgs) -> std::string { return provider->chat(msgs); };
+    auto stream = [&provider](const std::vector<Message>& msgs, StreamCallback on_token) { return provider->chat_stream(msgs, on_token); };
+    // Provider's list_models wraps get_available_models with the right config
+    auto models_fn = [&provider](const Config& /*cfg*/) { return provider->list_models(); };
+    // Switch provider at runtime via /provider command (ADR-020)
+    auto switch_prov = [&provider](const std::string& name) {
+      Config::instance().provider = name;
+      provider = create_provider(Config::instance());
     };
-    auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
-      if (cfg.provider == "mock") {
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        std::string response = mock_response_env ? std::string(mock_response_env) : "mock response: " + msgs.back().content;
-        on_token(response);
-        return response;
-      }
-      return ollama_chat_stream(Config::instance(), msgs, on_token);
-    };
-    run_repl(generate, cfg, std::cin, std::cout, get_available_models, stream);
+    run_repl(generate, cfg, std::cin, std::cout, models_fn, stream, detect_hardware, get_model_info, scan_ollama_hosts, switch_prov);
   }
   return 0;
 }

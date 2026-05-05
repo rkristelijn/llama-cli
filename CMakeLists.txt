@@ -92,6 +92,13 @@ set(LIB_SOURCES
   src/sync/sync.cpp
   src/sync/sync_annotations.cpp
   src/util/util.cpp
+  src/provider/ollama_provider.cpp
+  src/provider/provider_factory.cpp
+  src/provider/tgpt_provider.cpp
+  src/provider/gemini_provider.cpp
+  src/provider/multi_host_provider.cpp
+  src/agent/agent.cpp
+  src/planner/planner.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging ${CMAKE_BINARY_DIR}/generated)
 
@@ -239,6 +246,10 @@ target_link_libraries(test_trace PRIVATE doctest::doctest)
 add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
 target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_logger PRIVATE doctest::doctest)
+
+add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp)
+target_include_directories(test_provider PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_provider PRIVATE doctest::doctest httplib::httplib)
 
 # Fuzz targets — build with -DENABLE_FUZZ=ON (requires clang with libFuzzer)
 option(ENABLE_FUZZ "Build fuzz targets (requires clang with -fsanitize=fuzzer)" OFF)

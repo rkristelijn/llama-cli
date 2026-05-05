@@ -44,6 +44,10 @@ struct ReplState {
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
   bool trust = false;               ///< Trust mode: auto-approve all actions
   int last_assistant_idx = -1;      ///< Index of last assistant message for rating
+  bool auto_route = false;          ///< Auto mode: smart routing by prompt complexity
+
+  /// Callback to switch provider at runtime (set by main.cpp, called by /provider)
+  std::function<void(const std::string&)> switch_provider;
 };
 
 /// OCP: dispatch_command routes to handlers — new commands add new functions,

@@ -9,18 +9,23 @@
 
 #include "repl/repl_commands.h"
 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <iomanip>
 #include <map>
 #include <sstream>
 
+#include "agent/agent.h"
 #include "help.h"
 #include "logging/logger.h"
 #include "net/scan.h"
+#include "planner/planner.h"
+#include "provider/provider_factory.h"
 #include "repl/repl_model.h"
 #include "tui/tui.h"
 #include "util/util.h"
@@ -56,7 +61,9 @@ static std::string get_version() {
 /// Show current options state — lists all toggleable runtime settings.
 static void show_options(ReplState& s) {
   auto status = [&](bool val) {
-    if (!s.color) return val ? "on" : "off";
+    if (!s.color) {
+      return val ? "on" : "off";
+    }
     return val ? "\033[32mon\033[0m" : "\033[31moff\033[0m";
   };
 
@@ -240,7 +247,9 @@ static void handle_scan(ReplState& s) {
   // Write to .env (append or update OLLAMA_HOSTS line)
   std::string hosts_str;
   for (size_t i = 0; i < hosts.size(); i++) {
-    if (i > 0) hosts_str += ",";
+    if (i > 0) {
+      hosts_str += ",";
+    }
     hosts_str += hosts[i];
   }
   std::vector<std::string> lines;
@@ -416,6 +425,125 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
   if (command == "clear") {
     s.history.clear();
     s.out << "[history cleared]\n";
+  } else if (command == "chat") {
+    // /chat save <name>, /chat load <name>, /chat list, /chat delete <name>
+    std::string sub, name;
+    auto space = arg.find(' ');
+    if (space != std::string::npos) {
+      sub = arg.substr(0, space);
+      name = arg.substr(space + 1);
+    } else {
+      sub = arg;
+    }
+    // Chat save directory
+    std::string chat_dir;
+    struct stat st;
+    if (stat("Makefile", &st) == 0) {
+      chat_dir = ".tmp/chats/";
+    } else {
+      const char* home = std::getenv("HOME");
+      chat_dir = std::string(home ? home : ".") + "/.llama-cli/chats/";
+    }
+    mkdir(chat_dir.c_str(), 0750);
+
+    if (sub == "save" && !name.empty()) {
+      std::ofstream f(chat_dir + name + ".json");
+      if (f) {
+        f << "[\n";
+        for (size_t i = 0; i < s.history.size(); i++) {
+          f << "  {\"role\":\"" << s.history[i].role << "\",\"content\":\"";
+          // Escape content for JSON
+          for (char c : s.history[i].content) {
+            if (c == '"') {
+              f << "\\\"";
+            } else if (c == '\\') {
+              f << "\\\\";
+            } else if (c == '\n') {
+              f << "\\n";
+            } else {
+              f << c;
+            }
+          }
+          f << "\"}";
+          if (i + 1 < s.history.size()) {
+            f << ",";
+          }
+          f << "\n";
+        }
+        f << "]\n";
+        s.out << "[chat saved: " << name << " (" << s.history.size() << " messages)]\n";
+      } else {
+        s.out << "[error: cannot write to " << chat_dir << name << ".json]\n";
+      }
+    } else if (sub == "load" && !name.empty()) {
+      std::ifstream f(chat_dir + name + ".json");
+      if (f) {
+        std::string json((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        // Simple JSON array parser for our known format
+        s.history.clear();
+        size_t pos = 0;
+        while ((pos = json.find("\"role\":\"", pos)) != std::string::npos) {
+          pos += 8;
+          size_t end = json.find("\"", pos);
+          std::string role = json.substr(pos, end - pos);
+          pos = json.find("\"content\":\"", pos);
+          if (pos == std::string::npos) {
+            break;
+          }
+          pos += 11;
+          // Parse escaped content
+          std::string content;
+          while (pos < json.size() && !(json[pos] == '"' && json[pos - 1] != '\\')) {
+            if (json[pos] == '\\' && pos + 1 < json.size()) {
+              if (json[pos + 1] == 'n') {
+                content += '\n';
+                pos += 2;
+              } else if (json[pos + 1] == '"') {
+                content += '"';
+                pos += 2;
+              } else if (json[pos + 1] == '\\') {
+                content += '\\';
+                pos += 2;
+              } else {
+                content += json[pos++];
+              }
+            } else {
+              content += json[pos++];
+            }
+          }
+          s.history.push_back({role, content});
+        }
+        s.out << "[chat loaded: " << name << " (" << s.history.size() << " messages)]\n";
+      } else {
+        s.out << "[chat not found: " << name << "]\n";
+      }
+    } else if (sub == "list") {
+      DIR* dir = opendir(chat_dir.c_str());
+      if (dir) {
+        const struct dirent* entry = nullptr;
+        int count = 0;
+        while ((entry = readdir(dir)) != nullptr) {
+          std::string fname(entry->d_name);
+          if (fname.size() > 5 && fname.substr(fname.size() - 5) == ".json") {
+            s.out << "  " << fname.substr(0, fname.size() - 5) << "\n";
+            count++;
+          }
+        }
+        closedir(dir);
+        if (count == 0) {
+          s.out << "  (no saved chats)\n";
+        }
+      }
+    } else if (sub == "delete" && !name.empty()) {
+      std::string path = chat_dir + name + ".json";
+      if (std::remove(path.c_str()) == 0) {
+        s.out << "[chat deleted: " << name << "]\n";
+      } else {
+        s.out << "[chat not found: " << name << "]\n";
+      }
+    } else {
+      s.out << "Usage: /chat save <name>, /chat load <name>, /chat list, /chat delete <name>\n";
+    }
   } else if (command == "set" || command == "options") {
     handle_set(arg, s);
   } else if (command == "color") {
@@ -468,6 +596,173 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     s.out << help::repl;
   } else if (command == "scan") {
     handle_scan(s);
+  } else if (command == "provider") {
+    if (arg.empty()) {
+      s.out << "[current provider: " << Config::instance().provider << "]\n";
+      s.out << "Available: ollama, tgpt, gemini\n";
+      s.out << "Usage: /provider <name>\n";
+    } else if (arg == "ollama" || arg == "tgpt" || arg == "gemini") {
+      if (s.switch_provider) {
+        s.switch_provider(arg);
+        s.out << "[switched to provider: " << arg << "]\n";
+      } else {
+        s.out << "[provider switching not available]\n";
+      }
+    } else {
+      s.out << "Unknown provider: " << arg << ". Available: ollama, tgpt, gemini\n";
+    }
+  } else if (command == "auto") {
+    s.auto_route = !s.auto_route;
+    s.out << "[auto routing: " << (s.auto_route ? "on" : "off") << "]\n";
+    if (s.auto_route) {
+      s.out << "Prompts will be routed by complexity: simple→3B, medium→14B, complex→27B+\n";
+    }
+  } else if (command == "image") {
+    if (arg.empty()) {
+      s.out << "Usage: /image <path> — attach image for next prompt (vision models)\n";
+    } else {
+      std::ifstream f(arg, std::ios::binary);
+      if (!f) {
+        s.out << "[error: cannot read " << arg << "]\n";
+      } else {
+        // Read file and base64 encode
+        std::string data((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        static const char* b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        std::string encoded;
+        int val = 0;
+        int bits = -6;
+        for (unsigned char c : data) {
+          val = (val << 8) + c;
+          bits += 8;
+          while (bits >= 0) {
+            encoded += b64[(val >> bits) & 0x3F];
+            bits -= 6;
+          }
+        }
+        if (bits > -6) {
+          encoded += b64[((val << 8) >> (bits + 8)) & 0x3F];
+        }
+        while (encoded.size() % 4) {
+          encoded += '=';
+        }
+        // Store image in a pending message that will be attached to next user prompt
+        s.history.push_back({"user", "[image: " + arg + "]", "", {encoded}});
+        s.out << "[image attached: " << arg << " (" << data.size() / 1024 << "KB) — ask about it now]\n";
+      }
+    }
+  } else if (command == "agent") {
+    static auto personas = load_personas();
+    if (arg.empty() || arg == "list") {
+      s.out << "Available agents:\n";
+      for (const auto& p : personas) {
+        s.out << "  " << p.name << " — " << p.description << "\n";
+      }
+      s.out << "Usage: /agent <name> or /agent off\n";
+    } else if (arg == "off" || arg == "reset") {
+      // Restore original system prompt (first message in history)
+      if (!s.history.empty() && s.history[0].role == "system") {
+        s.history[0].content = s.cfg.system_prompt;
+      }
+      s.out << "[agent disabled — default persona restored]\n";
+    } else {
+      const AgentPersona* p = find_persona(personas, arg);
+      if (p) {
+        // Override system prompt with persona
+        if (!s.history.empty() && s.history[0].role == "system") {
+          s.history[0].content = p->system_prompt;
+        } else {
+          s.history.insert(s.history.begin(), {"system", p->system_prompt});
+        }
+        s.out << "[agent: " << p->name << " — " << p->description << "]\n";
+      } else {
+        s.out << "Unknown agent: " << arg << ". Type /agent list to see options.\n";
+      }
+    }
+  } else if (command == "nick") {
+    if (arg.empty()) {
+      s.out << "Usage: /nick <name> — set your display name\n";
+      s.out << "Current: " << Config::instance().nick << "\n";
+    } else {
+      Config::instance().nick = arg;
+      s.out << "[nick set to: " << arg << "]\n";
+    }
+  } else if (command == "usage") {
+    // Show token usage from event log
+    int total_prompt = 0;
+    int total_completion = 0;
+    int calls = 0;
+    for (const auto& msg : s.history) {
+      if (msg.role == "assistant") {
+        calls++;
+        total_completion += static_cast<int>(msg.content.size()) / 4;  // rough estimate
+      } else if (msg.role == "user") {
+        total_prompt += static_cast<int>(msg.content.size()) / 4;
+      }
+    }
+    s.out << "Session usage (estimated):\n";
+    s.out << "  Messages: " << s.history.size() << "\n";
+    s.out << "  Prompt tokens: ~" << total_prompt << "\n";
+    s.out << "  Completion tokens: ~" << total_completion << "\n";
+    s.out << "  LLM calls: " << calls << "\n";
+    s.out << "  Provider: " << Config::instance().provider << "\n";
+    s.out << "  Model: " << Config::instance().model << "\n";
+    s.out << "  Host: " << Config::instance().host << ":" << Config::instance().port << "\n";
+  } else if (command == "theme") {
+    if (arg.empty()) {
+      s.out << "Usage: /theme <name> — set color theme\n";
+      s.out << "Available: dark, light, mono, hacker\n";
+      s.out << "Current prompt_color: " << s.prompt_color << ", ai_color: " << s.ai_color << "\n";
+    } else if (arg == "dark") {
+      s.prompt_color = "32";
+      s.ai_color = "";
+      s.out << "[theme: dark (green prompt, default AI)]\n";
+    } else if (arg == "light") {
+      s.prompt_color = "34";
+      s.ai_color = "90";
+      s.out << "[theme: light (blue prompt, gray AI)]\n";
+    } else if (arg == "mono") {
+      s.prompt_color = "";
+      s.ai_color = "";
+      s.color = false;
+      s.out << "[theme: mono (no colors)]\n";
+    } else if (arg == "hacker") {
+      s.prompt_color = "92";
+      s.ai_color = "32";
+      s.out << "[theme: hacker (bright green)]\n";
+    } else {
+      s.out << "Unknown theme: " << arg << ". Available: dark, light, mono, hacker\n";
+    }
+  } else if (command == "compress") {
+    // Compress history: keep system prompt + generate summary of conversation
+    if (s.history.size() <= 2) {
+      s.out << "[nothing to compress — conversation too short]\n";
+    } else {
+      // Build summary from conversation
+      std::string summary = "Previous conversation summary: ";
+      int msg_count = 0;
+      for (const auto& msg : s.history) {
+        if (msg.role == "system") {
+          continue;
+        }
+        if (msg.role == "user") {
+          summary += "User asked about: " + msg.content.substr(0, 60);
+          if (msg.content.size() > 60) {
+            summary += "...";
+          }
+          summary += ". ";
+          msg_count++;
+        }
+      }
+      // Keep system prompt, replace everything else with summary
+      std::vector<Message> compressed;
+      if (!s.history.empty() && s.history[0].role == "system") {
+        compressed.push_back(s.history[0]);
+      }
+      compressed.push_back({"assistant", summary});
+      int removed = static_cast<int>(s.history.size()) - static_cast<int>(compressed.size());
+      s.history = compressed;
+      s.out << "[compressed: " << removed << " messages → summary (" << msg_count << " topics retained)]\n";
+    }
   } else {
     s.out << "Unknown command: /" << command << ". Type /help for options.\n";
   }

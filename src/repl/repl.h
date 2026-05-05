@@ -24,6 +24,7 @@ using ModelsFn = std::function<std::vector<std::string>(const Config&)>;
 using ModelInfoFn = std::function<std::vector<ModelInfo>(const Config&)>;
 using HardwareFn = std::function<HardwareInfo()>;
 using ScanFn = std::function<std::vector<std::string>(int)>;
+using SwitchProviderFn = std::function<void(const std::string&)>;
 
 // Run the REPL loop with conversation memory.
 // system_prompt is added as first message if non-empty.
@@ -31,6 +32,6 @@ using ScanFn = std::function<std::vector<std::string>(int)>;
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout,
              ModelsFn models_fn = get_available_models, StreamChatFn stream_chat = nullptr, HardwareFn hw_fn = detect_hardware,
-             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts);
+             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts, SwitchProviderFn switch_provider_fn = nullptr);
 
 #endif

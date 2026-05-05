@@ -93,7 +93,19 @@ static std::string build_messages_json(const std::vector<Message>& messages) {
     if (i > 0) {
       json += ",";
     }
-    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json(messages[i].content) + R"("})";
+    json += R"({"role":")" + messages[i].role + R"(","content":")" + escape_json(messages[i].content) + R"(")";
+    // Include base64 images for vision models (Zanicool #115)
+    if (!messages[i].images.empty()) {
+      json += R"(,"images":[)";
+      for (size_t j = 0; j < messages[i].images.size(); j++) {
+        if (j > 0) {
+          json += ",";
+        }
+        json += "\"" + messages[i].images[j] + "\"";
+      }
+      json += "]";
+    }
+    json += "}";
   }
   json += "]";
   return json;

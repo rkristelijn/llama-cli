@@ -21,7 +21,9 @@
 #include <vector>
 
 #include "annotation/annotation.h"
+#include "config/config.h"
 #include "logging/logger.h"
+#include "planner/planner.h"
 #include "repl/repl_annotations.h"
 #include "repl/repl_search.h"
 #include "sync/sync.h"
@@ -232,6 +234,19 @@ static constexpr const char* reminder_nudge =
     "session, no scores without criteria.";
 
 void send_prompt(const std::string& line, ReplState& s) {
+  // Auto-routing: classify prompt and switch to best host/model
+  if (s.auto_route && s.switch_provider) {
+    auto route = plan_route(line, Config::instance().hosts);
+    if (!route.host.empty() && route.host != Config::instance().host + ":" + Config::instance().port) {
+      auto colon = route.host.find(':');
+      Config::instance().host = (colon != std::string::npos) ? route.host.substr(0, colon) : route.host;
+      Config::instance().port = (colon != std::string::npos) ? route.host.substr(colon + 1) : "11434";
+      Config::instance().model = route.model;
+      s.switch_provider("ollama");
+      s.out << "[auto: " << route.reason << " → " << route.model << "@" << route.host << "]\n";
+    }
+  }
+
   if (s.cfg.trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }

@@ -58,9 +58,13 @@ test: build test-unit e2e ## Run all tests (builds first)
 
 check-fast: build format ## Tier 1: format + build (AI auto-fix loop)
 
-check: build lint test sast ## Tier 2: full quality gate (CI/pre-push)
+check: ## Tier 2: full quality gate (CI/pre-push)
+	@mkdir -p .tmp
+	@$(MAKE) build lint test sast 2>&1 | tee .tmp/check.log
 
-check-full: check mutation ## Tier 3: exhaustive + mutation (PR gate)
+check-full: ## Tier 3: exhaustive + mutation (PR gate)
+	@mkdir -p .tmp
+	@$(MAKE) check mutation 2>&1 | tee .tmp/check-full.log
 
 full-check: ## Run exhaustive quality checks (FULL=1)
 	@$(MAKE) FULL=1 check
@@ -147,6 +151,9 @@ live: ## Integration test with real LLM
 
 bench: ## Benchmark local Ollama models (see docs/model-bench.md)
 	@bash scripts/test/bench-models.sh $(ARGS)
+
+preflight: ## Quick model capability check (math, reasoning, speed)
+	@bash scripts/test/preflight.sh $(ARGS)
 
 coverage: ## Build with coverage and run tests
 	@bash scripts/test/run-coverage.sh "$(BUILD_DIR)"
@@ -306,3 +313,10 @@ check-deps:
 
 check-versions:
 	@bash scripts/lint/check-versions.sh
+
+# Catch-all: suggest similar targets for typos
+%:
+	@echo "Unknown target: $@"
+	@echo "Did you mean one of these?"
+	@awk '/^[a-zA-Z_0-9-]+:.*?##/ { printf "  %s\n", $$1 }' $(MAKEFILE_LIST) | grep -i "$(shell echo $@ | cut -c1-4)" || \
+		echo "  make help    (show all targets)"

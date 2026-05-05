@@ -72,6 +72,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-076-code-decomposition-patterns.md`](docs/adr/adr-076-code-decomposition-patterns.md) — ADR-076: Code Decomposition Patterns
 - [`docs/adr/adr-077-free-oss-dev-services.md`](docs/adr/adr-077-free-oss-dev-services.md) — ADR-077: Free Open-Source Development Services Strategy
 - [`docs/adr/adr-078-credit-efficient-multi-host.md`](docs/adr/adr-078-credit-efficient-multi-host.md) — ADR-078: Credit-Efficient Multi-Host AI Development
+- [`docs/adr/adr-079-auto-routing.md`](docs/adr/adr-079-auto-routing.md) — ADR-079: Auto-Routing Multi-Provider Architecture
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -172,6 +173,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/docker-serve.sh`](scripts/dev/docker-serve.sh)
 - [`scripts/dev/learn.sh`](scripts/dev/learn.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
+- [`scripts/dev/ollama-remote.sh`](scripts/dev/ollama-remote.sh)
 - [`scripts/dev/ollama-serve.sh`](scripts/dev/ollama-serve.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
@@ -225,6 +227,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/security/trufflehog-scan.sh`](scripts/security/trufflehog-scan.sh)
 - [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
 - [`scripts/test/check-feature-coverage.sh`](scripts/test/check-feature-coverage.sh)
+- [`scripts/test/preflight.sh`](scripts/test/preflight.sh)
 - [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
 - [`scripts/test/run-coverage.sh`](scripts/test/run-coverage.sh)
 - [`scripts/test/run-e2e.sh`](scripts/test/run-e2e.sh) — run-e2e.sh — Run all end-to-end tests.
@@ -232,6 +235,8 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test/run-unit.sh`](scripts/test/run-unit.sh)
 - [`scripts/test/test-files-integration.sh`](scripts/test/test-files-integration.sh)
 - [`scripts/test/test-index.sh`](scripts/test/test-index.sh)
+- [`src/agent/agent.cpp`](src/agent/agent.cpp) — /**
+- [`src/agent/agent.h`](src/agent/agent.h) — /**
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // Tool extracts and processes LLM response annotations.
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
@@ -266,6 +271,20 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
 - [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
+- [`src/planner/planner.cpp`](src/planner/planner.cpp) — /**
+- [`src/planner/planner.h`](src/planner/planner.h) — /**
+- [`src/provider/gemini_provider.cpp`](src/provider/gemini_provider.cpp) — /**
+- [`src/provider/gemini_provider.h`](src/provider/gemini_provider.h) — /**
+- [`src/provider/multi_host_provider.cpp`](src/provider/multi_host_provider.cpp) — /**
+- [`src/provider/multi_host_provider.h`](src/provider/multi_host_provider.h) — /**
+- [`src/provider/ollama_provider.cpp`](src/provider/ollama_provider.cpp) — /**
+- [`src/provider/ollama_provider.h`](src/provider/ollama_provider.h) — /**
+- [`src/provider/provider_factory.cpp`](src/provider/provider_factory.cpp) — /**
+- [`src/provider/provider_factory.h`](src/provider/provider_factory.h) — /**
+- [`src/provider/provider.h`](src/provider/provider.h) — /**
+- [`src/provider/provider_test.cpp`](src/provider/provider_test.cpp) — /**
+- [`src/provider/tgpt_provider.cpp`](src/provider/tgpt_provider.cpp) — /**
+- [`src/provider/tgpt_provider.h`](src/provider/tgpt_provider.h) — /**
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
 - [`src/repl/options_it.cpp`](src/repl/options_it.cpp) — /**
 - [`src/repl/repl_annotations.cpp`](src/repl/repl_annotations.cpp) — /**
@@ -339,4 +358,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_336 files indexed._
+_355 files indexed._
