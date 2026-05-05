@@ -37,7 +37,7 @@ extended with a review state.
 ### TODO.md
 
 ```markdown
-- [ ] Streaming responses
+- [x] Streaming responses
 - [-] Fix make setup — installing missing tools
 - [>] Smart confirmation prompt (PR open)
 - [~] Branch protection — waiting on admin access

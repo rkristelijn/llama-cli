@@ -32,7 +32,7 @@ struct ModelEntry {
 
 /// The unified registry — all models across all providers and hosts.
 struct ModelRegistry {
-  std::vector<ModelEntry> models;
+  std::vector<ModelEntry> models;  ///< All discovered models across providers.
 
   /// Find all models matching a capability.
   std::vector<const ModelEntry*> by_capability(Capability cap) const;
