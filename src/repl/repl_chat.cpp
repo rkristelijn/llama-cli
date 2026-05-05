@@ -234,6 +234,36 @@ static constexpr const char* reminder_nudge =
     "session, no scores without criteria.";
 
 void send_prompt(const std::string& line, ReplState& s) {
+  // Prompt gate: validate before expensive calls (ADR-081)
+  LOG_FEATURE("prompt_gate");
+  std::string trimmed = line;
+  while (!trimmed.empty() && (trimmed.front() == ' ' || trimmed.front() == '\t')) {
+    trimmed.erase(trimmed.begin());
+  }
+  if (trimmed.empty()) {
+    s.out << "[empty prompt — type something or /help]\n";
+    return;
+  }
+  // Warn on very short prompts (likely incomplete thought)
+  int words = 1;
+  for (char c : trimmed) {
+    if (c == ' ') {
+      words++;
+    }
+  }
+  if (words < 3 && trimmed.back() != '?') {
+    s.out << tui::active_theme().warning.ansi() << "[hint: short prompt — try adding more context]" << Style::reset() << "\n";
+  }
+  // Detect repeat of previous prompt
+  if (s.history.size() >= 2) {
+    for (int i = static_cast<int>(s.history.size()) - 1; i >= 0; i--) {
+      if (s.history[i].role == "user" && s.history[i].content == line) {
+        s.out << tui::active_theme().warning.ansi() << "[hint: same as a previous prompt — rephrase?]" << Style::reset() << "\n";
+        break;
+      }
+    }
+  }
+
   // Auto-routing: classify prompt and switch to best host/model
   if (s.auto_route && s.switch_provider) {
     auto route = plan_route(line, Config::instance().hosts);

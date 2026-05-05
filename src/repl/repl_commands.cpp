@@ -598,18 +598,48 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     handle_scan(s);
   } else if (command == "provider") {
     if (arg.empty()) {
-      s.out << "[current provider: " << Config::instance().provider << "]\n";
-      s.out << "Available: ollama, tgpt, gemini\n";
-      s.out << "Usage: /provider <name>\n";
-    } else if (arg == "ollama" || arg == "tgpt" || arg == "gemini") {
+      LOG_FEATURE("provider_list");
+      s.out << "[current: " << Config::instance().provider << "]\n";
+      // Show numbered list from registry (ADR-081)
+      if (s.registry && !s.registry->models.empty()) {
+        auto provs = s.registry->providers();
+        for (size_t i = 0; i < provs.size(); i++) {
+          int count = 0;
+          for (const auto& m : s.registry->models) {
+            if (m.provider == provs[i]) {
+              count++;
+            }
+          }
+          std::string marker = (provs[i] == Config::instance().provider) ? "*" : " ";
+          s.out << marker << " " << (i + 1) << ". " << provs[i] << " (" << count << " model" << (count > 1 ? "s" : "") << ")\n";
+        }
+        s.out << "Select [1-" << provs.size() << "] or /provider <name>: ";
+        s.out.flush();
+        std::string input;
+        if (std::getline(s.in, input) && !input.empty()) {
+          try {
+            int idx = std::stoi(input) - 1;
+            if (idx >= 0 && idx < static_cast<int>(provs.size())) {
+              input = provs[idx];
+            }
+          } catch (...) {
+          }
+          if (s.switch_provider) {
+            s.switch_provider(input);
+            s.out << "[switched to provider: " << input << "]\n";
+          }
+        }
+      } else {
+        s.out << "Available: ollama, tgpt, gemini\n";
+        s.out << "Usage: /provider <name>\n";
+      }
+    } else {
       if (s.switch_provider) {
         s.switch_provider(arg);
         s.out << "[switched to provider: " << arg << "]\n";
       } else {
         s.out << "[provider switching not available]\n";
       }
-    } else {
-      s.out << "Unknown provider: " << arg << ". Available: ollama, tgpt, gemini\n";
     }
   } else if (command == "auto") {
     s.auto_route = !s.auto_route;

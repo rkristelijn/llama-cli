@@ -15,6 +15,8 @@
 #include "net/scan.h"
 #include "ollama/ollama.h"
 
+struct ModelRegistry;  // Forward declaration (ADR-081)
+
 // Injectable function types for testability (ADR-008).
 // Production code passes the real implementation; tests pass mocks.
 // This avoids network calls in unit tests while keeping the code simple.
@@ -32,6 +34,7 @@ using SwitchProviderFn = std::function<void(const std::string&)>;
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout,
              ModelsFn models_fn = get_available_models, StreamChatFn stream_chat = nullptr, HardwareFn hw_fn = detect_hardware,
-             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts, SwitchProviderFn switch_provider_fn = nullptr);
+             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts, SwitchProviderFn switch_provider_fn = nullptr,
+             ModelRegistry* registry = nullptr);
 
 #endif

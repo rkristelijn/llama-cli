@@ -107,14 +107,24 @@ static double estimate_speed(double params_b, const std::string& host) {
   // Rough estimates based on typical hardware
   if (host.find("localhost") != std::string::npos) {
     // Likely weaker hardware
-    if (params_b <= 3) return 20.0;
-    if (params_b <= 7) return 10.0;
+    if (params_b <= 3) {
+      return 20.0;
+    }
+    if (params_b <= 7) {
+      return 10.0;
+    }
     return 5.0;
   }
   // Remote host (assumed decent GPU)
-  if (params_b <= 3) return 85.0;
-  if (params_b <= 14) return 42.0;
-  if (params_b <= 27) return 8.0;
+  if (params_b <= 3) {
+    return 85.0;
+  }
+  if (params_b <= 14) {
+    return 42.0;
+  }
+  if (params_b <= 27) {
+    return 8.0;
+  }
   return 3.0;
 }
 

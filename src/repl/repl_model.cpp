@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "config/config.h"
+#include "logging/logger.h"
 #include "ollama/ollama.h"
 #include "tui/tui.h"
 
@@ -40,6 +41,78 @@ extern volatile sig_atomic_t g_interrupted;
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 void handle_model_selection(ReplState& s, const std::string& arg) {
+  LOG_FEATURE("model_selection");
+
+  // ADR-081: Use unified registry when available
+  if (s.registry && !s.registry->models.empty()) {
+    const auto& models = s.registry->models;
+    s.out << "\n";
+    s.out << "  #  Model                          Provider       Host                   Speed\n";
+    s.out << "  ── ────────────────────────────── ────────────── ────────────────────── ─────\n";
+    for (size_t i = 0; i < models.size(); i++) {
+      const auto& m = models[i];
+      std::string marker = (m.name == Config::instance().model && m.host.find(Config::instance().host) != std::string::npos) ? "*" : " ";
+      std::string speed = m.tokens_per_sec > 0 ? std::to_string(static_cast<int>(m.tokens_per_sec)) + " t/s" : "  ?  ";
+      // Dim non-sweetspot models
+      bool sweet = (m.params_b >= 11.0 && m.params_b <= 28.0);
+      std::string dim = (!sweet && s.color) ? tui::active_theme().system.ansi() : "";
+      std::string reset = (!sweet && s.color) ? Style::reset() : "";
+      char buf[120];
+      snprintf(buf, sizeof(buf), "%s %2zu %-30s %-14s %-22s %s", marker.c_str(), i + 1, m.name.c_str(), m.provider.c_str(), m.host.c_str(),
+               speed.c_str());
+      s.out << dim << buf << reset << "\n";
+    }
+    s.out << "\n  Select [1-" << models.size() << "] or /model <name>: ";
+    s.out.flush();
+
+    // Read selection
+    std::string input;
+    if (!std::getline(s.in, input) || input.empty()) {
+      return;
+    }
+    // Try numeric selection
+    try {
+      int idx = std::stoi(input) - 1;
+      if (idx >= 0 && idx < static_cast<int>(models.size())) {
+        const auto& pick = models[idx];
+        // Switch to selected model's host and provider
+        auto colon = pick.host.find(':');
+        if (colon != std::string::npos && pick.provider == "ollama") {
+          Config::instance().host = pick.host.substr(0, colon);
+          Config::instance().port = pick.host.substr(colon + 1);
+        }
+        Config::instance().model = pick.name;
+        Config::instance().provider = pick.provider;
+        if (s.switch_provider) {
+          s.switch_provider(pick.provider);
+        }
+        s.out << "[model: " << pick.name << " on " << pick.provider << "@" << pick.host << "]\n";
+        return;
+      }
+    } catch (...) {
+    }
+    // Try name match
+    for (const auto& m : models) {
+      if (m.name == input) {
+        auto colon = m.host.find(':');
+        if (colon != std::string::npos && m.provider == "ollama") {
+          Config::instance().host = m.host.substr(0, colon);
+          Config::instance().port = m.host.substr(colon + 1);
+        }
+        Config::instance().model = m.name;
+        Config::instance().provider = m.provider;
+        if (s.switch_provider) {
+          s.switch_provider(m.provider);
+        }
+        s.out << "[model: " << m.name << " on " << m.provider << "@" << m.host << "]\n";
+        return;
+      }
+    }
+    s.out << "Invalid selection: " << input << "\n";
+    return;
+  }
+
+  // Fallback: legacy model selection (no registry)
   // Detect hardware for sweetspot calculation (injected via hw_fn)
   HardwareInfo hw = s.hw_fn();
 

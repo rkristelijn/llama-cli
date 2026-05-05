@@ -29,6 +29,7 @@ extern volatile sig_atomic_t g_interrupted;
 #include "logging/logger.h"
 #include "ollama/ollama.h"
 #include "provider/provider_factory.h"
+#include "provider/registry.h"
 #include "repl/repl.h"
 #include "session/session.h"
 #include "sync/sync.h"
@@ -227,51 +228,53 @@ int main(int argc, char* argv[]) {
   } else {
     // Interactive mode: REPL loop (ADR-012)
     LOG_FEATURE("repl_mode");
-    // Auto-detect model from server when set to "auto"
+
+    // Startup scan: build unified model registry (ADR-081)
+    ModelRegistry registry;
+    if (cfg.provider != "mock") {
+      tui::system_msg(std::cerr, color, "Scanning providers...");
+      registry = scan_all_providers();
+      // Show scan results
+      std::map<std::string, int> prov_counts;
+      for (const auto& m : registry.models) {
+        prov_counts[m.provider + "@" + m.host]++;
+      }
+      for (const auto& [key, count] : prov_counts) {
+        tui::system_msg(std::cerr, color, "  ✓ " + key + " — " + std::to_string(count) + " model" + (count > 1 ? "s" : ""));
+      }
+      tui::system_msg(std::cerr, color,
+                      std::to_string(registry.models.size()) + " models across " + std::to_string(registry.host_count()) + " hosts.");
+    }
+
+    // Auto-detect model: pick fastest in sweetspot (11-28B), or fastest overall
     if (cfg.model == "auto" && cfg.provider != "mock") {
-      auto models = provider->list_models();
-      auto infos = provider->get_model_info();
-      std::map<std::string, ModelInfo> info_map;
-      for (const auto& info : infos) {
-        info_map[info.name] = info;
-      }
-
-      // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
-      struct Candidate {
-        std::string name;
-        double params;
-        bool sweet;
-      };
-      std::vector<Candidate> candidates;
-
-      for (const auto& m : models) {
-        double p = 0;
-        try {
-          p = std::stod(info_map[m].params);
-        } catch (...) {
+      const ModelEntry* pick = nullptr;
+      // Prefer sweetspot (11-28B) on local hosts
+      for (const auto& m : registry.models) {
+        if (m.params_b >= 11.0 && m.params_b <= 28.0 && m.provider == "ollama") {
+          if (!pick || m.tokens_per_sec > pick->tokens_per_sec) {
+            pick = &m;
+          }
         }
-        candidates.push_back({m, p, (p >= 11.0 && p <= 28.0)});
       }
-
-      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
-        // Prioritize models in sweetspot range (11B-28B)
-        if (a.sweet != b.sweet) {
-          return a.sweet > b.sweet;
+      // Fallback: fastest available
+      if (!pick && !registry.models.empty()) {
+        pick = &registry.models[0];
+      }
+      if (pick) {
+        cfg.model = pick->name;
+        Config::instance().model = pick->name;
+        // Switch to the right host
+        auto colon = pick->host.find(':');
+        if (colon != std::string::npos) {
+          Config::instance().host = pick->host.substr(0, colon);
+          Config::instance().port = pick->host.substr(colon + 1);
         }
-        // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
-        return a.params < b.params;
-      });
-
-      if (!candidates.empty()) {
-        cfg.model = candidates[0].name;
-        Config::instance().model = candidates[0].name;
-        HardwareInfo hw = detect_hardware();
-        tui::system_msg(std::cerr, color,
-                        "Detected hardware: " + hw.cpu + " | " + std::to_string(hw.ram_gb) + "GB RAM | " + std::to_string(hw.vram_gb) +
-                            "GB VRAM estimated.");
-        tui::system_msg(std::cerr, color, "Auto-selected " + cfg.model + " as the optimal sweetspot model for your hardware.");
+        provider = create_provider(Config::instance());
+        std::string speed = pick->tokens_per_sec > 0 ? " (" + std::to_string(static_cast<int>(pick->tokens_per_sec)) + " t/s)" : "";
+        tui::system_msg(std::cerr, color, "Auto-selected: " + pick->name + "@" + pick->host + speed);
       } else {
-        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3.6:27b");
+        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
         return 1;
       }
     }
@@ -322,7 +325,8 @@ int main(int argc, char* argv[]) {
       Config::instance().provider = name;
       provider = create_provider(Config::instance());
     };
-    run_repl(generate, cfg, std::cin, std::cout, models_fn, stream, detect_hardware, get_model_info, scan_ollama_hosts, switch_prov);
+    run_repl(generate, cfg, std::cin, std::cout, models_fn, stream, detect_hardware, get_model_info, scan_ollama_hosts, switch_prov,
+             &registry);
   }
   return 0;
 }

@@ -221,7 +221,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat,
-             HardwareFn hw_fn, ModelInfoFn model_info_fn, ScanFn scan_fn, SwitchProviderFn switch_provider_fn) {
+             HardwareFn hw_fn, ModelInfoFn model_info_fn, ScanFn scan_fn, SwitchProviderFn switch_provider_fn, ModelRegistry* registry) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -282,6 +282,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      false,
                      -1,
                      false,
+                     nullptr,
                      {}};
 
   // Log session start with version, commit, model, and host for traceability
@@ -290,6 +291,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
 
   // Wire provider switching callback (ADR-020)
   state.switch_provider = switch_provider_fn;
+  state.registry = registry;
 
   // Auto-start SearXNG when web search is enabled (ADR-057)
   if (cfg.allow_web_search) {
