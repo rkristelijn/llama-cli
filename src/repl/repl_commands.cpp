@@ -423,9 +423,11 @@ static void handle_rate(const std::string& arg, ReplState& s) {
 /// Each branch delegates to a focused handler function (SRP).
 bool dispatch_command(const std::string& command, const std::string& arg, ReplState& s) {
   if (command == "clear") {
+    LOG_FEATURE("cmd_clear");
     s.history.clear();
     s.out << "[history cleared]\n";
   } else if (command == "chat") {
+    LOG_FEATURE("cmd_chat");
     // /chat save <name>, /chat load <name>, /chat list, /chat delete <name>
     std::string sub, name;
     auto space = arg.find(' ');
@@ -545,20 +547,28 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "Usage: /chat save <name>, /chat load <name>, /chat list, /chat delete <name>\n";
     }
   } else if (command == "set" || command == "options") {
+    LOG_FEATURE("cmd_set");
     handle_set(arg, s);
   } else if (command == "color") {
+    LOG_FEATURE("cmd_color");
     handle_color(arg, s);
   } else if (command == "model") {
+    LOG_FEATURE("cmd_model");
     handle_model_selection(s, arg);
   } else if (command == "version") {
+    LOG_FEATURE("cmd_version");
     s.out << "llama-cli " << get_version() << "\n";
   } else if (command == "mem") {
+    LOG_FEATURE("cmd_mem");
     handle_mem(arg, s);
   } else if (command == "pref") {
+    LOG_FEATURE("cmd_pref");
     handle_pref(arg, s);
   } else if (command == "rate") {
+    LOG_FEATURE("cmd_rate");
     handle_rate(arg, s);
   } else if (command == "copy" || command == "c") {
+    LOG_FEATURE("cmd_copy");
     if (s.last_assistant_idx < 0 || s.last_assistant_idx >= static_cast<int>(s.history.size())) {
       s.out << "[no response to copy]\n";
     } else {
@@ -574,6 +584,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       }
     }
   } else if (command == "paste" || command == "p") {
+    LOG_FEATURE("cmd_paste");
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
     FILE* pipe = popen("pbpaste 2>/dev/null || xclip -selection clipboard -o 2>/dev/null", "r");
     if (pipe) {
@@ -593,8 +604,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "[clipboard not available — install pbpaste or xclip]\n";
     }
   } else if (command == "help" || command.empty()) {
+    LOG_FEATURE("cmd_help");
     s.out << help::repl;
   } else if (command == "scan") {
+    LOG_FEATURE("cmd_scan");
     handle_scan(s);
   } else if (command == "provider") {
     if (arg.empty()) {
@@ -642,12 +655,14 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       }
     }
   } else if (command == "auto") {
+    LOG_FEATURE("cmd_auto");
     s.auto_route = !s.auto_route;
     s.out << "[auto routing: " << (s.auto_route ? "on" : "off") << "]\n";
     if (s.auto_route) {
       s.out << "Prompts will be routed by complexity: simple→3B, medium→14B, complex→27B+\n";
     }
   } else if (command == "image") {
+    LOG_FEATURE("cmd_image");
     if (arg.empty()) {
       s.out << "Usage: /image <path> — attach image for next prompt (vision models)\n";
     } else {
@@ -681,6 +696,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       }
     }
   } else if (command == "agent") {
+    LOG_FEATURE("cmd_agent");
     static auto personas = load_personas();
     if (arg.empty() || arg == "list") {
       s.out << "Available agents:\n";
@@ -709,6 +725,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       }
     }
   } else if (command == "nick") {
+    LOG_FEATURE("cmd_nick");
     if (arg.empty()) {
       s.out << "Usage: /nick <name> — set your display name\n";
       s.out << "Current: " << Config::instance().nick << "\n";
@@ -717,6 +734,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "[nick set to: " << arg << "]\n";
     }
   } else if (command == "usage") {
+    LOG_FEATURE("cmd_usage");
     // Show token usage from event log
     int total_prompt = 0;
     int total_completion = 0;
@@ -738,6 +756,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     s.out << "  Model: " << Config::instance().model << "\n";
     s.out << "  Host: " << Config::instance().host << ":" << Config::instance().port << "\n";
   } else if (command == "theme") {
+    LOG_FEATURE("cmd_theme");
     if (arg.empty()) {
       s.out << "Current theme: " << tui::active_theme().name << "\n";
       s.out << "Available: dark, light, mono, hacker\n";
@@ -798,6 +817,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "Unknown theme: " << arg << ". Try: dark, light, mono, hacker\n";
     }
   } else if (command == "compress") {
+    LOG_FEATURE("cmd_compress");
     // Compress history: keep system prompt + generate summary of conversation
     if (s.history.size() <= 2) {
       s.out << "[nothing to compress — conversation too short]\n";

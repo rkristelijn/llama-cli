@@ -233,6 +233,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/security/trufflehog-scan.sh`](scripts/security/trufflehog-scan.sh)
 - [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
 - [`scripts/test/check-feature-coverage.sh`](scripts/test/check-feature-coverage.sh)
+- [`scripts/test/check-feature-density.sh`](scripts/test/check-feature-density.sh)
 - [`scripts/test/preflight.sh`](scripts/test/preflight.sh)
 - [`scripts/test/report-coverage.sh`](scripts/test/report-coverage.sh)
 - [`scripts/test/run-coverage.sh`](scripts/test/run-coverage.sh)
@@ -369,4 +370,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_366 files indexed._
+_367 files indexed._
