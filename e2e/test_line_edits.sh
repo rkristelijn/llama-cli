@@ -62,7 +62,6 @@ cat test_file.txt
 export LLAMA_CLI_MOCK_RESPONSE="$MOCK_RESPONSE"
 "$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "add a line" 2>&1
 unset LLAMA_CLI_MOCK_RESPONSE
-unset LLAMA_CLI_MOCK_RESPONSE # ADDED 2>&1
 
 echo "DEBUG: test_file.txt after llama-cli call:"
 cat test_file.txt
@@ -89,7 +88,8 @@ echo "DEBUG: MOCK_RESPONSE for Test 2: '$MOCK_RESPONSE'"
 echo "DEBUG: test_file.txt before llama-cli call:"
 cat test_file.txt
 export LLAMA_CLI_MOCK_RESPONSE="$MOCK_RESPONSE"
-"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "add a line at the end" 2>&1 # ADDED 2>&1
+"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "add a line at the end" 2>&1
+unset LLAMA_CLI_MOCK_RESPONSE
 
 echo "DEBUG: test_file.txt after llama-cli call:"
 cat test_file.txt
@@ -116,7 +116,8 @@ echo "DEBUG: MOCK_RESPONSE for Test 3: '$MOCK_RESPONSE'"
 echo "DEBUG: test_file.txt before llama-cli call:"
 cat test_file.txt
 export LLAMA_CLI_MOCK_RESPONSE="$MOCK_RESPONSE"
-"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "delete line 2" 2>&1 # ADDED 2>&1
+"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "delete line 2" 2>&1
+unset LLAMA_CLI_MOCK_RESPONSE
 
 echo "DEBUG: test_file.txt after llama-cli call:"
 cat test_file.txt
@@ -142,7 +143,8 @@ echo "DEBUG: MOCK_RESPONSE for Test 4: '$MOCK_RESPONSE'"
 echo "DEBUG: test_file.txt before llama-cli call:"
 cat test_file.txt
 export LLAMA_CLI_MOCK_RESPONSE="$MOCK_RESPONSE"
-"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "modify line 2" 2>&1 # ADDED 2>&1
+"$LLAMA_CLI_BIN" --provider=mock --sync --capabilities=write "modify line 2" 2>&1
+unset LLAMA_CLI_MOCK_RESPONSE
 
 echo "DEBUG: test_file.txt after llama-cli call:"
 cat test_file.txt

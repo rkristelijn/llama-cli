@@ -19,9 +19,12 @@ FAILED=0
 for df in ${DOCKERFILES}; do
   echo "  Checking ${df}..."
 
-  # Rule: Must contain a USER instruction
+  # Rule: Must contain a USER instruction (not root/0)
   if ! grep -qi "^USER" "${df}"; then
-    echo "  [FAIL] ${df} is running as root! Add a 'USER' instruction."
+    echo "  [FAIL] ${df} has no USER instruction (defaults to root)."
+    FAILED=1
+  elif grep -qiE "^USER[[:space:]]+(root|0)[[:space:]]*$" "${df}"; then
+    echo "  [FAIL] ${df} explicitly sets USER root/0."
     FAILED=1
   fi
 done

@@ -70,6 +70,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-074-sonarcloud-integration.md`](docs/adr/adr-074-sonarcloud-integration.md) — ADR-074: SonarCloud Integration and Local Check Coverage
 - [`docs/adr/adr-075-test-best-practices.md`](docs/adr/adr-075-test-best-practices.md) — ADR-075: Test Best Practices — Lessons Learned
 - [`docs/adr/adr-076-code-decomposition-patterns.md`](docs/adr/adr-076-code-decomposition-patterns.md) — ADR-076: Code Decomposition Patterns
+- [`docs/adr/adr-077-free-oss-dev-services.md`](docs/adr/adr-077-free-oss-dev-services.md) — ADR-077: Free Open-Source Development Services Strategy
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -188,6 +189,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/download-issues.sh`](scripts/gh/download-issues.sh)
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
+- [`scripts/gh/pr-resolve.sh`](scripts/gh/pr-resolve.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
 - [`scripts/gh/sync-backlog.sh`](scripts/gh/sync-backlog.sh)
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
@@ -336,4 +338,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_333 files indexed._
+_335 files indexed._

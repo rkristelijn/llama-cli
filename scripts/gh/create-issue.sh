@@ -33,15 +33,10 @@ echo "Creating issue: $TITLE..."
 # Create the issue and capture the URL
 ISSUE_URL=$(gh issue create --title "$TITLE" --body "$BODY")
 
-if [ $? -eq 0 ]; then
-  echo "SUCCESS: Issue created at $ISSUE_URL"
+echo "SUCCESS: Issue created at $ISSUE_URL"
 
-  # Optionally download issues to sync local cache
-  if [ -f "./scripts/gh/download-issues.sh" ]; then
-    echo "Syncing local issue cache..."
-    ./scripts/gh/download-issues.sh >/dev/null
-  fi
-else
-  echo "ERROR: Failed to create issue."
-  exit 1
+# Optionally download issues to sync local cache
+if [ -f "./scripts/gh/download-issues.sh" ]; then
+  echo "Syncing local issue cache..."
+  ./scripts/gh/download-issues.sh >/dev/null || true
 fi

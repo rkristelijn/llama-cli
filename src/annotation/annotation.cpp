@@ -447,8 +447,8 @@ std::string fix_malformed_tags(const std::string& text) {
             inner_name.pop_back();
           }
           if (bad_name == inner_name) {
-            // Check if there's a matching opener between start and bad
-            auto inner_start = result.find(inner.open, start + std::string(t.open).size());
+            // Check if there's a matching opener after the last consumed closer
+            auto inner_start = result.find(inner.open, search_from);
             if (inner_start != std::string::npos && inner_start < bad) {
               is_inner = true;
             }

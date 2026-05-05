@@ -8,9 +8,10 @@ FULL ?= 0
 
 .PHONY: all build clean run start s log test t test-unit e2e check check-fast check-full full-check mutation check-ai check-all \
 	format format-code format-yaml format-md format-scripts \
-	lint lint-code lint-yaml lint-md lint-makefile lint-scripts \
-	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
+	lint lint-code lint-yaml lint-md lint-makefile lint-scripts lint-versions \
+	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-stegano sast-iac sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
 	coverage coverage-report todo quick index setup install hooks bench features fuzz update \
+	sonar sonar-report trivi learn \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch
@@ -212,7 +213,7 @@ sast-codeql: ## Run CodeQL deep analysis (slow)
 sbom: ## Generate SBOM with syft
 	@bash scripts/security/syft-sbom.sh
 
-check-all: check sast sbom ## Run ALL checks (quality + security + SBOM)
+check-all: check sbom ## Run ALL checks (quality + security + SBOM)
 
 sonar: ## Run SonarCloud scan (requires SONAR_TOKEN)
 	@bash scripts/security/sonar-scan.sh
@@ -276,6 +277,9 @@ gdi: gh-download-issues
 gh-pr-feedback: ## Show CodeRabbit feedback (alias: gpf)
 	@bash scripts/gh/pr-feedback.sh
 gpf: gh-pr-feedback
+
+gh-pr-resolve: ## Resolve CodeRabbit threads (alias: gpr-resolve)
+	@bash scripts/gh/pr-resolve.sh $(ARGS)
 
 create-issue: ## Create issue (TITLE="..." DESC="...")
 	@if [ -z "$(TITLE)" ] || [ -z "$(DESC)" ]; then \

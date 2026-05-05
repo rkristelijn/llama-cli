@@ -25,9 +25,9 @@ set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 # --- Configuration ---
-LEARN_MODEL="${LEARN_MODEL:-qwen2.5-coder:14b}"
+shopt -s globstar 2>/dev/null || true
 LEARN_TIMEOUT="${LEARN_TIMEOUT:-300}"
-LLAMA_CLI="${LLAMA_CLI:-./build/llama-cli}"
+LLAMA_CLI="${LLAMA_CLI:-./llama-cli}"
 LESSONS_FILE=".config/lessons.yml"
 PATTERNS_FILE=".config/patterns.yml"
 MODE="${1:-all}"
@@ -49,7 +49,7 @@ ask_llm() {
     echo "  [skip] llama-cli not found at $LLAMA_CLI" >&2
     return 1
   fi
-  "$LLAMA_CLI" --model "$LEARN_MODEL" --system-prompt="$system" "$prompt" 2>/dev/null
+  "$LLAMA_CLI" --system-prompt="$system" "$prompt" 2>/dev/null
 }
 
 # Append a lesson to lessons.yml if not already present
@@ -159,7 +159,7 @@ Categories: timing, assertions, isolation, naming"
 # --- Main ---
 
 main() {
-  echo "==> learn (model=$LEARN_MODEL, budget=${LEARN_TIMEOUT}s, mode=$MODE)"
+  echo "==> learn (budget=${LEARN_TIMEOUT}s, mode=$MODE)"
 
   # Ensure output files exist
   if [[ ! -f "$LESSONS_FILE" ]]; then

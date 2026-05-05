@@ -50,7 +50,8 @@ print()
 
 print('    Severity')
 for v in facets.get('severities', []):
-    bar = '#' * max(1, v['count'] * 30 // total)
+    bar_len = (v['count'] * 30 // total) if total else 0
+    bar = '#' * max(1, bar_len) if total else ''
     print(f'      {v[\"val\"]:10s} {v[\"count\"]:5d}  {bar}')
 print()
 
@@ -94,13 +95,74 @@ for i in issues:
 }
 
 #######################################
+# Print actionable issues (BLOCKER + CRITICAL + BUG + VULNERABILITY).
+#######################################
+print_actionable() {
+  curl -s ${AUTH} \
+    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&severities=BLOCKER&ps=50" \
+    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&types=BUG,VULNERABILITY&ps=50" \
+  | python3 -c "
+import json, sys, subprocess, os
+
+auth = '${AUTH}'.split()
+api = '${API}'
+project = '${PROJECT}'
+
+def fetch(params):
+    import urllib.request
+    url = f'{api}/issues/search?projectKeys={project}&statuses=OPEN&{params}&ps=50'
+    req = urllib.request.Request(url)
+    token = os.environ.get('SONAR_TOKEN', '')
+    import base64
+    creds = base64.b64encode(f'{token}:'.encode()).decode()
+    req.add_header('Authorization', f'Basic {creds}')
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read())
+
+# Fetch BLOCKERs and BUGs/VULNs separately, deduplicate
+blockers = fetch('severities=BLOCKER')
+bugs = fetch('types=BUG,VULNERABILITY')
+
+seen = set()
+actionable = []
+for issue in blockers.get('issues', []) + bugs.get('issues', []):
+    key = issue.get('key')
+    if key not in seen:
+        seen.add(key)
+        actionable.append(issue)
+
+if not actionable:
+    print('    No actionable issues (BLOCKERs, BUGs, VULNERABILITYs).')
+    sys.exit(0)
+
+print()
+print(f'==> {len(actionable)} actionable issues (BLOCKER/BUG/VULNERABILITY):')
+print()
+for i in actionable:
+    comp = i.get('component', '').replace(f'{project}:', '')
+    line = i.get('line', '?')
+    rule = i.get('rule', '?')
+    sev = i.get('severity', '?')
+    typ = i.get('type', '?')
+    msg = i.get('message', '')
+    print(f'  [{sev}] {comp}:{line}')
+    print(f'    [{rule}] ({typ}) {msg}')
+    print()
+"
+}
+
+#######################################
 # Main
 #######################################
 main() {
   print_summary
 
   if [[ -n "${DETAIL_SEVERITY}" ]]; then
+    # Explicit severity filter (backward compatible)
     print_detail "${DETAIL_SEVERITY}"
+  else
+    # Default: show actionable issues that need fixing
+    print_actionable
   fi
 }
 
