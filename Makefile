@@ -178,6 +178,10 @@ dead-docs: ## Detect unreferenced docs, configs, and backlog items
 	@bash scripts/lint/check-dead-docs.sh
 	$(log_footer)
 
+duplication: ## Detect duplicated code blocks (CPD or line-hash fallback)
+	@bash scripts/lint/check-duplication.sh
+	$(log_footer)
+
 feature-density: ## Check LOG_FEATURE marker density (ADR-063)
 	@bash scripts/test/check-feature-density.sh
 	$(log_footer)

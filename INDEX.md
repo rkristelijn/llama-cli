@@ -162,6 +162,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-dead-code.sh`](scripts/lint/check-dead-code.sh)
 - [`scripts/lint/check-dead-docs.sh`](scripts/lint/check-dead-docs.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
+- [`scripts/lint/check-duplication.sh`](scripts/lint/check-duplication.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
@@ -319,4 +320,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_316 files indexed._
+_317 files indexed._
