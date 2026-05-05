@@ -61,7 +61,7 @@ Available models:
   3. llama3.2:3b
 Select model (1-3): 2
 [model set to qwen2.5-coder:7b]
-```
+```text
 
 Error cases:
 

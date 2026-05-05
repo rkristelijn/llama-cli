@@ -19,7 +19,7 @@ graph TB
     Ollama --> JSON[JSON parser]
     Ollama --> HTTP[cpp-httplib]
     HTTP --> Server([Ollama server])
-```
+```text
 
 ## Modules
 
@@ -55,7 +55,7 @@ sequenceDiagram
     Server-->>Ollama: {"response": "..."}
     Ollama-->>Main: response text
     Main->>User: stdout
-```
+```text
 
 ### Interactive mode
 
@@ -79,7 +79,7 @@ sequenceDiagram
         REPL->>User: print response
     end
     User->>REPL: "exit" / Ctrl+D
-```
+```text
 
 ## Testability
 
@@ -130,4 +130,4 @@ llama-cli/
 ├── .config/              # Tool configs and hooks (.clang-format, .clang-tidy, Doxyfile, pre-commit)
 ├── scripts/              # Shell scripts (setup, build-index, test coverage, CI helpers)
 └── .github/workflows/    # CI pipeline
-```
+```text

@@ -10,7 +10,7 @@ The CLI follows POSIX conventions and unix pipe semantics:
 
 ```text
 llama-cli [options] [prompt]
-```
+```text
 
 - **Options** start with `--` and configure behavior
 - **Prompt** is a positional argument (the instruction)
@@ -58,7 +58,7 @@ cat error.log | llama-cli "explain this error" | tee analysis.md
 
 # Options before prompt
 llama-cli --model=gemma4:26b "explain quantum computing"
-```
+```text
 
 ### Output rules
 

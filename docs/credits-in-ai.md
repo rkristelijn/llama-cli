@@ -22,7 +22,7 @@ Check your usage:
 ```bash
 # scripts/check-usage.sh or just look at usage.log
 cat usage.log
-```
+```text
 
 ---
 

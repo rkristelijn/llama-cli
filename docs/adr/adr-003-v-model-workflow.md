@@ -11,7 +11,7 @@ The following workflow is followed for every feature:
 ```mermaid
 graph LR
     Define --> Build --> Test --> Audit --> Release
-```
+```text
 
 ### Level 2 — Define
 
@@ -21,21 +21,21 @@ graph LR
     B --> C[Decision + ADR]
     C --> D[Design + diagrams]
     D --> E[Acceptance criteria]
-```
+```text
 
 ### Level 2 — Build
 
 ```mermaid
 graph LR
     E[Implement] --> F[Unit test]
-```
+```text
 
 ### Level 2 — Test
 
 ```mermaid
 graph LR
     F[Integration test] --> G[E2E test]
-```
+```text
 
 ### Level 2 — Audit
 
@@ -43,14 +43,14 @@ graph LR
 graph LR
     H[Regression test] --> I[Local checks]
     I --> J[Update docs]
-```
+```text
 
 ### Level 2 — Release
 
 ```mermaid
 graph LR
     K[PR + merge] --> L[Release]
-```
+```text
 
 ### Phases
 

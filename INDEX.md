@@ -73,6 +73,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-077-free-oss-dev-services.md`](docs/adr/adr-077-free-oss-dev-services.md) — ADR-077: Free Open-Source Development Services Strategy
 - [`docs/adr/adr-078-credit-efficient-multi-host.md`](docs/adr/adr-078-credit-efficient-multi-host.md) — ADR-078: Credit-Efficient Multi-Host AI Development
 - [`docs/adr/adr-079-auto-routing.md`](docs/adr/adr-079-auto-routing.md) — ADR-079: Auto-Routing Multi-Provider Architecture
+- [`docs/adr/adr-080-theme-system.md`](docs/adr/adr-080-theme-system.md) — ADR-080: Terminal Theme System
+- [`docs/adr/adr-081-unified-entity-model.md`](docs/adr/adr-081-unified-entity-model.md) — ADR-081: Unified Provider-Host-Model Entity Model
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -203,13 +205,16 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
+- [`scripts/lint/check-dead-code.sh`](scripts/lint/check-dead-code.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
 - [`scripts/lint/check-error-handling.sh`](scripts/lint/check-error-handling.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
+- [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
 - [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
+- [`scripts/lint/check-xref.sh`](scripts/lint/check-xref.sh)
 - [`scripts/lint/lint-code.sh`](scripts/lint/lint-code.sh) — lint-code.sh — Run cppcheck static analysis on C++ code.
 - [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
 - [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
@@ -283,6 +288,8 @@ Auto-generated overview of all files in this repo.
 - [`src/provider/provider_factory.h`](src/provider/provider_factory.h) — /**
 - [`src/provider/provider.h`](src/provider/provider.h) — /**
 - [`src/provider/provider_test.cpp`](src/provider/provider_test.cpp) — /**
+- [`src/provider/registry.cpp`](src/provider/registry.cpp) — /**
+- [`src/provider/registry.h`](src/provider/registry.h) — /**
 - [`src/provider/tgpt_provider.cpp`](src/provider/tgpt_provider.cpp) — /**
 - [`src/provider/tgpt_provider.h`](src/provider/tgpt_provider.h) — /**
 - [`src/repl/conversation_it.cpp`](src/repl/conversation_it.cpp) — /**
@@ -353,9 +360,10 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/spinner.h`](src/tui/spinner.h) — /**
 - [`src/tui/table.cpp`](src/tui/table.cpp) — /**
 - [`src/tui/table.h`](src/tui/table.h) — /**
+- [`src/tui/theme.h`](src/tui/theme.h) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_355 files indexed._
+_363 files indexed._

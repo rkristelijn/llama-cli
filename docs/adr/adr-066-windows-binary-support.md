@@ -38,7 +38,7 @@ Add Windows to the build matrix in `.github/workflows/release.yml`:
   runner: windows-latest
   target: x86_64-pc-windows-msvc
   binary: llama-cli-windows-x64.exe
-```
+```text
 
 ## Decision
 

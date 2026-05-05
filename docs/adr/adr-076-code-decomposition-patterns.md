@@ -24,7 +24,7 @@ if (person.age >= 18 && person.height_cm >= 120 && !person.has_medical_condition
 if (can_ride(person)) {
   allow_ride();
 }
-```
+```text
 
 **When**: Any condition with 2+ clauses, or any expression that needs a comment to explain.
 
@@ -47,7 +47,7 @@ void process_response(const std::string& json) {
   render_markdown(content);
   log_event("response", content);
 }
-```
+```text
 
 **When**: A function has blocks that could be described with a comment header.
 
@@ -62,7 +62,7 @@ void handle_user_input(const std::string& input) {
   if (is_file_ref(input))   return attach_file(input);
   send_to_llm(input);
 }
-```
+```text
 
 **When**: A function has early-return branches or a switch/if-else chain.
 

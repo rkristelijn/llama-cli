@@ -15,7 +15,7 @@ Switchable prompt templates that set the system prompt + parameters for a task t
 /template debug          # "Analyze errors systematically, check logs first"
 /template write          # "Write concise, clear prose"
 /template default        # Reset to built-in system prompt
-```
+```text
 
 ### Template structure
 
@@ -26,7 +26,7 @@ Switchable prompt templates that set the system prompt + parameters for a task t
   "temperature": 0.2,
   "description": "Focused code review with security and performance analysis"
 }
-```
+```text
 
 ### Storage
 

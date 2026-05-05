@@ -21,7 +21,7 @@ Distribute prompts across multiple Ollama instances for parallel processing or l
 ```env
 OLLAMA_HOSTS=pi.local:11434,studio.local:11434
 OLLAMA_STRATEGY=round-robin  # or model-match, least-busy
-```
+```text
 
 ### References
 

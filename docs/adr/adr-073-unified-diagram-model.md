@@ -38,7 +38,7 @@ The idea: maintain a **shared entity registry** underneath the diagrams, so that
 │  │ Diagram  │ │ Diagram  │ │          │       │
 │  └──────────┘ └──────────┘ └──────────┘       │
 └─────────────────────────────────────────────────┘
-```
+```text
 
 ### How it would work
 
@@ -68,7 +68,7 @@ class DiagramModel {
   std::vector<DiagramEntity> entities() const;
   bool has_entity(const std::string& name) const;
 };
-```
+```text
 
 ### Phases
 

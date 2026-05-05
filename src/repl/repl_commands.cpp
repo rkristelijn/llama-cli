@@ -62,9 +62,9 @@ static std::string get_version() {
 static void show_options(ReplState& s) {
   auto status = [&](bool val) {
     if (!s.color) {
-      return val ? "on" : "off";
+      return std::string(val ? "on" : "off");
     }
-    return val ? "\033[32mon\033[0m" : "\033[31moff\033[0m";
+    return val ? tui::active_theme().info.ansi() + "on" + Style::reset() : tui::active_theme().error.ansi() + "off" + Style::reset();
   };
 
   s.out << "Options (toggle with /set <option>):\n";
@@ -709,28 +709,63 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     s.out << "  Host: " << Config::instance().host << ":" << Config::instance().port << "\n";
   } else if (command == "theme") {
     if (arg.empty()) {
-      s.out << "Usage: /theme <name> — set color theme\n";
+      s.out << "Current theme: " << tui::active_theme().name << "\n";
       s.out << "Available: dark, light, mono, hacker\n";
-      s.out << "Current prompt_color: " << s.prompt_color << ", ai_color: " << s.ai_color << "\n";
-    } else if (arg == "dark") {
-      s.prompt_color = "32";
-      s.ai_color = "";
-      s.out << "[theme: dark (green prompt, default AI)]\n";
-    } else if (arg == "light") {
-      s.prompt_color = "34";
-      s.ai_color = "90";
-      s.out << "[theme: light (blue prompt, gray AI)]\n";
-    } else if (arg == "mono") {
-      s.prompt_color = "";
-      s.ai_color = "";
-      s.color = false;
-      s.out << "[theme: mono (no colors)]\n";
-    } else if (arg == "hacker") {
-      s.prompt_color = "92";
-      s.ai_color = "32";
-      s.out << "[theme: hacker (bright green)]\n";
+      s.out << "Usage: /theme <name>          — switch theme\n";
+      s.out << "       /theme set <role> <options> — customize a role\n";
+      s.out << "Roles: prompt, ai, system, error, info, warning, banner, code\n";
+      s.out << "Options: <color> [bold] [italic] [underline] [dim] [bg:<color>]\n";
+      s.out << "Colors: red green blue cyan yellow magenta white black bright_*\n";
+    } else if (arg == "dark" || arg == "light" || arg == "mono" || arg == "hacker") {
+      tui::active_theme() = get_theme(arg);
+      s.color = (arg != "mono");
+      s.out << "[theme: " << arg << "]\n";
+    } else if (arg.substr(0, 4) == "set ") {
+      // Parse: /theme set <role> <color> [bold] [italic] [underline] [dim] [bg:<color>]
+      std::istringstream iss(arg.substr(4));
+      std::string role, token;
+      iss >> role;
+      Style style;
+      while (iss >> token) {
+        if (token == "bold") {
+          style.bold = true;
+        } else if (token == "italic") {
+          style.italic = true;
+        } else if (token == "underline") {
+          style.underline = true;
+        } else if (token == "dim") {
+          style.dim = true;
+        } else if (token.substr(0, 3) == "bg:") {
+          style.bg = token.substr(3);
+        } else {
+          style.fg = token;
+        }
+      }
+      // Apply to the right role
+      Theme& t = tui::active_theme();
+      if (role == "prompt") {
+        t.prompt = style;
+      } else if (role == "ai") {
+        t.ai = style;
+      } else if (role == "system") {
+        t.system = style;
+      } else if (role == "error") {
+        t.error = style;
+      } else if (role == "info") {
+        t.info = style;
+      } else if (role == "warning") {
+        t.warning = style;
+      } else if (role == "banner") {
+        t.banner = style;
+      } else if (role == "code") {
+        t.code = style;
+      } else {
+        s.out << "Unknown role: " << role << "\n";
+        return true;
+      }
+      s.out << "[theme: " << role << " updated]\n";
     } else {
-      s.out << "Unknown theme: " << arg << ". Available: dark, light, mono, hacker\n";
+      s.out << "Unknown theme: " << arg << ". Try: dark, light, mono, hacker\n";
     }
   } else if (command == "compress") {
     // Compress history: keep system prompt + generate summary of conversation

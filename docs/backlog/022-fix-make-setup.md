@@ -9,7 +9,7 @@
 ```text
 clang-tidy missing
 pmccabe missing
-```
+```text
 
 ## Fix
 
@@ -20,7 +20,7 @@ No standalone brew formula exists. Must install full LLVM and symlink:
 ```bash
 brew install llvm
 ln -s "$(brew --prefix llvm)/bin/clang-tidy" "/usr/local/bin/clang-tidy"
-```
+```text
 
 Note: `brew install llvm` is ~2.8GB. The `fmenezes/tap/clang-tidy` tap is dead (confirmed 2023+).
 
@@ -30,7 +30,7 @@ Source: <https://stackoverflow.com/questions/53111082/how-to-install-clang-tidy-
 
 ```bash
 brew install pmccabe
-```
+```text
 
 ### What to change in setup.sh
 

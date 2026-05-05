@@ -21,7 +21,7 @@ Then GitHub blocks the merge
 Given a pull request targets main
 When CI checks have not passed
 Then GitHub blocks the merge
-```
+```text
 
 ## Implementation
 

@@ -21,7 +21,7 @@ graph TB
     B -->|no| D{Args or piped stdin?}
     D -->|yes| E[Sync mode]
     D -->|no| F[Interactive mode]
-```
+```text
 
 ### Examples
 
@@ -36,7 +36,7 @@ cat main.cpp | ./llama-cli "review this code"
 
 # Async — background, write to file
 ./llama-cli --async -o review.md "review this codebase"
-```
+```text
 
 ## Rationale
 

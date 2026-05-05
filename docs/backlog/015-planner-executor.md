@@ -23,7 +23,7 @@ Strict separation:
   ],
   "status": "pending | running | completed | failed"
 }
-```
+```text
 
 ### Flow
 

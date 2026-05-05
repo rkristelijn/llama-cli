@@ -52,7 +52,7 @@ clean: ## Remove build artifacts
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -127,6 +127,15 @@ comment-ratio: ## Show comment ratio per file
 
 consistency: ## Check code consistency (ADR-065)
 	@bash scripts/lint/check-consistency.sh
+
+check-theme: ## Check no hardcoded ANSI outside tui/ (ADR-080)
+	@bash scripts/lint/check-theme.sh
+
+check-xref: ## Validate ADR cross-references in code (ADR-022)
+	@bash scripts/lint/check-xref.sh
+
+dead-code: ## Detect unused functions and orphaned scripts (ADR-064)
+	@bash scripts/lint/check-dead-code.sh
 
 docs: ## Check doxygen warnings
 	@echo "==> checking doxygen..."
@@ -220,7 +229,7 @@ sast-codeql: ## Run CodeQL deep analysis (slow)
 sbom: ## Generate SBOM with syft
 	@bash scripts/security/syft-sbom.sh
 
-check-all: check sbom ## Run ALL checks (quality + security + SBOM)
+check-all: check sbom todo index dead-code ## Run ALL checks (quality + security + SBOM + docs)
 
 sonar: ## Run SonarCloud scan (requires SONAR_TOKEN)
 	@bash scripts/security/sonar-scan.sh

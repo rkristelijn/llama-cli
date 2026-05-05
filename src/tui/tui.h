@@ -22,8 +22,15 @@
 #include "tui/markdown.h"
 #include "tui/spinner.h"
 #include "tui/table.h"
+#include "tui/theme.h"
 
 namespace tui {
+
+/// Global active theme — set at startup, changeable via /theme
+inline Theme& active_theme() {
+  static Theme t = theme_dark();
+  return t;
+}
 
 /** Check if color output is enabled (TTY + no NO_COLOR + no --no-color) */
 inline bool use_color(bool no_color_flag = false) {
@@ -45,33 +52,33 @@ inline void banner(std::ostream& out, bool color) {
       " / /___/ /___/ ___ |/ /  / / / ___ |/_____// /___/ /____/ /   \n"
       "/_____/_____/_/  |_/_/  /_/ /_/  |_|       \\____/_____/___/   \n";
   if (color) {
-    out << "\033[1;33m" << art << "\033[0m\n";
+    out << active_theme().banner.ansi() << art << Style::reset() << "\n";
   } else {
     out << art << "\n";
   }
 }
 
 /** Print colored prompt marker */
-inline void prompt(std::ostream& out, bool color) { out << (color ? "\033[1;32m> \033[0m" : "> "); }
+inline void prompt(std::ostream& out, bool color) { out << (color ? active_theme().prompt.ansi() + "> " + Style::reset() : "> "); }
 
 /** Print a dim system message */
 inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? "\033[2m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << (color ? active_theme().system.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
 /** Print a bold red error message */
 inline void error(std::ostream& out, bool color, const std::string& msg) {
-  out << "\n" << (color ? "\033[1;31m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << "\n" << (color ? active_theme().error.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
 /** Print cyan command output */
 inline void cmd_output(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? "\033[36m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << (color ? active_theme().info.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
 /** Print yellow write proposal */
 inline void write_proposal(std::ostream& out, bool color, const std::string& path) {
-  out << (color ? "\033[33m" : "") << "[proposed: write " << path << "]" << (color ? "\033[0m" : "") << "\n";
+  out << (color ? active_theme().warning.ansi() : "") << "[proposed: write " << path << "]" << (color ? Style::reset() : "") << "\n";
 }
 
 /** Default spinner messages — shown while waiting for LLM response */

@@ -65,14 +65,17 @@ static std::string read_file(const std::string& path) {
 // Wrap rendered AI text with the configured AI color.
 // Re-applies AI color after any ANSI reset inside markdown rendering.
 /// Read one line of input using linenoise (interactive) or getline (tests).
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& prompt_ansi = "32") {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& /*prompt_ansi*/ = "",
+                      const std::string& nick = "") {
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
   }
   if (!isatty(STDIN_FILENO)) {
     return static_cast<bool>(std::getline(in, line));
   }
-  std::string prompt_str = (color && !prompt_ansi.empty()) ? "\033[1;" + prompt_ansi + "m> \033[0m" : "> ";
+  // Show nick in prompt: "gius> " or just "> "
+  std::string label = nick.empty() ? "> " : nick + "> ";
+  std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + Style::reset() : label;
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
     return false;
@@ -293,7 +296,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     ensure_searxng(cfg, out);
   }
 
-  while (read_line(in, out, line, state.color, state.prompt_color)) {
+  while (read_line(in, out, line, state.color, state.prompt_color, Config::instance().nick == "user" ? "" : Config::instance().nick)) {
     if (line.empty()) {
       continue;
     }

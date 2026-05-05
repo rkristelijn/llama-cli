@@ -38,7 +38,7 @@ LCS-based diff with git-style prefixes:
   unchanged line
 - removed line      (red)
 + added line        (green)
-```
+```text
 
 ### Confirmation prompts
 

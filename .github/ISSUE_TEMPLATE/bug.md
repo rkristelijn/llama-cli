@@ -31,4 +31,4 @@ labels: fix
 Given the bug is fixed
 When <reproduction steps>
 Then <expected behavior>
-```
+```text

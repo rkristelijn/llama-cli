@@ -46,7 +46,19 @@ std::string GeminiProvider::chat(const std::vector<Message>& messages) {
   std::string cmd = "gemini -p " + shell_escape(prompt);
   ExecResult result = cmd_exec(cmd, 120, 100000);
   if (result.exit_code != 0) {
-    return "[gemini error: exit " + std::to_string(result.exit_code) + "] " + result.output;
+    return "[gemini error: exit " + std::to_string(result.exit_code) + "]";
+  }
+  // Detect error dumps: stacktraces, JSON errors, rate limits
+  if (result.output.find("Error:") != std::string::npos || result.output.find("\"error\"") != std::string::npos ||
+      result.output.find("at async") != std::string::npos || result.output.find("RESOURCE_EXHAUSTED") != std::string::npos) {
+    // Extract just the error message, not the full stacktrace
+    auto msg_pos = result.output.find("\"message\":");
+    if (msg_pos != std::string::npos) {
+      auto start = result.output.find("\"", msg_pos + 10) + 1;
+      auto end = result.output.find("\"", start);
+      return "[gemini error: " + result.output.substr(start, end - start) + "]";
+    }
+    return "[gemini error: provider returned an error instead of a response]";
   }
   return result.output;
 }

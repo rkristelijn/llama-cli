@@ -35,7 +35,9 @@ static bool has_code_markers(const std::string& prompt) {
   const char* markers[] = {"function", "class ", "def ", "import ", "include", "struct ",  "async",     "await",
                            "->",       "=>",     "```",  "compile", "debug",   "refactor", "implement", "algorithm"};
   for (const auto& m : markers) {
-    if (lower.find(m) != std::string::npos) return true;
+    if (lower.find(m) != std::string::npos) {
+      return true;
+    }
   }
   return false;
 }
@@ -48,7 +50,9 @@ static bool has_complexity_markers(const std::string& prompt) {
   const char* markers[] = {"explain",      "compare", "design", "architect", "tradeoff",     "pros and cons",
                            "step by step", "analyze", "review", "why does",  "how would you"};
   for (const auto& m : markers) {
-    if (lower.find(m) != std::string::npos) return true;
+    if (lower.find(m) != std::string::npos) {
+      return true;
+    }
   }
   return false;
 }
@@ -83,7 +87,9 @@ static RouteTarget find_model_on_host(const std::string& host_port, double min_p
   auto infos = get_model_info(tmp);
   for (const auto& info : infos) {
     // Skip embedding models
-    if (info.family.find("embed") != std::string::npos) continue;
+    if (info.family.find("embed") != std::string::npos) {
+      continue;
+    }
     double params = 0;
     try {
       params = std::stod(info.params);

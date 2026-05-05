@@ -37,9 +37,9 @@ static std::string read_file(const std::string& path) {
 }
 
 /// Emit one diff line with optional ANSI color prefix.
-static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix, const std::string& line, bool color) {
+static void emit_diff_line(std::ostream& out, const std::string& ansi, const char* prefix, const std::string& line, bool color) {
   if (color) {
-    out << ansi << prefix << line << "\033[0m\n";
+    out << ansi << prefix << line << Style::reset() << "\n";
   } else {
     out << prefix << line << "\n";
   }
@@ -132,20 +132,20 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
         }
       }
       if (color) {
-        out << "\033[36m";
+        out << tui::active_theme().info.ansi();
       }
       out << "@@ -" << o_start << "," << o_count << " +" << n_start << "," << n_count << " @@";
       if (color) {
-        out << "\033[0m";
+        out << Style::reset();
       }
       out << "\n";
       in_hunk = true;
     }
     const auto& e = entries[i];
     if (e.type == dtl::SES_DELETE) {
-      emit_diff_line(out, "\033[1;31m", "- ", e.text, color);
+      emit_diff_line(out, tui::active_theme().error.ansi(), "- ", e.text, color);
     } else if (e.type == dtl::SES_ADD) {
-      emit_diff_line(out, "\033[1;32m", "+ ", e.text, color);
+      emit_diff_line(out, tui::active_theme().info.ansi(), "+ ", e.text, color);
     } else {
       out << "  " << e.text << "\n";
     }
@@ -420,7 +420,7 @@ std::string strip_exec_annotations(const std::string& text) {
       break;
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, "\033[1;37m[proposed: exec " + cmd + "]\033[0m");
+    result.replace(start, end + close.size() - start, tui::active_theme().info.ansi() + "[proposed: exec " + cmd + "]" + Style::reset());
   }
   // Strip remaining annotation-like tags so raw XML never reaches the user
   for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read ", "<search>", "</search>"}) {
@@ -443,7 +443,7 @@ std::string strip_exec_annotations(const std::string& text) {
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
   if (!trust) {
-    out << "Run: \033[1;33m" << cmd << "\033[0m? [y/n/t/c] " << std::flush;
+    out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c] " << std::flush;
     std::string answer;
     if (!std::getline(in, answer)) {
       return "";

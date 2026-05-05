@@ -10,7 +10,7 @@
 
 # Follow-up has no context — LLM doesn't know what "it" refers to
 ./llama-cli "give me examples for each quadrant"
-```
+```text
 
 Sync mode is stateless by design (ADR-005). Each invocation builds a fresh `vector<Message>`, sends it to Ollama, and exits. There is no mechanism to carry conversation history across invocations.
 
@@ -36,7 +36,7 @@ cat /tmp/chat.json
 
 # Clean up when done
 rm /tmp/chat.json
-```
+```text
 
 ### Flow
 
@@ -52,7 +52,7 @@ flowchart TD
     G --> H[stream response to stdout]
     H --> I[append assistant response to history]
     I --> J[save history to session file]
-```
+```text
 
 ### Session file format
 
@@ -66,7 +66,7 @@ The file is a JSON array of message objects — the same structure used internal
   {"role":"user","content":"give me examples for each quadrant"},
   {"role":"assistant","content":"Sure, here are examples..."}
 ]
-```
+```text
 
 ### State diagram
 
@@ -76,7 +76,7 @@ stateDiagram-v2
     NoFile --> HasHistory: save after response
     HasHistory --> HasHistory: each follow-up appends 2 messages
     HasHistory --> [*]: caller deletes file
-```
+```text
 
 ### Interaction with other flags
 
@@ -112,7 +112,7 @@ sequenceDiagram
     L-->>K: response on stdout
 
     K->>F: rm /tmp/s.json (cleanup)
-```
+```text
 
 ### Implementation
 
@@ -120,13 +120,13 @@ sequenceDiagram
 
 ```cpp
 std::string session_path;  ///< Session file for multi-turn sync (--session, ADR-056)
-```
+```text
 
 **config.cpp** — add to `opts[]` table (reuses existing `match_string_opts` machinery):
 
 ```cpp
 {"--session=", nullptr, &Config::session_path},
-```
+```text
 
 **main.cpp** — session helpers + sync mode wiring:
 
@@ -154,7 +154,7 @@ if (!cfg.session_path.empty()) {
   messages.push_back({"assistant", response});
   save_session(cfg.session_path, messages);
 }
-```
+```text
 
 ### JSON parsing approach
 
@@ -209,7 +209,7 @@ Capabilities are additive and comma-separated:
 
 # Full autonomy — model can do anything (explicit opt-in)
 ./llama-cli --session s.json --capabilities=read,write,exec "set up the project"
-```
+```text
 
 ### Read-only command allowlist
 
@@ -218,7 +218,7 @@ The `read` capability allows `<exec>` only for commands whose first word is in t
 ```text
 cat ls find grep head tail wc stat tree du df
 file diff sort uniq awk sed less more realpath dirname basename
-```
+```text
 
 Safety rules:
 
@@ -246,7 +246,7 @@ flowchart TD
     FL -->|yes, has output| NR[send follow-up to model]
     NR --> R
     FL -->|no| D
-```
+```text
 
 ### Follow-up loop
 
@@ -265,4 +265,4 @@ sequenceDiagram
     L->>O: [system, user, assistant, user: file content]
     O-->>L: This file does X, Y, Z...
     L-->>C: final response on stdout
-```
+```text

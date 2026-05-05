@@ -12,7 +12,7 @@
 
 ```bash
 make docs
-```
+```text
 
 ## Notes
 

@@ -12,7 +12,7 @@
 
 ```bash
 make yamllint
-```
+```text
 
 ## Notes
 

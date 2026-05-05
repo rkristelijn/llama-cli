@@ -8,13 +8,13 @@ This project connects to a local [Ollama](https://ollama.com) instance.
 brew install ollama
 brew services start ollama
 ollama pull gemma4:e4b
-```
+```text
 
 ## Verify
 
 ```bash
 curl http://localhost:11434/api/tags
-```
+```text
 
 Should return a JSON list of installed models.
 
@@ -43,7 +43,7 @@ curl http://localhost:11434/api/generate -d '{
   "prompt": "Hello!",
   "stream": false
 }'
-```
+```text
 
 ## Network access (optional)
 
@@ -52,6 +52,6 @@ To expose Ollama on your local network:
 ```bash
 launchctl setenv OLLAMA_HOST 0.0.0.0
 brew services restart ollama
-```
+```text
 
 Then accessible at `http://<your-ip>:11434` from any device on your wifi.

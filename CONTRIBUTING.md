@@ -24,7 +24,7 @@ static void parse_args(int argc, const char* const argv[], Config& c) {
 // ❌ Bad — NOLINT pushes the line past the column limit, clang-format fights back
 static void parse_args(int argc, const char* const argv[],
                        Config& c) {  // NOLINT(readability-function-size)
-```
+```text
 
 Quick reference:
 
@@ -118,7 +118,7 @@ make check       # DEFAULT: Full linting, smart clang-tidy (changed files only)
 make full-check  # EXHAUSTIVE: Verifies every file in the project (CI uses this on main)
 make quick       # Incremental build + unit tests + comment ratio
 make live        # Integration test with real LLM (requires running Ollama)
-```
+```text
 
 ### What is verified
 
@@ -148,7 +148,7 @@ Settings are loaded in this order (last wins):
 
 ```text
 struct defaults → environment variables → .env file → CLI arguments
-```
+```text
 
 Put project-local settings in `.env` (git-ignored):
 
@@ -156,7 +156,7 @@ Put project-local settings in `.env` (git-ignored):
 OLLAMA_HOST=localhost:11434
 OLLAMA_MODEL=gemma4:26b
 TRACE=true
-```
+```text
 
 See `src/config/config.h` for all available settings.
 
@@ -175,4 +175,4 @@ To preview or create a tag locally:
 ```bash
 make bump            # auto-detect from commits
 make bump PART=minor # force a specific bump
-```
+```text

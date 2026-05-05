@@ -18,7 +18,7 @@ Introduce agent roles:
 
 ```text
 Planner → Executor → Reviewer → Executor (loop)
-```
+```text
 
 - Route prompts to different providers/models per role
 - Share context selectively between agents

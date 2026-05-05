@@ -66,7 +66,7 @@ main() {
 }
 
 main "$@"
-```
+```text
 
 ### Why this template?
 
@@ -105,7 +105,7 @@ scripts/dev/setup.sh
 scripts/check/comment-ratio.sh   # snake_case
 scripts/gh/createPr.sh           # camelCase
 scripts/setup                   # no extension
-```
+```text
 
 ### Directory structure
 
@@ -118,7 +118,7 @@ scripts/
 ├── dev/      # Local development helpers (setup, log viewer, index)
 ├── gh/       # GitHub CLI helpers (PRs, issues, pipeline status)
 └── test/     # Test infrastructure (integration test runners)
-```
+```text
 
 Why subdirectories over flat prefixes (like `ci-build.sh`, `gh-create-pr.sh`)?
 
@@ -142,7 +142,7 @@ my_func() {
   file_count="$(find src -name '*.cpp' | wc -l)"
   echo "${file_count}"
 }
-```
+```text
 
 **Always separate `local` declaration from command substitution assignment.**
 The `local` builtin masks the exit code of the command substitution:
@@ -154,7 +154,7 @@ local result="$(my_command)"
 # Good — $? reflects my_command's exit code
 local result
 result="$(my_command)"
-```
+```text
 
 ### Quoting
 
@@ -168,7 +168,7 @@ rm "${build_dir}/output"
 # Bad — word splitting and globbing risks
 echo $file_path
 rm $build_dir/output
-```
+```text
 
 The only exception is inside `(( ))` arithmetic:
 
@@ -177,7 +177,7 @@ The only exception is inside `(( ))` arithmetic:
 if (( count > 10 )); then
   echo "too many"
 fi
-```
+```text
 
 ### Conditions
 
@@ -197,7 +197,7 @@ fi
 if [ -z "$my_var" ]; then
   echo "empty"
 fi
-```
+```text
 
 ### Error handling
 
@@ -215,7 +215,7 @@ err() {
 
 err "file not found: ${path}"
 exit 1
-```
+```text
 
 ### Command substitution
 
@@ -227,7 +227,7 @@ result="$(basename "$(dirname "${path}")")"
 
 # Bad — requires escaping for nesting
 result=`basename \`dirname "${path}"\``
-```
+```text
 
 ### Help flag
 
@@ -240,7 +240,7 @@ if [[ "${1-}" =~ ^-*h(elp)?$ ]]; then
   echo "Run clang-tidy on changed files (default) or all files (--full)."
   exit 0
 fi
-```
+```text
 
 ## Comments
 
@@ -273,7 +273,7 @@ Comments explain *why*, not *what*. Every script should have:
 #
 # @see docs/tools/clang-tidy.md — clang-tidy configuration
 # @see docs/adr/adr-44-tidy-boilerplate.md
-```
+```text
 
 ### Function header format
 
@@ -297,7 +297,7 @@ check_tool_version() {
   local min_version="$2"
   # ...
 }
-```
+```text
 
 ### Inline comments
 
@@ -310,7 +310,7 @@ grep -v "linenoise\|SCENARIO" || true
 # Bad — restates WHAT the code does
 # grep to remove lines containing linenoise or SCENARIO
 grep -v "linenoise\|SCENARIO" || true
-```
+```text
 
 ## Compliance checking
 
@@ -330,7 +330,7 @@ sudo apt-get install shellcheck
 
 # Or via make setup (once version pinning is complete)
 make setup
-```
+```text
 
 **Run manually:**
 
@@ -343,7 +343,7 @@ find scripts -name '*.sh' | xargs shellcheck
 
 # Check with specific shell dialect
 shellcheck --shell=bash scripts/check/tidy.sh
-```
+```text
 
 **Configuration** (`.shellcheckrc` in project root):
 
@@ -358,14 +358,14 @@ shell=bash
 # SC2059: Don't use variables in printf format string
 #   We use this intentionally for colored output in make help
 # disable=SC2059
-```
+```text
 
 **Integration with `make check`:**
 
 ```bash
 # Added as a check target
 make shellcheck    # Run ShellCheck on all scripts
-```
+```text
 
 ### Convention lint script
 
@@ -418,7 +418,7 @@ If the script is called from a Makefile, add `TRACE=1` to the environment:
 
 ```bash
 TRACE=1 bash scripts/check/tidy.sh
-```
+```text
 
 ### ShellCheck reports SC2086 (double quote to prevent globbing)
 
@@ -430,7 +430,7 @@ echo $my_var
 
 # Fixed
 echo "${my_var}"
-```
+```text
 
 ### Script works locally but fails in CI
 
@@ -460,7 +460,7 @@ local host="${OLLAMA_HOST-localhost}"
 if [[ -n "${MY_VAR+x}" ]]; then
   echo "MY_VAR is set to: ${MY_VAR}"
 fi
-```
+```text
 
 ## References
 

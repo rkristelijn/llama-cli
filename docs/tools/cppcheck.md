@@ -12,7 +12,7 @@
 
 ```bash
 make lint
-```
+```text
 
 ## Notes
 

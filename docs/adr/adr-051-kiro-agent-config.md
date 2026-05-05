@@ -65,7 +65,7 @@ Agents live in `.kiro/agents/*.json` and are committed to the repo so all contri
     }]
   }
 }
-```
+```text
 
 ### llama-cli as a Development Tool
 
@@ -83,7 +83,7 @@ cat src/ollama/ollama.cpp | ./build/llama-cli --model qwen2.5-coder:14b \
 
 # General question — use the default model
 ./build/llama-cli "what is the difference between streaming and buffered HTTP?"
-```
+```text
 
 This saves tokens on the Kiro side and uses local compute for simple lookups.
 

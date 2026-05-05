@@ -28,7 +28,7 @@ The Eisenhower Matrix helps prioritize tasks by urgency and importance:
 - old code
 + fixed code
 Apply? [y/n]
-```
+```text
 
 Streaming responses, markdown rendering (tables, code blocks, bold, links), file I/O, command execution — all running locally on your hardware.
 
@@ -44,7 +44,7 @@ Streaming responses, markdown rendering (tables, code blocks, bold, links), file
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash
-```
+```text
 
 This auto-detects your OS and architecture (Linux x64/arm64, macOS arm64), downloads the release, verifies the checksum, and installs to `/usr/local/bin`.
 
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.
 
 # Install a specific version
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | VERSION=0.18.1 bash
-```
+```text
 
 ### From source
 
@@ -66,7 +66,7 @@ brew services start ollama
 ollama pull gemma4:e4b
 make setup
 sudo make install
-```
+```text
 
 ## Usage
 
@@ -82,7 +82,7 @@ what does this code do?        # LLM can now see the file
 /version                       # show version info
 /help                          # show available commands
 exit                           # quit
-```
+```text
 
 The LLM can also propose commands and file writes:
 
@@ -90,7 +90,7 @@ The LLM can also propose commands and file writes:
 > fix the bug in main.cpp
 [proposed: write src/main.cpp]
 Write to src/main.cpp? [y/n/s]
-```
+```text
 
 The LLM can read files and make targeted edits:
 
@@ -103,7 +103,7 @@ The LLM can read files and make targeted edits:
 - old text
 + new text
 Apply str_replace to src/repl/repl.cpp? [y/n]
-```
+```text
 
 ## Configuration
 

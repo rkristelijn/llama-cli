@@ -21,7 +21,7 @@ Then they see changes grouped by version with dates
 Given a new release is tagged
 When the changelog is reviewed
 Then it contains all feat/fix/chore entries since the last release
-```
+```text
 
 ## Implementation
 

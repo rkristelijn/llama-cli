@@ -37,7 +37,7 @@ When `LLAMA_PROVIDER=auto`, the system:
 
 ### Prompt classification (heuristic, no LLM call)
 
-```
+```yaml
 simple:  word_count < 30, no code markers, no complexity markers
 medium:  word_count 30-90, or has question mark, or mild code markers
 complex: word_count > 90, code keywords, multi-question, analysis requests
@@ -47,6 +47,7 @@ current: time-sensitive keywords ("today", "latest", "news", "current")
 ### Preflight validation
 
 Before routing to Tier 3/4 (expensive), check:
+
 - Prompt is not empty or just whitespace
 - Prompt is not a repeat of the previous prompt
 - Prompt has enough substance (>3 words)
@@ -57,7 +58,7 @@ If validation fails, respond locally with a clarification request.
 
 When the planner delegates to a sub-model, it uses:
 
-```
+```text
 Given: {context — compressed history or task description}
 When: {the specific question or task}
 Then: {expected output format and constraints}
@@ -68,6 +69,7 @@ This ensures consistent, parseable responses regardless of which model handles i
 ### Multiline input
 
 Linenoise doesn't support shift-enter (terminal limitation). Instead:
+
 - `/m` toggles multiline mode (type freely, send with `/send` or empty line)
 - Backslash `\` at end of line continues to next line
 
@@ -83,7 +85,7 @@ Linenoise doesn't support shift-enter (terminal limitation). Instead:
 
 ### Startup output (auto mode)
 
-```
+```text
 Scanning... 
   ✓ apsnlmac4050:11434 — 9 models (qwen2.5-coder:14b, gemma4:26b, ...)
   ✓ jarvis:11434 — 1 model (llama3.2:3b)

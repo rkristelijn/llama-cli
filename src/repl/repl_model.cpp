@@ -22,6 +22,7 @@
 
 #include "config/config.h"
 #include "ollama/ollama.h"
+#include "tui/tui.h"
 
 #ifdef LINENOISE_HPP
 // already included
@@ -176,8 +177,8 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
 
       // Sweetspot: 11B-27.5B models are highlighted (optimal for local hardware)
       bool sweet = (params >= 11.0 && params <= 27.5);
-      std::string dim = (sweet || !s.color) ? "" : "\033[2m";
-      std::string reset = (sweet || !s.color) ? "" : "\033[0m";
+      std::string dim = (sweet || !s.color) ? "" : tui::active_theme().system.ansi();
+      std::string reset = (sweet || !s.color) ? "" : Style::reset();
 
       std::string marker = (sorted[i].name == Config::instance().model) ? " *" : "  ";
       s.out << marker << std::setw(2) << std::right << (i + 1) << ". " << dim;

@@ -12,7 +12,7 @@
 
 ```bash
 make sast-secret
-```
+```text
 
 ## Notes
 

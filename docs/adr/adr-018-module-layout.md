@@ -65,7 +65,7 @@ src/
     options_it.cpp        # integration test for /set, toggles
   main.cpp                # entry point, wires modules together
   test_helpers.h          # shared test utilities (MockLLM, test_cfg)
-```
+```text
 
 ### Shared types
 
@@ -111,7 +111,7 @@ scripts/
   test_coverage.sh        # enforce ≥80% coverage per file
   pipeline-status.sh      # check CI pipeline status
   pr-status.sh            # show failed PR jobs
-```
+```text
 
 Tools reference configs via explicit paths (no symlinks):
 

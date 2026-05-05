@@ -16,13 +16,13 @@ After a `!!` command executes, offer a short tip to optimize the command. Focus 
 > !!grep -r "TODO" src/
 [output...]
 💡 Tip: grep -rn --include='*.cpp' "TODO" src/  — adds line numbers, limits to C++ files
-```
+```text
 
 ```text
 > !!cat log.txt | grep error | wc -l
 [output...]
 💡 Tip: grep -c error log.txt  — single command, no pipes needed
-```
+```text
 
 ## Additional scope
 

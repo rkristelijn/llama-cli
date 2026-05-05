@@ -30,7 +30,7 @@ A fast preflight check on the user's prompt before sending it to the LLM. Gives 
 
 > why does main.cpp crash?
 📎 Preflight: main.cpp not in context. Run !!cat src/main.cpp first?
-```
+```text
 
 ### Design considerations
 

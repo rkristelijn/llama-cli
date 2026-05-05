@@ -29,7 +29,7 @@ gh api repos/rkristelijn/llama-cli/branches/main/protection \
   "restrictions": null
 }
 EOF
-```
+```text
 
 ## Alternative: If you prefer the GitHub web UI
 
@@ -49,14 +49,14 @@ EOF
 gh api repos/rkristelijn/llama-cli/branches/main/protection \
   --jq '.required_pull_request_reviews.required_approving_review_count' \
   && echo "PASS: branch protection enabled"
-```
+```text
 
 ## Expected output
 
 ```text
 1
 PASS: branch protection enabled
-```
+```text
 
 ## Note
 

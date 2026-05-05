@@ -34,7 +34,7 @@ scripts/
 ├── gh/             # GitHub CLI helpers
 ├── git/            # Git hook templates
 └── ci/             # CI-specific scripts
-```
+```text
 
 ### 3. Naming Conventions
 
@@ -65,7 +65,7 @@ test-unit:                    # ← no dependency on build
 # BAD — hidden build inside a leaf
 test-unit: all                # ← surprise cmake + cp on every test run
     @bash scripts/test/run-unit.sh
-```
+```text
 
 Why this matters:
 

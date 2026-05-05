@@ -26,7 +26,7 @@ test/
   test_config.cpp            # unit test (_test convention)
   test_conversation_it.cpp   # integration test (_it convention)
   test_helpers.h             # shared MockLLM + test_cfg
-```
+```text
 
 ### Naming convention
 

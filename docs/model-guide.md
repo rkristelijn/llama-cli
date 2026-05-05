@@ -84,7 +84,7 @@ Is the task in docs/prompts/?
       └─ Do you need internet?
           ├─ NO → Use gemma4:26b (best local)
           └─ YES → Use Gemini CLI (best free cloud)
-```
+```text
 
 ---
 
@@ -136,7 +136,7 @@ ollama pull qwen2.5-coder:32b  # 22GB — "The Code Savant"
 
 # 5. Quick & dirty: for spikes and throwaway questions
 # Install tgpt: brew install tgpt
-```
+```text
 
 ## References
 

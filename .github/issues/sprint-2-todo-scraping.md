@@ -17,7 +17,7 @@ CMMI 1 check 1.3 requires tech debt to be visible and tracked. `make todo` alrea
 Given a developer runs "make todo"
 When TODOs exist in source code or markdown
 Then TECHDEBT.md is generated with counts and file references
-```
+```text
 
 ## Implementation
 

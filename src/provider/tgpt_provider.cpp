@@ -46,7 +46,11 @@ std::string TgptProvider::chat(const std::vector<Message>& messages) {
   std::string cmd = "tgpt -q -w " + shell_escape(prompt);
   ExecResult result = cmd_exec(cmd, 120, 100000);
   if (result.exit_code != 0) {
-    return "[tgpt error: exit " + std::to_string(result.exit_code) + "] " + result.output;
+    return "[tgpt error: exit " + std::to_string(result.exit_code) + "]";
+  }
+  // Detect error responses (API failures, rate limits)
+  if (result.output.find("Error:") != std::string::npos || result.output.find("\"error\"") != std::string::npos) {
+    return "[tgpt error: provider returned an error]";
   }
   return result.output;
 }

@@ -24,7 +24,7 @@ Bad:
 
 ```text
 FAIL: comment ratio 19% is below the 20% threshold
-```
+```text
 
 Good:
 
@@ -39,7 +39,7 @@ Tips:
   - Run 'make comment-ratio' to see which files are lowest
   - Add @brief/@param/@return to functions missing them
   - When asking AI to write code, include: 'keep comment ratio >= 20%'
-```
+```text
 
 Applied to: `scripts/test_comment_ratio.sh`
 
@@ -53,7 +53,7 @@ Every scenario in an integration test is a sentence:
 ```cpp
 SCENARIO("user runs !! command, output is added to history") { ... }
 SCENARIO("user types /set markdown, markdown is toggled off") { ... }
-```
+```text
 
 These are readable by anyone, including AI, without understanding the implementation.
 
@@ -68,7 +68,7 @@ Every non-trivial implementation choice links to its ADR:
  * @see docs/adr/adr-012-interactive-repl.md
  * @see docs/adr/adr-014-tool-annotations.md
  */
-```
+```text
 
 This means: "if you wonder *why* this works this way, read the ADR."
 
@@ -120,7 +120,7 @@ for t in $targets; do
 done
 
 [ "$FAIL" -eq 0 ] && echo "PASS" || exit 1
-```
+```text
 
 **Effort**: low — ~30 lines, no new dependencies.
 **Value**: medium — catches the most common structural gaps without false positives.

@@ -34,7 +34,7 @@ export LLAMA_PROVIDER=gemini
 
 # Run the tool as usual
 make run
-```
+```text
 
 ### Using Ollama (Default)
 
@@ -43,7 +43,7 @@ If no provider was specified, the system defaulted to the local Ollama instance.
 ```bash
 unset LLAMA_PROVIDER
 make run
-```
+```text
 
 ## The "Planner/Executor" Workflow
 

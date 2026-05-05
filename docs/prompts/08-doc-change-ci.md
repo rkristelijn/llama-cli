@@ -19,7 +19,7 @@ Find this exact text:
   # --- Metrics ---
 
   comment-ratio:
-```
+```text
 
 Insert this new job BEFORE that line:
 
@@ -46,7 +46,7 @@ Insert this new job BEFORE that line:
             echo "Documentation check passed."
           fi
 
-```
+```text
 
 ## Verify
 
@@ -59,7 +59,7 @@ grep -c "adr-048" .github/workflows/ci.yml && echo "PASS: ADR reference found" |
 
 # 3. Validate YAML syntax
 python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" && echo "PASS: valid YAML" || echo "FAIL: invalid YAML"
-```
+```text
 
 ## Expected output
 
@@ -67,10 +67,10 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" && ec
 PASS: doc-check job exists
 PASS: ADR reference found
 PASS: valid YAML
-```
+```text
 
 ## Commit message
 
 ```text
 ci: add doc-change enforcement check
-```
+```text

@@ -30,7 +30,7 @@ BDD-style scenarios using doctest `SCENARIO`/`GIVEN`/`WHEN`/`THEN`. Each scenari
 ```bash
 make features    # list all 48 tested scenarios
 make test        # run all unit + e2e tests
-```
+```text
 
 ### Layer 3: Fuzzing (new)
 
@@ -38,7 +38,7 @@ libFuzzer targets for code that processes untrusted input (LLM responses). Compi
 
 ```bash
 make fuzz        # 60-second annotation parser fuzz run
-```
+```text
 
 Current fuzz targets:
 

@@ -33,7 +33,7 @@ for (const auto& msg : history) {
     collapsed += "[" + msg.role + "]: " + msg.content + "\n";
 }
 collapsed += "[assistant]: ";
-```
+```text
 
 ### 2. Execution Strategy
 
@@ -45,7 +45,7 @@ std::string cmd = "/opt/homebrew/bin/gemini -p \"" + escape(collapsed) + "\"";
 
 // Reusing ADR-015 logic
 ExecResult res = cmd_exec(cmd, cfg.timeout, cfg.max_output);
-```
+```text
 
 ### 3. Escaping and Safety
 

@@ -232,7 +232,7 @@ Issue "In Progress"
   └─► POST-RELEASE
         ├─ Monitoring / SLA check (CMMI 2+)
         └─ Incident auto-trigger if error spike
-```
+```text
 
 ---
 
@@ -489,7 +489,7 @@ Think of the framework as nested boxes. From the outside, you see a label. The l
 │  │  └─────────────────────────────────────────────┘  │  │
 │  └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
-```
+```text
 
 Every box is:
 
@@ -626,7 +626,7 @@ AI agent prompts for these tasks live in [`docs/prompts/`](../prompts/).
 ## Verify      — bash commands to confirm
 ## Expected    — what the output should look like
 ## Commit      — the conventional commit message
-```
+```text
 
 ### Path to CMMI 2 (when entering Production phase)
 

@@ -20,7 +20,7 @@ make e2e               # end-to-end tests (no Ollama needed)
 make live              # integration test with real LLM
 make coverage          # build with --coverage, run tests
 make coverage-folder   # per-directory coverage summary
-```
+```text
 
 ## Coverage measurement
 
@@ -50,7 +50,7 @@ Current CI exclude patterns:
 */dtl-src/*         — diff library
 */linenoise-src/*   — line editing library
 */test_helpers.h    — shared test utilities
-```
+```text
 
 **Pitfall 3: Test files in `src/` are not in a `test/` directory.**
 A filter like `*/test/*` won't exclude `src/config/config_test.cpp`. Use filename patterns (`*_test.cpp`) instead of directory patterns.
@@ -79,7 +79,7 @@ lcov --list cov.info
 
 # Summary
 lcov --summary cov.info
-```
+```text
 
 ## Adding a new test
 

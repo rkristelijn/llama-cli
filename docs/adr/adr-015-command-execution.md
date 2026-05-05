@@ -19,7 +19,7 @@ Run a command, output to terminal. Not added to conversation history.
 ```text
 > !ls src/
 annotation.cpp  command.cpp  config.cpp  json.cpp  main.cpp  ollama.cpp  repl.cpp
-```
+```text
 
 ### `!!command` — execute and feed to LLM
 
@@ -30,7 +30,7 @@ Run a command, show output, and add it to conversation history as context for th
 [doctest] Status: SUCCESS!
 PASS
 > explain the test results
-```
+```text
 
 The output is added as a user message: `[command: make test 2>&1 | tail -5]\n<output>`.
 
@@ -45,7 +45,7 @@ REPL: "Run: make test? [y/n]"
 User: y
 REPL: [runs, shows output, adds to history]
 LLM: "All 5 test suites pass. The coverage is..."
-```
+```text
 
 ### Parsing rules
 

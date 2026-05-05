@@ -29,7 +29,7 @@ After compression (~3k tokens):
   [system]
   [summary: "User asked to fix bug in repl.cpp line 42. Identified null pointer. Applied str_replace fix."]
   [user5] [assistant5] [user6] [assistant6]
-```
+```text
 
 ### Trigger
 

@@ -54,7 +54,7 @@ if ! [[ "$MSG" =~ $PATTERN ]]; then
   echo ""
   exit 1
 fi
-```
+```text
 
 ## File 2: Update `Makefile` hooks target
 
@@ -66,7 +66,7 @@ hooks: ## Install git hooks (pre-commit, pre-push)
 	@cp scripts/git/pre-push.sh .git/hooks/pre-push
 	@chmod +x .git/hooks/pre-commit .git/hooks/pre-push
 	@echo "Git hooks installed (pre-commit, pre-push)."
-```
+```text
 
 Replace it with:
 
@@ -77,7 +77,7 @@ hooks: ## Install git hooks (pre-commit, pre-push, commit-msg)
 	@cp scripts/git/commit-msg.sh .git/hooks/commit-msg
 	@chmod +x .git/hooks/pre-commit .git/hooks/pre-push .git/hooks/commit-msg
 	@echo "Git hooks installed (pre-commit, pre-push, commit-msg)."
-```
+```text
 
 ## Verify
 
@@ -102,7 +102,7 @@ bash scripts/git/commit-msg.sh /tmp/test-msg.txt && echo "PASS: accepted scoped 
 
 # 6. Cleanup
 rm /tmp/test-msg.txt
-```
+```text
 
 ## Expected output
 
@@ -111,10 +111,10 @@ Git hooks installed (pre-commit, pre-push, commit-msg).
 PASS: rejected bad message
 PASS: accepted good message
 PASS: accepted scoped message
-```
+```text
 
 ## Commit message
 
 ```text
 chore: add commit message validation hook
-```
+```text

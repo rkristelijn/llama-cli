@@ -52,7 +52,7 @@ namespace tui {
   void write_proposal(std::ostream& out, const std::string& path); // yellow
   bool use_color();  // check TTY + NO_COLOR + --no-color
 }
-```
+```text
 
 ### Also implemented in this PR
 

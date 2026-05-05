@@ -25,7 +25,7 @@ OLLAMA_TEMPERATURE=0.3
 # Or per-session
 /set temperature 0.1
 /set temperature auto   # re-enable auto-detection
-```
+```text
 
 ### Implementation sketch
 

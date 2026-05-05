@@ -34,7 +34,7 @@ curl http://localhost:11434/v1/chat/completions \
     "model": "llama3",
     "messages": [{"role": "user", "content": "Hello"}]
   }'
-```
+```text
 
 ### kiro-cli Settings Example
 
@@ -43,7 +43,7 @@ curl http://localhost:11434/v1/chat/completions \
   "chat.defaultModel": "ollama/llama3",
   "chat.defaultAgent": null
 }
-```
+```text
 
 ### Alternative Local CLI Tools
 
@@ -87,7 +87,7 @@ kiro-cli settings chat.defaultModel "llama3"
 
 # 3. Or use per-session
 kiro-cli chat --model llama3
-```
+```text
 
 ## References
 

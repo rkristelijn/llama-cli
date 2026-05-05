@@ -30,7 +30,7 @@ extended with a review state.
                 [~] Blocked ──────────┘
                  ↓
                 [/] Cancelled
-```
+```text
 
 ## Usage in this project
 
@@ -43,7 +43,7 @@ extended with a review state.
 - [~] Branch protection — waiting on admin access
 - [x] Pin tool versions in .config/versions.env
 - [/] Migrate to new server — no longer needed
-```
+```text
 
 ### docs/backlog/README.md
 
@@ -65,7 +65,7 @@ The backlog Status column uses the same vocabulary:
 - [ ] !! High priority task (P1 — do today)
 - [ ] ! Normal priority task (P2 — do this week)
 - [ ]     Low priority task    (P3 — someday)
-```
+```text
 
 ## References
 

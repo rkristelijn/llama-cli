@@ -26,7 +26,7 @@ Add a `check-deps` target that runs before `all`, printing an actionable message
 ```makefile
 check-deps:
 	@command -v cmake >/dev/null 2>&1 || { echo "ERROR: cmake not found. Run 'make setup' first."; exit 1; }
-```
+```text
 
 ### 2. Runtime precheck in `--help` and on startup
 
@@ -51,7 +51,7 @@ Checking Ollama... OK
 Available models: gemma4:e4b, llama3.2, mistral
 
 Type 'exit' to quit.
-```
+```text
 
 If Ollama is unreachable:
 
@@ -60,7 +60,7 @@ Checking Ollama... FAILED
   Cannot connect to localhost:11434
   Is Ollama running? Try: ollama serve
   Use a different host: llama-cli --host=192.168.1.10
-```
+```text
 
 ## Rationale
 

@@ -25,7 +25,7 @@ Then they see a template with: description, reproduction steps, expected behavio
 Given a contributor opens a pull request
 When the PR form loads
 Then they see a template with: summary, changes, checklist, decisions section
-```
+```text
 
 ## Implementation
 

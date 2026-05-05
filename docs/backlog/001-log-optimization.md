@@ -27,7 +27,7 @@ Build analysis tooling on top of the JSONL event log to answer:
 ```bash
 # scripts/dev/log-analyze.sh
 jq -r 'select(.action=="exec") | .input' ~/.llama-cli/events.jsonl | sort | uniq -c | sort -rn
-```
+```text
 
 ## Feeds into
 

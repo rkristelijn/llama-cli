@@ -37,14 +37,20 @@ MultiHostProvider::MultiHostProvider(const std::vector<std::string>& hosts, cons
 int MultiHostProvider::find_host_for_model(const std::string& model_name) {
   // First: find a healthy host that has the model
   for (int i = 0; i < static_cast<int>(hosts_.size()); ++i) {
-    if (!hosts_[i].healthy) continue;
+    if (!hosts_[i].healthy) {
+      continue;
+    }
     for (const auto& m : hosts_[i].models) {
-      if (m == model_name) return i;
+      if (m == model_name) {
+        return i;
+      }
     }
   }
   // Fallback: first healthy host (model might need to be pulled)
   for (int i = 0; i < static_cast<int>(hosts_.size()); ++i) {
-    if (hosts_[i].healthy) return i;
+    if (hosts_[i].healthy) {
+      return i;
+    }
   }
   return 0;  // All unhealthy — try first anyway
 }
@@ -83,7 +89,9 @@ std::vector<std::string> MultiHostProvider::list_models() {
   // Aggregate models from all healthy hosts (deduplicated)
   std::vector<std::string> all;
   for (const auto& h : hosts_) {
-    if (!h.healthy) continue;
+    if (!h.healthy) {
+      continue;
+    }
     for (const auto& m : h.models) {
       if (std::find(all.begin(), all.end(), m) == all.end()) {
         all.push_back(m);
@@ -97,7 +105,9 @@ std::vector<ModelInfo> MultiHostProvider::get_model_info() {
   // Aggregate from all healthy hosts
   std::vector<ModelInfo> all;
   for (auto& h : hosts_) {
-    if (!h.healthy) continue;
+    if (!h.healthy) {
+      continue;
+    }
     auto infos = h.provider->get_model_info();
     all.insert(all.end(), infos.begin(), infos.end());
   }

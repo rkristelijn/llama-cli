@@ -8,7 +8,7 @@ Quick performance comparison of all local Ollama models.
 make bench                              # all local models
 bash scripts/test/bench-models.sh gemma4:26b qwen3:30b  # specific models
 ROUNDS=5 bash scripts/test/bench-models.sh              # more rounds
-```
+```text
 
 ## What the numbers mean
 

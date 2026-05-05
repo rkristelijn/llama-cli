@@ -19,7 +19,7 @@ C4Context
     Rel(llama, ollama, "Sends HTTP requests (default)")
     Rel(llama, gemini, "Executes as subprocess (optional)")
     Rel(llama, user, "Displays responses & confirms actions")
-```
+```text
 
 ## 2. Component Design (C4 Level 3)
 
@@ -51,7 +51,7 @@ C4Component
     Rel(gemini_p, iprovider, "Implements")
 
     Rel(gemini_p, exec, "Uses to call 'gemini -p'")
-```
+```text
 
 ## 3. The "Interface" Pattern Explained
 
@@ -79,6 +79,6 @@ sequenceDiagram
     GeminiCLI-->>Exec: stdout (response)
     Exec-->>GeminiProvider: ExecResult{output, exit_code}
     GeminiProvider-->>REPL: response text
-```
+```text
 
 This design ensured that the **REPL** remained clean and focused only on the user interface, while the complexity of different backends was hidden inside the providers.

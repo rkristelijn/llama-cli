@@ -40,19 +40,19 @@ void sigint_handler(int);
 // Re-applies AI color after any ANSI reset inside markdown rendering.
 
 static std::string colorize_ai(const std::string& text, const ReplState& s) {
-  if (!s.color || s.ai_color.empty()) {
+  if (!s.color || tui::active_theme().ai.ansi().empty()) {
     return text;
   }
-  std::string color_code = "\033[" + s.ai_color + "m";
+  std::string color_code = tui::active_theme().ai.ansi();
   std::string result = color_code;
-  std::string reset = "\033[0m";
+  std::string reset = Style::reset();
   size_t pos = 0;
   size_t found;
   while ((found = text.find(reset, pos)) != std::string::npos) {
     result += text.substr(pos, found - pos + reset.size()) + color_code;
     pos = found + reset.size();
   }
-  result += text.substr(pos) + "\033[0m";
+  result += text.substr(pos) + Style::reset();
   return result;
 }
 
@@ -216,7 +216,7 @@ bool handle_response(const std::string& response, ReplState& s) {
   if (s.cfg.allow_web_search) {
     for (const auto& action : searches) {
       std::string result = web_search(action.query, s.cfg);
-      s.out << "\033[1;37m[searching: " << action.query << "]\033[0m\n";
+      s.out << tui::active_theme().info.ansi() << "[searching: " << action.query << "]" << Style::reset() << "\n";
       LOG_EVENT("repl", "web_search", action.query, result, 0, 0, 0);
       s.history.push_back({"user", result});
       has_followup = true;
@@ -287,17 +287,17 @@ void send_prompt(const std::string& line, ReplState& s) {
   // Show response stats: duration, model, response length.
   // Dim text so it doesn't distract from the actual response content.
   if (s.color) {
-    s.out << "\033[2m";
+    s.out << tui::active_theme().system.ansi();
   }
   if (elapsed >= 1000) {
     s.out << "[" << (elapsed / 1000) << "." << ((elapsed % 1000) / 100) << "s";
   } else {
     s.out << "[" << elapsed << "ms";
   }
-  s.out << " · " << s.cfg.model;
+  s.out << " · " << Config::instance().model;
   s.out << " · " << response.size() << " chars]";
   if (s.color) {
-    s.out << "\033[0m";
+    s.out << Style::reset();
   }
   s.out << "\n";
 

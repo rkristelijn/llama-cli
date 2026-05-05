@@ -49,7 +49,7 @@ Local (instant)          → make check (clang-tidy, cppcheck, shellcheck, etc.)
 PR gate (minutes)        → GitHub Actions CI + CodeRabbit AI review
 Cloud analysis (async)   → SonarCloud deep scan + Codecov trends
 Supply chain (passive)   → Dependabot + OpenSSF Scorecard
-```
+```text
 
 ### How to maximize value from each tool
 

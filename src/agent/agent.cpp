@@ -15,7 +15,9 @@
 /// Trim leading/trailing whitespace from a string.
 static std::string trim(const std::string& s) {
   auto start = s.find_first_not_of(" \t\r\n");
-  if (start == std::string::npos) return "";
+  if (start == std::string::npos) {
+    return "";
+  }
   auto end = s.find_last_not_of(" \t\r\n");
   return s.substr(start, end - start + 1);
 }
@@ -23,7 +25,9 @@ static std::string trim(const std::string& s) {
 /// Extract value after "key: value" — strips leading space.
 static std::string extract_value(const std::string& line, const std::string& key) {
   auto pos = line.find(key + ":");
-  if (pos == std::string::npos) return "";
+  if (pos == std::string::npos) {
+    return "";
+  }
   return trim(line.substr(pos + key.size() + 1));
 }
 
@@ -37,7 +41,9 @@ std::vector<AgentPersona> parse_personas(const std::string& yaml_content) {
 
   while (std::getline(stream, line)) {
     // Skip comments and empty lines at top level
-    if (!in_multiline && (line.empty() || line[0] == '#')) continue;
+    if (!in_multiline && (line.empty() || line[0] == '#')) {
+      continue;
+    }
 
     // New list item starts with "- name:"
     if (line.find("- name:") != std::string::npos) {
@@ -93,7 +99,9 @@ std::vector<AgentPersona> parse_personas(const std::string& yaml_content) {
 /// Read file content or return empty string.
 static std::string read_file(const std::string& path) {
   std::ifstream f(path);
-  if (!f) return "";
+  if (!f) {
+    return "";
+  }
   return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
@@ -121,7 +129,9 @@ const AgentPersona* find_persona(const std::vector<AgentPersona>& personas, cons
   for (const auto& p : personas) {
     std::string pname = p.name;
     std::transform(pname.begin(), pname.end(), pname.begin(), [](unsigned char c) { return std::tolower(c); });
-    if (pname == lower) return &p;
+    if (pname == lower) {
+      return &p;
+    }
   }
   return nullptr;
 }
