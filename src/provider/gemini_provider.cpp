@@ -44,7 +44,7 @@ std::string GeminiProvider::chat(const std::vector<Message>& messages) {
   std::string prompt = collapse_history(messages);
   // -p runs in headless (non-interactive) mode
   std::string cmd = "gemini -p " + shell_escape(prompt);
-  ExecResult result = cmd_exec(cmd, 120, 100000);
+  ExecResult result = cmd_exec(cmd, 30, 100000);
   if (result.exit_code != 0) {
     return "[gemini error: exit " + std::to_string(result.exit_code) + "]";
   }

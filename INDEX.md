@@ -75,6 +75,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-079-auto-routing.md`](docs/adr/adr-079-auto-routing.md) — ADR-079: Auto-Routing Multi-Provider Architecture
 - [`docs/adr/adr-080-theme-system.md`](docs/adr/adr-080-theme-system.md) — ADR-080: Terminal Theme System
 - [`docs/adr/adr-081-unified-entity-model.md`](docs/adr/adr-081-unified-entity-model.md) — ADR-081: Unified Provider-Host-Model Entity Model
+- [`docs/adr/adr-082-centralized-state.md`](docs/adr/adr-082-centralized-state.md) — ADR-082: Centralized Application State
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -366,4 +367,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_363 files indexed._
+_364 files indexed._

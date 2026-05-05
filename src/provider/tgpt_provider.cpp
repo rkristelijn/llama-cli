@@ -44,7 +44,7 @@ std::string TgptProvider::chat(const std::vector<Message>& messages) {
   std::string prompt = collapse_history(messages);
   // -q suppresses the loading spinner, -w forces raw output (no markdown)
   std::string cmd = "tgpt -q -w " + shell_escape(prompt);
-  ExecResult result = cmd_exec(cmd, 120, 100000);
+  ExecResult result = cmd_exec(cmd, 30, 100000);
   if (result.exit_code != 0) {
     return "[tgpt error: exit " + std::to_string(result.exit_code) + "]";
   }
