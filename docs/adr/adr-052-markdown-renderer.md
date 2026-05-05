@@ -91,5 +91,4 @@ When color is disabled (`--no-color`, `NO_COLOR` env, non-TTY):
 - @see ADR-016 (TUI design — color scheme, API)
 - @see `src/tui/tui.h` (implementation)
 - @see `src/tui/markdown_it.cpp` (tests)
-- @see [docs/backlog/031-inline-code-rendering.md](../backlog/031-inline-code-rendering.md)
-- @see [docs/backlog/041-tree-sitter-highlighting.md](../backlog/041-tree-sitter-highlighting.md)
+- @see [ADR-086: Tree-sitter Highlighting](adr-086-tree-sitter-highlighting.md)

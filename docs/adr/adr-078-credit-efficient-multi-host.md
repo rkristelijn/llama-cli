@@ -157,9 +157,9 @@ Cost calculation:
 
 ## References
 
-- @see docs/backlog/006-distributed-ollama.md — original idea
+- @see (consolidated into ADRs) — original idea
 - @see docs/adr/adr-020-provider-abstraction.md — provider interface
 - @see docs/adr/adr-027-event-logging.md — timing/token logging
-- @see docs/backlog/021-prompt-templates.md — template command
+- @see (consolidated into ADRs) — template command
 - @see docs/credits-in-ai.md — credit optimization guide
 - @see src/net/scan.cpp — existing host scanner

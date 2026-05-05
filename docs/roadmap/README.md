@@ -19,12 +19,12 @@ The goal: make llama-cli a **daily driver** — fast, smart with resources, and 
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Log all REPL events (user input, dispatch type) | [001](../backlog/001-log-optimization.md) | Todo |
-| Log exec events (`!`, `!!`, `<exec>`) with timing | [001](../backlog/001-log-optimization.md) | Todo |
-| Log file operations (`<write>`, `<str_replace>`, `<read>`) | [001](../backlog/001-log-optimization.md) | Todo |
-| Log token counts per LLM call (already in ollama.cpp) | [001](../backlog/001-log-optimization.md) | Done |
-| Log session start/end with model info | [001](../backlog/001-log-optimization.md) | Todo |
-| Build `make log-stats` — aggregate token usage, session duration, command frequency | [001](../backlog/001-log-optimization.md) | Todo |
+| Log all REPL events (user input, dispatch type) | — | Todo |
+| Log exec events (`!`, `!!`, `<exec>`) with timing | — | Todo |
+| Log file operations (`<write>`, `<str_replace>`, `<read>`) | — | Todo |
+| Log token counts per LLM call (already in ollama.cpp) | — | Done |
+| Log session start/end with model info | — | Todo |
+| Build `make log-stats` — aggregate token usage, session duration, command frequency | — | Todo |
 
 **Outcome**: You can answer "how many tokens did I burn today?" and "which prompts are expensive?"
 
@@ -34,11 +34,11 @@ The goal: make llama-cli a **daily driver** — fast, smart with resources, and 
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Context compression — summarize old messages, keep last 3 exchanges | [019](../backlog/019-context-compression.md) | Todo |
-| Temperature tuning — low for code (0.1), medium for analysis (0.3), higher for creative (0.8) | [020](../backlog/020-temperature-tuning.md) | Todo |
-| Prompt templates — CRISP framework for structured prompts | [021](../backlog/021-prompt-templates.md) | Todo |
-| System prompt optimization — shorter, more directive, task-aware | [007](../backlog/007-exec-output-tuning.md) | Todo |
-| Truncate large exec output before feeding back (first/last N lines) | [007](../backlog/007-exec-output-tuning.md) | Todo |
+| Context compression — summarize old messages, keep last 3 exchanges | — | Todo |
+| Temperature tuning — low for code (0.1), medium for analysis (0.3), higher for creative (0.8) | — | Todo |
+| Prompt templates — CRISP framework for structured prompts | — | Todo |
+| System prompt optimization — shorter, more directive, task-aware | — | Todo |
+| Truncate large exec output before feeding back (first/last N lines) | — | Todo |
 
 **Outcome**: Same quality, fewer tokens, faster responses.
 
@@ -46,13 +46,13 @@ The goal: make llama-cli a **daily driver** — fast, smart with resources, and 
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Streaming responses — see tokens as they arrive | [005](../backlog/005-streaming.md) | Todo |
-| Smart confirmation — copy, amend, redirect on y/n prompt | [004](../backlog/004-smart-confirmation.md) | Todo |
-| Wingman: command tips after `!!` | [002](../backlog/002-wingman-command-tips.md) | Todo |
-| Wingman: prompt preflight check | [003](../backlog/003-wingman-preflight.md) | Todo |
-| Diff preview before file overwrite | [013](../backlog/013-diff-preview.md) | Todo |
-| Command permissions (auto-allow safe commands) | [010](../backlog/010-command-permissions.md) | Todo |
-| Runtime model switching | [011](../backlog/011-model-switching.md) | Todo |
+| Streaming responses — see tokens as they arrive | — | Todo |
+| Smart confirmation — copy, amend, redirect on y/n prompt | — | Todo |
+| Wingman: command tips after `!!` | — | Todo |
+| Wingman: prompt preflight check | — | Todo |
+| Diff preview before file overwrite | — | Todo |
+| Command permissions (auto-allow safe commands) | — | Todo |
+| Runtime model switching | — | Todo |
 
 **Outcome**: A tool you reach for first, before opening a browser or paying for API calls.
 
@@ -60,11 +60,11 @@ The goal: make llama-cli a **daily driver** — fast, smart with resources, and 
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Provider abstraction | [014](../backlog/014-provider-abstraction.md) | Todo |
-| Planner/executor separation | [015](../backlog/015-planner-executor.md) | Todo |
-| Execution sandbox | [016](../backlog/016-execution-sandbox.md) | Todo |
-| Multi-agent support | [017](../backlog/017-multi-agent.md) | Todo |
-| Distributed Ollama | [006](../backlog/006-distributed-ollama.md) | Todo |
+| Provider abstraction | — | Todo |
+| Planner/executor separation | — | Todo |
+| Execution sandbox | — | Todo |
+| Multi-agent support | — | Todo |
+| Distributed Ollama | — | Todo |
 
 ## Principles
 
@@ -81,18 +81,18 @@ Parallel to the feature phases above. See [ADR-048](../adr/adr-048-quality-frame
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Commit message validation | [023](../backlog/023-commit-msg-hook.md) | Todo |
-| Branch naming validation | [024](../backlog/024-branch-naming.md) | Todo |
-| Issue and PR templates | [025](../backlog/025-issue-pr-templates.md) | Todo |
-| CHANGELOG.md | [026](../backlog/026-changelog.md) | Todo |
-| Fix `make setup` (missing tools) | [022](../backlog/022-fix-make-setup.md) | Todo |
+| Commit message validation | — | Todo |
+| Branch naming validation | — | Todo |
+| Issue and PR templates | — | Todo |
+| CHANGELOG.md | — | Todo |
+| Fix `make setup` (missing tools) | — | Todo |
 
 ### CMMI 1 — Managed
 
 | Task | Backlog | Status |
 |------|---------|--------|
-| Coverage bump 55% → 60% | [027](../backlog/027-coverage-bump.md) | Todo |
-| TODO scraping → TECHDEBT.md | [028](../backlog/028-todo-scraping.md) | Todo |
-| Branch protection (peer review) | [029](../backlog/029-branch-protection.md) | Todo |
-| Doc-change CI enforcement | [030](../backlog/030-doc-change-ci.md) | Todo |
-| Reduce complexity in repl.cpp | [018](../backlog/018-reduce-complexity.md) | Todo |
+| Coverage bump 55% → 60% | — | Todo |
+| TODO scraping → TECHDEBT.md | — | Todo |
+| Branch protection (peer review) | — | Todo |
+| Doc-change CI enforcement | — | Todo |
+| Reduce complexity in repl.cpp | — | Todo |
