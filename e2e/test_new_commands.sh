@@ -10,8 +10,12 @@ set -o pipefail
 
 BINARY="${1:-./build/llama-cli}"
 export LLAMA_PROVIDER=mock
-export LLAMA_FEATURE_LOG="/tmp/llama-e2e-features-$$.log"
-: > "$LLAMA_FEATURE_LOG"
+_OWN_LOG=false
+if [[ -z "${LLAMA_FEATURE_LOG:-}" ]]; then
+  export LLAMA_FEATURE_LOG="/tmp/llama-e2e-features-$$.log"
+  _OWN_LOG=true
+  : > "$LLAMA_FEATURE_LOG"
+fi
 
 pass=0
 fail=0
@@ -137,7 +141,7 @@ output=$(printf "/scan\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_feature "cmd_scan"
 
 # Cleanup
-rm -f "$LLAMA_FEATURE_LOG"
+[[ "$_OWN_LOG" == "true" ]] && rm -f "$LLAMA_FEATURE_LOG"
 
 echo "  new_commands: ${pass} passed, ${fail} failed"
 [[ $fail -eq 0 ]]
