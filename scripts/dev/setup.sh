@@ -474,6 +474,51 @@ install_ollama() {
 }
 
 #######################################
+# Install optional LLM providers (non-fatal).
+# These are free CLI tools for multi-provider routing.
+#######################################
+install_providers() {
+  echo "==> Installing LLM providers (optional)..."
+
+  # tgpt — free cloud LLM, no account needed
+  if ! has tgpt; then
+    echo "  Installing tgpt..."
+    if [[ "${IS_MAC}" == true ]]; then
+      brew install tgpt
+    else
+      curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin
+    fi
+  fi
+
+  # gemini — Google AI CLI (requires Google account + oauth)
+  if ! has gemini; then
+    echo "  Installing gemini CLI..."
+    if has npm; then
+      npm install -g @google/gemini-cli
+    else
+      echo "  [skip] gemini requires npm (install Node.js first)"
+    fi
+  fi
+
+  # Amazon Q Developer — free with AWS Builder ID
+  if ! has q; then
+    echo "  Installing Amazon Q Developer CLI..."
+    if [[ "${IS_MAC}" == true ]]; then
+      brew install --cask amazon-q
+    else
+      echo "  [skip] Amazon Q: install from https://github.com/aws/amazon-q-developer-cli"
+    fi
+  fi
+
+  # kiro-cli — already installed system-wide if available
+  if ! has kiro-cli-chat; then
+    echo "  [skip] kiro-cli: install from your IDE or package manager"
+  fi
+
+  echo "  [done] providers"
+}
+
+#######################################
 # Main entry point.
 #######################################
 main() {
@@ -517,6 +562,9 @@ main() {
 
   # Runtime
   install_ollama
+
+  # LLM Providers (optional — non-fatal)
+  install_providers
 
   # Mutation testing (optional — failure should not abort setup)
   install_mull || echo "  [warn] mull install failed (optional, continuing)"
