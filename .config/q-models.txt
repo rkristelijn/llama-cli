@@ -1,0 +1,7 @@
+# Amazon Q Developer CLI models.
+# Free with AWS Builder ID. End of support: 2027.
+# Binary: q chat --no-interactive "prompt"
+# Install: https://github.com/aws/amazon-q-developer-cli
+#
+# Q uses a single model (no selection), but we list it for registry visibility.
+amazon-q

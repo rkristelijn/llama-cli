@@ -222,6 +222,20 @@ ModelRegistry scan_all_providers() {
     }
   }
 
+  // --- Amazon Q Developer ---
+  ExecResult q_check = cmd_exec("which q", 3, 200);
+  if (q_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "amazon-q";
+    entry.provider = "amazon-q";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Free;
+    entry.capabilities = {Capability::General, Capability::Code};
+    entry.available = true;
+    reg.models.push_back(entry);
+  }
+
   // --- kiro-cli ---
   ExecResult kiro_check = cmd_exec("which kiro-cli-chat", 3, 200);
   if (kiro_check.exit_code == 0) {
