@@ -222,6 +222,9 @@ sonar-report: ## Show SonarCloud issue summary (ARGS=BLOCKER for detail)
 
 ##@ Development
 
+learn: ## AI-assisted pattern discovery (5-min budget, uses llama-cli)
+	@bash scripts/dev/learn.sh $(ARGS)
+
 update: ## Update all development tools to pinned versions
 	@bash scripts/dev/update-tools.sh
 

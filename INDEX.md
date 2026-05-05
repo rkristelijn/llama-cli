@@ -68,6 +68,8 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-072-diagram-visualization-strategy.md`](docs/adr/adr-072-diagram-visualization-strategy.md) — ADR-072: Diagram Visualization Strategy & Element Limits
 - [`docs/adr/adr-073-unified-diagram-model.md`](docs/adr/adr-073-unified-diagram-model.md) — ADR-073: Unified Diagram Model — Cross-Diagram Consistency
 - [`docs/adr/adr-074-sonarcloud-integration.md`](docs/adr/adr-074-sonarcloud-integration.md) — ADR-074: SonarCloud Integration and Local Check Coverage
+- [`docs/adr/adr-075-test-best-practices.md`](docs/adr/adr-075-test-best-practices.md) — ADR-075: Test Best Practices — Lessons Learned
+- [`docs/adr/adr-076-code-decomposition-patterns.md`](docs/adr/adr-076-code-decomposition-patterns.md) — ADR-076: Code Decomposition Patterns
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -166,6 +168,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
 - [`scripts/dev/docker-serve.sh`](scripts/dev/docker-serve.sh)
+- [`scripts/dev/learn.sh`](scripts/dev/learn.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/ollama-serve.sh`](scripts/dev/ollama-serve.sh)
 - [`scripts/dev/prepush.sh`](scripts/dev/prepush.sh)
@@ -333,4 +336,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_330 files indexed._
+_333 files indexed._

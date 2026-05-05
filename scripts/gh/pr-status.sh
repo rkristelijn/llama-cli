@@ -85,7 +85,17 @@ if [ -n "$FAILED_JOBS" ]; then
       # Strip job name prefix and timestamps for readability
       printf '%s\n' "$snippet" | sed "s/^${JOB_NAME}\t//" | sed 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //'
     else
-      echo "  No error lines found. Run with --debug or check GitHub Actions UI."
+      # Fallback: fetch job log via API (--log-failed sometimes returns empty)
+      api_snippet=$(gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
+        | grep -iE "error|fail|missing|##\[error\]|ASAN|UBSAN|CHECK\(|MD[0-9]{3}" \
+        | grep -v "endgroup\|Node.js\|hint:\|set-safe-directory\|gc.auto\|Reading database\|0 failed" \
+        | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
+        | tail -n 15 || true)
+      if [ -n "$api_snippet" ]; then
+        printf '%s\n' "$api_snippet"
+      else
+        echo "  No error lines found. Run with --debug or check GitHub Actions UI."
+      fi
     fi
   done <<<"$FAILED_JOBS"
   rm -f "$LOG_FILE"

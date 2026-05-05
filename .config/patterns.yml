@@ -1,0 +1,45 @@
+# patterns.yml — Semgrep rules learned from codebase analysis
+# Run with: semgrep scan --config .config/patterns.yml
+#
+# Rules are auto-discovered by scripts/dev/learn.sh and manually curated.
+# See ADR-076 for the decomposition philosophy behind these rules.
+rules:
+  - id: learn-extract-complex-condition
+    patterns:
+      - pattern: |
+          if ($X && $Y && $Z) { ... }
+    message: "Complex condition with 3+ clauses — consider Extract Method (ADR-076)"
+    languages: [cpp]
+    severity: WARNING
+
+  - id: learn-no-sleep-in-tests
+    patterns:
+      - pattern: |
+          cmd_exec("sleep $X", ...)
+    message: "sleep in tests is timing-sensitive — use output-producing commands (ADR-075)"
+    languages: [cpp]
+    severity: ERROR
+    paths:
+      include:
+        - "*_test.cpp"
+
+  - id: learn-test-empty-after-sideeffect
+    patterns:
+      - pattern: |
+          auto $R = cmd_exec(...);
+          ...
+          CHECK($R.output.empty());
+    message: "Asserting empty output after exec — test the contract, not side-effects (ADR-075)"
+    languages: [cpp]
+    severity: WARNING
+    paths:
+      include:
+        - "*_test.cpp"
+
+  - id: learn-long-parameter-list
+    patterns:
+      - pattern: |
+          $RET $FN($A, $B, $C, $D, $E) { ... }
+    message: "5+ parameters — consider a config struct or builder (ADR-076)"
+    languages: [cpp]
+    severity: WARNING

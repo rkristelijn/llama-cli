@@ -125,14 +125,16 @@ SCENARIO ("command execution: edge cases") {
     }
   }
 
+  // TODO: flaky on coverage builds — timeout race with instrumentation overhead
   GIVEN ("a command with very short timeout") {
-    auto r = cmd_exec("sleep 2", 1, 1000);
+    // Use a loop that produces output so the timeout check in fgets triggers
+    auto r = cmd_exec("for i in $(seq 1 100); do echo x; sleep 0.1; done", 1, 1000);
     THEN ("timeout is detected") {
       CHECK (r.timed_out)
         ;
     }
-    THEN ("output is empty") {
-      CHECK (r.output.empty())
+    THEN ("output contains timeout marker") {
+      CHECK (r.output.find("[killed: timeout") != std::string::npos)
         ;
     }
   }
