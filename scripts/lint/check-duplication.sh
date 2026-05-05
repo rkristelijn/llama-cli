@@ -2,10 +2,8 @@
 #
 # check-duplication.sh — Detect duplicated code blocks in src/.
 #
-# Uses PMD CPD (Copy-Paste Detector) for token-based clone detection.
-# Without CPD, skips with a recommendation to install it.
-#
-# Install CPD: brew install pmd (macOS) or download from https://pmd.github.io/
+# Uses jscpd (via npx) or PMD CPD for token-based clone detection.
+# Threshold: max 3% duplication on source files.
 #
 # Usage:
 #   bash scripts/lint/check-duplication.sh
@@ -15,43 +13,46 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-MIN_TOKENS="${MIN_TOKENS:-100}"
+THRESHOLD="${DUPLICATION_THRESHOLD:-3}"
+MIN_TOKENS="${MIN_TOKENS:-50}"
+MIN_LINES="${MIN_LINES:-6}"
 
 echo "==> checking for code duplication..."
 
-# Use PMD CPD if available (token-based, catches renamed clones)
-if command -v cpd >/dev/null 2>&1; then
-  output=$(cpd --minimum-tokens "$MIN_TOKENS" --language cpp \
-    --dir src/ --non-recursive=false \
-    --format text 2>&1) || true
+# Option 1: jscpd via npx (no install needed, supports C++)
+if command -v npx >/dev/null 2>&1; then
+  output=$(npx --yes jscpd src/ \
+    --min-tokens "$MIN_TOKENS" \
+    --min-lines "$MIN_LINES" \
+    --threshold "$THRESHOLD" \
+    --ignore "*_test.cpp,*_it.cpp" \
+    --reporters console \
+    --silent 2>&1) || {
+    # jscpd exits non-zero when threshold exceeded
+    echo "$output" | grep -E "Clone|duplicate|%|Total" | head -20
+    echo "  FAIL: duplication exceeds ${THRESHOLD}% threshold"
+    exit 1
+  }
+  echo "$output" | grep -E "Clone|duplicate|%|Total" | head -10
+  echo "  ✓ duplication within ${THRESHOLD}% threshold"
+  echo "  [done] duplication"
+  exit 0
+fi
 
+# Option 2: PMD CPD
+if command -v pmd >/dev/null 2>&1 || command -v cpd >/dev/null 2>&1; then
+  cmd=$(command -v cpd >/dev/null 2>&1 && echo "cpd" || echo "pmd cpd")
+  output=$($cmd --minimum-tokens "$MIN_TOKENS" --language cpp --dir src/ --format text 2>&1) || true
   dupes=$(echo "$output" | grep -c "^Found a" || true)
   if [[ $dupes -eq 0 ]]; then
-    echo "  ✓ no duplication detected (CPD, min ${MIN_TOKENS} tokens)"
+    echo "  ✓ no duplication detected (CPD)"
   else
-    echo "$output" | grep -A2 "^Found a" | head -30
-    echo "  [${dupes} duplicate blocks found]"
+    echo "$output" | grep -A2 "^Found a" | head -20
+    echo "  [${dupes} duplicate blocks]"
   fi
   echo "  [done] duplication"
   exit 0
 fi
 
-if command -v pmd >/dev/null 2>&1; then
-  output=$(pmd cpd --minimum-tokens "$MIN_TOKENS" --language cpp \
-    --dir src/ \
-    --format text 2>&1) || true
-
-  dupes=$(echo "$output" | grep -c "^Found a" || true)
-  if [[ $dupes -eq 0 ]]; then
-    echo "  ✓ no duplication detected (PMD CPD, min ${MIN_TOKENS} tokens)"
-  else
-    echo "$output" | grep -A2 "^Found a" | head -30
-    echo "  [${dupes} duplicate blocks found]"
-  fi
-  echo "  [done] duplication"
-  exit 0
-fi
-
-# No CPD available — skip gracefully
-echo "  [skip] CPD not installed (brew install pmd)"
+echo "  [skip] no duplication tool available (install: npm, pmd, or cpd)"
 echo "  [done] duplication"

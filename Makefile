@@ -84,7 +84,7 @@ check: ## Tier 2: full quality gate (CI/pre-push)
 
 check-all: ## Tier 3: everything — exhaustive lint, mutation, SBOM, docs (alias: full-check)
 	@mkdir -p .tmp
-	@$(MAKE) FULL=1 build lint test sast mutation sbom todo summarize-safe index dead-code dead-docs 2>&1 | tee .tmp/check-all.log
+	@$(MAKE) FULL=1 build lint test sast mutation sbom todo summarize-safe index dead-code dead-docs duplication 2>&1 | tee .tmp/check-all.log
 	$(log_footer)
 full-check: check-all
 
