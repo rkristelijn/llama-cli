@@ -6,6 +6,7 @@
 #include "provider/registry.h"
 
 #include <algorithm>
+#include <fstream>
 #include <set>
 
 #include "config/config.h"
@@ -187,15 +188,38 @@ ModelRegistry scan_all_providers() {
   // --- gemini ---
   ExecResult gemini_check = cmd_exec("which gemini", 3, 200);
   if (gemini_check.exit_code == 0) {
-    ModelEntry entry;
-    entry.name = "gemini-cli";
-    entry.provider = "gemini";
-    entry.host = "cloud";
-    entry.tokens_per_sec = 0;
-    entry.cost = CostTier::Free;
-    entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
-    entry.available = true;
-    reg.models.push_back(entry);
+    // Read model list from .config/gemini-models.txt (no hardcoded names)
+    std::ifstream gf(".config/gemini-models.txt");
+    if (!gf) {
+      gf.open(std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.llama-cli/gemini-models.txt");
+    }
+    if (gf) {
+      std::string line;
+      while (std::getline(gf, line)) {
+        if (line.empty() || line[0] == '#') {
+          continue;
+        }
+        ModelEntry entry;
+        entry.name = line;
+        entry.provider = "gemini";
+        entry.host = "cloud";
+        entry.tokens_per_sec = 0;
+        entry.cost = CostTier::Free;
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+      }
+    } else {
+      // Fallback: single generic entry
+      ModelEntry entry;
+      entry.name = "gemini-cli";
+      entry.provider = "gemini";
+      entry.host = "cloud";
+      entry.cost = CostTier::Free;
+      entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
   }
 
   // --- kiro-cli ---
