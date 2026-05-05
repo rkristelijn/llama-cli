@@ -5,6 +5,10 @@
  * SRP: Handles all LLM-proposed actions in sync mode without user confirmation.
  * Extracted from main.cpp to reduce file size (ADR-061, ADR-065).
  *
+ * Capabilities checked: "read", "exec", "write" — each gates a category.
+ * All paths are validated against cfg.sandbox before any I/O.
+ * Read-only commands are allowed with just "read" capability.
+ *
  * @see docs/adr/adr-030-stdin-sync.md
  */
 

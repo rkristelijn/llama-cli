@@ -14,7 +14,9 @@
 #include "ollama/ollama.h"
 
 // --- ModelRegistry methods ---
+// Provides filtering, lookup, and aggregation over the unified model list.
 
+/// Filter models by capability (e.g., Code, Vision, Reasoning).
 std::vector<const ModelEntry*> ModelRegistry::by_capability(Capability cap) const {
   std::vector<const ModelEntry*> result;
   for (const auto& m : models) {
@@ -31,6 +33,7 @@ std::vector<const ModelEntry*> ModelRegistry::by_capability(Capability cap) cons
   return result;
 }
 
+/// Find the fastest available model for a given capability (by tokens/sec).
 const ModelEntry* ModelRegistry::fastest(Capability cap) const {
   const ModelEntry* best = nullptr;
   for (const auto& m : models) {
@@ -49,6 +52,7 @@ const ModelEntry* ModelRegistry::fastest(Capability cap) const {
   return best;
 }
 
+/// Lookup a model by exact name. Returns nullptr if not found.
 const ModelEntry* ModelRegistry::by_name(const std::string& name) const {
   for (const auto& m : models) {
     if (m.name == name) {
@@ -58,6 +62,7 @@ const ModelEntry* ModelRegistry::by_name(const std::string& name) const {
   return nullptr;
 }
 
+/// Count distinct providers (ollama, gemini, kiro, etc.).
 int ModelRegistry::provider_count() const {
   std::set<std::string> seen;
   for (const auto& m : models) {
@@ -66,6 +71,7 @@ int ModelRegistry::provider_count() const {
   return static_cast<int>(seen.size());
 }
 
+/// Count distinct hosts (unique server endpoints).
 int ModelRegistry::host_count() const {
   std::set<std::string> seen;
   for (const auto& m : models) {
@@ -74,6 +80,7 @@ int ModelRegistry::host_count() const {
   return static_cast<int>(seen.size());
 }
 
+/// List unique provider names in discovery order.
 std::vector<std::string> ModelRegistry::providers() const {
   std::vector<std::string> result;
   std::set<std::string> seen;

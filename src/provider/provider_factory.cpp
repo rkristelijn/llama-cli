@@ -45,6 +45,9 @@ class MockProvider : public LLMProvider {
   }
 };
 
+/// Create the appropriate LLMProvider based on config.provider setting.
+/// Supports: mock (testing), tgpt, gemini, kiro, ollama (default).
+/// Multi-host Ollama uses MultiHostProvider for load balancing (ADR-078).
 std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
   if (cfg.provider == "mock") {
     return std::make_unique<MockProvider>();

@@ -61,7 +61,10 @@ struct Style {
   static std::string reset() { return "\033[0m"; }
 
  private:
+  /// Map color name to ANSI foreground code (30-37 standard, 90-97 bright).
+  /// @see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
   static std::string fg_code(const std::string& name) {
+    // Standard colors (30-37)
     if (name == "black") {
       return "30";
     }
@@ -86,6 +89,7 @@ struct Style {
     if (name == "white") {
       return "37";
     }
+    // Bright/high-intensity colors (90-97)
     if (name == "bright_black") {
       return "90";
     }
@@ -110,10 +114,12 @@ struct Style {
     if (name == "bright_white") {
       return "97";
     }
-    return "39";  // default
+    return "39";  // default foreground
   }
 
+  /// Map color name to ANSI background code (40-47 standard, 100-107 bright).
   static std::string bg_code(const std::string& name) {
+    // Standard background colors (40-47)
     if (name == "black") {
       return "40";
     }
@@ -138,6 +144,7 @@ struct Style {
     if (name == "white") {
       return "47";
     }
+    // Bright background colors (100-107)
     if (name == "bright_black") {
       return "100";
     }
@@ -162,11 +169,12 @@ struct Style {
     if (name == "bright_white") {
       return "107";
     }
-    return "";
+    return "";  // no background
   }
 };
 
 /// All color roles used by the TUI layer.
+/// Each theme defines styles for these roles — see ADR-080.
 struct Theme {
   std::string name;  ///< Theme identifier
   Style prompt;      ///< User prompt (nick>)

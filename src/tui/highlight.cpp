@@ -7,6 +7,13 @@
  * single-line comments, and numbers. No multi-line state (block comments
  * are not tracked across lines) — good enough for terminal display.
  *
+ * Supported language families:
+ *   - C/C++: keywords, types, preprocessor directives
+ *   - Python: keywords, decorators, f-strings
+ *   - Bash: keywords, variables, redirects
+ *   - JavaScript/TypeScript: keywords, arrow functions
+ *   - Java/Go/Rust/Swift/PHP: keywords
+ *
  * @see highlight.h
  */
 
@@ -129,6 +136,8 @@ static const std::vector<std::string> go_keywords = {
 /// Language families for syntax highlighting keyword selection.
 enum class LangFamily { Unknown, Cpp, Python, Bash, Js, Java, Php, Swift, Rust, Go };
 
+/// Map a language tag (from fenced code blocks) to a language family.
+/// Used to select the right keyword set for highlighting.
 static LangFamily classify_lang(const std::string& lang) {
   if (lang == "cpp" || lang == "c++" || lang == "c" || lang == "h" || lang == "hpp") {
     return LangFamily::Cpp;
@@ -203,6 +212,8 @@ static std::string comment_prefix(LangFamily fam) {
 
 // --- RegexHighlighter implementation ---
 
+/// Apply syntax highlighting to a single line using regex-based pattern matching.
+/// Handles: keywords, types, strings, comments, numbers, preprocessor directives.
 std::string RegexHighlighter::highlight_line(const std::string& line, const std::string& lang) const {
   LangFamily fam = classify_lang(lang);
   if (fam == LangFamily::Unknown) {

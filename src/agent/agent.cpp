@@ -31,6 +31,8 @@ static std::string extract_value(const std::string& line, const std::string& key
   return trim(line.substr(pos + key.size() + 1));
 }
 
+/// Parse YAML persona definitions into structured AgentPersona objects.
+/// Format: list of "- name: X" entries with description, system_prompt, temperature.
 std::vector<AgentPersona> parse_personas(const std::string& yaml_content) {
   std::vector<AgentPersona> personas;
   std::istringstream stream(yaml_content);
@@ -105,6 +107,7 @@ static std::string read_file(const std::string& path) {
   return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
+/// Load personas from user config (~/.llama-cli/agents/) or bundled fallback.
 std::vector<AgentPersona> load_personas() {
   // User override takes priority
   const char* home = std::getenv("HOME");

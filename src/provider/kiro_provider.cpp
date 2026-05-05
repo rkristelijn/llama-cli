@@ -60,6 +60,7 @@ static std::string strip_ansi(const std::string& s) {
   return result;
 }
 
+/// Send chat to kiro-cli-chat in headless mode and return cleaned response.
 std::string KiroProvider::chat(const std::vector<Message>& messages) {
   std::string prompt = collapse_history(messages);
   std::string cmd = "kiro-cli-chat chat --no-interactive --wrap=never " + shell_escape(prompt);
@@ -76,6 +77,7 @@ std::string KiroProvider::chat(const std::vector<Message>& messages) {
   return clean;
 }
 
+/// Streaming not natively supported — sends full response as single token.
 std::string KiroProvider::chat_stream(const std::vector<Message>& messages, StreamCallback on_token) {
   std::string response = chat(messages);
   if (on_token) {
@@ -84,6 +86,7 @@ std::string KiroProvider::chat_stream(const std::vector<Message>& messages, Stre
   return response;
 }
 
+/// Query kiro-cli-chat for available models (JSON format).
 std::vector<std::string> KiroProvider::list_models() {
   ExecResult result = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
   if (result.exit_code != 0) {
@@ -104,6 +107,7 @@ std::vector<std::string> KiroProvider::list_models() {
   return models.empty() ? std::vector<std::string>{"kiro-auto"} : models;
 }
 
+/// Get detailed model info including credit costs from kiro registry.
 std::vector<ModelInfo> KiroProvider::get_model_info() {
   ExecResult result = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
   std::vector<ModelInfo> infos;

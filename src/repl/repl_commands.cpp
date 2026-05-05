@@ -4,6 +4,15 @@
  *
  * SRP: This file handles all /slash commands. repl.cpp only handles the loop.
  *
+ * Command categories:
+ *   - History: /clear, /chat save|load|list|delete
+ *   - Config: /set, /color, /theme
+ *   - Model: /model, /provider, /auto
+ *   - Session: /nick, /usage, /compress
+ *   - Memory: /mem, /pref, /rate
+ *   - Tools: /copy, /paste, /image, /scan
+ *   - Info: /help, /version
+ *
  * @see docs/adr/adr-066-solid-refactoring.md
  */
 
@@ -421,7 +430,10 @@ static void handle_rate(const std::string& arg, ReplState& s) {
 /// OCP: dispatch routes to handlers. New commands = new handler functions.
 /// Returns true if the command was recognized, false for unknown commands.
 /// Each branch delegates to a focused handler function (SRP).
+/// Main command dispatcher — routes /slash commands to handlers.
+/// Each branch delegates to a focused handler function (SRP).
 bool dispatch_command(const std::string& command, const std::string& arg, ReplState& s) {
+  // --- History management ---
   if (command == "clear") {
     LOG_FEATURE("cmd_clear");
     s.history.clear();
@@ -546,12 +558,14 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       s.out << "Usage: /chat save <name>, /chat load <name>, /chat list, /chat delete <name>\n";
     }
+    // --- Configuration commands ---
   } else if (command == "set" || command == "options") {
     LOG_FEATURE("cmd_set");
     handle_set(arg, s);
   } else if (command == "color") {
     LOG_FEATURE("cmd_color");
     handle_color(arg, s);
+    // --- Model and provider management ---
   } else if (command == "model") {
     LOG_FEATURE("cmd_model");
     handle_model_selection(s, arg);
@@ -567,6 +581,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
   } else if (command == "rate") {
     LOG_FEATURE("cmd_rate");
     handle_rate(arg, s);
+    // --- Clipboard: copy last response or paste from system clipboard ---
   } else if (command == "copy" || command == "c") {
     LOG_FEATURE("cmd_copy");
     if (s.last_assistant_idx < 0 || s.last_assistant_idx >= static_cast<int>(s.history.size())) {
@@ -609,6 +624,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
   } else if (command == "scan") {
     LOG_FEATURE("cmd_scan");
     handle_scan(s);
+    // --- Provider switching and discovery ---
   } else if (command == "provider") {
     if (arg.empty()) {
       LOG_FEATURE("provider_list");
@@ -654,6 +670,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << "[provider switching not available]\n";
       }
     }
+    // --- Auto-routing: smart model selection by prompt complexity (ADR-079) ---
   } else if (command == "auto") {
     LOG_FEATURE("cmd_auto");
     s.auto_route = !s.auto_route;
@@ -661,6 +678,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     if (s.auto_route) {
       s.out << "Prompts will be routed by complexity: simple→3B, medium→14B, complex→27B+\n";
     }
+    // --- Image attachment for vision models ---
   } else if (command == "image") {
     LOG_FEATURE("cmd_image");
     if (arg.empty()) {
@@ -695,6 +713,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << "[image attached: " << arg << " (" << data.size() / 1024 << "KB) — ask about it now]\n";
       }
     }
+    // --- Agent persona switching (loads system prompt + temperature) ---
   } else if (command == "agent") {
     LOG_FEATURE("cmd_agent");
     static auto personas = load_personas();
@@ -724,6 +743,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << "Unknown agent: " << arg << ". Type /agent list to see options.\n";
       }
     }
+    // --- User identity and session info ---
   } else if (command == "nick") {
     LOG_FEATURE("cmd_nick");
     if (arg.empty()) {
@@ -755,6 +775,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     s.out << "  Provider: " << Config::instance().provider << "\n";
     s.out << "  Model: " << Config::instance().model << "\n";
     s.out << "  Host: " << Config::instance().host << ":" << Config::instance().port << "\n";
+    // --- Theme switching: /theme <name> or /theme set <role> <color> (ADR-080) ---
   } else if (command == "theme") {
     LOG_FEATURE("cmd_theme");
     if (arg.empty()) {
@@ -816,6 +837,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       s.out << "Unknown theme: " << arg << ". Try: dark, light, mono, hacker\n";
     }
+    // --- Context compression: summarize history to reduce token usage ---
   } else if (command == "compress") {
     LOG_FEATURE("cmd_compress");
     // Compress history: keep system prompt + generate summary of conversation

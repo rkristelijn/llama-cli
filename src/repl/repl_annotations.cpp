@@ -53,6 +53,7 @@ static void emit_diff_line(std::ostream& out, const std::string& ansi, const cha
 /// Print a git-style unified diff with 3 lines of context and @@ hunk headers.
 /// Uses Myers diff (via dtl) for accurate change detection.
 // pmccabe:skip-complexity
+/// Show a unified diff between old and new text (for write/str_replace proposals).
 // NOLINTNEXTLINE(readability-function-size)
 void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
   auto split = [](const std::string& s) {
@@ -157,6 +158,7 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
 /// Prompt user to confirm a file write. Shows diff or content, accepts y/n/s/t/c.
 /// y=confirm, n=decline, s=show content again, t=trust all, c=copy to clipboard.
 /// Returns true if the write should proceed, false if declined.
+/// Prompt user to confirm a file write. Supports y/n/s (skip) and trust mode.
 // pmccabe:skip-complexity
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
   // Trust mode: auto-approve all remaining actions this session

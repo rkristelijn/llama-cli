@@ -38,6 +38,8 @@ extern volatile sig_atomic_t g_interrupted;
 /// Queries all known hosts for available models, displays a sorted table
 /// with hardware info and sweetspot highlighting, and prompts user to pick.
 /// Supports re-sorting by name/params/size/quality within the menu.
+/// Handle /model command: list models, switch active model, or show current.
+/// Aggregates models from all registered providers (ADR-081).
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 void handle_model_selection(ReplState& s, const std::string& arg) {
@@ -193,9 +195,9 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
       const auto& ib = info_map[kb];
 
       switch (sort_mode) {
-        case 'n':
+        case 'n':  // Sort alphabetically by model name
           return a.name < b.name;
-        case 'p': {
+        case 'p': {  // Sort by parameter count (largest first)
           double pa = to_num(ia.params);
           double pb = to_num(ib.params);
           if (pa != pb) {
@@ -203,13 +205,13 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
           }
           return a.name < b.name;
         }
-        case 'q': {
+        case 'q': {  // Sort by quantization level (highest quality first)
           if (ia.quant != ib.quant) {
             return ia.quant > ib.quant;
           }
           return ia.size_gb > ib.size_gb;
         }
-        case 's':
+        case 's':  // Sort by file size on disk (largest first)
         default: {
           if (ia.size_gb != ib.size_gb) {
             return ia.size_gb > ib.size_gb;
