@@ -61,116 +61,69 @@ struct Style {
   static std::string reset() { return "\033[0m"; }
 
  private:
-  /// Map color name to ANSI foreground code (30-37 standard, 90-97 bright).
-  /// @see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-  static std::string fg_code(const std::string& name) {
-    // Standard colors (30-37)
+  /// Map color name to ANSI code with given base offset (30=fg, 40=bg).
+  static std::string color_code(const std::string& name, int base, int bright_base) {
+    // Standard colors
     if (name == "black") {
-      return "30";
+      return std::to_string(base);
     }
     if (name == "red") {
-      return "31";
+      return std::to_string(base + 1);
     }
     if (name == "green") {
-      return "32";
+      return std::to_string(base + 2);
     }
     if (name == "yellow") {
-      return "33";
+      return std::to_string(base + 3);
     }
     if (name == "blue") {
-      return "34";
+      return std::to_string(base + 4);
     }
     if (name == "magenta") {
-      return "35";
+      return std::to_string(base + 5);
     }
     if (name == "cyan") {
-      return "36";
+      return std::to_string(base + 6);
     }
     if (name == "white") {
-      return "37";
+      return std::to_string(base + 7);
     }
-    // Bright/high-intensity colors (90-97)
+    // Bright/high-intensity colors
     if (name == "bright_black") {
-      return "90";
+      return std::to_string(bright_base);
     }
     if (name == "bright_red") {
-      return "91";
+      return std::to_string(bright_base + 1);
     }
     if (name == "bright_green") {
-      return "92";
+      return std::to_string(bright_base + 2);
     }
     if (name == "bright_yellow") {
-      return "93";
+      return std::to_string(bright_base + 3);
     }
     if (name == "bright_blue") {
-      return "94";
+      return std::to_string(bright_base + 4);
     }
     if (name == "bright_magenta") {
-      return "95";
+      return std::to_string(bright_base + 5);
     }
     if (name == "bright_cyan") {
-      return "96";
+      return std::to_string(bright_base + 6);
     }
     if (name == "bright_white") {
-      return "97";
+      return std::to_string(bright_base + 7);
     }
-    return "39";  // default foreground
+    return "";
+  }
+
+  /// Map color name to ANSI foreground code (30-37 standard, 90-97 bright).
+  static std::string fg_code(const std::string& name) {
+    std::string code = color_code(name, 30, 90);
+    return code.empty() ? "39" : code;  // default foreground
   }
 
   /// Map color name to ANSI background code (40-47 standard, 100-107 bright).
-  static std::string bg_code(const std::string& name) {
-    // Standard background colors (40-47)
-    if (name == "black") {
-      return "40";
-    }
-    if (name == "red") {
-      return "41";
-    }
-    if (name == "green") {
-      return "42";
-    }
-    if (name == "yellow") {
-      return "43";
-    }
-    if (name == "blue") {
-      return "44";
-    }
-    if (name == "magenta") {
-      return "45";
-    }
-    if (name == "cyan") {
-      return "46";
-    }
-    if (name == "white") {
-      return "47";
-    }
-    // Bright background colors (100-107)
-    if (name == "bright_black") {
-      return "100";
-    }
-    if (name == "bright_red") {
-      return "101";
-    }
-    if (name == "bright_green") {
-      return "102";
-    }
-    if (name == "bright_yellow") {
-      return "103";
-    }
-    if (name == "bright_blue") {
-      return "104";
-    }
-    if (name == "bright_magenta") {
-      return "105";
-    }
-    if (name == "bright_cyan") {
-      return "106";
-    }
-    if (name == "bright_white") {
-      return "107";
-    }
-    return "";  // no background
-  }
+  static std::string bg_code(const std::string& name) { return color_code(name, 40, 100); }
 };
 
 /// All color roles used by the TUI layer.
