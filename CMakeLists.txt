@@ -96,6 +96,7 @@ set(LIB_SOURCES
   src/provider/provider_factory.cpp
   src/provider/tgpt_provider.cpp
   src/provider/gemini_provider.cpp
+  src/provider/kiro_provider.cpp
   src/provider/multi_host_provider.cpp
   src/provider/registry.cpp
   src/agent/agent.cpp

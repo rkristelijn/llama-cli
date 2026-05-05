@@ -281,6 +281,8 @@ Auto-generated overview of all files in this repo.
 - [`src/planner/planner.h`](src/planner/planner.h) — /**
 - [`src/provider/gemini_provider.cpp`](src/provider/gemini_provider.cpp) — /**
 - [`src/provider/gemini_provider.h`](src/provider/gemini_provider.h) — /**
+- [`src/provider/kiro_provider.cpp`](src/provider/kiro_provider.cpp) — /**
+- [`src/provider/kiro_provider.h`](src/provider/kiro_provider.h) — /**
 - [`src/provider/multi_host_provider.cpp`](src/provider/multi_host_provider.cpp) — /**
 - [`src/provider/multi_host_provider.h`](src/provider/multi_host_provider.h) — /**
 - [`src/provider/ollama_provider.cpp`](src/provider/ollama_provider.cpp) — /**
@@ -367,4 +369,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_364 files indexed._
+_366 files indexed._

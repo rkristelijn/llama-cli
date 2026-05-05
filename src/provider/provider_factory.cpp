@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "provider/gemini_provider.h"
+#include "provider/kiro_provider.h"
 #include "provider/multi_host_provider.h"
 #include "provider/ollama_provider.h"
 #include "provider/tgpt_provider.h"
@@ -53,6 +54,9 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
   }
   if (cfg.provider == "gemini") {
     return std::make_unique<GeminiProvider>();
+  }
+  if (cfg.provider == "kiro-cli" || cfg.provider == "kiro") {
+    return std::make_unique<KiroProvider>();
   }
   if (cfg.provider == "ollama" || cfg.provider.empty()) {
     // Multi-host: if OLLAMA_HOSTS has multiple entries, use routing provider

@@ -199,17 +199,47 @@ ModelRegistry scan_all_providers() {
   }
 
   // --- kiro-cli ---
-  ExecResult kiro_check = cmd_exec("which kiro", 3, 200);
+  ExecResult kiro_check = cmd_exec("which kiro-cli-chat", 3, 200);
   if (kiro_check.exit_code == 0) {
-    ModelEntry entry;
-    entry.name = "kiro";
-    entry.provider = "kiro-cli";
-    entry.host = "cloud";
-    entry.tokens_per_sec = 0;
-    entry.cost = CostTier::Expensive;
-    entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
-    entry.available = true;
-    reg.models.push_back(entry);
+    // Parse model list from kiro-cli-chat for real model names + costs
+    ExecResult kiro_models = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
+    if (kiro_models.exit_code == 0) {
+      size_t pos = 0;
+      while ((pos = kiro_models.output.find("\"model_name\":\"", pos)) != std::string::npos) {
+        pos += 14;
+        auto end = kiro_models.output.find("\"", pos);
+        std::string name = kiro_models.output.substr(pos, end - pos);
+        // Extract rate multiplier
+        double rate = 1.0;
+        auto rate_pos = kiro_models.output.find("\"rate_multiplier\":", pos);
+        if (rate_pos != std::string::npos && rate_pos < pos + 300) {
+          try {
+            rate = std::stod(kiro_models.output.substr(rate_pos + 18, 10));
+          } catch (...) {
+          }
+        }
+        ModelEntry entry;
+        entry.name = name;
+        entry.provider = "kiro-cli";
+        entry.host = "cloud";
+        entry.tokens_per_sec = 0;
+        entry.cost = (rate > 1.5) ? CostTier::Expensive : (rate > 0.5 ? CostTier::Cheap : CostTier::Free);
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+        pos = end;
+      }
+    } else {
+      // Fallback: just register one generic entry
+      ModelEntry entry;
+      entry.name = "kiro-auto";
+      entry.provider = "kiro-cli";
+      entry.host = "cloud";
+      entry.cost = CostTier::Expensive;
+      entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
   }
 
   // Sort: fastest first within each provider
