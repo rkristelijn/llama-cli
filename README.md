@@ -77,8 +77,18 @@ hello                          # chat with the LLM
 !ls src/                       # run command, output to terminal
 !!cat src/main.cpp             # run command, output as LLM context
 what does this code do?        # LLM can now see the file
+/model                         # list all models across all hosts
+/provider                      # list and switch providers
+/agent bofh                    # switch personality (monk, architect, etc.)
+/auto                          # toggle smart routing by complexity
+/theme hacker                  # switch color theme
+/chat save myproject           # save conversation
+/chat load myproject           # restore conversation
+/image photo.png               # attach image for vision models
+/nick gius                     # set your prompt name
+/compress                      # summarize and compact history
+/usage                         # show session stats
 /set                           # show runtime options
-/set bofh                      # toggle BOFH spinner mode
 /version                       # show version info
 /help                          # show available commands
 exit                           # quit
