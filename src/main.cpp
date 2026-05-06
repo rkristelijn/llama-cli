@@ -68,7 +68,9 @@ static std::string load_kiro_context(Config& cfg, bool color) {
     }
     // Skip resource loading if system prompt already exceeds budget (ADR-087)
     if (cfg.system_prompt.size() > max_prompt_chars) {
-      tui::system_msg(std::cerr, color, "[skipping resources — prompt budget exceeded]\n");
+      if (cfg.trace) {
+        tui::system_msg(std::cerr, color, "[trace: skipping resources — prompt budget exceeded]");
+      }
       continue;
     }
     // Read resource files into context
@@ -316,11 +318,13 @@ int main(int argc, char* argv[]) {
     }
 
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + Config::instance().model + ")");
-    tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
+    tui::system_msg(std::cerr, color,
+                    "Type " + tui::bold("/host") + " " + tui::bold("/provider") + " " + tui::bold("/model") + " to switch, " +
+                        tui::bold("/help") + " for commands.");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }
-    tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
+    tui::system_msg(std::cerr, color, "Type your prompt. " + tui::bold("/quit") + " to exit.\n");
     // Load .kiro/agents/ context if present in cwd
     std::string kiro_ctx = load_kiro_context(cfg, color);
     if (!kiro_ctx.empty()) {
@@ -330,9 +334,38 @@ int main(int argc, char* argv[]) {
     auto stream = [&provider](const std::vector<Message>& msgs, StreamCallback on_token) { return provider->chat_stream(msgs, on_token); };
     // Provider's list_models wraps get_available_models with the right config
     auto models_fn = [&provider](const Config& /*cfg*/) { return provider->list_models(); };
-    // Switch provider at runtime via /provider command (ADR-020)
-    auto switch_prov = [&provider](const std::string& name) {
+    // Switch provider at runtime — recreates provider instance (ADR-089).
+    // Callers (/model, /host, /use) set Config fields BEFORE calling this.
+    // This only picks a default model if Config::instance().model is still
+    // from a different provider (stale). This prevents the race condition where
+    // /model sets a specific model, then switch_provider overwrites it with
+    // the first model from the registry. The check ensures we only auto-pick
+    // when the current model genuinely doesn't belong to the new provider.
+    auto switch_prov = [&provider, &registry](const std::string& name) {
       Config::instance().provider = name;
+      // Only auto-pick model if current model isn't on this provider
+      bool model_valid = false;
+      for (const auto& m : registry.models) {
+        if (m.provider == name && m.name == Config::instance().model) {
+          model_valid = true;
+          break;
+        }
+      }
+      if (!model_valid) {
+        for (const auto& m : registry.models) {
+          if (m.provider == name && m.available) {
+            Config::instance().model = m.name;
+            if (m.host != "cloud") {
+              auto colon = m.host.find(':');
+              if (colon != std::string::npos) {
+                Config::instance().host = m.host.substr(0, colon);
+                Config::instance().port = m.host.substr(colon + 1);
+              }
+            }
+            break;
+          }
+        }
+      }
       provider = create_provider(Config::instance());
     };
     run_repl(generate, cfg, std::cin, std::cout, models_fn, stream, detect_hardware, get_model_info, scan_ollama_hosts, switch_prov,

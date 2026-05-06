@@ -407,7 +407,7 @@ SCENARIO ("print default env template") {
       THEN ("it contains all expected variables commented out") {
         CHECK (output.find("# llama-cli configuration template") != std::string::npos)
           ;
-        CHECK (output.find("# LLAMA_PROVIDER=ollama") != std::string::npos)
+        CHECK (output.find("# LLAMA_PROVIDER=tgpt") != std::string::npos)
           ;
         CHECK (output.find("# OLLAMA_HOST=localhost") != std::string::npos)
           ;

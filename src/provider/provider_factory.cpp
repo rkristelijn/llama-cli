@@ -59,7 +59,10 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
   if (cfg.provider == "gemini") {
     return std::make_unique<GeminiProvider>();
   }
-  if (cfg.provider == "kiro-cli" || cfg.provider == "kiro") {
+  if (cfg.provider == "kiro-cli" || cfg.provider == "kiro" || cfg.provider == "amazon-q") {
+    // All three names map to KiroProvider which uses kiro-cli-chat subprocess.
+    // "amazon-q" is the user-facing name, "kiro-cli"/"kiro" are aliases.
+    // The provider handles model selection via --model flag internally.
     return std::make_unique<KiroProvider>();
   }
   if (cfg.provider == "ollama" || cfg.provider.empty()) {

@@ -213,6 +213,18 @@ static bool validate_config(const Config& c) {
 // NOLINTNEXTLINE(readability-function-size)
 Config load_env(const Config& defaults) {
   Config c = defaults;
+  // Default nick to system login name (whoami equivalent).
+  // Uses $USER (Linux/macOS) or $LOGNAME (POSIX fallback).
+  // This makes the prompt personal without requiring /nick setup.
+  // Falls back to "user" if neither env var is set (e.g., in containers).
+  if (c.nick.empty()) {
+    std::string login;
+    if (env_get("USER", login) || env_get("LOGNAME", login)) {
+      c.nick = login;
+    } else {
+      c.nick = "user";
+    }
+  }
   std::string val;
   if (env_get("LLAMA_PROVIDER", val)) {
     c.provider = val;

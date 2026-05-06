@@ -591,8 +591,16 @@ SCENARIO ("dispatch_command handles slash commands") {
 
     WHEN ("dispatch_command is called with /version") {
       dispatch_command("version", "", s);
-      THEN ("version is printed") {
+      THEN ("version is printed with commit hash") {
         CHECK (out.str().find("llama-cli") != std::string::npos)
+          ;
+        // Format: "llama-cli X.Y.Z (abcdef0)" or "llama-cli X.Y.Z (abcdef0 dirty)"
+        // Must contain a 7-char hex commit hash in parentheses
+        auto paren = out.str().find('(');
+        CHECK (paren != std::string::npos)
+          ;
+        auto close = out.str().find(')', paren);
+        CHECK (close != std::string::npos)
           ;
       }
     }
@@ -613,6 +621,46 @@ SCENARIO ("dispatch_command handles slash commands") {
         CHECK (out.str().find("color") != std::string::npos)
           ;
       }
+    }
+  }
+}
+
+// --- Prompt label tests (ADR-089) ---
+
+SCENARIO ("repl: prompt label omits model for non-ollama providers") {
+  GIVEN ("provider is tgpt") {
+    THEN ("model is not shown in prompt") {
+      std::string label = build_prompt_label("gius", "tgpt", "mistral-nemo:12b");
+      CHECK (label == "gius@tgpt> ")
+        ;
+    }
+  }
+  GIVEN ("provider is gemini") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "gemini", "gemini-2.5-pro");
+      CHECK (label == "gius@gemini:gemini-2.5-pro> ")
+        ;
+    }
+  }
+  GIVEN ("provider is kiro-cli") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "kiro-cli", "claude-sonnet");
+      CHECK (label == "gius@kiro-cli:claude-sonnet> ")
+        ;
+    }
+  }
+  GIVEN ("provider is ollama") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "ollama", "gemma4:26b");
+      CHECK (label == "gius@ollama:gemma4:26b> ")
+        ;
+    }
+  }
+  GIVEN ("nick is empty") {
+    THEN ("just shows > ") {
+      std::string label = build_prompt_label("", "tgpt", "whatever");
+      CHECK (label == "> ")
+        ;
     }
   }
 }

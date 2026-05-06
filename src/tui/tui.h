@@ -63,6 +63,14 @@ inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
   out << (color ? active_theme().system.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
+/// Format a word as bold+white within a system message (stands out from dim text).
+/// Uses \033[1;97m (bold + bright white) and \033[22;39m (bold off + default fg).
+/// This avoids \033[0m which would reset the entire system style (dim, color).
+/// Used in startup messages to highlight commands like /host, /model, /quit.
+inline std::string bold(const std::string& text) {
+  return "\033[1;97m" + text + "\033[22;39m";  // bold+bright white on, then bold off + default fg
+}
+
 /** Print a bold red error message */
 inline void error(std::ostream& out, bool color, const std::string& msg) {
   out << "\n" << (color ? active_theme().error.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";

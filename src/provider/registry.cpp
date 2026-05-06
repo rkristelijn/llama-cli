@@ -229,21 +229,69 @@ ModelRegistry scan_all_providers() {
     }
   }
 
-  // --- Amazon Q Developer ---
+  // --- Amazon Q Developer (via q CLI + kiro-cli-chat for model discovery) ---
+  // The `q` binary is the Amazon Q Developer CLI (free tier, single model).
+  // If kiro-cli-chat is also available, we use it to discover the full model
+  // catalog with descriptions and credit costs. Both share the same backend
+  // but `q` is free while kiro-cli uses credits for premium models.
   ExecResult q_check = cmd_exec("which q", 3, 200);
   if (q_check.exit_code == 0) {
-    ModelEntry entry;
-    entry.name = "amazon-q";
-    entry.provider = "amazon-q";
-    entry.host = "cloud";
-    entry.tokens_per_sec = 0;
-    entry.cost = CostTier::Free;
-    entry.capabilities = {Capability::General, Capability::Code};
-    entry.available = true;
-    reg.models.push_back(entry);
+    // Try to get full model list via kiro-cli-chat (same backend, richer info)
+    ExecResult q_models = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
+    if (q_models.exit_code == 0 && q_models.output.find("model_name") != std::string::npos) {
+      size_t pos = 0;
+      while ((pos = q_models.output.find("\"model_name\":\"", pos)) != std::string::npos) {
+        pos += 14;
+        auto end = q_models.output.find("\"", pos);
+        std::string name = q_models.output.substr(pos, end - pos);
+        // Extract description
+        std::string desc;
+        auto desc_pos = q_models.output.find("\"description\":\"", pos);
+        if (desc_pos != std::string::npos && desc_pos < pos + 400) {
+          auto desc_start = desc_pos + 15;
+          auto desc_end = q_models.output.find("\"", desc_start);
+          desc = q_models.output.substr(desc_start, desc_end - desc_start);
+        }
+        // Extract rate multiplier
+        double rate = 1.0;
+        auto rate_pos = q_models.output.find("\"rate_multiplier\":", pos);
+        if (rate_pos != std::string::npos && rate_pos < pos + 400) {
+          try {
+            rate = std::stod(q_models.output.substr(rate_pos + 18, 10));
+          } catch (...) {
+          }
+        }
+        ModelEntry entry;
+        entry.name = name;
+        entry.provider = "amazon-q";
+        entry.host = "cloud";
+        entry.description = desc;
+        entry.cost_rate = rate;
+        entry.tokens_per_sec = 0;
+        entry.cost = (rate > 1.5) ? CostTier::Expensive : (rate > 0.5 ? CostTier::Cheap : CostTier::Free);
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+        pos = end;
+      }
+    } else {
+      // Fallback: single generic entry
+      ModelEntry entry;
+      entry.name = "amazon-q";
+      entry.provider = "amazon-q";
+      entry.host = "cloud";
+      entry.cost = CostTier::Free;
+      entry.capabilities = {Capability::General, Capability::Code};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
   }
 
-  // --- kiro-cli ---
+  // --- kiro-cli (Amazon Q Developer with model selection + credits) ---
+  // kiro-cli-chat is the Kiro CLI that provides access to premium models
+  // (Claude, DeepSeek, etc.) via Amazon Q Developer credits.
+  // Unlike the free `q` CLI, kiro-cli supports model selection and shows
+  // per-model credit costs. Models are discovered via --list-models -f json.
   ExecResult kiro_check = cmd_exec("which kiro-cli-chat", 3, 200);
   if (kiro_check.exit_code == 0) {
     // Parse model list from kiro-cli-chat for real model names + costs
@@ -254,10 +302,18 @@ ModelRegistry scan_all_providers() {
         pos += 14;
         auto end = kiro_models.output.find("\"", pos);
         std::string name = kiro_models.output.substr(pos, end - pos);
+        // Extract description
+        std::string desc;
+        auto desc_pos = kiro_models.output.find("\"description\":\"", pos);
+        if (desc_pos != std::string::npos && desc_pos < pos + 400) {
+          auto desc_start = desc_pos + 15;
+          auto desc_end = kiro_models.output.find("\"", desc_start);
+          desc = kiro_models.output.substr(desc_start, desc_end - desc_start);
+        }
         // Extract rate multiplier
         double rate = 1.0;
         auto rate_pos = kiro_models.output.find("\"rate_multiplier\":", pos);
-        if (rate_pos != std::string::npos && rate_pos < pos + 300) {
+        if (rate_pos != std::string::npos && rate_pos < pos + 400) {
           try {
             rate = std::stod(kiro_models.output.substr(rate_pos + 18, 10));
           } catch (...) {
@@ -267,6 +323,8 @@ ModelRegistry scan_all_providers() {
         entry.name = name;
         entry.provider = "kiro-cli";
         entry.host = "cloud";
+        entry.description = desc;
+        entry.cost_rate = rate;
         entry.tokens_per_sec = 0;
         entry.cost = (rate > 1.5) ? CostTier::Expensive : (rate > 0.5 ? CostTier::Cheap : CostTier::Free);
         entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
@@ -275,7 +333,6 @@ ModelRegistry scan_all_providers() {
         pos = end;
       }
     } else {
-      // Fallback: just register one generic entry
       ModelEntry entry;
       entry.name = "kiro-auto";
       entry.provider = "kiro-cli";
@@ -285,6 +342,38 @@ ModelRegistry scan_all_providers() {
       entry.available = true;
       reg.models.push_back(entry);
     }
+  }
+
+  // --- sgpt (ShellGPT — uses OpenAI/local backends) ---
+  // ShellGPT is a Python CLI that wraps OpenAI-compatible APIs.
+  // Registered as single-model provider; actual model depends on user config.
+  ExecResult sgpt_check = cmd_exec("which sgpt", 3, 200);
+  if (sgpt_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "sgpt-default";
+    entry.provider = "sgpt";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Cheap;
+    entry.capabilities = {Capability::General, Capability::Code};
+    entry.available = true;
+    reg.models.push_back(entry);
+  }
+
+  // --- opencode (OpenCode AI CLI) ---
+  // OpenCode is a Go-based AI coding assistant CLI.
+  // Registered as single-model provider; actual backend depends on user config.
+  ExecResult opencode_check = cmd_exec("which opencode", 3, 200);
+  if (opencode_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "opencode-default";
+    entry.provider = "opencode";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Cheap;
+    entry.capabilities = {Capability::General, Capability::Code};
+    entry.available = true;
+    reg.models.push_back(entry);
   }
 
   // Sort: fastest first within each provider

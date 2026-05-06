@@ -64,17 +64,42 @@ static std::string read_file(const std::string& path) {
 }
 // Wrap rendered AI text with the configured AI color.
 // Re-applies AI color after any ANSI reset inside markdown rendering.
+/// Build the REPL prompt label based on nick, provider, and model.
+/// Build the REPL prompt label based on nick, provider, and model.
+/// Model is shown for all providers with selectable models.
+/// Only tgpt is excluded (single fixed model, no choice).
+/// Format: "nick@provider:model> " or "nick@provider> " or "> "
+/// Examples:
+///   gius\@ollama:gemma4:26b>     (local model visible)
+///   gius\@kiro-cli:claude-sonnet> (cloud model visible)
+///   gius\@tgpt>                   (no model — tgpt has only one)
+std::string build_prompt_label(const std::string& nick, const std::string& provider, const std::string& model) {
+  // tgpt has no model selection — skip model in prompt.
+  // All other providers (ollama, gemini, kiro-cli, amazon-q) show the model.
+  bool show_model = (provider != "tgpt") && !model.empty();
+  if (!nick.empty() && !provider.empty() && show_model) {
+    return nick + "@" + provider + ":" + model + "> ";
+  }
+  if (!nick.empty() && !provider.empty()) {
+    return nick + "@" + provider + "> ";
+  }
+  if (!nick.empty()) {
+    return nick + "> ";
+  }
+  return "> ";
+}
+
 /// Read one line of input using linenoise (interactive) or getline (tests).
 static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& /*prompt_ansi*/ = "",
-                      const std::string& nick = "") {
+                      const std::string& nick = "", const std::string& model = "", const std::string& provider = "") {
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
   }
   if (!isatty(STDIN_FILENO)) {
     return static_cast<bool>(std::getline(in, line));
   }
-  // Show nick in prompt: "gius> " or just "> "
-  std::string label = nick.empty() ? "> " : nick + "> ";
+  // Build prompt: "nick@provider:model> " or "nick@provider> " or "nick> " or "> "
+  std::string label = build_prompt_label(nick, provider, model);
   std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + Style::reset() : label;
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
@@ -298,7 +323,8 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
     ensure_searxng(cfg, out);
   }
 
-  while (read_line(in, out, line, state.color, state.prompt_color, Config::instance().nick == "user" ? "" : Config::instance().nick)) {
+  while (read_line(in, out, line, state.color, state.prompt_color, Config::instance().nick, Config::instance().model,
+                   Config::instance().provider)) {
     if (line.empty()) {
       continue;
     }

@@ -61,9 +61,10 @@
 // read_file_or_empty: safe file read that returns "" on missing files.
 
 /// Get version string from compile-time definition.
+/// Get version string: "0.20.0 (ba58807 dirty)" or "0.20.0 (ba58807)"
 static std::string get_version() {
   std::string ver = LLAMA_CLI_VERSION;
-  ver += " (built " __DATE__ " " __TIME__ " " BUILD_TIMEZONE ")";
+  ver += " (" GIT_COMMIT GIT_DIRTY ")";
   return ver;
 }
 
@@ -655,19 +656,179 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
           }
           if (s.switch_provider) {
             s.switch_provider(input);
-            s.out << "[switched to provider: " << input << "]\n";
+            s.out << "[switched to " << input << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
           }
         }
       } else {
-        s.out << "Available: ollama, tgpt, gemini\n";
+        s.out << "Available: ollama, tgpt, gemini, kiro-cli\n";
         s.out << "Usage: /provider <name>\n";
       }
     } else {
       if (s.switch_provider) {
         s.switch_provider(arg);
-        s.out << "[switched to provider: " << arg << "]\n";
+        s.out << "[switched to " << arg << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
       } else {
         s.out << "[provider switching not available]\n";
+      }
+    }
+    // --- Host selection: hierarchical navigation (ADR-089) ---
+    // /host lists unique hosts from the registry with model counts.
+    // Selecting a host switches provider+model to the first available on that host.
+    // This enables the Host → Provider → Model drill-down workflow.
+  } else if (command == "host") {
+    LOG_FEATURE("cmd_host");
+    if (!s.registry || s.registry->models.empty()) {
+      s.out << "[no registry available — run /scan first]\n";
+    } else if (!arg.empty()) {
+      // Direct host switch: /host <name>
+      bool found = false;
+      for (const auto& m : s.registry->models) {
+        if (m.host == arg || m.host.find(arg) == 0) {
+          if (m.host != "cloud") {
+            auto colon = m.host.find(':');
+            if (colon != std::string::npos) {
+              Config::instance().host = m.host.substr(0, colon);
+              Config::instance().port = m.host.substr(colon + 1);
+            }
+          }
+          Config::instance().provider = m.provider;
+          Config::instance().model = m.name;
+          if (s.switch_provider) {
+            s.switch_provider(m.provider);
+          }
+          s.out << "[host: " << m.host << " → " << m.provider << ":" << m.name << "]\n";
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        s.out << "Unknown host: " << arg << "\n";
+      }
+    } else {
+      // List unique hosts with model counts
+      std::vector<std::string> hosts;
+      std::map<std::string, int> host_counts;
+      std::map<std::string, std::string> host_providers;
+      for (const auto& m : s.registry->models) {
+        if (host_counts.find(m.host) == host_counts.end()) {
+          hosts.push_back(m.host);
+        }
+        host_counts[m.host]++;
+        if (host_providers[m.host].empty()) {
+          host_providers[m.host] = m.provider;
+        } else if (host_providers[m.host].find(m.provider) == std::string::npos) {
+          host_providers[m.host] += ", " + m.provider;
+        }
+      }
+      std::string current_host = Config::instance().host + ":" + Config::instance().port;
+      s.out << "[current: " << current_host << "]\n";
+      for (size_t i = 0; i < hosts.size(); i++) {
+        std::string marker = (hosts[i] == current_host || hosts[i].find(Config::instance().host) == 0) ? "*" : " ";
+        s.out << marker << " " << (i + 1) << ". " << hosts[i] << "  (" << host_providers[hosts[i]] << ", " << host_counts[hosts[i]]
+              << " model" << (host_counts[hosts[i]] > 1 ? "s" : "") << ")\n";
+      }
+      s.out << "Select [1-" << hosts.size() << "] or /host <name>: ";
+      s.out.flush();
+      std::string input;
+      if (std::getline(s.in, input) && !input.empty()) {
+        std::string selected_host;
+        try {
+          int idx = std::stoi(input) - 1;
+          if (idx >= 0 && idx < static_cast<int>(hosts.size())) {
+            selected_host = hosts[idx];
+          }
+        } catch (...) {
+          selected_host = input;
+        }
+        if (!selected_host.empty()) {
+          // Switch to first model on this host
+          for (const auto& m : s.registry->models) {
+            if (m.host == selected_host) {
+              if (m.host != "cloud") {
+                auto colon = m.host.find(':');
+                if (colon != std::string::npos) {
+                  Config::instance().host = m.host.substr(0, colon);
+                  Config::instance().port = m.host.substr(colon + 1);
+                }
+              }
+              Config::instance().provider = m.provider;
+              Config::instance().model = m.name;
+              if (s.switch_provider) {
+                s.switch_provider(m.provider);
+              }
+              s.out << "[host: " << m.host << " → " << m.provider << ":" << m.name << "]\n";
+              break;
+            }
+          }
+        }
+      }
+    }
+    // --- Quick-switch: /use [@host:]provider:model (ADR-089) ---
+    // Power-user command for one-liner switching without interactive menus.
+    // Supports partial matches: /use claude matches first model containing "claude".
+    // The @ prefix denotes a host filter, colon separates provider:model.
+  } else if (command == "use") {
+    LOG_FEATURE("cmd_use");
+    if (arg.empty()) {
+      s.out << "Usage: /use <model>                    — switch model\n";
+      s.out << "       /use <provider>:<model>         — switch provider + model\n";
+      s.out << "       /use @<host>                    — switch host\n";
+      s.out << "       /use @<host>:<provider>:<model> — switch everything\n";
+    } else if (!s.registry || s.registry->models.empty()) {
+      s.out << "[no registry available]\n";
+    } else {
+      std::string host_part, prov_part, model_part;
+      std::string input = arg;
+      // Parse @host prefix
+      if (!input.empty() && input[0] == '@') {
+        input = input.substr(1);
+        auto colon = input.find(':');
+        if (colon != std::string::npos) {
+          host_part = input.substr(0, colon);
+          input = input.substr(colon + 1);
+        } else {
+          host_part = input;
+          input.clear();
+        }
+      }
+      // Parse provider:model or just model
+      if (!input.empty()) {
+        auto colon = input.find(':');
+        if (colon != std::string::npos) {
+          prov_part = input.substr(0, colon);
+          model_part = input.substr(colon + 1);
+        } else {
+          model_part = input;
+        }
+      }
+      // Find matching entry in registry
+      const ModelEntry* match = nullptr;
+      for (const auto& m : s.registry->models) {
+        bool host_ok = host_part.empty() || m.host.find(host_part) != std::string::npos;
+        bool prov_ok = prov_part.empty() || m.provider == prov_part;
+        bool model_ok = model_part.empty() || m.name == model_part || m.name.find(model_part) == 0;
+        if (host_ok && prov_ok && model_ok && m.available) {
+          match = &m;
+          break;
+        }
+      }
+      if (match) {
+        if (match->host != "cloud") {
+          auto colon = match->host.find(':');
+          if (colon != std::string::npos) {
+            Config::instance().host = match->host.substr(0, colon);
+            Config::instance().port = match->host.substr(colon + 1);
+          }
+        }
+        Config::instance().provider = match->provider;
+        Config::instance().model = match->name;
+        if (s.switch_provider) {
+          s.switch_provider(match->provider);
+        }
+        s.out << "[switched: " << match->name << " on " << match->provider << "@" << match->host << "]\n";
+      } else {
+        s.out << "No matching model found for: " << arg << "\n";
+        s.out << "Try /model to see available options.\n";
       }
     }
     // --- Auto-routing: smart model selection by prompt complexity (ADR-079) ---

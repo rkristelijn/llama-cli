@@ -82,6 +82,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-086-tree-sitter-highlighting.md`](docs/adr/adr-086-tree-sitter-highlighting.md) — ADR-086: Syntax Highlighting via tree-sitter
 - [`docs/adr/adr-087-adaptive-system-prompt.md`](docs/adr/adr-087-adaptive-system-prompt.md) — ADR-087: Adaptive System Prompt
 - [`docs/adr/adr-088-interactive-input-pattern.md`](docs/adr/adr-088-interactive-input-pattern.md) — ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
+- [`docs/adr/adr-089-hierarchical-selection.md`](docs/adr/adr-089-hierarchical-selection.md) — ADR-089: Hierarchical Host → Provider → Model Selection
+- [`docs/adr/adr-090-build-version-string.md`](docs/adr/adr-090-build-version-string.md) — ADR-090: Build Version String
+- [`docs/adr/adr-091-tgpt-free-chatgpt-bridge.md`](docs/adr/adr-091-tgpt-free-chatgpt-bridge.md) — ADR-091: Free ChatGPT Integration via tgpt CLI Provider
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -326,4 +329,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_323 files indexed._
+_326 files indexed._

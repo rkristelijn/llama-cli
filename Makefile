@@ -41,7 +41,12 @@ build: all ## Build the project
 #      	   shellcheck           ✓
 #          yamllint             ✓
 #          rumdl                ✓
-	@echo "  build                ✓"
+	@if [ "$${CI:-}" = "true" ]; then \
+		echo "  build                ✓ v$$(cat VERSION) ($$(git rev-parse --short HEAD))"; \
+	else \
+		dirty=""; git diff --quiet -- 'src/*.cpp' 'src/*.h' 'src/**/*.cpp' 'src/**/*.h' 2>/dev/null || dirty=" dirty"; \
+		echo "  build                ✓ $$(git rev-parse --short HEAD)$$dirty"; \
+	fi
 
 start: all ## Build and run the REPL (alias: s)
 	@./$(BINARY) $(ARGS)
@@ -406,9 +411,7 @@ help: ## Show this help
 all: $(if $(filter 1,$(SKIP_DEPS)),,check-deps)
 	@cmake -B $(BUILD_DIR) -S . > /dev/null
 	@cmake --build $(BUILD_DIR) --target llama-cli > /dev/null
-	@if [ -f llama-cli ] && lsof llama-cli >/dev/null 2>&1; then \
-		mv llama-cli llama-cli.old_$$(date +%s) 2>/dev/null || true; \
-	fi
+	@mv -f llama-cli llama-cli.old 2>/dev/null || true
 	@cp $(BINARY) .
 
 check-deps:

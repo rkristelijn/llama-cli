@@ -117,7 +117,31 @@ string(REGEX REPLACE "^v" "" LLAMA_CLI_VERSION "${LLAMA_CLI_VERSION}")
 if(LLAMA_CLI_VERSION STREQUAL "")
   set(LLAMA_CLI_VERSION "0.0.0-dev")
 endif()
+
+# Get short commit hash
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+
+# Check for dirty working tree (src files only)
+execute_process(
+  COMMAND git diff --quiet -- src/
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  RESULT_VARIABLE GIT_DIRTY_RESULT
+)
+if(GIT_DIRTY_RESULT)
+  set(GIT_DIRTY " dirty")
+else()
+  set(GIT_DIRTY "")
+endif()
+
 add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
+add_compile_definitions(GIT_COMMIT="${GIT_COMMIT}")
+add_compile_definitions(GIT_DIRTY="${GIT_DIRTY}")
 
 # Inject build timezone at compile time (portable CMake-only)
 string(TIMESTAMP BUILD_TZ "%z")

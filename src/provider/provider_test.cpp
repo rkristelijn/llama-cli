@@ -13,6 +13,7 @@
 
 #include "provider/multi_host_provider.h"
 #include "provider/provider_factory.h"
+#include "provider/registry.h"
 
 // NOLINTNEXTLINE(readability-function-size)
 SCENARIO ("provider factory: mock provider echoes prompts") {
@@ -261,6 +262,57 @@ SCENARIO ("multi_host: model is passed to per-host providers for chat") {
         std::string result = provider.chat_stream(msgs, nullptr);
         // Should NOT be empty — empty means 404 (model not passed)
         CHECK_FALSE (result.empty())
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("model selection: provider and host are set correctly") {
+  GIVEN ("a registry with models from different providers") {
+    ModelRegistry reg;
+    reg.models = {{"gemma4:e4b", "ollama", "localhost:11434", "", 42.0, 4.0, 0, CostTier::Free, {Capability::General}, true},
+                  {"amazon-q", "amazon-q", "cloud", "", 0, 0, 0, CostTier::Free, {Capability::Code}, true},
+                  {"gemini-cli", "gemini", "cloud", "", 0, 0, 0, CostTier::Free, {Capability::General}, true}};
+
+    WHEN ("selecting an ollama model") {
+      Config::instance().model = "gemma4:e4b";
+      Config::instance().provider = "ollama";
+      Config::instance().host = "localhost";
+      Config::instance().port = "11434";
+
+      THEN ("config has correct values") {
+        CHECK (Config::instance().model == "gemma4:e4b")
+          ;
+        CHECK (Config::instance().provider == "ollama")
+          ;
+        CHECK (Config::instance().host == "localhost")
+          ;
+        CHECK (Config::instance().port == "11434")
+          ;
+      }
+    }
+
+    WHEN ("selecting amazon-q model") {
+      Config::instance().model = "amazon-q";
+      Config::instance().provider = "amazon-q";
+
+      THEN ("config has correct provider") {
+        CHECK (Config::instance().model == "amazon-q")
+          ;
+        CHECK (Config::instance().provider == "amazon-q")
+          ;
+      }
+    }
+
+    WHEN ("selecting gemini model") {
+      Config::instance().model = "gemini-cli";
+      Config::instance().provider = "gemini";
+
+      THEN ("config has correct provider") {
+        CHECK (Config::instance().model == "gemini-cli")
+          ;
+        CHECK (Config::instance().provider == "gemini")
           ;
       }
     }

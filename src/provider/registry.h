@@ -23,8 +23,10 @@ struct ModelEntry {
   std::string name;                      ///< Model name (e.g., "qwen2.5-coder:14b")
   std::string provider;                  ///< Provider name (e.g., "ollama")
   std::string host;                      ///< Host address (e.g., "apsnlmac4050:11434")
+  std::string description;               ///< Human-readable description
   double tokens_per_sec = 0;             ///< Benchmark speed (0 = unknown)
   double params_b = 0;                   ///< Parameter count in billions
+  double cost_rate = 0;                  ///< Cost multiplier (e.g., 1.3x credits)
   CostTier cost = CostTier::Free;        ///< Cost tier
   std::vector<Capability> capabilities;  ///< What this model is good at
   bool available = true;                 ///< Currently reachable
