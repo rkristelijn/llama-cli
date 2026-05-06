@@ -5,6 +5,8 @@
 
 #include <doctest/doctest.h>
 
+#include "tui/tui.h"
+
 SCENARIO ("parsing write annotations") {
   GIVEN ("a response with a single write annotation") {
     std::string text = R"(Here's the fix:
@@ -193,13 +195,13 @@ SCENARIO ("parsing read annotations") {
   }
 }
 
-SCENARIO ("stripped annotations contain bold white ANSI codes") {
+SCENARIO ("stripped annotations contain themed ANSI codes") {
   GIVEN ("a write annotation") {
     std::string text = R"(<write file="test.cpp">content</write>)";
     WHEN ("stripped") {
       auto clean = strip_annotations(text);
-      THEN ("output contains bold white escape and reset") {
-        CHECK (clean.find("\033[1;37m") != std::string::npos)
+      THEN ("output contains info escape and reset") {
+        CHECK (clean.find(tui::active_theme().info.ansi()) != std::string::npos)
           ;
         CHECK (clean.find("\033[0m") != std::string::npos)
           ;
@@ -211,8 +213,8 @@ SCENARIO ("stripped annotations contain bold white ANSI codes") {
     std::string text = R"(<str_replace path="x.cpp"><old>a</old><new>b</new></str_replace>)";
     WHEN ("stripped") {
       auto clean = strip_annotations(text);
-      THEN ("output contains bold white escape") {
-        CHECK (clean.find("\033[1;37m") != std::string::npos)
+      THEN ("output contains info escape") {
+        CHECK (clean.find(tui::active_theme().info.ansi()) != std::string::npos)
           ;
       }
     }
@@ -222,8 +224,8 @@ SCENARIO ("stripped annotations contain bold white ANSI codes") {
     std::string text = R"(<read path="x.cpp" lines="1-5"/>)";
     WHEN ("stripped") {
       auto clean = strip_annotations(text);
-      THEN ("output contains bold white escape") {
-        CHECK (clean.find("\033[1;37m") != std::string::npos)
+      THEN ("output contains info escape") {
+        CHECK (clean.find(tui::active_theme().info.ansi()) != std::string::npos)
           ;
       }
     }
@@ -454,7 +456,7 @@ SCENARIO ("strip_annotations produces exact output for write") {
     std::string text = "before<write file=\"f.cpp\">code</write>after";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary with no leftover tag chars") {
-      CHECK (clean == "before\033[1;37m[proposed: write f.cpp]\033[0mafter")
+      CHECK (clean == "before" + tui::active_theme().info.ansi() + "[proposed: write f.cpp]\033[0mafter")
         ;
     }
   }
@@ -465,7 +467,7 @@ SCENARIO ("strip_annotations produces exact output for str_replace") {
     std::string text = "A<str_replace path=\"x.cpp\"><old>a</old><new>b</new></str_replace>B";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary") {
-      CHECK (clean == "A\033[1;37m[proposed: str_replace x.cpp]\033[0mB")
+      CHECK (clean == "A" + tui::active_theme().info.ansi() + "[proposed: str_replace x.cpp]\033[0mB")
         ;
     }
   }
@@ -476,7 +478,7 @@ SCENARIO ("strip_annotations produces exact output for read") {
     std::string text = "X<read path=\"r.cpp\" lines=\"1-2\"/>Y";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary") {
-      CHECK (clean == "X\033[1;37m[read r.cpp]\033[0mY")
+      CHECK (clean == "X" + tui::active_theme().info.ansi() + "[read r.cpp]\033[0mY")
         ;
     }
   }
@@ -487,7 +489,7 @@ SCENARIO ("strip_annotations produces exact output for search") {
     std::string text = "P<search>my query</search>Q";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary") {
-      CHECK (clean == "P\033[1;37m[search: my query]\033[0mQ")
+      CHECK (clean == "P" + tui::active_theme().info.ansi() + "[search: my query]\033[0mQ")
         ;
     }
   }
@@ -498,7 +500,7 @@ SCENARIO ("strip_annotations produces exact output for add_line") {
     std::string text = "M<add_line path=\"t.txt\" line_number=\"1\" content=\"x\"/>N";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary") {
-      CHECK (clean == "M\033[1;37m[proposed: add line to t.txt]\033[0mN")
+      CHECK (clean == "M" + tui::active_theme().info.ansi() + "[proposed: add line to t.txt]\033[0mN")
         ;
     }
   }
@@ -509,7 +511,7 @@ SCENARIO ("strip_annotations produces exact output for delete_line") {
     std::string text = "J<delete_line path=\"d.txt\" content=\"bye\"/>K";
     auto clean = strip_annotations(text);
     THEN ("output is exactly the summary") {
-      CHECK (clean == "J\033[1;37m[proposed: delete line from d.txt]\033[0mK")
+      CHECK (clean == "J" + tui::active_theme().info.ansi() + "[proposed: delete line from d.txt]\033[0mK")
         ;
     }
   }

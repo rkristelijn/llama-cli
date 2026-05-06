@@ -11,4 +11,3 @@
 - [ ] lets forget about making bak files outside of git, maybe make ext._ or something idk
 - [ ] pagination bij overflow adhv consloe height, en strikt patter met nummers of beter letters, geen nummers bij keuze
 - [ ] onderzoek doen naar tui design best practices en a11y
-
