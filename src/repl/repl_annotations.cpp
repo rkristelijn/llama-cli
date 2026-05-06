@@ -269,8 +269,17 @@ void process_write(const WriteAction& action, std::istream& in, std::ostream& ou
     if (exists_check.good()) {
       exists_check.close();
       std::string existing = read_file(action.path);
-      // Use a unique suffix to avoid collision with system .bak files
-      std::ofstream bak(action.path + ".upd");
+      // Backup to .tmp/backups/ so we never pollute git-managed folders
+      std::string bak_dir = ".tmp/backups";
+      std::string cmd = "mkdir -p " + bak_dir;
+      system(cmd.c_str());
+      // Use basename to avoid path separators in backup filename
+      std::string basename = action.path;
+      auto slash = basename.rfind('/');
+      if (slash != std::string::npos) {
+        basename = basename.substr(slash + 1);
+      }
+      std::ofstream bak(bak_dir + "/" + basename + ".bak");
       if (bak.is_open()) {
         bak << existing;
       }
@@ -312,7 +321,11 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     auto replace_pos = updated.find(action.old_str);
     updated.replace(replace_pos, action.old_str.size(), action.new_str);
     show_diff(existing, updated, out, color);
-    std::ofstream bak(action.path + ".bak");
+    system("mkdir -p .tmp/backups");
+    std::string bn = action.path;
+    auto sl = bn.rfind('/');
+    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    std::ofstream bak(".tmp/backups/" + bn + ".bak");
     if (bak.is_open()) {
       bak << existing;
     }
@@ -383,7 +396,11 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
 
   // Backup and write
   {
-    std::ofstream bak(action.path + ".bak");
+    system("mkdir -p .tmp/backups");
+    std::string bn = action.path;
+    auto sl = bn.rfind('/');
+    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    std::ofstream bak(".tmp/backups/" + bn + ".bak");
     bak << existing;
   }
   std::ofstream f(action.path);

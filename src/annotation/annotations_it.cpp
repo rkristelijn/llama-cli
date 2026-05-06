@@ -148,7 +148,10 @@ SCENARIO ("Write annotation shows diff for existing files") {
           ;
       }
       THEN ("backup exists") {
-        std::ifstream bak(path + ".bak");
+        std::string bn = path;
+        auto sl = bn.rfind('/');
+        if (sl != std::string::npos) bn = bn.substr(sl + 1);
+        std::ifstream bak(".tmp/backups/" + bn + ".bak");
         CHECK (bak.is_open())
           ;
       }
