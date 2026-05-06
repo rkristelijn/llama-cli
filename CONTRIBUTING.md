@@ -38,6 +38,23 @@ Quick reference:
 
 `SCENARIO`, `GIVEN`, `WHEN`, `THEN`, `TEST_CASE` are uppercase macros — clang-format must not lowercase them. They are listed in `StatementMacros` in `.config/.clang-format`. If you add a new doctest macro, add it there too. Never run `clang-tidy --fix` on test files — it does not understand doctest macros and will corrupt them.
 
+### Interactive input (ADR-088)
+
+**Never use `std::cin` or `std::getline(std::cin, ...)` for interactive input.** After linenoise manipulates the terminal (raw mode), cin's stream buffer enters an undefined state — Enter shows as `^M`, Ctrl-C doesn't work.
+
+Use `read_answer(in, answer)` from `repl_annotations.cpp` for all confirmation prompts. It uses `linenoise::Readline` in interactive mode and falls back to `std::getline` for tests:
+
+```cpp
+// ✅ Good — works in interactive mode AND tests
+std::string answer;
+read_answer(in, answer);
+
+// ❌ Bad — breaks after linenoise raw mode, no Ctrl-C support
+std::getline(std::cin, answer);
+```
+
+Enforced by `scripts/lint/check-interactive-input.sh`.
+
 ## Shell scripts
 
 All shell scripts follow the conventions in [docs/tools/shell-scripts.md](docs/tools/shell-scripts.md). Summary:

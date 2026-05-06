@@ -612,3 +612,25 @@ SCENARIO ("Write confirmation shows help on ?") {
     std::remove(path.c_str());
   }
 }
+
+// ADR-088: Verify that EOF during confirmation (simulates Ctrl-C) skips gracefully
+SCENARIO ("Write confirmation handles EOF gracefully (ADR-088)") {
+  const std::string path = "/tmp/llama-eof-test.txt";
+  std::remove(path.c_str());
+
+  GIVEN ("the LLM responds with a write annotation") {
+    auto write_chat = [&](const std::vector<Message>&) { return "<write file=\"" + path + "\">eof test</write>"; };
+
+    WHEN ("input stream ends before confirmation (simulates Ctrl-C)") {
+      std::istringstream in("go\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+      THEN ("the file is NOT written") {
+        std::ifstream f(path);
+        CHECK_FALSE (f.is_open())
+          ;
+      }
+    }
+    std::remove(path.c_str());
+  }
+}

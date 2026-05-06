@@ -81,6 +81,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-085-multi-agent.md`](docs/adr/adr-085-multi-agent.md) — ADR-085: Multi-Agent Support
 - [`docs/adr/adr-086-tree-sitter-highlighting.md`](docs/adr/adr-086-tree-sitter-highlighting.md) — ADR-086: Syntax Highlighting via tree-sitter
 - [`docs/adr/adr-087-adaptive-system-prompt.md`](docs/adr/adr-087-adaptive-system-prompt.md) — ADR-087: Adaptive System Prompt
+- [`docs/adr/adr-088-interactive-input-pattern.md`](docs/adr/adr-088-interactive-input-pattern.md) — ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -165,6 +166,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
 - [`scripts/lint/check-duplication.sh`](scripts/lint/check-duplication.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
+- [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
@@ -323,4 +325,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_320 files indexed._
+_322 files indexed._

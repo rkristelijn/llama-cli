@@ -71,7 +71,7 @@ kill: ## Kill running llama-cli instances
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -171,6 +171,10 @@ check-theme: ## Check no hardcoded ANSI outside tui/ (ADR-080)
 
 check-xref: ## Validate ADR cross-references in code (ADR-022)
 	@bash scripts/lint/check-xref.sh
+	$(log_footer)
+
+check-interactive-input: ## Check no direct std::cin usage (ADR-088)
+	@bash scripts/lint/check-interactive-input.sh
 	$(log_footer)
 
 dead-code: ## Detect unused functions and orphaned scripts (ADR-064)

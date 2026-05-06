@@ -11,6 +11,8 @@
 
 #include "repl/repl_annotations.h"
 
+#include <unistd.h>
+
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -19,14 +21,26 @@
 
 #include "dtl/dtl.hpp"
 #include "exec/exec.h"
+#include "linenoise.hpp"
 #include "logging/logger.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
 
-/// Read a single line for y/n confirmation. Terminal is in cooked mode here
-/// because linenoise::Readline restores it after each REPL prompt. Strip \r
-/// in case of piped input or unexpected raw mode.
+/// Read a single line for y/n confirmation.
+/// Uses linenoise::Readline in interactive mode (stdin) for proper terminal
+/// handling — std::getline is unreliable after linenoise raw mode manipulation.
+/// Falls back to std::getline for tests (stringstream input).
+/// Ctrl-C in interactive mode returns false (same as EOF).
 static bool read_answer(std::istream& in, std::string& answer) {
+  if (&in == &std::cin && isatty(STDIN_FILENO)) {
+    // Interactive: use linenoise for proper Enter/Ctrl-C handling
+    auto quit = linenoise::Readline("", answer);
+    if (quit) {
+      return false;
+    }
+    return true;
+  }
+  // Non-interactive (tests, pipes): use std::getline
   if (!std::getline(in, answer)) {
     return false;
   }
@@ -217,6 +231,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
       trust = true;
       return true;
     } else if (answer == "c" || answer == "copy") {
+      // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
       FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
       if (pipe) {
@@ -332,10 +347,6 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
       LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
       return;
     }
-    // Strip \r from raw terminal mode
-    if (!answer.empty() && answer.back() == '\r') {
-      answer.pop_back();
-    }
     if (answer == "y" || answer == "yes") {
       break;
     }
@@ -344,6 +355,7 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
       break;
     }
     if (answer == "c" || answer == "copy") {
+      // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
       FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
       if (pipe) {
@@ -487,10 +499,6 @@ std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream
       if (!read_answer(in, answer)) {
         return "";
       }
-      // Strip \r from raw terminal mode
-      if (!answer.empty() && answer.back() == '\r') {
-        answer.pop_back();
-      }
       if (answer == "y" || answer == "yes") {
         break;
       }
@@ -499,6 +507,7 @@ std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream
         break;
       }
       if (answer == "c" || answer == "copy") {
+        // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
         FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
         if (pipe) {
