@@ -269,7 +269,8 @@ void process_write(const WriteAction& action, std::istream& in, std::ostream& ou
     if (exists_check.good()) {
       exists_check.close();
       std::string existing = read_file(action.path);
-      std::ofstream bak(action.path + ".bak");
+      // Use a unique suffix to avoid collision with system .bak files
+      std::ofstream bak(action.path + ".upd");
       if (bak.is_open()) {
         bak << existing;
       }

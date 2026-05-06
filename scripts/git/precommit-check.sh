@@ -33,8 +33,6 @@ $HAS_YAML && ((TOTAL++)) || true
 $HAS_MD && ((TOTAL++)) || true
 $HAS_SH && ((TOTAL++)) || true
 $HAS_IMG && ((TOTAL++)) || true
-((TOTAL++)) || true # index (always — cheap)
-((TOTAL++)) || true # todo (always — cheap)
 ((TOTAL++)) || true # sast-iac (always)
 ((TOTAL++)) || true # sast-secret (always)
 
@@ -58,11 +56,6 @@ $HAS_CPP && run_step "format-code" make -s format-code
 $HAS_YAML && run_step "format-yaml" make -s format-yaml
 $HAS_MD && run_step "format-md" make -s format-md
 $HAS_SH && run_step "format-scripts" make -s format-scripts
-
-echo ""
-echo "── Documentation ──"
-run_step "index" make -s index
-run_step "todo" make -s todo
 
 echo ""
 echo "── Security ──"
