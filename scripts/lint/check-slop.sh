@@ -151,6 +151,22 @@ if [[ -n "$MD_DIFF" ]]; then
     echo "    → Take a stance. Be direct."
     ((WARNINGS++)) || true
   fi
+
+  # 16. Em-dash overuse (AI signature: excessive — without spaces)
+  emdash=$(echo "$MD_DIFF" | grep -c '^\+.*—' || true)
+  if [[ $emdash -gt 10 ]]; then
+    echo "  ⚠ Em-dash overuse in docs: $emdash lines with — (AI writing signature)"
+    echo "    → Use periods or commas. Em-dashes are spice, not staple."
+    ((WARNINGS++)) || true
+  fi
+
+  # 17. Servile positivity / sycophantic tone
+  servile=$(echo "$MD_DIFF" | grep -ci '^\+.*\(game.changer\|powerful tool\|best practices\|world-class\|cutting.edge\|next.level\|elevate\)' || true)
+  if [[ $servile -gt 3 ]]; then
+    echo "  ⚠ Servile positivity in docs: $servile marketing-speak phrases"
+    echo "    → Describe what it does, not how amazing it is"
+    ((WARNINGS++)) || true
+  fi
 fi
 
 # Summary
