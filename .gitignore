@@ -15,5 +15,6 @@ compile_commands.json
 .env
 *.swp
 /llama-cli
+/llama-cli.old_*
 coverage.info
 events.jsonl
