@@ -24,7 +24,7 @@ struct Event {
   int tokens_prompt = 0;      ///< Prompt tokens
   int tokens_completion = 0;  ///< Completion tokens
   std::string rating;         ///< Rating: "positive", "negative", "saved", or empty
-  std::string host;           ///< Target host:port (e.g., "apsnlmac4050:11434")
+  std::string host;           ///< Target host:port (e.g., "<hostname>:11434")
   std::string provider;       ///< Provider name (e.g., "ollama", "mock", "openai")
 };
 

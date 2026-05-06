@@ -3,7 +3,7 @@
 # @see docs/adr/adr-44-tidy-boilerplate.md
 
 [global]
-exclude = ["build", "node_modules"]
+exclude = ["build", "node_modules", "docs/cpp-core-guidelines.md"]
 respect-gitignore = true
 cache-dir = ".tmp/rumdl"
 # MD013: line length — too many existing violations in ADRs/docs

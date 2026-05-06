@@ -41,7 +41,7 @@ class LLMProvider {
   /// Provider display name (e.g., "ollama", "openai", "tgpt").
   virtual std::string name() const = 0;
 
-  /// Host identifier for logging (e.g., "apsnlmac4050:11434").
+  /// Host identifier for logging (e.g., "<hostname>:11434").
   virtual std::string host() const = 0;
 };
 

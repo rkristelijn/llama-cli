@@ -1,0 +1,167 @@
+# Feature Registry — Bidirectional Traceability (ADR-095)
+# Maps every LOG_FEATURE token to its governing ADR(s).
+# CI enforces: every token here exists in src/, every ADR here exists on disk.
+
+# === REPL Commands (ADR-012, ADR-025) ===
+cmd_agent:
+  adr: [ADR-012, ADR-025]
+  description: "Switch agent personality"
+cmd_auto:
+  adr: [ADR-012]
+  description: "Toggle auto-routing by complexity"
+cmd_chat:
+  adr: [ADR-012]
+  description: "Save/load conversation"
+cmd_clear:
+  adr: [ADR-012]
+  description: "Clear conversation history"
+cmd_color:
+  adr: [ADR-012]
+  description: "Toggle color output"
+cmd_compress:
+  adr: [ADR-012]
+  description: "Compress conversation history"
+cmd_copy:
+  adr: [ADR-012]
+  description: "Copy last response to clipboard"
+cmd_help:
+  adr: [ADR-012, ADR-025]
+  description: "Show help text"
+cmd_host:
+  adr: [ADR-012, ADR-020]
+  description: "Switch provider host"
+cmd_image:
+  adr: [ADR-012]
+  description: "Attach image for vision models"
+cmd_mem:
+  adr: [ADR-012]
+  description: "Memory/context management"
+cmd_model:
+  adr: [ADR-012, ADR-020]
+  description: "List/switch models"
+cmd_nick:
+  adr: [ADR-012]
+  description: "Set user nickname"
+cmd_paste:
+  adr: [ADR-012]
+  description: "Paste from clipboard"
+cmd_pref:
+  adr: [ADR-012]
+  description: "User preferences"
+cmd_rate:
+  adr: [ADR-012]
+  description: "Rate last response"
+cmd_scan:
+  adr: [ADR-012]
+  description: "Scan directory for context"
+cmd_set:
+  adr: [ADR-012]
+  description: "Show/set runtime options"
+cmd_theme:
+  adr: [ADR-012]
+  description: "Switch color theme"
+cmd_usage:
+  adr: [ADR-012, ADR-027]
+  description: "Show session usage stats"
+cmd_use:
+  adr: [ADR-012, ADR-020]
+  description: "Switch provider"
+cmd_version:
+  adr: [ADR-007]
+  description: "Show version info"
+
+# === Execution Modes (ADR-005) ===
+repl_mode:
+  adr: [ADR-005, ADR-012]
+  description: "Interactive REPL mode activated"
+sync_mode:
+  adr: [ADR-005]
+  description: "One-shot sync mode activated"
+
+# === File Reading (ADR-013, ADR-014) ===
+read_annotation:
+  adr: [ADR-014, ADR-013]
+  description: "LLM requests file read"
+read_full_file:
+  adr: [ADR-013]
+  description: "Read entire file"
+read_line_range:
+  adr: [ADR-013]
+  description: "Read specific line range"
+read_not_found:
+  adr: [ADR-013]
+  description: "Requested file not found"
+read_search:
+  adr: [ADR-013]
+  description: "Search within file"
+files_flag:
+  adr: [ADR-013, ADR-007]
+  description: "--files flag attaches context"
+
+# === File Writing (ADR-014, ADR-019) ===
+write_annotation:
+  adr: [ADR-014, ADR-019]
+  description: "LLM proposes file write"
+write_confirmed:
+  adr: [ADR-019]
+  description: "User confirms file write"
+write_declined:
+  adr: [ADR-019]
+  description: "User declines file write"
+write_diff_existing:
+  adr: [ADR-019]
+  description: "Show diff for existing file"
+write_new_file:
+  adr: [ADR-019]
+  description: "Write creates new file"
+str_replace_annotation:
+  adr: [ADR-014, ADR-019]
+  description: "LLM proposes str_replace edit"
+
+# === Command Execution (ADR-015, ADR-056) ===
+exec_annotation:
+  adr: [ADR-014, ADR-015]
+  description: "LLM proposes command execution"
+exec_allowed:
+  adr: [ADR-015, ADR-056]
+  description: "Command execution permitted"
+exec_blocked:
+  adr: [ADR-015, ADR-056]
+  description: "Command execution blocked by policy"
+
+# === Sync Mode Specifics (ADR-005, ADR-056) ===
+sync_str_replace_not_found:
+  adr: [ADR-005, ADR-019]
+  description: "str_replace target not found in sync mode"
+sync_write_sandbox_blocked:
+  adr: [ADR-005, ADR-056]
+  description: "Write blocked by sandbox in sync mode"
+
+# === Provider & Model (ADR-020) ===
+mock_provider:
+  adr: [ADR-020]
+  description: "Mock provider activated for testing"
+model_selection:
+  adr: [ADR-020]
+  description: "Model selected/switched"
+provider_list:
+  adr: [ADR-020]
+  description: "List available providers"
+
+# === Session (ADR-056) ===
+session_load:
+  adr: [ADR-056]
+  description: "Load saved session"
+
+# === Chat Flow (ADR-012) ===
+prompt_gate:
+  adr: [ADR-012]
+  description: "Prompt gate before sending to LLM"
+
+# === Multi-Agent (ADR-096) ===
+cmd_plan:
+  adr: [ADR-096]
+  description: "/plan command - generate and execute task plan"
+subagent_invoke:
+  adr: [ADR-096]
+  description: "@mention subagent invocation"

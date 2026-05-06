@@ -208,6 +208,10 @@ jobs:
           files: coverage.info
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+      - uses: SonarSource/sonarqube-scan-action@aa494459d7c39c106cc77b166de8b4250a32bb97 # v5.1.0 # nosemgrep: generic.secrets.security.detected-sonarqube-docs-api-key
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   sanitizers:
     needs: changes

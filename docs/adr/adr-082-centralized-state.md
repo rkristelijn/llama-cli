@@ -53,11 +53,11 @@ struct AppState {
 ```cpp
 // Instead of:
 Config::instance().model = "qwen3:30b";
-Config::instance().host = "apsnlmac4050";
+Config::instance().host = "<hostname>";
 
 // Use:
 app.model = "qwen3:30b";
-app.host = "apsnlmac4050";
+app.host = "<hostname>";
 ```
 
 ### Migration Strategy

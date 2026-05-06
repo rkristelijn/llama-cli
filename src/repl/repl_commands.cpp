@@ -33,6 +33,9 @@
 #include "help.h"
 #include "logging/logger.h"
 #include "net/scan.h"
+#include "orchestrator/agent_config.h"
+#include "orchestrator/prompt_template.h"
+#include "orchestrator/task.h"
 #include "planner/planner.h"
 #include "provider/provider_factory.h"
 #include "repl/repl_model.h"
@@ -878,30 +881,52 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
   } else if (command == "agent") {
     LOG_FEATURE("cmd_agent");
     static auto personas = load_personas();
+    static auto agent_configs = load_agent_configs();
     if (arg.empty() || arg == "list") {
       s.out << "Available agents:\n";
-      for (const auto& p : personas) {
-        s.out << "  " << p.name << " — " << p.description << "\n";
+      for (const auto& a : agent_configs) {
+        std::string mode_str = (a.mode == AgentMode::Primary) ? "primary" : "subagent";
+        s.out << "  " << a.name << " — " << a.description << " [" << mode_str << "]\n";
       }
-      s.out << "Usage: /agent <name> or /agent off\n";
+      if (!personas.empty()) {
+        s.out << "Personas:\n";
+        for (const auto& p : personas) {
+          s.out << "  " << p.name << " — " << p.description << "\n";
+        }
+      }
+      s.out << "Active: " << active_agent_name() << "\n";
     } else if (arg == "off" || arg == "reset") {
-      // Restore original system prompt (first message in history)
       if (!s.history.empty() && s.history[0].role == "system") {
         s.history[0].content = s.cfg.system_prompt;
       }
-      s.out << "[agent disabled — default persona restored]\n";
+      set_active_agent("build");
+      s.out << "[agent: build — default restored]\n";
     } else {
-      const AgentPersona* p = find_persona(personas, arg);
-      if (p) {
-        // Override system prompt with persona
-        if (!s.history.empty() && s.history[0].role == "system") {
-          s.history[0].content = p->system_prompt;
-        } else {
-          s.history.insert(s.history.begin(), {"system", p->system_prompt});
+      const auto* ac = find_agent_config(agent_configs, arg);
+      if (ac) {
+        set_active_agent(ac->name);
+        std::string prompt = load_prompt(ac->prompt_file.empty() ? ac->name : ac->prompt_file.substr(0, ac->prompt_file.find('.')));
+        if (!prompt.empty()) {
+          if (!s.history.empty() && s.history[0].role == "system") {
+            s.history[0].content = prompt;
+          } else {
+            s.history.insert(s.history.begin(), {"system", prompt});
+          }
         }
-        s.out << "[agent: " << p->name << " — " << p->description << "]\n";
+        s.out << "[agent: " << ac->name << " — " << ac->description << "]\n";
       } else {
-        s.out << "Unknown agent: " << arg << ". Type /agent list to see options.\n";
+        const AgentPersona* p = find_persona(personas, arg);
+        if (p) {
+          set_active_agent("build");
+          if (!s.history.empty() && s.history[0].role == "system") {
+            s.history[0].content = p->system_prompt;
+          } else {
+            s.history.insert(s.history.begin(), {"system", p->system_prompt});
+          }
+          s.out << "[agent: " << p->name << " — " << p->description << "]\n";
+        } else {
+          s.out << "Unknown agent: " << arg << ". Type /agent list to see options.\n";
+        }
       }
     }
     // --- User identity and session info ---

@@ -101,6 +101,11 @@ set(LIB_SOURCES
   src/provider/registry.cpp
   src/agent/agent.cpp
   src/planner/planner.cpp
+  src/orchestrator/task.cpp
+  src/orchestrator/orchestrator.cpp
+  src/orchestrator/metrics.cpp
+  src/orchestrator/prompt_template.cpp
+  src/orchestrator/agent_config.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging ${CMAKE_BINARY_DIR}/generated)
 
@@ -198,6 +203,14 @@ add_executable(test_exec src/exec/exec_test.cpp src/exec/exec.cpp)
 target_include_directories(test_exec PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_exec PRIVATE doctest::doctest)
 
+add_executable(test_task src/orchestrator/task_test.cpp src/orchestrator/task.cpp src/json/json.cpp src/trace/trace.cpp)
+target_include_directories(test_task PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_task PRIVATE doctest::doctest)
+
+add_executable(test_orchestrator src/orchestrator/orchestrator_test.cpp src/orchestrator/metrics.cpp src/orchestrator/prompt_template.cpp src/json/json.cpp src/trace/trace.cpp)
+target_include_directories(test_orchestrator PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_orchestrator PRIVATE doctest::doctest)
+
 add_executable(test_hardware src/exec/hardware_test.cpp src/exec/hardware.cpp)
 target_include_directories(test_hardware PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_hardware PRIVATE doctest::doctest)
@@ -222,7 +235,7 @@ add_executable(test_util src/util/util_test.cpp src/util/util.cpp)
 target_include_directories(test_util PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_util PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp src/agent/agent.cpp src/provider/registry.cpp src/planner/planner.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp src/agent/agent.cpp src/provider/registry.cpp src/planner/planner.cpp src/orchestrator/agent_config.cpp src/orchestrator/prompt_template.cpp src/orchestrator/task.cpp src/orchestrator/metrics.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})

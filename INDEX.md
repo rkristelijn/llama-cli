@@ -58,11 +58,9 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md) — ADR-064: Enforcement of Dead Code Detection
 - [`docs/adr/adr-065-code-consistency-refactor.md`](docs/adr/adr-065-code-consistency-refactor.md) — ADR-065: Code Consistency Refactor Plan
 - [`docs/adr/adr-066-solid-refactoring.md`](docs/adr/adr-066-solid-refactoring.md) — ADR-066: SOLID Refactoring Strategy
-- [`docs/adr/adr-093-windows-binary-support.md`](docs/adr/adr-093-windows-binary-support.md) — ADR-066: Windows Binary Support
 - [`docs/adr/adr-067-mutation-testing.md`](docs/adr/adr-067-mutation-testing.md) — ADR-067: Mutation Testing via Mull
 - [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md) — ADR 068: Toolchain Environment Strategy
 - [`docs/adr/adr-069-embedded-system-prompt.md`](docs/adr/adr-069-embedded-system-prompt.md) — ADR-069: Embedded System Prompt from Text File
-- [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md) — title: ADR-069: Memory Safety Verification Strategy
 - [`docs/adr/adr-070-pluggable-mermaid-renderers.md`](docs/adr/adr-070-pluggable-mermaid-renderers.md) — ADR-070: Pluggable Mermaid Diagram Renderers
 - [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
 - [`docs/adr/adr-072-diagram-visualization-strategy.md`](docs/adr/adr-072-diagram-visualization-strategy.md) — ADR-072: Diagram Visualization Strategy & Element Limits
@@ -86,6 +84,11 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-090-build-version-string.md`](docs/adr/adr-090-build-version-string.md) — ADR-090: Build Version String
 - [`docs/adr/adr-091-tgpt-free-chatgpt-bridge.md`](docs/adr/adr-091-tgpt-free-chatgpt-bridge.md) — ADR-091: Free ChatGPT Integration via tgpt CLI Provider
 - [`docs/adr/adr-092-product-renaming-and-opencode-strategy.md`](docs/adr/adr-092-product-renaming-and-opencode-strategy.md) — ADR-092: Product Renaming & Integration Strategy with Opencode
+- [`docs/adr/adr-093-windows-binary-support.md`](docs/adr/adr-093-windows-binary-support.md) — ADR-093: Windows Binary Support
+- [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md) — title: ADR-094: Memory Safety Verification Strategy
+- [`docs/adr/adr-095-bidirectional-traceability.md`](docs/adr/adr-095-bidirectional-traceability.md) — ADR-095: Bidirectional Traceability via Feature Registry
+- [`docs/adr/adr-096-multi-agent-implementation.md`](docs/adr/adr-096-multi-agent-implementation.md) — ADR-096: Multi-Agent Implementation Plan
+- [`docs/adr/adr-097-cpp-quality-checks.md`](docs/adr/adr-097-cpp-quality-checks.md) — ADR-097: C++ Code Quality Checks and Best Practices
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -135,6 +138,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User Guide
+- [`scripts/ci/check-traceability.sh`](scripts/ci/check-traceability.sh)
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
@@ -166,6 +170,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
+- [`scripts/lint/check-conversions.sh`](scripts/lint/check-conversions.sh)
 - [`scripts/lint/check-dead-code.sh`](scripts/lint/check-dead-code.sh)
 - [`scripts/lint/check-dead-docs.sh`](scripts/lint/check-dead-docs.sh)
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
@@ -174,8 +179,11 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
+- [`scripts/lint/check-portability.sh`](scripts/lint/check-portability.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
+- [`scripts/lint/check-slop.sh`](scripts/lint/check-slop.sh) — check-slop.sh — Detect common AI-generated code slop patterns.
 - [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
+- [`scripts/lint/check-unicode.sh`](scripts/lint/check-unicode.sh)
 - [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
 - [`scripts/lint/check-xref.sh`](scripts/lint/check-xref.sh)
@@ -237,6 +245,16 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
 - [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
+- [`src/orchestrator/metrics.cpp`](src/orchestrator/metrics.cpp) — /**
+- [`src/orchestrator/metrics.h`](src/orchestrator/metrics.h) — /**
+- [`src/orchestrator/orchestrator.cpp`](src/orchestrator/orchestrator.cpp) — /**
+- [`src/orchestrator/orchestrator.h`](src/orchestrator/orchestrator.h) — /**
+- [`src/orchestrator/orchestrator_test.cpp`](src/orchestrator/orchestrator_test.cpp) — // test_orchestrator.cpp — Unit tests for metrics + prompt_template (ADR-096)
+- [`src/orchestrator/prompt_template.cpp`](src/orchestrator/prompt_template.cpp) — /**
+- [`src/orchestrator/prompt_template.h`](src/orchestrator/prompt_template.h) — /**
+- [`src/orchestrator/task.cpp`](src/orchestrator/task.cpp) — /**
+- [`src/orchestrator/task.h`](src/orchestrator/task.h) — /**
+- [`src/orchestrator/task_test.cpp`](src/orchestrator/task_test.cpp) — // test_task.cpp — Unit tests for task schema (ADR-096 Phase 1)
 - [`src/planner/planner.cpp`](src/planner/planner.cpp) — /**
 - [`src/planner/planner.h`](src/planner/planner.h) — /**
 - [`src/provider/gemini_provider.cpp`](src/provider/gemini_provider.cpp) — /**
@@ -330,4 +348,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_327 files indexed._
+_345 files indexed._

@@ -21,7 +21,7 @@ Selection follows a strict hierarchy: **Host → Provider → Model**.
 ```text
 Host (where it runs)
 ├── cloud                    → kiro-cli, gemini, tgpt
-├── apsnlmac4050:11434       → ollama
+├── <hostname>:11434       → ollama
 ├── jarvis:11434             → ollama
 └── localhost:11434          → ollama
 
@@ -32,7 +32,7 @@ Provider (how to talk to it)
 └── tgpt                     → tgpt subprocess
 
 Model (what to run)
-├── qwen2.5-coder:14b       → on ollama@apsnlmac4050
+├── qwen2.5-coder:14b       → on ollama@<hostname>
 ├── claude-sonnet-4-20250514    → on kiro-cli@cloud
 └── gemini-2.5-pro           → on gemini@cloud
 ```
@@ -64,7 +64,7 @@ Examples:
 ```text
 /use qwen2.5-coder:14b                    → model only
 /use ollama:gemma4:26b                     → provider + model
-/use @apsnlmac4050:11434                   → host only
+/use @<hostname>:11434                   → host only
 /use @cloud:kiro-cli:claude-sonnet-4-20250514  → full path
 ```
 
@@ -128,7 +128,7 @@ Lists unique hosts from the registry with model counts:
 
 ```text
 /host
-  1. apsnlmac4050:11434  (ollama, 5 models)
+  1. <hostname>:11434  (ollama, 5 models)
   2. jarvis:11434        (ollama, 2 models)
   3. localhost:11434     (ollama, 1 model)
   4. cloud              (kiro-cli: 8, gemini: 3, tgpt: 1)

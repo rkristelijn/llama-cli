@@ -4,7 +4,7 @@
  *
  * Heuristic-based (no LLM call for classification):
  *   simple  → small model on fast host (jarvis/pepper 3B)
- *   medium  → mid model (qwen-coder 14B on apsnlmac4050)
+ *   medium  → mid model (qwen-coder 14B on <hostname>)
  *   complex → large model (27B+) or cloud fallback
  */
 

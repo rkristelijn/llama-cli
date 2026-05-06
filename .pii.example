@@ -1,0 +1,21 @@
+# .pii.example — Template for personal PII patterns
+#
+# Copy this file to .pii and add your personal patterns:
+#   cp .pii.example .pii
+#
+# The .pii file is in .gitignore and never committed.
+# Each developer maintains their own patterns.
+
+# Hostnames (your personal machines)
+# my-hostname
+# my-laptop.local
+
+# Email addresses
+# your.name@company.com
+
+# IP addresses (your home/office network)
+# 192.168.1.100
+
+# Other personal identifiers
+# your-username
+# your-project-name
