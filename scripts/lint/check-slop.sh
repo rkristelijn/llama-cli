@@ -125,6 +125,34 @@ if [[ $count -gt 3 ]]; then
   ((WARNINGS++)) || true
 fi
 
+# --- Documentation slop (markdown files) ---
+MD_DIFF=$(git diff main...HEAD -- '*.md' 2>/dev/null || true)
+if [[ -n "$MD_DIFF" ]]; then
+  # 13. AI tell-words in docs
+  md_tells=$(echo "$MD_DIFF" | grep -ci '^\+.*\(delve\|comprehensive\|leverage\|utilize\|facilitate\|streamline\|in today.s rapidly\|it.s important to note\)' || true)
+  if [[ $md_tells -gt 5 ]]; then
+    echo "  ⚠ AI vocabulary in docs: $md_tells uses of 'delve/comprehensive/leverage/utilize'"
+    echo "    → Write like a human: direct, specific, no filler"
+    ((WARNINGS++)) || true
+  fi
+
+  # 14. Filler paragraphs
+  filler=$(echo "$MD_DIFF" | grep -ci '^\+.*\(in summary\|as mentioned\|it is worth noting\|needless to say\|at the end of the day\)' || true)
+  if [[ $filler -gt 3 ]]; then
+    echo "  ⚠ Filler phrases in docs: $filler empty-calorie sentences"
+    echo "    → Delete sentences that don't add new information"
+    ((WARNINGS++)) || true
+  fi
+
+  # 15. Over-hedging
+  hedging=$(echo "$MD_DIFF" | grep -ci '^\+.*\(it.s important to\|it should be noted\|one might argue\|arguably\|to some extent\|in some cases\)' || true)
+  if [[ $hedging -gt 3 ]]; then
+    echo "  ⚠ Over-hedging in docs: $hedging wishy-washy qualifiers"
+    echo "    → Take a stance. Be direct."
+    ((WARNINGS++)) || true
+  fi
+fi
+
 # Summary
 echo ""
 if [[ $WARNINGS -eq 0 ]]; then
