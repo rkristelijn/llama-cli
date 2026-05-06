@@ -137,6 +137,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/learn.sh`](scripts/dev/learn.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
+- [`scripts/dev/scrape-todo.sh`](scripts/dev/scrape-todo.sh)
 - [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
 - [`scripts/dev/summarize-headers.sh`](scripts/dev/summarize-headers.sh)
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
@@ -325,4 +326,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_322 files indexed._
+_323 files indexed._

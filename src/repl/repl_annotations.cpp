@@ -31,16 +31,20 @@
 /// handling — std::getline is unreliable after linenoise raw mode manipulation.
 /// Falls back to std::getline for tests (stringstream input).
 /// Ctrl-C in interactive mode returns false (same as EOF).
-static bool read_answer(std::istream& in, std::string& answer) {
+/// @param prompt shown by linenoise (stays visible after input)
+static bool read_answer(std::istream& in, std::string& answer, const std::string& prompt = "", std::ostream* out = nullptr) {
   if (&in == &std::cin && isatty(STDIN_FILENO)) {
-    // Interactive: use linenoise for proper Enter/Ctrl-C handling
-    auto quit = linenoise::Readline("", answer);
+    // Interactive: linenoise shows prompt and keeps it visible after input
+    auto quit = linenoise::Readline(prompt.c_str(), answer);
     if (quit) {
       return false;
     }
     return true;
   }
-  // Non-interactive (tests, pipes): use std::getline
+  // Non-interactive (tests, pipes): print prompt to out, then read
+  if (out && !prompt.empty()) {
+    *out << prompt << std::flush;
+  }
   if (!std::getline(in, answer)) {
     return false;
   }
@@ -216,9 +220,9 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     return true;
   }
   std::string opts = "[y/n/s/t/c/?]";
-  out << "Write to " << action.path << "? " << opts << " " << std::flush;
+  std::string prompt = "Write to " + action.path + "? " + opts + " ";
   std::string answer;
-  while (read_answer(in, answer)) {
+  while (read_answer(in, answer, prompt, &out)) {
     if (answer == "y" || answer == "yes") {
       return true;
     }
@@ -246,7 +250,6 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
       out << "  t = trust — auto-approve all remaining changes this session\n";
       out << "  c = copy content to clipboard\n";
     }
-    out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
   return false;
 }
@@ -339,10 +342,10 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
   updated.replace(replace_pos, action.old_str.size(), action.new_str);
   show_diff(existing, updated, out, color);
 
-  out << "Apply str_replace to " << action.path << "? [y/n/t/c/?] " << std::flush;
+  std::string sr_prompt = "Apply str_replace to " + action.path + "? [y/n/t/c/?] ";
   std::string answer;
   while (true) {
-    if (!read_answer(in, answer)) {
+    if (!read_answer(in, answer, sr_prompt, &out)) {
       out << "[skipped]\n";
       LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
       return;
@@ -375,7 +378,6 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
       LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
       return;
     }
-    out << "Apply str_replace to " << action.path << "? [y/n/t/c/?] " << std::flush;
   }
 
   // Backup and write
@@ -493,10 +495,10 @@ std::string strip_exec_annotations(const std::string& text) {
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
   if (!trust) {
-    out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c/?] " << std::flush;
+    std::string exec_prompt = "Run: " + cmd + "? [y/n/t/c/?] ";
     std::string answer;
     while (true) {
-      if (!read_answer(in, answer)) {
+      if (!read_answer(in, answer, exec_prompt, &out)) {
         return "";
       }
       if (answer == "y" || answer == "yes") {
@@ -527,7 +529,6 @@ std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream
         out << "[skipped]\n";
         return "";
       }
-      out << "Run: " << tui::active_theme().warning.ansi() << cmd << Style::reset() << "? [y/n/t/c/?] " << std::flush;
     }
   }
   auto t0 = std::chrono::steady_clock::now();
