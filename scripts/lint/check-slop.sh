@@ -72,6 +72,59 @@ if [[ -n "$dupes" ]]; then
   ((WARNINGS++))
 fi
 
+# 7. Trivial docstrings on short functions (/// comment above a 1-3 line function)
+count=$(echo "$DIFF" | grep -c '^\+.*/// \(Get\|Set\|Return\|Check\|Create\|Initialize\) ' || true)
+if [[ $count -gt 8 ]]; then
+  echo "  ⚠ Trivial docstrings: $count 'Get/Set/Return/Check' style comments"
+  echo "    → Only document non-obvious behavior, not the function name"
+  ((WARNINGS++))
+fi
+
+# 8. Over-commenting: more comment lines than code lines in additions
+comment_lines=$(echo "$DIFF" | grep -c '^\+[[:space:]]*//' || true)
+code_lines=$(echo "$DIFF" | grep -c '^\+' | head -1 || true)
+if [[ $code_lines -gt 50 ]]; then
+  comment_pct=$((comment_lines * 100 / code_lines))
+  if [[ $comment_pct -gt 40 ]]; then
+    echo "  ⚠ Over-commenting: ${comment_pct}% of new lines are comments (max 40%)"
+    echo "    → Comments should be sparse and meaningful, not a running narration"
+    ((WARNINGS++))
+  fi
+fi
+
+# 9. Single-implementation abstractions (abstract class with only 1 subclass in diff)
+abstract_count=$(echo "$DIFF" | grep -c '^\+.*virtual.*= 0' || true)
+impl_count=$(echo "$DIFF" | grep -c '^\+.*override' || true)
+if [[ $abstract_count -gt 3 && $impl_count -le $abstract_count ]]; then
+  echo "  ⚠ Abstraction inflation: $abstract_count virtual methods but only $impl_count overrides"
+  echo "    → Don't create interfaces until you have 2+ implementations (YAGNI)"
+  ((WARNINGS++))
+fi
+
+# 10. Cargo cult: unnecessary std::move on trivial types or string literals
+count=$(echo "$DIFF" | grep -c '^\+.*std::move("' || true)
+if [[ $count -gt 0 ]]; then
+  echo "  ⚠ Cargo cult: $count std::move on string literals (does nothing)"
+  echo "    → std::move on literals/temporaries is pointless"
+  ((WARNINGS++))
+fi
+
+# 11. Semantic duplication: same function body appearing in multiple new functions
+func_bodies=$(echo "$DIFF" | grep '^\+' | grep -E '^\+\s+(return|if \(|for \(|while \()' | sort | uniq -d | wc -l)
+if [[ $func_bodies -gt 10 ]]; then
+  echo "  ⚠ Semantic duplication: $func_bodies repeated logic patterns"
+  echo "    → Extract shared logic into a helper function"
+  ((WARNINGS++))
+fi
+
+# 12. AI tell-words in comments (delve, comprehensive, leverage, utilize, facilitate)
+count=$(echo "$DIFF" | grep -ci '^\+.*//.*\(delve\|comprehensive\|leverage\|utilize\|facilitate\|streamline\|robust\)' || true)
+if [[ $count -gt 3 ]]; then
+  echo "  ⚠ AI vocabulary: $count comments use 'delve/comprehensive/leverage/utilize' style"
+  echo "    → Use plain language: 'use' not 'utilize', 'strong' not 'robust'"
+  ((WARNINGS++))
+fi
+
 # Summary
 echo ""
 if [[ $WARNINGS -eq 0 ]]; then
