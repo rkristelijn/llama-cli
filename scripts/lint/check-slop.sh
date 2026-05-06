@@ -22,7 +22,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*// \(set\|get\|return\|increment\|decrement
 if [[ $count -gt 5 ]]; then
   echo "  ⚠ Redundant comments: $count lines restate what the code does"
   echo "    → Comments should explain WHY, not WHAT"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true || true
 fi
 
 # 2. Empty catch blocks
@@ -30,7 +30,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*catch.*{[[:space:]]*}' || true)
 if [[ $count -gt 0 ]]; then
   echo "  ⚠ Empty catch blocks: $count (errors silently swallowed)"
   echo "    → Log or handle the error, don't ignore it"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 3. Defensive nullptr checks with "should never" comments
@@ -38,7 +38,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*if.*!=.*nullptr.*//.*should never' || true)
 if [[ $count -gt 0 ]]; then
   echo "  ⚠ Paranoid nullptr checks: $count with 'should never happen' comments"
   echo "    → If it should never happen, use an assert instead"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 4. Too many TODO/FIXME in new code
@@ -46,7 +46,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*// \(TODO\|FIXME\|HACK\|XXX\):' || true)
 if [[ $count -gt 3 ]]; then
   echo "  ⚠ Unresolved markers: $count TODO/FIXME/HACK in new code"
   echo "    → Resolve before committing, or move to TODO.md"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 5. Excessive blank lines
@@ -57,7 +57,7 @@ if [[ $total_added -gt 0 ]]; then
   if [[ $blank_ratio -gt 15 ]]; then
     echo "  ⚠ Blank line bloat: ${blank_ratio}% of additions are empty lines (max 15%)"
     echo "    → Remove unnecessary spacing"
-    ((WARNINGS++))
+    ((WARNINGS++)) || true
   fi
 fi
 
@@ -69,7 +69,7 @@ if [[ -n "$dupes" ]]; then
     echo "    $line"
   done
   echo "    → Extract to a function or loop"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 7. Trivial docstrings on short functions (/// comment above a 1-3 line function)
@@ -77,7 +77,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*/// \(Get\|Set\|Return\|Check\|Create\|Init
 if [[ $count -gt 8 ]]; then
   echo "  ⚠ Trivial docstrings: $count 'Get/Set/Return/Check' style comments"
   echo "    → Only document non-obvious behavior, not the function name"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 8. Over-commenting: more comment lines than code lines in additions
@@ -88,7 +88,7 @@ if [[ $code_lines -gt 50 ]]; then
   if [[ $comment_pct -gt 40 ]]; then
     echo "  ⚠ Over-commenting: ${comment_pct}% of new lines are comments (max 40%)"
     echo "    → Comments should be sparse and meaningful, not a running narration"
-    ((WARNINGS++))
+    ((WARNINGS++)) || true
   fi
 fi
 
@@ -98,7 +98,7 @@ impl_count=$(echo "$DIFF" | grep -c '^\+.*override' || true)
 if [[ $abstract_count -gt 3 && $impl_count -le $abstract_count ]]; then
   echo "  ⚠ Abstraction inflation: $abstract_count virtual methods but only $impl_count overrides"
   echo "    → Don't create interfaces until you have 2+ implementations (YAGNI)"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 10. Cargo cult: unnecessary std::move on trivial types or string literals
@@ -106,7 +106,7 @@ count=$(echo "$DIFF" | grep -c '^\+.*std::move("' || true)
 if [[ $count -gt 0 ]]; then
   echo "  ⚠ Cargo cult: $count std::move on string literals (does nothing)"
   echo "    → std::move on literals/temporaries is pointless"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 11. Semantic duplication: same function body appearing in multiple new functions
@@ -114,7 +114,7 @@ func_bodies=$(echo "$DIFF" | grep '^\+' | grep -E '^\+\s+(return|if \(|for \(|wh
 if [[ $func_bodies -gt 10 ]]; then
   echo "  ⚠ Semantic duplication: $func_bodies repeated logic patterns"
   echo "    → Extract shared logic into a helper function"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # 12. AI tell-words in comments (delve, comprehensive, leverage, utilize, facilitate)
@@ -122,7 +122,7 @@ count=$(echo "$DIFF" | grep -ci '^\+.*//.*\(delve\|comprehensive\|leverage\|util
 if [[ $count -gt 3 ]]; then
   echo "  ⚠ AI vocabulary: $count comments use 'delve/comprehensive/leverage/utilize' style"
   echo "    → Use plain language: 'use' not 'utilize', 'strong' not 'robust'"
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 fi
 
 # Summary
