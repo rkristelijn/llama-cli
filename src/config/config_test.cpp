@@ -111,11 +111,11 @@ SCENARIO ("config from environment variables") {
 
 SCENARIO ("config from CLI arguments") {
   GIVEN ("long flags are provided") {
-    const char* argv[] = {"llama-cli", "--host=10.0.0.1", "--model=gemma4:26b", nullptr};
+    const char* argv[] = {"llama-cli", "--host=192.0.2.1", "--model=gemma4:26b", nullptr};
     WHEN ("config is loaded from CLI") {
       Config c = load_cli(3, argv);
       THEN ("flags override defaults") {
-        CHECK (c.host == "10.0.0.1")
+        CHECK (c.host == "192.0.2.1")
           ;
         CHECK (c.model == "gemma4:26b")
           ;
@@ -126,11 +126,11 @@ SCENARIO ("config from CLI arguments") {
   }
 
   GIVEN ("short flags are provided") {
-    const char* argv[] = {"llama-cli", "-h", "10.0.0.1", "-m", "gemma4:26b", "-p", "9999", "-t", "60", nullptr};
+    const char* argv[] = {"llama-cli", "-h", "192.0.2.1", "-m", "gemma4:26b", "-p", "9999", "-t", "60", nullptr};
     WHEN ("config is loaded from CLI") {
       Config c = load_cli(9, argv);
       THEN ("short flags override defaults") {
-        CHECK (c.host == "10.0.0.1")
+        CHECK (c.host == "192.0.2.1")
           ;
         CHECK (c.model == "gemma4:26b")
           ;

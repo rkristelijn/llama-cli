@@ -6,11 +6,20 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PII_FILE=".pii"
+PII_FILE="${PII_FILE:-}"
 INTERACTIVE="${INTERACTIVE:-true}"
 
-if [[ ! -f "$PII_FILE" ]]; then
-  cat > "$PII_FILE" << 'EOF'
+# Check for .pii in .config/ first, then root
+if [[ -z "$PII_FILE" ]]; then
+  if [[ -f ".config/.pii" ]]; then
+    PII_FILE=".config/.pii"
+  elif [[ -f ".pii" ]]; then
+    PII_FILE=".pii"
+  fi
+fi
+
+if [[ -z "$PII_FILE" || ! -f "$PII_FILE" ]]; then
+  cat > ".config/.pii" << 'EOF'
 # PII patterns to detect in code (one per line)
 # Examples:
 # apsnl
@@ -19,9 +28,9 @@ if [[ ! -f "$PII_FILE" ]]; then
 # my-secret-hostname
 
 EOF
-  echo "==> Created $PII_FILE template"
+  echo "==> Created .config/.pii template"
   echo "    Add your PII patterns (one per line) and re-run"
-  echo "    Note: .pii is in .gitignore - each developer maintains their own"
+  echo "    Note: .config/.pii is in .gitignore - each developer maintains their own"
   exit 0
 fi
 

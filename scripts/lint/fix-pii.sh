@@ -6,9 +6,18 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PII_FILE=".pii"
+PII_FILE="${PII_FILE:-}"
 
-if [[ ! -f "$PII_FILE" ]]; then
+# Check for .pii in .config/ first, then root
+if [[ -z "$PII_FILE" ]]; then
+  if [[ -f ".config/.pii" ]]; then
+    PII_FILE=".config/.pii"
+  elif [[ -f ".pii" ]]; then
+    PII_FILE=".pii"
+  fi
+fi
+
+if [[ -z "$PII_FILE" || ! -f "$PII_FILE" ]]; then
   echo "==> No .pii file found"
   echo "    Run check-pii.sh first to create template"
   exit 1

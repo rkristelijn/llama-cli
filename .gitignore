@@ -13,8 +13,11 @@ compile_commands.json
 *.gcno
 *.log
 .env
+.pii
+.config/.pii
 *.swp
 /llama-cli
 /llama-cli.old_*
+/llama-cli.old
 coverage.info
 events.jsonl
