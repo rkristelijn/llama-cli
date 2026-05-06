@@ -92,6 +92,15 @@ set(LIB_SOURCES
   src/sync/sync.cpp
   src/sync/sync_annotations.cpp
   src/util/util.cpp
+  src/provider/ollama_provider.cpp
+  src/provider/provider_factory.cpp
+  src/provider/tgpt_provider.cpp
+  src/provider/gemini_provider.cpp
+  src/provider/kiro_provider.cpp
+  src/provider/multi_host_provider.cpp
+  src/provider/registry.cpp
+  src/agent/agent.cpp
+  src/planner/planner.cpp
 )
 set(SRC_INCLUDE src ${cpp_linenoise_SOURCE_DIR} ${dtl_SOURCE_DIR} src/trace src/logging ${CMAKE_BINARY_DIR}/generated)
 
@@ -108,7 +117,31 @@ string(REGEX REPLACE "^v" "" LLAMA_CLI_VERSION "${LLAMA_CLI_VERSION}")
 if(LLAMA_CLI_VERSION STREQUAL "")
   set(LLAMA_CLI_VERSION "0.0.0-dev")
 endif()
+
+# Get short commit hash
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+
+# Check for dirty working tree (src files only)
+execute_process(
+  COMMAND git diff --quiet -- src/
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  RESULT_VARIABLE GIT_DIRTY_RESULT
+)
+if(GIT_DIRTY_RESULT)
+  set(GIT_DIRTY " dirty")
+else()
+  set(GIT_DIRTY "")
+endif()
+
 add_compile_definitions(LLAMA_CLI_VERSION="${LLAMA_CLI_VERSION}")
+add_compile_definitions(GIT_COMMIT="${GIT_COMMIT}")
+add_compile_definitions(GIT_DIRTY="${GIT_DIRTY}")
 
 # Inject build timezone at compile time (portable CMake-only)
 string(TIMESTAMP BUILD_TZ "%z")
@@ -189,11 +222,15 @@ add_executable(test_util src/util/util_test.cpp src/util/util.cpp)
 target_include_directories(test_util PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_util PRIVATE doctest::doctest)
 
-set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp)
+set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp src/agent/agent.cpp src/provider/registry.cpp src/planner/planner.cpp)
 
 add_executable(test_repl src/repl/repl_test.cpp ${REPL_LIBS})
 target_include_directories(test_repl PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_repl PRIVATE doctest::doctest httplib::httplib)
+
+add_executable(test_rate src/repl/repl_rate_test.cpp ${REPL_LIBS})
+target_include_directories(test_rate PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_rate PRIVATE doctest::doctest httplib::httplib)
 
 # Integration tests
 add_executable(test_conversation src/repl/conversation_it.cpp ${REPL_LIBS})
@@ -239,6 +276,10 @@ target_link_libraries(test_trace PRIVATE doctest::doctest)
 add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
 target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_logger PRIVATE doctest::doctest)
+
+add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/multi_host_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/provider/kiro_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp)
+target_include_directories(test_provider PRIVATE ${SRC_INCLUDE})
+target_link_libraries(test_provider PRIVATE doctest::doctest httplib::httplib)
 
 # Fuzz targets — build with -DENABLE_FUZZ=ON (requires clang with libFuzzer)
 option(ENABLE_FUZZ "Build fuzz targets (requires clang with -fsanitize=fuzzer)" OFF)

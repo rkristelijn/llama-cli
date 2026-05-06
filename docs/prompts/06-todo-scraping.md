@@ -18,7 +18,7 @@ Find this exact text at the end of the file:
 ```bash
 main() {
   echo "==> Markdown TODOs"
-```
+```text
 
 Replace the entire `main()` function with:
 
@@ -84,7 +84,7 @@ main() {
   echo ""
   echo "==> TECHDEBT.md updated"
 }
-```
+```text
 
 ## Verify
 
@@ -99,7 +99,7 @@ test -f TECHDEBT.md && echo "PASS: TECHDEBT.md exists" || echo "FAIL: file not f
 grep -c "Technical Debt Log" TECHDEBT.md && echo "PASS: has title"
 grep -c "Code TODOs" TECHDEBT.md && echo "PASS: has code section"
 grep -c "Total code TODOs" TECHDEBT.md && echo "PASS: has count"
-```
+```text
 
 ## Expected output
 
@@ -113,10 +113,10 @@ PASS: TECHDEBT.md exists
 PASS: has title
 PASS: has code section
 PASS: has count
-```
+```text
 
 ## Commit message
 
 ```text
 chore: automate TODO scraping to TECHDEBT.md
-```
+```text

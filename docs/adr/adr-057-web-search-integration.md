@@ -20,7 +20,7 @@ Expected JSON response format:
 
 ```json
 {"results": [{"title": "...", "url": "...", "content": "..."}, ...]}
-```
+```text
 
 ### Implementation Details
 
@@ -42,7 +42,7 @@ Expected JSON response format:
 
 ```bash
 docker run -d -p 8888:8080 --name searxng searxng/searxng
-```
+```text
 
 Then in `.env`:
 
@@ -51,7 +51,7 @@ ALLOW_WEB_SEARCH=1
 LLAMA_SEARCH_URL=http://localhost:8888
 LLAMA_SEARCH_LANG=nl-NL
 LLAMA_SEARCH_LOCATION=Eindhoven, NL
-```
+```text
 
 ### Plugin Architecture
 

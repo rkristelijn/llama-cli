@@ -2,6 +2,7 @@
 #
 # trufflehog-scan.sh — Scan for verified secrets using TruffleHog.
 #
+# Config: .config/trufflehog.yaml
 # Usage:
 #   bash scripts/security/trufflehog-scan.sh
 #

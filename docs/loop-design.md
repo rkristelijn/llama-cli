@@ -32,7 +32,7 @@ The REPL loop consists of three layers:
 │     - needs_followup = true                                 │
 │     - Call LLM again (follow-up)                            │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ## The Follow-Up Loop
 
@@ -84,7 +84,7 @@ The current implementation has no limit on follow-up calls. This can result in:
 
 Enable with `--trace` for debug output:
 
-```
+```text
 
 [TRACE] dispatch: prompt "run the tests"
 [TRACE] send_prompt: iteration=1
@@ -105,7 +105,7 @@ When the loop hangs or behaves unexpectedly, use the event log to trace what hap
 make log                    # show last 50 events
 make log 123                # filter events matching "123"
 make log exec --context 5   # show exec events with 5 lines context
-```
+```text
 
 Output format:
 
@@ -114,7 +114,7 @@ Output format:
   input:  make test
   output: [doctest] Status: SUCCESS!
 ---
-```
+```text
 
 See `scripts/dev/log-viewer.sh` and ADR-027 for details.
 

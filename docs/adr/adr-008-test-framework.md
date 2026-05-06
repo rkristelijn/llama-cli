@@ -34,7 +34,7 @@ std::string response = ollama_generate(cfg, prompt);
 
 // Test: injected mock
 auto mock_generate = [](const Config&, const std::string&) { return "mocked"; };
-```
+```text
 
 ## Test style
 
@@ -52,7 +52,7 @@ SCENARIO("loading config") {
         }
     }
 }
-```
+```text
 
 ### Why GWT over AAA?
 

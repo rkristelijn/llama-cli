@@ -11,4 +11,6 @@ cache-dir = ".tmp/rumdl"
 # MD036: emphasis as heading — used in ADR-023
 # MD041: first line heading — some docs have frontmatter
 # MD046: code block style — mixed in code-rabbit.md
-disable = ["MD013", "MD033", "MD036", "MD041", "MD046"]
+# MD051: link anchors — false positives on numbered headings (## 3. Quick start)
+#        TODO: re-enable once rumdl fixes anchor generation for numbered headings
+disable = ["MD013", "MD033", "MD036", "MD041", "MD046", "MD051"]

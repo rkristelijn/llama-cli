@@ -13,7 +13,7 @@ if [[ "${branch}" == "main" ]]; then
   echo "ERROR: direct commits to main are not allowed. Use a feature branch."
   exit 1
 fi
-```
+```text
 
 ## Task
 
@@ -30,7 +30,7 @@ if [[ "${branch}" == "main" ]]; then
   echo "ERROR: direct commits to main are not allowed. Use a feature branch."
   exit 1
 fi
-```
+```text
 
 Replace it with:
 
@@ -58,7 +58,7 @@ if [[ -n "${branch}" && ! "${branch}" =~ ${BRANCH_PATTERN} ]]; then
   echo ""
   exit 1
 fi
-```
+```text
 
 ## Verify
 
@@ -76,7 +76,7 @@ branch="fix/15-empty-input"
 
 # 2. Verify the file contains the new check
 grep -c "BRANCH_PATTERN" scripts/git/pre-commit.sh && echo "PASS: pattern found in pre-commit.sh" || echo "FAIL: pattern not found"
-```
+```text
 
 ## Expected output
 
@@ -85,10 +85,10 @@ PASS: accepted feat/42-add-streaming
 PASS: rejected my-feature
 PASS: accepted fix/15-empty-input
 PASS: pattern found in pre-commit.sh
-```
+```text
 
 ## Commit message
 
 ```text
 chore: add branch naming validation to pre-commit hook
-```
+```text

@@ -41,7 +41,7 @@ OLLAMA_MODEL=gemma4:26b ./build/llama-cli
 
 # Override host via CLI (takes precedence over env)
 OLLAMA_HOST=192.168.1.10 ./build/llama-cli --host=localhost
-```
+```text
 
 ## Design
 
@@ -64,7 +64,7 @@ sequenceDiagram
 
     Main->>App: Pass final config
     App->>App: Connect and run
-```
+```text
 
 ## Rationale
 

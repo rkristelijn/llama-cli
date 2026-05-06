@@ -21,7 +21,7 @@ Then the pre-commit hook rejects with: "Branch must match: (feat|fix|chore|spike
 Given a developer is on "feat/42-add-streaming"
 When they make a commit
 Then the pre-commit hook allows it
-```
+```text
 
 ## Implementation
 

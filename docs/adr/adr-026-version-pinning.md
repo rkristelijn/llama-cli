@@ -33,7 +33,7 @@ For C/C++ there is no standard equivalent, but the pattern can be approximated:
 ```text
 clang-format=18
 cmake=3.28
-```
+```text
 
 Simple key=value, human-readable, no tooling required to parse.
 

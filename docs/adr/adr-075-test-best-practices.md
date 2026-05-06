@@ -22,7 +22,7 @@ CHECK(r.timed_out);
 // ✅ Good — output triggers timeout check in the loop
 auto r = cmd_exec("for i in $(seq 1 100); do echo x; sleep 0.1; done", 1, 1000);
 CHECK(r.timed_out);
-```
+```text
 
 ### Rule 2: Test the contract, not the implementation
 
@@ -36,7 +36,7 @@ CHECK(r.output.empty());
 
 // ✅ Good — asserts the documented behavior
 CHECK(r.output.find("[killed: timeout") != std::string::npos);
-```
+```text
 
 ### Rule 3: Handle type coercion explicitly
 
@@ -50,7 +50,7 @@ When a test is inherently timing-sensitive and cannot be made deterministic, ann
 
 ```cpp
 // TODO: flaky on coverage builds — timeout race with instrumentation overhead
-```
+```text
 
 This makes flakiness visible in `make todo` output and prevents wasted debugging time.
 

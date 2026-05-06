@@ -93,10 +93,10 @@ These close the biggest gaps with competitors:
 
 | # | Feature | Why | Backlog |
 |---|---------|-----|---------|
-| 1 | Streaming responses | Every competitor has this; biggest UX gap | [005](../backlog/005-streaming.md) |
-| 2 | Inline code rendering | Markdown output looks broken without it | [031](../backlog/031-inline-code-rendering.md) |
-| 3 | Fix release pipeline | Can't ship reliably without this | [034](../backlog/034-fix-release.md) |
-| 4 | Tab autocompletion | Basic CLI ergonomics | [033](../backlog/033-tab-autocompletion.md) |
+| 1 | Streaming responses | Every competitor has this; biggest UX gap | — |
+| 2 | Inline code rendering | Markdown output looks broken without it | — |
+| 3 | Fix release pipeline | Can't ship reliably without this | — |
+| 4 | Tab autocompletion | Basic CLI ergonomics | — |
 
 ### Priority 2 — Developer Experience
 
@@ -104,10 +104,10 @@ Make the tool pleasant to use daily:
 
 | # | Feature | Why | Backlog |
 |---|---------|-----|---------|
-| 5 | Context compression | Long conversations break with local models | [019](../backlog/019-context-compression.md) |
-| 6 | Prompt templates | Consistent results for common tasks | [021](../backlog/021-prompt-templates.md) |
-| 7 | Exec output tuning | Command output floods context | [007](../backlog/007-exec-output-tuning.md) |
-| 8 | Smart confirmation | Copy, amend, redirect proposed actions | [004](../backlog/004-smart-confirmation.md) |
+| 5 | Context compression | Long conversations break with local models | — |
+| 6 | Prompt templates | Consistent results for common tasks | — |
+| 7 | Exec output tuning | Command output floods context | — |
+| 8 | Smart confirmation | Copy, amend, redirect proposed actions | — |
 
 ### Priority 3 — Robustness
 
@@ -115,10 +115,10 @@ Harden what exists:
 
 | # | Feature | Why | Backlog |
 |---|---------|-----|---------|
-| 9 | Execution sandbox | Safety for LLM-proposed commands | [016](../backlog/016-execution-sandbox.md) |
-| 10 | Command permissions | Whitelist/blacklist for exec | [010](../backlog/010-command-permissions.md) |
-| 11 | Coverage bump 55→60% | Catch regressions | [027](../backlog/027-coverage-bump.md) |
-| 12 | Reduce complexity | Keep codebase maintainable | [018](../backlog/018-reduce-complexity.md) |
+| 9 | Execution sandbox | Safety for LLM-proposed commands | — |
+| 10 | Command permissions | Whitelist/blacklist for exec | — |
+| 11 | Coverage bump 55→60% | Catch regressions | — |
+| 12 | Reduce complexity | Keep codebase maintainable | — |
 
 ### Priority 4 — Future Differentiation
 
@@ -126,19 +126,19 @@ Only after priorities 1–3 are solid:
 
 | # | Feature | Why | Backlog |
 |---|---------|-----|---------|
-| 13 | Provider abstraction | Support non-Ollama backends | [014](../backlog/014-provider-abstraction.md) |
-| 14 | Planner/executor | Multi-step task execution | [015](../backlog/015-planner-executor.md) |
-| 15 | Distributed Ollama | Use remote GPU machines | [006](../backlog/006-distributed-ollama.md) |
-| 16 | Multi-agent | Parallel task execution | [017](../backlog/017-multi-agent.md) |
+| 13 | Provider abstraction | Support non-Ollama backends | — |
+| 14 | Planner/executor | Multi-step task execution | — |
+| 15 | Distributed Ollama | Use remote GPU machines | — |
+| 16 | Multi-agent | Parallel task execution | — |
 
 ### Deprioritized
 
 These are nice-to-have but not differentiating:
 
-- Mermaid rendering ([032](../backlog/032-mermaid-rendering.md)) — niche
-- Temperature tuning ([020](../backlog/020-temperature-tuning.md)) — marginal impact
-- Nick/custom prompt ([012](../backlog/012-nick-prompt.md)) — cosmetic
-- Project rename ([008](../backlog/008-project-rename.md)) — disruptive, low value now
+- Mermaid rendering (—) — niche
+- Temperature tuning (—) — marginal impact
+- Nick/custom prompt (—) — cosmetic
+- Project rename (—) — disruptive, low value now
 
 ## Local Model Usage Discipline
 
@@ -208,5 +208,4 @@ Don't pivot. Don't chase features that cloud tools do better. Double down on wha
 
 - [ADR-048](adr-048-quality-framework.md) — Quality framework (internal dev practice)
 - [ADR-027](adr-027-event-logging.md) — Event logging design
-- [Backlog](../backlog/README.md) — Full feature backlog
 - [README roadmap](../../README.md#roadmap) — Public roadmap

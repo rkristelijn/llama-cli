@@ -15,6 +15,7 @@
 #include "exec/exec.h"
 #include "json/json.h"
 #include "trace/trace.h"
+#include "tui/tui.h"
 #include "util/util.h"
 
 // --- SearXNG lifecycle ---
@@ -41,7 +42,8 @@ void ensure_searxng(const Config& cfg, std::ostream& out) {
   }
   auto docker_check = cmd_exec("docker --version", 3, 200);
   if (docker_check.exit_code != 0) {
-    out << "\033[33m[web-search] docker not found — install Docker to enable web search\033[0m\n";
+    out << tui::active_theme().warning.ansi() << "[web-search] docker not found — install Docker to enable web search" << Style::reset()
+        << "\n";
     return;
   }
 
@@ -51,7 +53,7 @@ void ensure_searxng(const Config& cfg, std::ostream& out) {
   }
   auto daemon_check = cmd_exec("docker info", 5, 500);
   if (daemon_check.exit_code != 0) {
-    out << "\033[33m[web-search] starting Docker...\033[0m\n";
+    out << tui::active_theme().warning.ansi() << "[web-search] starting Docker..." << Style::reset() << "\n";
     if (trace) {
       stderr_trace->log("[TRACE] web-search: starting Docker daemon\n");
     }
@@ -88,13 +90,13 @@ void ensure_searxng(const Config& cfg, std::ostream& out) {
   // Check if container exists but is stopped
   auto exists = cmd_exec("docker ps -aq -f name=searxng", 5, 200);
   if (!exists.output.empty()) {
-    out << "\033[33m[web-search] starting SearXNG container...\033[0m\n";
+    out << tui::active_theme().warning.ansi() << "[web-search] starting SearXNG container..." << Style::reset() << "\n";
     if (trace) {
       stderr_trace->log("[TRACE] web-search: docker start searxng\n");
     }
     cmd_exec("docker start searxng", 10, 200);
   } else {
-    out << "\033[33m[web-search] pulling and starting SearXNG...\033[0m\n";
+    out << tui::active_theme().warning.ansi() << "[web-search] pulling and starting SearXNG..." << Style::reset() << "\n";
     if (trace) {
       stderr_trace->log("[TRACE] web-search: docker compose up searxng\n");
     }
@@ -105,7 +107,7 @@ void ensure_searxng(const Config& cfg, std::ostream& out) {
   for (int i = 0; i < 15; ++i) {
     auto ready = cmd_exec("curl -sf -o /dev/null -m 1 '" + cfg.search_url + "'", 2, 100);
     if (ready.exit_code == 0) {
-      out << "\033[32m[web-search] SearXNG ready\033[0m\n";
+      out << tui::active_theme().info.ansi() << "[web-search] SearXNG ready" << Style::reset() << "\n";
       if (trace) {
         stderr_trace->log("[TRACE] web-search: SearXNG responding\n");
       }
@@ -113,7 +115,7 @@ void ensure_searxng(const Config& cfg, std::ostream& out) {
     }
     cmd_exec("sleep 1", 2, 10);
   }
-  out << "\033[33m[web-search] SearXNG not responding — search may fail\033[0m\n";
+  out << tui::active_theme().warning.ansi() << "[web-search] SearXNG not responding — search may fail" << Style::reset() << "\n";
 }
 
 // --- Web search query ---

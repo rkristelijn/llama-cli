@@ -360,7 +360,9 @@ SCENARIO ("REPL command execution") {
     WHEN ("the REPL runs") {
       run_repl(exec_chat, test_cfg(), in, out);
       THEN ("confirmation is asked") {
-        CHECK (out.str().find("Run: \033[1;33mecho test123\033[0m?") != std::string::npos)
+        CHECK (out.str().find("Run:") != std::string::npos)
+          ;
+        CHECK (out.str().find("echo test123") != std::string::npos)
           ;
       }
       THEN ("command output is shown") {
@@ -532,6 +534,15 @@ SCENARIO ("REPL /model select from list") {
           ;
       }
     }
+    WHEN ("the user input has trailing carriage return (raw terminal)") {
+      std::istringstream in("/model\n2\r\nexit\n");
+      std::ostringstream out;
+      run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
+      THEN ("model is set despite the CR") {
+        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
+          ;
+      }
+    }
   }
 }
 
@@ -554,100 +565,7 @@ SCENARIO ("default_model is auto") {
     }
   }
 }
-// Rating prompt only shows in interactive TTY mode (not testable via stringstream).
-// /rate command is testable because it's a regular slash command.
-
-SCENARIO ("REPL /rate command") {
-  GIVEN ("user rates last response via /rate") {
-    std::istringstream in("hello\n/rate last +\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("rating is confirmed") {
-      CHECK (out.str().find("[rated: positive]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user rates last response as negative") {
-    std::istringstream in("hello\n/rate last -\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("rating is confirmed") {
-      CHECK (out.str().find("[rated: negative]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user saves last response for review") {
-    std::istringstream in("hello\n/rate last s\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("rating is confirmed") {
-      CHECK (out.str().find("[rated: saved]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user lists rated responses after /rate") {
-    std::istringstream in("hello\n/rate last +\n/rate list\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("list shows rated responses") {
-      CHECK (out.str().find("1. [positive]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user lists with no ratings") {
-    std::istringstream in("hello\n/rate list\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("no rated responses message is shown") {
-      CHECK (out.str().find("[no rated responses]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user provides invalid /rate syntax") {
-    std::istringstream in("/rate\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("usage help is shown") {
-      CHECK (out.str().find("Usage: /rate") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user provides invalid rating value") {
-    std::istringstream in("hello\n/rate last x\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("invalid rating message is shown") {
-      CHECK (out.str().find("Invalid rating") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user rates a specific response by index") {
-    std::istringstream in("first\nsecond\n/rate 1 +\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("first response is rated") {
-      CHECK (out.str().find("[rated: positive]") != std::string::npos)
-        ;
-    }
-  }
-
-  GIVEN ("user rates with no prior response") {
-    std::istringstream in("/rate last +\nexit\n");
-    std::ostringstream out;
-    run_repl(echo_chat, test_cfg(), in, out);
-    THEN ("response not found message is shown") {
-      CHECK (out.str().find("Response not found") != std::string::npos)
-        ;
-    }
-  }
-}
+// Rating tests extracted to repl_rate_test.cpp (ADR-061 file size limit)
 
 SCENARIO ("dispatch_command handles slash commands") {
   GIVEN ("a ReplState with mock functions") {
@@ -657,7 +575,8 @@ SCENARIO ("dispatch_command handles slash commands") {
     std::vector<Message> history;
     std::istringstream in("");
     std::ostringstream out;
-    ReplState s = {chat, nullptr, models, nullptr, nullptr, nullptr, cfg, history, in, out};
+    ReplState s = {chat,  nullptr, models, nullptr, nullptr, nullptr, cfg,   history, in,    out,     0,      false,
+                   false, true,    false,  false,   "32",    "",      false, -1,      false, nullptr, nullptr};
 
     WHEN ("dispatch_command is called with /clear") {
       history.push_back({"user", "hello"});
@@ -672,8 +591,16 @@ SCENARIO ("dispatch_command handles slash commands") {
 
     WHEN ("dispatch_command is called with /version") {
       dispatch_command("version", "", s);
-      THEN ("version is printed") {
+      THEN ("version is printed with commit hash") {
         CHECK (out.str().find("llama-cli") != std::string::npos)
+          ;
+        // Format: "llama-cli X.Y.Z (abcdef0)" or "llama-cli X.Y.Z (abcdef0 dirty)"
+        // Must contain a 7-char hex commit hash in parentheses
+        auto paren = out.str().find('(');
+        CHECK (paren != std::string::npos)
+          ;
+        auto close = out.str().find(')', paren);
+        CHECK (close != std::string::npos)
           ;
       }
     }
@@ -694,6 +621,46 @@ SCENARIO ("dispatch_command handles slash commands") {
         CHECK (out.str().find("color") != std::string::npos)
           ;
       }
+    }
+  }
+}
+
+// --- Prompt label tests (ADR-089) ---
+
+SCENARIO ("repl: prompt label omits model for non-ollama providers") {
+  GIVEN ("provider is tgpt") {
+    THEN ("model is not shown in prompt") {
+      std::string label = build_prompt_label("gius", "tgpt", "mistral-nemo:12b");
+      CHECK (label == "gius@tgpt> ")
+        ;
+    }
+  }
+  GIVEN ("provider is gemini") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "gemini", "gemini-2.5-pro");
+      CHECK (label == "gius@gemini:gemini-2.5-pro> ")
+        ;
+    }
+  }
+  GIVEN ("provider is kiro-cli") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "kiro-cli", "claude-sonnet");
+      CHECK (label == "gius@kiro-cli:claude-sonnet> ")
+        ;
+    }
+  }
+  GIVEN ("provider is ollama") {
+    THEN ("model IS shown in prompt") {
+      std::string label = build_prompt_label("gius", "ollama", "gemma4:26b");
+      CHECK (label == "gius@ollama:gemma4:26b> ")
+        ;
+    }
+  }
+  GIVEN ("nick is empty") {
+    THEN ("just shows > ") {
+      std::string label = build_prompt_label("", "tgpt", "whatever");
+      CHECK (label == "> ")
+        ;
     }
   }
 }

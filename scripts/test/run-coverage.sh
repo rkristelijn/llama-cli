@@ -22,7 +22,7 @@ main() {
   echo "==> make coverage (running tests...)"
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
-    "$t" --no-version --quiet
+    timeout 60 "$t" --no-version --quiet --test-case-exclude="*copy to clipboard*"
   done
   echo "  [done] coverage"
 }

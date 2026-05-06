@@ -10,6 +10,7 @@
 
 #include "repl/repl_model.h"
 
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -21,7 +22,9 @@
 #include <vector>
 
 #include "config/config.h"
+#include "logging/logger.h"
 #include "ollama/ollama.h"
+#include "tui/tui.h"
 
 #ifdef LINENOISE_HPP
 // already included
@@ -36,9 +39,175 @@ extern volatile sig_atomic_t g_interrupted;
 /// Queries all known hosts for available models, displays a sorted table
 /// with hardware info and sweetspot highlighting, and prompts user to pick.
 /// Supports re-sorting by name/params/size/quality within the menu.
+/// Handle /model command: list models, switch active model, or show current.
+/// Aggregates models from all registered providers (ADR-081).
 // pmccabe:skip-complexity
 // NOLINTNEXTLINE(readability-function-size)
 void handle_model_selection(ReplState& s, const std::string& arg) {
+  LOG_FEATURE("model_selection");
+
+  // ADR-081: Use unified registry when available
+  if (s.registry && !s.registry->models.empty()) {
+    // ADR-089: Filter to current provider+host only (use /host or /use to switch).
+    // This keeps the /model list focused — you only see models you can actually
+    // use right now. Switch provider first with /provider or /host to see others.
+    std::string cur_provider = Config::instance().provider;
+    std::string cur_host = Config::instance().host + ":" + Config::instance().port;
+    std::vector<const ModelEntry*> filtered;
+    for (const auto& m : s.registry->models) {
+      if (m.provider == cur_provider) {
+        // For ollama: also filter by host if multi-host
+        if (cur_provider == "ollama" && m.host != cur_host) {
+          continue;
+        }
+        filtered.push_back(&m);
+      }
+    }
+    // Fallback: if no models match current provider, show all
+    if (filtered.empty()) {
+      for (const auto& m : s.registry->models) {
+        filtered.push_back(&m);
+      }
+    }
+    const auto& models = filtered;
+    s.out << "\n";
+    s.out << "  #  Model                          Provider       Host                   Speed\n";
+    s.out << "  ── ────────────────────────────── ────────────── ────────────────────── ─────\n";
+
+    // Paginate: detect terminal size
+    int term_rows = 24;
+    int term_cols = 80;
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0) {
+      if (ws.ws_row > 0) {
+        term_rows = ws.ws_row;
+      }
+      if (ws.ws_col > 0) {
+        term_cols = ws.ws_col;
+      }
+    }
+    int page_size = term_rows - 6;
+    if (page_size < 5) {
+      page_size = 5;
+    }
+
+    // Adaptive column widths based on terminal width
+    int col_model = (term_cols > 100) ? 28 : 20;
+
+    for (size_t i = 0; i < models.size(); i++) {
+      const auto& m = *models[i];
+      std::string marker = (m.name == Config::instance().model && m.host.find(Config::instance().host) != std::string::npos) ? "*" : " ";
+      // For cloud providers: show cost rate + description instead of speed/host.
+      // This gives users immediate visibility into credit costs before selecting.
+      // For ollama: show tokens/sec speed estimate from registry benchmarks.
+      std::string info;
+      if (m.cost_rate > 0) {
+        char rate_buf[16];
+        snprintf(rate_buf, sizeof(rate_buf), "%.1fx", m.cost_rate);
+        info = std::string(rate_buf);
+        if (!m.description.empty()) {
+          info += "  " + m.description.substr(0, static_cast<size_t>(term_cols - col_model - 20));
+        }
+      } else if (m.tokens_per_sec > 0) {
+        info = std::to_string(static_cast<int>(m.tokens_per_sec)) + " t/s";
+      }
+      // Dim non-sweetspot models (only for ollama with known params)
+      bool sweet = (m.params_b >= 11.0 && m.params_b <= 28.0) || m.cost_rate > 0;
+      std::string dim = (!sweet && s.color) ? tui::active_theme().system.ansi() : "";
+      std::string reset = (!sweet && s.color) ? Style::reset() : "";
+      // Truncate name to fit
+      std::string name = m.name.substr(0, col_model);
+      char buf[160];
+      snprintf(buf, sizeof(buf), "%s%2zu %-*s ", marker.c_str(), i + 1, col_model, name.c_str());
+      s.out << dim << buf << info << reset << "\n";
+
+      // Pagination: pause after each page if list is longer than terminal
+      if (static_cast<int>(models.size()) > page_size && (i + 1) % static_cast<size_t>(page_size) == 0 && i + 1 < models.size()) {
+        s.out << "  -- more (" << (i + 1) << "/" << models.size() << ") press Enter --" << std::flush;
+        std::string dummy;
+#ifdef LINENOISE_HPP
+        if (&s.in == &std::cin) {
+          linenoise::Readline("", dummy);
+        } else
+#endif
+        {
+          std::getline(s.in, dummy);
+        }
+      }
+    }
+    s.out << "\n  Select [1-" << models.size() << "] or /model <name>: ";
+    s.out.flush();
+
+    // Read selection — use linenoise in interactive mode for proper terminal handling
+    std::string input;
+#ifdef LINENOISE_HPP
+    if (&s.in == &std::cin) {
+      auto quit = linenoise::Readline("", input);
+      if (quit || input.empty()) {
+        return;
+      }
+    } else
+#endif
+    {
+      if (!std::getline(s.in, input) || input.empty()) {
+        return;
+      }
+    }
+    // Strip trailing \r (raw terminal mode can leave it)
+    if (input.back() == '\r') {
+      input.pop_back();
+    }
+    if (input.empty()) {
+      return;
+    }
+    // Try numeric selection
+    try {
+      int idx = std::stoi(input) - 1;
+      if (idx >= 0 && idx < static_cast<int>(models.size())) {
+        const auto& pick = *models[idx];
+        // Switch to selected model's host and provider
+        if (pick.provider == "ollama") {
+          auto colon = pick.host.find(':');
+          if (colon != std::string::npos) {
+            Config::instance().host = pick.host.substr(0, colon);
+            Config::instance().port = pick.host.substr(colon + 1);
+          }
+        }
+        Config::instance().model = pick.name;
+        Config::instance().provider = pick.provider;
+        if (s.switch_provider) {
+          s.switch_provider(pick.provider);
+        }
+        s.out << "[model: " << pick.name << " on " << pick.provider << "@" << pick.host << "]\n";
+        return;
+      }
+    } catch (...) {
+    }
+    // Try name match
+    for (const auto& mp : models) {
+      const auto& m = *mp;
+      if (m.name == input) {
+        if (m.provider == "ollama") {
+          auto colon = m.host.find(':');
+          if (colon != std::string::npos) {
+            Config::instance().host = m.host.substr(0, colon);
+            Config::instance().port = m.host.substr(colon + 1);
+          }
+        }
+        Config::instance().model = m.name;
+        Config::instance().provider = m.provider;
+        if (s.switch_provider) {
+          s.switch_provider(m.provider);
+        }
+        s.out << "[model: " << m.name << " on " << m.provider << "@" << m.host << "]\n";
+        return;
+      }
+    }
+    s.out << "Invalid selection: " << input << "\n";
+    return;
+  }
+
+  // Fallback: legacy model selection (no registry)
   // Detect hardware for sweetspot calculation (injected via hw_fn)
   HardwareInfo hw = s.hw_fn();
 
@@ -119,9 +288,9 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
       const auto& ib = info_map[kb];
 
       switch (sort_mode) {
-        case 'n':
+        case 'n':  // Sort alphabetically by model name
           return a.name < b.name;
-        case 'p': {
+        case 'p': {  // Sort by parameter count (largest first)
           double pa = to_num(ia.params);
           double pb = to_num(ib.params);
           if (pa != pb) {
@@ -129,13 +298,13 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
           }
           return a.name < b.name;
         }
-        case 'q': {
+        case 'q': {  // Sort by quantization level (highest quality first)
           if (ia.quant != ib.quant) {
             return ia.quant > ib.quant;
           }
           return ia.size_gb > ib.size_gb;
         }
-        case 's':
+        case 's':  // Sort by file size on disk (largest first)
         default: {
           if (ia.size_gb != ib.size_gb) {
             return ia.size_gb > ib.size_gb;
@@ -176,8 +345,8 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
 
       // Sweetspot: 11B-27.5B models are highlighted (optimal for local hardware)
       bool sweet = (params >= 11.0 && params <= 27.5);
-      std::string dim = (sweet || !s.color) ? "" : "\033[2m";
-      std::string reset = (sweet || !s.color) ? "" : "\033[0m";
+      std::string dim = (sweet || !s.color) ? "" : tui::active_theme().system.ansi();
+      std::string reset = (sweet || !s.color) ? "" : Style::reset();
 
       std::string marker = (sorted[i].name == Config::instance().model) ? " *" : "  ";
       s.out << marker << std::setw(2) << std::right << (i + 1) << ". " << dim;

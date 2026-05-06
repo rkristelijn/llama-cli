@@ -232,7 +232,7 @@ Issue "In Progress"
   └─► POST-RELEASE
         ├─ Monitoring / SLA check (CMMI 2+)
         └─ Incident auto-trigger if error spike
-```
+```text
 
 ---
 
@@ -489,7 +489,7 @@ Think of the framework as nested boxes. From the outside, you see a label. The l
 │  │  └─────────────────────────────────────────────┘  │  │
 │  └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
-```
+```text
 
 Every box is:
 
@@ -576,17 +576,17 @@ The framework passes this test because:
 
 | Backlog | Task | CMMI | Status |
 |---------|------|------|--------|
-| [023](../backlog/023-commit-msg-hook.md) | Commit message validation | 0.1 | ✅ Done |
-| [024](../backlog/024-branch-naming.md) | Branch naming validation | 0.2 | ✅ Done |
-| [025](../backlog/025-issue-pr-templates.md) | Issue/PR templates | 0.8 | ✅ Done |
+| — | Commit message validation | 0.1 | ✅ Done |
+| — | Branch naming validation | 0.2 | ✅ Done |
+| — | Issue/PR templates | 0.8 | ✅ Done |
 
 ### Sprint 2 — CMMI 1 ✅ Complete (2026-04-24)
 
 | Backlog | Task | CMMI | Status |
 |---------|------|------|--------|
-| [027](../backlog/027-coverage-bump.md) | Coverage bump 50%→60% | 1.1 | ✅ Done |
-| [028](../backlog/028-todo-scraping.md) | TODO scraping → TECHDEBT.md | 1.3 | ✅ Done |
-| [005](../backlog/005-streaming.md) | Streaming responses | Feature | ✅ Done |
+| — | Coverage bump 50%→60% | 1.1 | ✅ Done |
+| — | TODO scraping → TECHDEBT.md | 1.3 | ✅ Done |
+| — | Streaming responses | Feature | ✅ Done |
 
 AI agent prompts for these tasks live in [`docs/prompts/`](../prompts/).
 
@@ -626,7 +626,7 @@ AI agent prompts for these tasks live in [`docs/prompts/`](../prompts/).
 ## Verify      — bash commands to confirm
 ## Expected    — what the output should look like
 ## Commit      — the conventional commit message
-```
+```text
 
 ### Path to CMMI 2 (when entering Production phase)
 

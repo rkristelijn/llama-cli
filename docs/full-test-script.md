@@ -6,7 +6,7 @@ Start: `./llama-cli`
 
 ```text
 > wat is 2+2?
-```
+```text
 
 → Antwoord in het Nederlands, bevat "4"
 
@@ -15,7 +15,7 @@ Start: `./llama-cli`
 ```text
 > /set trace
 > hallo
-```
+```text
 
 → Trace regels tonen `[HH:MM:SS] [TRACE] ...`
 
@@ -23,7 +23,7 @@ Start: `./llama-cli`
 
 ```text
 > !echo hello
-```
+```text
 
 → Toont `hello`, geen LLM call
 
@@ -32,7 +32,7 @@ Start: `./llama-cli`
 ```text
 > !!cat VERSION
 > welke versie is dit?
-```
+```text
 
 → LLM antwoordt met het versienummer uit VERSION
 
@@ -40,7 +40,7 @@ Start: `./llama-cli`
 
 ```text
 > maak een bestand /tmp/llama-test.txt met "hello world"
-```
+```text
 
 → Toont inhoud, prompt `Write to /tmp/llama-test.txt? [y/n/s]`
 → Type `y` → `[wrote /tmp/llama-test.txt]`
@@ -49,7 +49,7 @@ Start: `./llama-cli`
 
 ```text
 > verander "hello world" naar "goodbye world" in /tmp/llama-test.txt
-```
+```text
 
 → Toont diff met `- hello world` en `+ goodbye world` **automatisch** (geen `d` nodig)
 → Type `y` → `[wrote ...]`, backup in `.bak`
@@ -58,7 +58,7 @@ Start: `./llama-cli`
 
 ```text
 > vervang "goodbye" door "hallo" in /tmp/llama-test.txt
-```
+```text
 
 → Toont `[proposed: str_replace /tmp/llama-test.txt]`
 → Toont diff met `-`/`+` regels
@@ -70,7 +70,7 @@ Start: `./llama-cli`
 
 ```text
 > lees regels 1-5 van src/main.cpp
-```
+```text
 
 → Toont `[read src/main.cpp]`
 → LLM analyseert de inhoud (follow-up call)
@@ -79,7 +79,7 @@ Start: `./llama-cli`
 
 ```text
 > zoek "run_repl" in src/main.cpp
-```
+```text
 
 → Toont `[read src/main.cpp]`
 → LLM ziet de gevonden regels met context
@@ -88,7 +88,7 @@ Start: `./llama-cli`
 
 ```text
 > hoeveel .cpp bestanden zijn er in src/?
-```
+```text
 
 → LLM stelt `<exec>find src -name '*.cpp' | wc -l</exec>` voor
 → Prompt `Run: ...? [y/n]` → type `y`
@@ -98,7 +98,7 @@ Start: `./llama-cli`
 
 ```text
 > maak een bestand /tmp/skip-test.txt
-```
+```text
 
 → Type `n` → `[skipped]`
 → Verifieer: `!ls /tmp/skip-test.txt` → "No such file"
@@ -113,7 +113,7 @@ Start: `./llama-cli`
 > /help
 > /clear
 > /set onzin
-```
+```text
 
 → `/set` toont opties, toggles tonen `[markdown off]` etc.
 → `/version` toont versie, `/help` toont help
@@ -124,7 +124,7 @@ Start: `./llama-cli`
 
 ```text
 > schrijf een lang essay over de geschiedenis van computing
-```
+```text
 
 → Druk `Ctrl+C` tijdens het wachten → `[interrupted]`
 
@@ -132,7 +132,7 @@ Start: `./llama-cli`
 
 ```text
 > what is the capital of France?
-```
+```text
 
 → Antwoord in het Engels
 
@@ -141,4 +141,4 @@ Start: `./llama-cli`
 ```text
 > !rm /tmp/llama-test.txt /tmp/llama-test.txt.bak
 > exit
-```
+```text

@@ -1,6 +1,6 @@
 # ADR-049: Interactive Model Selection Command
 
-*Status*: Implemented · *Date*: 2026-04-18 · *Context*: Users need a way to switch models during a REPL session without restarting. The `/model` command provides interactive model selection from the Ollama server.
+*Status*: Superseded by [ADR-089](adr-089-hierarchical-selection.md) · *Date*: 2026-04-18
 
 ## Problem
 
@@ -61,7 +61,7 @@ Available models:
   3. llama3.2:3b
 Select model (1-3): 2
 [model set to qwen2.5-coder:7b]
-```
+```text
 
 Error cases:
 

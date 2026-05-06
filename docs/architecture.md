@@ -5,7 +5,54 @@ tags: [architecture, technical, design, modules]
 
 # Architecture
 
-## Overview
+## System Overview (v2 — Multi-Provider)
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                         llama-cli                                │
+├─────────────┬──────────────┬──────────────┬─────────────────────┤
+│   Config    │    REPL      │   Sync Mode  │   Planner           │
+│  (.env/CLI) │  (commands)  │  (one-shot)  │  (auto-routing)     │
+├─────────────┴──────────────┴──────────────┴─────────────────────┤
+│                    Provider Abstraction (ADR-020)                │
+├──────────┬──────────┬──────────┬──────────┬─────────────────────┤
+│  Ollama  │   tgpt   │  Gemini  │ kiro-cli │  MultiHost Router   │
+│ Provider │ Provider │ Provider │ Provider │  (failover/match)   │
+├──────────┴──────────┴──────────┴──────────┴─────────────────────┤
+│                    Model Registry (ADR-081)                      │
+│         Provider → Host → Model (speed, cost, capabilities)     │
+├─────────────────────────────────────────────────────────────────┤
+│  TUI (theme)  │  Logger (JSONL)  │  Annotations  │  Exec       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Startup Flow
+
+1. Load config: defaults → .env → env vars → CLI args (ADR-004)
+2. Detect mode: Sync (has prompt/pipe) or Interactive (TTY)
+3. Create provider: based on LLAMA_PROVIDER config
+4. [REPL only] Scan providers: probe all hosts, build ModelRegistry
+5. [REPL only] Auto-select model: fastest in sweetspot (11-28B)
+6. Enter main loop (REPL) or execute one-shot (Sync)
+
+### Provider Switching
+
+| Action | What happens |
+|--------|-------------|
+| `/provider <name>` | Recreates provider via factory, updates Config |
+| `/model <number>` | Switches host+port+model+provider from registry |
+| `/auto` toggle | Enables per-prompt routing by complexity |
+
+### Auto-Routing Tiers (ADR-079)
+
+| Tier | Prompt type | Target |
+|------|-------------|--------|
+| 1 | Simple (< 30 words, factual) | Fastest 3B (jarvis/pepper) |
+| 2 | Medium (question, 30-90 words) | 14B (apsnlmac4050) |
+| 3 | Complex (code, multi-part) | 27B or cloud |
+| 4 | Current info (news, today) | tgpt/gemini |
+
+## Legacy Overview
 
 ```mermaid
 graph TB
@@ -19,7 +66,7 @@ graph TB
     Ollama --> JSON[JSON parser]
     Ollama --> HTTP[cpp-httplib]
     HTTP --> Server([Ollama server])
-```
+```text
 
 ## Modules
 
@@ -55,7 +102,7 @@ sequenceDiagram
     Server-->>Ollama: {"response": "..."}
     Ollama-->>Main: response text
     Main->>User: stdout
-```
+```text
 
 ### Interactive mode
 
@@ -79,7 +126,7 @@ sequenceDiagram
         REPL->>User: print response
     end
     User->>REPL: "exit" / Ctrl+D
-```
+```text
 
 ## Testability
 
@@ -130,4 +177,4 @@ llama-cli/
 ├── .config/              # Tool configs and hooks (.clang-format, .clang-tidy, Doxyfile, pre-commit)
 ├── scripts/              # Shell scripts (setup, build-index, test coverage, CI helpers)
 └── .github/workflows/    # CI pipeline
-```
+```text

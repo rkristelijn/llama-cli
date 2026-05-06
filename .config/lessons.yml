@@ -40,3 +40,7 @@ design:
   - "Idempotent automation: run make format 100x, same result — no manual investigation"
   - Prefer testing the public interface's contract rather than internal implementation details.
   - Verify that assertions test the contract, not the implementation details.
+refactoring:
+  - "When changing a type (const char* → std::string), change the interface once at the definition — don't chase all call sites"
+  - "Prefer adding a lint rule (check-theme.sh) over remembering a convention — automate enforcement"
+  - "Auto-fix > manual fix: format-md.sh detects missing code block languages instead of fixing them by hand"

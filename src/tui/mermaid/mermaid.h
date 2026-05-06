@@ -6,7 +6,7 @@
  * to an ostream. Used by the StreamRenderer when a ```mermaid block
  * is detected. Integrated from ../mermaid-tui/ project.
  *
- * @see docs/backlog/032-mermaid-rendering.md
+ * @see docs/adr/adr-070-pluggable-mermaid-renderers.md
  */
 #ifndef LLAMA_CLI_MERMAID_H
 #define LLAMA_CLI_MERMAID_H

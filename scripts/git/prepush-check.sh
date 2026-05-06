@@ -18,14 +18,12 @@ while IFS= read -r f; do
   esac
 done <<<"$CHANGED"
 
-# Build the step list dynamically
+# Build the step list dynamically — fast checks only (tidy/e2e run in CI)
 STEPS=()
 $HAS_SH && STEPS+=("Lint|lint-makefile|make -s lint-makefile")
 $HAS_SH && STEPS+=("Lint|lint-scripts|make -s lint-scripts")
-$HAS_CPP && STEPS+=("Analysis|tidy|make -s tidy")
 $HAS_CPP && STEPS+=("Build|build|make -s build")
 $HAS_CPP && STEPS+=("Test|test-unit|make -s test-unit")
-$HAS_CPP && STEPS+=("Test|e2e|make -s e2e")
 STEPS+=("Security|sast-security|make -s sast-security")
 $HAS_CPP && STEPS+=("Metrics|comment-ratio|make -s comment-ratio")
 
@@ -44,10 +42,8 @@ TOTAL="${#STEPS[@]}"
 declare -A HINTS=(
   ["lint-makefile"]="fix: follow Makefile conventions, recheck: make lint-makefile"
   ["lint-scripts"]="fix: follow shell script conventions, recheck: make lint-scripts"
-  ["tidy"]="fix: address clang-tidy warnings, recheck: make tidy"
   ["build"]="fix: resolve build errors, recheck: make build"
   ["test-unit"]="fix: failing unit tests, recheck: make test-unit"
-  ["e2e"]="fix: failing e2e tests, recheck: make e2e"
   ["sast-security"]="fix: address semgrep findings, recheck: make sast-security"
   ["comment-ratio"]="fix: add comments to source, recheck: make comment-ratio"
 )

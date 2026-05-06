@@ -114,7 +114,7 @@ DiagramRegistry.render(input)
        ├── QuadrantRenderer   → (planned) 2×2 grid
        │
        └── no match → fallback: show as fenced code block
-```
+```text
 
 Adding a new type = one `.h/.cpp` pair + register in `renderer.cpp`.
 

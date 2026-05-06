@@ -12,9 +12,19 @@
 
 /// A single message in a conversation
 struct Message {
-  std::string role;         ///< Message role: "system", "user", or "assistant"
-  std::string content;      ///< Message text content
-  std::string rating = "";  ///< Rating: "positive", "negative", "saved", or empty (default)
+  std::string role;                 ///< Message role: "system", "user", or "assistant"
+  std::string content;              ///< Message text content
+  std::string rating;               ///< Rating: "positive", "negative", "saved", or empty
+  std::vector<std::string> images;  ///< Base64-encoded images (for vision models)
+
+  Message() = default;
+  /// Construct with role and content (most common usage).
+  Message(std::string r, std::string c) : role(std::move(r)), content(std::move(c)) {}
+  /// Construct with role, content, and user rating.
+  Message(std::string r, std::string c, std::string rat) : role(std::move(r)), content(std::move(c)), rating(std::move(rat)) {}
+  /// Construct with role, content, rating, and attached images (vision models).
+  Message(std::string r, std::string c, std::string rat, std::vector<std::string> imgs)
+      : role(std::move(r)), content(std::move(c)), rating(std::move(rat)), images(std::move(imgs)) {}
 };
 
 // Send a one-shot prompt (no history). Uses /api/generate.

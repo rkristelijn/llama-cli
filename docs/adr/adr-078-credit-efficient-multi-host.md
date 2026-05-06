@@ -38,7 +38,7 @@ We have multiple machines (NUC `pepper.local`, MacBook M2 `apsnlmac4050.local`) 
 │    Complex architecture, multi-file refactors       │
 │    Only when Tier 1+2 can't handle it               │
 └─────────────────────────────────────────────────────┘
-```
+```text
 
 ### Free Cloud API Tiers (as of 2026)
 
@@ -61,7 +61,7 @@ Key insight: **all use OpenAI-compatible API format**. One provider abstraction 
 # .env
 OLLAMA_HOSTS=apsnlmac4050.local:11434,pepper.local:11434
 OLLAMA_STRATEGY=model-match   # route by model availability
-```
+```text
 
 The scanner (`src/net/scan.cpp`) already discovers hosts. Wire it into startup:
 
@@ -79,7 +79,7 @@ class OpenAIProvider : public LLMProvider {
   // endpoint + api_key from config
   // POST /v1/chat/completions
 };
-```
+```text
 
 Config:
 
@@ -88,7 +88,7 @@ FALLBACK_PROVIDER=groq
 GROQ_API_KEY=gsk_...
 GROQ_ENDPOINT=https://api.groq.com/openai/v1
 GROQ_MODEL=llama-3.3-70b-versatile
-```
+```text
 
 **Phase 3: Prompt templates + timing feedback**
 
@@ -121,7 +121,7 @@ The event log already captures `duration_ms` and `tokens_prompt/completion`. Add
 
 # For tasks beyond local model capability:
 ./llama-cli --provider groq "architect a solution for Y"
-```
+```text
 
 ### Cost Tracking via Event Log
 
@@ -129,7 +129,7 @@ The log already has `tokens_prompt` + `tokens_completion`. Add a cost layer:
 
 ```bash
 make log --cost   # shows estimated cost per session
-```
+```text
 
 Cost calculation:
 
@@ -157,9 +157,9 @@ Cost calculation:
 
 ## References
 
-- @see docs/backlog/006-distributed-ollama.md — original idea
+- @see (consolidated into ADRs) — original idea
 - @see docs/adr/adr-020-provider-abstraction.md — provider interface
 - @see docs/adr/adr-027-event-logging.md — timing/token logging
-- @see docs/backlog/021-prompt-templates.md — template command
+- @see (consolidated into ADRs) — template command
 - @see docs/credits-in-ai.md — credit optimization guide
 - @see src/net/scan.cpp — existing host scanner

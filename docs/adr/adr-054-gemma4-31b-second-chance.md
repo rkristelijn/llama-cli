@@ -1,6 +1,6 @@
 # ADR-054: gemma4:31b — Second Chance with Tweaks
 
-*Status*: Accepted
+*Status*: Rejected — model-specific experiment, not architectural
 
 ## Date
 
@@ -45,7 +45,7 @@ No separate Q4_K_M variant needed.
 
 ```bash
 ollama pull gemma4:31b
-```
+```text
 
 ### 2. Context window — reduce to 4096 (high impact)
 
@@ -58,11 +58,11 @@ Create a Modelfile:
 FROM gemma4:31b
 PARAMETER num_ctx 4096
 PARAMETER num_predict 2048
-```
+```text
 
 ```bash
 ollama create gemma4-31b-tuned -f Modelfile
-```
+```text
 
 | Setting | Default | Tuned | Why |
 |---------|---------|-------|-----|
@@ -73,7 +73,7 @@ ollama create gemma4-31b-tuned -f Modelfile
 
 ```bash
 export OLLAMA_NUM_THREADS=4
-```
+```text
 
 Too many threads on M2 causes memory thrashing and thermal throttling.
 4 threads is the safe default; adjust up to 6 if memory pressure stays green.
@@ -122,7 +122,7 @@ OLLAMA_MODEL=gemma4-31b-tuned ./llama-cli
 
 # 5. Check latency in trace output
 # [TRACE] 200 Xms — X should be < 30000 for simple tasks
-```
+```text
 
 ## Fallback
 
@@ -161,7 +161,7 @@ history to prevent model drift. This is standard practice in agent systems
 
 ```text
 history: [system prompt] [user] [assistant] [user] [assistant] [system: reminder] [user] ...
-```
+```text
 
 Design choices:
 

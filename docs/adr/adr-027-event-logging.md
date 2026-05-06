@@ -25,7 +25,7 @@ Log all agent actions as structured JSON events.
   "tokens_prompt": 150,
   "tokens_completion": 45
 }
-```
+```text
 
 ### Events to log
 
@@ -51,7 +51,7 @@ JSONL is not human-friendly. A log viewer script provides readable output:
 make log                    # show last 50 events
 make log 123                # filter events matching "123"
 make log exec --context 5   # show exec events with 5 lines context
-```
+```text
 
 Output format:
 
@@ -60,7 +60,7 @@ Output format:
   input:  make test
   output: [doctest] Status: SUCCESS!
 ---
-```
+```text
 
 See `scripts/dev/log-viewer.sh` for implementation.
 

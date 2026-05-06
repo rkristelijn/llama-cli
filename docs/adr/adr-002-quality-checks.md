@@ -71,7 +71,7 @@ gh run view <id>                         # run details
 gh run view <id> --log-failed            # failure logs
 gh run watch                             # live follow
 gh pr checks                             # checks for current PR
-```
+```text
 
 ## Consequences
 
@@ -89,7 +89,7 @@ The 20% minimum is enforced by `cloc` via `scripts/check/comment-ratio.sh`. To s
  * @brief Configuration loading: defaults → env vars → CLI args.
  * @see docs/adr/adr-004-configuration.md
  */
-```
+```text
 
 This serves three purposes:
 

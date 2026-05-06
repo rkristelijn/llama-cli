@@ -12,7 +12,7 @@
 
 ```bash
 make tidy
-```
+```text
 
 ## Notes
 

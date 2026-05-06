@@ -64,6 +64,7 @@ struct Graph {
 
 // --- Parser ---
 
+/// Strip leading/trailing whitespace from a string.
 static std::string trim(const std::string& str) {
   auto start = str.find_first_not_of(" \t\r\n");
   if (start == std::string::npos) {
@@ -154,6 +155,7 @@ static void parse_edge_line(Graph& g, const std::string& line) {
   }
 }
 
+/// Parse mermaid flowchart text into a Graph structure (nodes + edges).
 static Graph parse(const std::string& input) {
   Graph g;
   std::string normalized = input;
@@ -187,6 +189,8 @@ static Graph parse(const std::string& input) {
 
 // --- Layout: assign layers via topological sort ---
 
+/// Assign layer numbers to nodes using topological sort (Kahn's algorithm).
+/// Returns the maximum layer depth for layout calculations.
 static int assign_layers(Graph& g) {
   std::vector<int> in_deg(g.nodes.size(), 0);
   for (const auto& e : g.edges) {
@@ -445,6 +449,8 @@ static void render_lr(const Graph& g, std::ostream& out, int max_layer, int cols
 
 // --- Public API ---
 
+/// Render a mermaid diagram to terminal. Detects direction (TD/LR) and delegates.
+/// Returns false if the input is not a recognized flowchart.
 bool render_mermaid(const std::string& input, std::ostream& out, int cols, int /*rows*/) {
   Graph g = parse(input);
   if (g.edges.empty()) {

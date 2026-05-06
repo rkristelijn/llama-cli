@@ -30,33 +30,31 @@ extended with a review state.
                 [~] Blocked ──────────┘
                  ↓
                 [/] Cancelled
-```
+```text
 
 ## Usage in this project
 
 ### TODO.md
 
 ```markdown
-- [ ] Streaming responses
+- [x] Streaming responses
 - [-] Fix make setup — installing missing tools
 - [>] Smart confirmation prompt (PR open)
 - [~] Branch protection — waiting on admin access
 - [x] Pin tool versions in .config/versions.env
 - [/] Migrate to new server — no longer needed
-```
+```text
 
-### docs/backlog/README.md
+### docs/adr/README.md
 
-The backlog Status column uses the same vocabulary:
+The ADR Status field uses the same vocabulary:
 
 | Status | Meaning |
 |--------|---------|
-| Idea | `[ ]` — not started, under consideration |
-| WIP | `[-]` — actively being worked on |
-| Review | `[>]` — PR open or awaiting feedback |
-| Blocked | `[~]` — waiting on dependency |
-| Done | `[x]` — completed, has ADR or is shipped |
-| Cancelled | `[/]` — won't do |
+| Proposed | `[ ]` — not started, under consideration |
+| Accepted | `[-]` — approved, awaiting implementation |
+| Implemented | `[x]` — completed and shipped |
+| Superseded | `[/]` — replaced by another ADR |
 
 ## Priority
 
@@ -65,7 +63,7 @@ The backlog Status column uses the same vocabulary:
 - [ ] !! High priority task (P1 — do today)
 - [ ] ! Normal priority task (P2 — do this week)
 - [ ]     Low priority task    (P3 — someday)
-```
+```text
 
 ## References
 

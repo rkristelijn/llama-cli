@@ -11,16 +11,48 @@
 
 #include "repl/repl_annotations.h"
 
+#include <unistd.h>
+
 #include <chrono>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <vector>
 
 #include "dtl/dtl.hpp"
 #include "exec/exec.h"
+#include "linenoise.hpp"
 #include "logging/logger.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
+
+/// Read a single line for y/n confirmation.
+/// Uses linenoise::Readline in interactive mode (stdin) for proper terminal
+/// handling — std::getline is unreliable after linenoise raw mode manipulation.
+/// Falls back to std::getline for tests (stringstream input).
+/// Ctrl-C in interactive mode returns false (same as EOF).
+/// @param prompt shown by linenoise (stays visible after input)
+static bool read_answer(std::istream& in, std::string& answer, const std::string& prompt = "", std::ostream* out = nullptr) {
+  if (&in == &std::cin && isatty(STDIN_FILENO)) {
+    // Interactive: linenoise shows prompt and keeps it visible after input
+    auto quit = linenoise::Readline(prompt.c_str(), answer);
+    if (quit) {
+      return false;
+    }
+    return true;
+  }
+  // Non-interactive (tests, pipes): print prompt to out, then read
+  if (out && !prompt.empty()) {
+    *out << prompt << std::flush;
+  }
+  if (!std::getline(in, answer)) {
+    return false;
+  }
+  if (!answer.empty() && answer.back() == '\r') {
+    answer.pop_back();
+  }
+  return true;
+}
 
 // --- File I/O helpers ---
 // These are file-local utilities used by the annotation handlers.
@@ -37,9 +69,9 @@ static std::string read_file(const std::string& path) {
 }
 
 /// Emit one diff line with optional ANSI color prefix.
-static void emit_diff_line(std::ostream& out, const char* ansi, const char* prefix, const std::string& line, bool color) {
+static void emit_diff_line(std::ostream& out, const std::string& ansi, const char* prefix, const std::string& line, bool color) {
   if (color) {
-    out << ansi << prefix << line << "\033[0m\n";
+    out << ansi << prefix << line << Style::reset() << "\n";
   } else {
     out << prefix << line << "\n";
   }
@@ -53,6 +85,7 @@ static void emit_diff_line(std::ostream& out, const char* ansi, const char* pref
 /// Print a git-style unified diff with 3 lines of context and @@ hunk headers.
 /// Uses Myers diff (via dtl) for accurate change detection.
 // pmccabe:skip-complexity
+/// Show a unified diff between old and new text (for write/str_replace proposals).
 // NOLINTNEXTLINE(readability-function-size)
 void show_diff(const std::string& old_text, const std::string& new_text, std::ostream& out, bool color) {
   auto split = [](const std::string& s) {
@@ -132,20 +165,20 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
         }
       }
       if (color) {
-        out << "\033[36m";
+        out << tui::active_theme().info.ansi();
       }
       out << "@@ -" << o_start << "," << o_count << " +" << n_start << "," << n_count << " @@";
       if (color) {
-        out << "\033[0m";
+        out << Style::reset();
       }
       out << "\n";
       in_hunk = true;
     }
     const auto& e = entries[i];
     if (e.type == dtl::SES_DELETE) {
-      emit_diff_line(out, "\033[1;31m", "- ", e.text, color);
+      emit_diff_line(out, tui::active_theme().error.ansi(), "- ", e.text, color);
     } else if (e.type == dtl::SES_ADD) {
-      emit_diff_line(out, "\033[1;32m", "+ ", e.text, color);
+      emit_diff_line(out, tui::active_theme().info.ansi(), "+ ", e.text, color);
     } else {
       out << "  " << e.text << "\n";
     }
@@ -157,6 +190,7 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
 /// Prompt user to confirm a file write. Shows diff or content, accepts y/n/s/t/c.
 /// y=confirm, n=decline, s=show content again, t=trust all, c=copy to clipboard.
 /// Returns true if the write should proceed, false if declined.
+/// Prompt user to confirm a file write. Supports y/n/s (skip) and trust mode.
 // pmccabe:skip-complexity
 static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
   // Trust mode: auto-approve all remaining actions this session
@@ -185,10 +219,10 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     out << "[auto-written: " << action.path << "]\n";
     return true;
   }
-  std::string opts = "[y/n/s/t/c]";
-  out << "Write to " << action.path << "? " << opts << " " << std::flush;
+  std::string opts = "[y/n/s/t/c/?]";
+  std::string prompt = "Write to " + action.path + "? " + opts + " ";
   std::string answer;
-  while (std::getline(in, answer)) {
+  while (read_answer(in, answer, prompt, &out)) {
     if (answer == "y" || answer == "yes") {
       return true;
     }
@@ -197,12 +231,11 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
-    }
-    if (answer == "t" || answer == "trust") {
+    } else if (answer == "t" || answer == "trust") {
       trust = true;
       return true;
-    }
-    if (answer == "c" || answer == "copy") {
+    } else if (answer == "c" || answer == "copy") {
+      // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
       FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
       if (pipe) {
@@ -210,8 +243,13 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
         pclose(pipe);
         out << "[copied to clipboard]\n";
       }
+    } else if (answer == "?") {
+      out << "  y = apply this change\n";
+      out << "  n = skip this change\n";
+      out << "  s = show full content again\n";
+      out << "  t = trust — auto-approve all remaining changes this session\n";
+      out << "  c = copy content to clipboard\n";
     }
-    out << "Write to " << action.path << "? " << opts << " " << std::flush;
   }
   return false;
 }
@@ -231,7 +269,17 @@ void process_write(const WriteAction& action, std::istream& in, std::ostream& ou
     if (exists_check.good()) {
       exists_check.close();
       std::string existing = read_file(action.path);
-      std::ofstream bak(action.path + ".bak");
+      // Backup to .tmp/backups/ so we never pollute git-managed folders
+      std::string bak_dir = ".tmp/backups";
+      std::string cmd = "mkdir -p " + bak_dir;
+      system(cmd.c_str());
+      // Use basename to avoid path separators in backup filename
+      std::string basename = action.path;
+      auto slash = basename.rfind('/');
+      if (slash != std::string::npos) {
+        basename = basename.substr(slash + 1);
+      }
+      std::ofstream bak(bak_dir + "/" + basename + ".bak");
       if (bak.is_open()) {
         bak << existing;
       }
@@ -273,7 +321,11 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     auto replace_pos = updated.find(action.old_str);
     updated.replace(replace_pos, action.old_str.size(), action.new_str);
     show_diff(existing, updated, out, color);
-    std::ofstream bak(action.path + ".bak");
+    system("mkdir -p .tmp/backups");
+    std::string bn = action.path;
+    auto sl = bn.rfind('/');
+    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    std::ofstream bak(".tmp/backups/" + bn + ".bak");
     if (bak.is_open()) {
       bak << existing;
     }
@@ -304,33 +356,51 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
   updated.replace(replace_pos, action.old_str.size(), action.new_str);
   show_diff(existing, updated, out, color);
 
-  out << "Apply str_replace to " << action.path << "? [y/n/t/c] " << std::flush;
+  std::string sr_prompt = "Apply str_replace to " + action.path + "? [y/n/t/c/?] ";
   std::string answer;
-  if (!std::getline(in, answer)) {
-    out << "[skipped]\n";
-    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-    return;
-  }
-  if (answer == "t" || answer == "trust") {
-    trust = true;
-  } else if (answer == "c" || answer == "copy") {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-    FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
-    if (pipe) {
-      fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
-      pclose(pipe);
-      out << "[copied to clipboard]\n";
+  while (true) {
+    if (!read_answer(in, answer, sr_prompt, &out)) {
+      out << "[skipped]\n";
+      LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+      return;
     }
-    return;
-  } else if (answer != "y" && answer != "yes") {
-    out << "[skipped]\n";
-    LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-    return;
+    if (answer == "y" || answer == "yes") {
+      break;
+    }
+    if (answer == "t" || answer == "trust") {
+      trust = true;
+      break;
+    }
+    if (answer == "c" || answer == "copy") {
+      // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+      if (pipe) {
+        fwrite(action.new_str.c_str(), 1, action.new_str.size(), pipe);
+        pclose(pipe);
+        out << "[copied to clipboard]\n";
+      }
+      return;
+    }
+    if (answer == "?") {
+      out << "  y = apply this change\n";
+      out << "  n = skip this change\n";
+      out << "  t = trust — auto-approve all remaining changes this session\n";
+      out << "  c = copy new content to clipboard\n";
+    } else {
+      out << "[skipped]\n";
+      LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+      return;
+    }
   }
 
   // Backup and write
   {
-    std::ofstream bak(action.path + ".bak");
+    system("mkdir -p .tmp/backups");
+    std::string bn = action.path;
+    auto sl = bn.rfind('/');
+    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    std::ofstream bak(".tmp/backups/" + bn + ".bak");
     bak << existing;
   }
   std::ofstream f(action.path);
@@ -420,7 +490,7 @@ std::string strip_exec_annotations(const std::string& text) {
       break;
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, "\033[1;37m[proposed: exec " + cmd + "]\033[0m");
+    result.replace(start, end + close.size() - start, tui::active_theme().info.ansi() + "[proposed: exec " + cmd + "]" + Style::reset());
   }
   // Strip remaining annotation-like tags so raw XML never reaches the user
   for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read ", "<search>", "</search>"}) {
@@ -443,26 +513,40 @@ std::string strip_exec_annotations(const std::string& text) {
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
   if (!trust) {
-    out << "Run: \033[1;33m" << cmd << "\033[0m? [y/n/t/c] " << std::flush;
+    std::string exec_prompt = "Run: " + cmd + "? [y/n/t/c/?] ";
     std::string answer;
-    if (!std::getline(in, answer)) {
-      return "";
-    }
-    if (answer == "t" || answer == "trust") {
-      trust = true;
-    } else if (answer == "c" || answer == "copy") {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-      FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
-      if (pipe) {
-        fwrite(cmd.c_str(), 1, cmd.size(), pipe);
-        pclose(pipe);
-        out << "[copied to clipboard]\n";
+    while (true) {
+      if (!read_answer(in, answer, exec_prompt, &out)) {
+        return "";
       }
-      return "";
-    } else if (answer != "y" && answer != "yes") {
-      LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
-      out << "[skipped]\n";
-      return "";
+      if (answer == "y" || answer == "yes") {
+        break;
+      }
+      if (answer == "t" || answer == "trust") {
+        trust = true;
+        break;
+      }
+      if (answer == "c" || answer == "copy") {
+        // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+        FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
+        if (pipe) {
+          fwrite(cmd.c_str(), 1, cmd.size(), pipe);
+          pclose(pipe);
+          out << "[copied to clipboard]\n";
+        }
+        return "";
+      }
+      if (answer == "?") {
+        out << "  y = run this command\n";
+        out << "  n = skip this command\n";
+        out << "  t = trust — auto-run all remaining commands this session\n";
+        out << "  c = copy command to clipboard\n";
+      } else {
+        LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
+        out << "[skipped]\n";
+        return "";
+      }
     }
   }
   auto t0 = std::chrono::steady_clock::now();

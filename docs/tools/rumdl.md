@@ -12,7 +12,7 @@
 
 ```bash
 make markdownlint
-```
+```text
 
 ## Notes
 

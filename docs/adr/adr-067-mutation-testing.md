@@ -35,7 +35,7 @@ all other gates pass. It is never part of `make quick` or `make check`.
 PR pipeline order:
   1. make check          (lint, tidy, tests, sast)
   2. make mutation       (Mull on changed files only — slow but targeted)
-```
+```text
 
 ### Makefile target
 
@@ -43,7 +43,7 @@ PR pipeline order:
 mutation: ## Run mutation testing on changed files (PR only)
 	@echo "==> mutation testing (mull)..."
 	@bash scripts/test/run-mutation.sh
-```
+```text
 
 ### Script design
 

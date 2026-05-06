@@ -18,7 +18,8 @@ Every markdown file gets frontmatter with a summary and tags. A central `INDEX.m
 summary: One-line description of this document
 tags: [tag1, tag2, tag3]
 ---
-```
+
+```text
 
 | Field | Required | Description |
 |---|---|---|

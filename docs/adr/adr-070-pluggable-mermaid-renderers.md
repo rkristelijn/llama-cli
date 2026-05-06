@@ -26,7 +26,7 @@ DiagramRenderer (interface)
 ├── SequenceRenderer   — ASCII columns with arrows
 ├── PieRenderer        — horizontal bar chart
 └── StateRenderer      — converts to flowchart, delegates to braille
-```
+```text
 
 - `DiagramRegistry` holds all renderers, dispatches via `can_render()` (first match wins)
 - Global `diagram_registry()` is lazily initialized with all built-in renderers
@@ -60,7 +60,7 @@ src/tui/mermaid/
 ├── venn.h/cpp       — VennRenderer (braille circles)
 ├── mermaid.h/cpp    — Box-drawing flowchart engine
 └── renderer_test.cpp — Unit tests for all renderers
-```
+```text
 
 ## Consequences
 

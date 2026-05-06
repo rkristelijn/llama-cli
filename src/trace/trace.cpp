@@ -15,14 +15,14 @@ StderrTrace stderr_trace_instance;  ///< Global instance for production use
 /// Write trace message to stderr with local-time HH:MM:SS timestamp.
 void StderrTrace::log(const char* fmt, ...) {
   // ... (timestamp code)
-  fprintf(stderr, "\r\033[K");
-  // Print timestamp
-  time_t now = time(nullptr);
+  // Print ISO 8601 timestamp with milliseconds (same format as event log)
+  struct timespec ts_now;
+  clock_gettime(CLOCK_REALTIME, &ts_now);
   struct tm tm_buf;
-  localtime_r(&now, &tm_buf);
-  char ts[20];
-  strftime(ts, sizeof(ts), "%H:%M:%S", &tm_buf);
-  fprintf(stderr, "[%s] ", ts);
+  gmtime_r(&ts_now.tv_sec, &tm_buf);
+  char ts[30];
+  strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S", &tm_buf);
+  fprintf(stderr, "[%s.%03ldZ] ", ts, ts_now.tv_nsec / 1000000);
 
   // Initialize variable argument list from the format string.
   // Note: clang-tidy sometimes reports false positives for uninitialized va_list

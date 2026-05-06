@@ -407,7 +407,7 @@ SCENARIO ("print default env template") {
       THEN ("it contains all expected variables commented out") {
         CHECK (output.find("# llama-cli configuration template") != std::string::npos)
           ;
-        CHECK (output.find("# LLAMA_PROVIDER=ollama") != std::string::npos)
+        CHECK (output.find("# LLAMA_PROVIDER=tgpt") != std::string::npos)
           ;
         CHECK (output.find("# OLLAMA_HOST=localhost") != std::string::npos)
           ;
@@ -527,7 +527,12 @@ SCENARIO ("config from env with invalid numeric value") {
     clean_env();
     setenv("OLLAMA_TIMEOUT", "abc", 1);
     WHEN ("config is loaded from env") {
+      // Suppress expected warning on stderr
+      std::streambuf* orig = std::cerr.rdbuf();
+      std::ostringstream sink;
+      std::cerr.rdbuf(sink.rdbuf());
       Config c = load_env();
+      std::cerr.rdbuf(orig);
       THEN ("invalid values are ignored, defaults used") {
         CHECK (c.timeout == 120)
           ;

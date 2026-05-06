@@ -1,6 +1,6 @@
 # ADR-062: Context-First Architecture & Workflow Engine
 
-*Status*: Proposed
+*Status*: Rejected — too ambitious, never implemented
 
 ## Context
 
@@ -52,7 +52,7 @@ llama-cli ask "fix the failing test"
 llama-cli ask "simple question"           # → local (Ollama)
 llama-cli ask "complex refactor"          # → cloud (if configured)
 llama-cli ask --provider=kiro "deep task" # explicit override
-```
+```text
 
 ### Complexity scoring for smart routing
 

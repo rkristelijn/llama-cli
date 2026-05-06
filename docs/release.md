@@ -11,7 +11,7 @@ git add VERSION
 git commit -m "Bump version to X.Y.Z"
 git tag vX.Y.Z
 git push origin main --tags
-```
+```text
 
 ## What Happens
 

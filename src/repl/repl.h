@@ -15,6 +15,8 @@
 #include "net/scan.h"
 #include "ollama/ollama.h"
 
+struct ModelRegistry;  // Forward declaration (ADR-081)
+
 // Injectable function types for testability (ADR-008).
 // Production code passes the real implementation; tests pass mocks.
 // This avoids network calls in unit tests while keeping the code simple.
@@ -24,6 +26,7 @@ using ModelsFn = std::function<std::vector<std::string>(const Config&)>;
 using ModelInfoFn = std::function<std::vector<ModelInfo>(const Config&)>;
 using HardwareFn = std::function<HardwareInfo()>;
 using ScanFn = std::function<std::vector<std::string>(int)>;
+using SwitchProviderFn = std::function<void(const std::string&)>;
 
 // Run the REPL loop with conversation memory.
 // system_prompt is added as first message if non-empty.
@@ -31,6 +34,14 @@ using ScanFn = std::function<std::vector<std::string>(int)>;
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout,
              ModelsFn models_fn = get_available_models, StreamChatFn stream_chat = nullptr, HardwareFn hw_fn = detect_hardware,
-             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts);
+             ModelInfoFn model_info_fn = get_model_info, ScanFn scan_fn = scan_ollama_hosts, SwitchProviderFn switch_provider_fn = nullptr,
+             ModelRegistry* registry = nullptr);
+
+/// Build the REPL prompt label: "nick@provider> " or "nick@provider:model> "
+/// Model is only shown for providers that support model selection (not tgpt).
+/// For cloud providers (gemini, kiro-cli, amazon-q) model is shown.
+/// For tgpt (single fixed model) only provider is shown.
+/// Returns the plain-text label without ANSI codes (color applied by caller).
+std::string build_prompt_label(const std::string& nick, const std::string& provider, const std::string& model);
 
 #endif

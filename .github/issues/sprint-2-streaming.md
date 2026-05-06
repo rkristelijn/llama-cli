@@ -26,7 +26,7 @@ Then the partial response is discarded and the prompt returns
 Given a response contains <write> or <exec> annotations
 When streaming completes
 Then annotations are parsed from the full response and processed normally
-```
+```text
 
 ## Implementation
 

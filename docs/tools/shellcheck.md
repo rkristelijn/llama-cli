@@ -12,7 +12,7 @@
 
 ```bash
 make shellcheck
-```
+```text
 
 ## Notes
 

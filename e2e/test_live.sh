@@ -114,7 +114,7 @@ fi
 echo "--- test 8: /version ---"
 OUTPUT=$(run "/version
 exit")
-assert_contains "$OUTPUT" "built" "version shows build date"
+assert_contains "$OUTPUT" "llama-cli" "version shows version and commit"
 echo "PASS"
 
 # --- test 9: language follows user ---

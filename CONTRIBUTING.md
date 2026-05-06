@@ -24,7 +24,7 @@ static void parse_args(int argc, const char* const argv[], Config& c) {
 // ❌ Bad — NOLINT pushes the line past the column limit, clang-format fights back
 static void parse_args(int argc, const char* const argv[],
                        Config& c) {  // NOLINT(readability-function-size)
-```
+```text
 
 Quick reference:
 
@@ -37,6 +37,23 @@ Quick reference:
 ### doctest macros and clang-format
 
 `SCENARIO`, `GIVEN`, `WHEN`, `THEN`, `TEST_CASE` are uppercase macros — clang-format must not lowercase them. They are listed in `StatementMacros` in `.config/.clang-format`. If you add a new doctest macro, add it there too. Never run `clang-tidy --fix` on test files — it does not understand doctest macros and will corrupt them.
+
+### Interactive input (ADR-088)
+
+**Never use `std::cin` or `std::getline(std::cin, ...)` for interactive input.** After linenoise manipulates the terminal (raw mode), cin's stream buffer enters an undefined state — Enter shows as `^M`, Ctrl-C doesn't work.
+
+Use `read_answer(in, answer)` from `repl_annotations.cpp` for all confirmation prompts. It uses `linenoise::Readline` in interactive mode and falls back to `std::getline` for tests:
+
+```cpp
+// ✅ Good — works in interactive mode AND tests
+std::string answer;
+read_answer(in, answer);
+
+// ❌ Bad — breaks after linenoise raw mode, no Ctrl-C support
+std::getline(std::cin, answer);
+```
+
+Enforced by `scripts/lint/check-interactive-input.sh`.
 
 ## Shell scripts
 
@@ -118,7 +135,7 @@ make check       # DEFAULT: Full linting, smart clang-tidy (changed files only)
 make full-check  # EXHAUSTIVE: Verifies every file in the project (CI uses this on main)
 make quick       # Incremental build + unit tests + comment ratio
 make live        # Integration test with real LLM (requires running Ollama)
-```
+```text
 
 ### What is verified
 
@@ -148,7 +165,7 @@ Settings are loaded in this order (last wins):
 
 ```text
 struct defaults → environment variables → .env file → CLI arguments
-```
+```text
 
 Put project-local settings in `.env` (git-ignored):
 
@@ -156,7 +173,7 @@ Put project-local settings in `.env` (git-ignored):
 OLLAMA_HOST=localhost:11434
 OLLAMA_MODEL=gemma4:26b
 TRACE=true
-```
+```text
 
 See `src/config/config.h` for all available settings.
 
@@ -175,4 +192,4 @@ To preview or create a tag locally:
 ```bash
 make bump            # auto-detect from commits
 make bump PART=minor # force a specific bump
-```
+```text

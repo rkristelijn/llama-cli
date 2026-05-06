@@ -474,6 +474,77 @@ install_ollama() {
 }
 
 #######################################
+# Install optional LLM providers (non-fatal).
+# These are free CLI tools for multi-provider routing.
+#######################################
+install_providers() {
+  echo "==> Installing LLM providers (optional)..."
+
+  # tgpt — free cloud LLM, no account needed
+  if ! has tgpt; then
+    echo "  Installing tgpt..."
+    if [[ "${IS_MAC}" == true ]]; then
+      brew install tgpt || echo "  [warn] tgpt install failed"
+    else
+      curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | sudo bash -s /usr/local/bin || echo "  [warn] tgpt install failed" # nosemgrep
+    fi
+  else
+    echo "  tgpt                 ✓"
+  fi
+
+  # gemini — Google AI CLI (requires Google account + oauth)
+  if ! has gemini; then
+    echo "  Installing gemini CLI..."
+    if has npm; then
+      npm install -g @google/gemini-cli || echo "  [warn] gemini install failed"
+    elif has nvm; then
+      echo "  Run: nvm use --lts && npm install -g @google/gemini-cli"
+    else
+      echo "  [skip] gemini requires npm — install Node.js first"
+    fi
+  else
+    echo "  gemini               ✓"
+  fi
+
+  # Amazon Q Developer — free with AWS Builder ID
+  if ! has q; then
+    echo "  Installing Amazon Q Developer CLI..."
+    if [[ "${IS_MAC}" == true ]]; then
+      brew install --cask amazon-q || echo "  [warn] amazon-q install failed"
+    else
+      # Linux: download from GitHub releases
+      local q_url="https://desktop-release.q.us-east-1.amazonaws.com/latest/amazon-q.deb"
+      if has dpkg; then
+        curl -sSL "$q_url" -o /tmp/amazon-q.deb && sudo dpkg -i /tmp/amazon-q.deb && rm /tmp/amazon-q.deb || echo "  [warn] amazon-q install failed"
+      else
+        echo "  [skip] Amazon Q: download from https://github.com/aws/amazon-q-developer-cli"
+      fi
+    fi
+  else
+    echo "  amazon-q             ✓"
+  fi
+
+  # kiro-cli
+  if ! has kiro-cli-chat; then
+    echo "  Installing kiro-cli..."
+    if [[ "${IS_MAC}" == true ]]; then
+      brew install --cask kiro || echo "  [warn] kiro install failed"
+    elif has snap; then
+      sudo snap install kiro --classic || echo "  [warn] kiro snap install failed"
+    elif has dpkg; then
+      local kiro_url="https://kiro.dev/downloads/latest/linux/deb"
+      curl -sSL "$kiro_url" -o /tmp/kiro.deb && sudo dpkg -i /tmp/kiro.deb && rm /tmp/kiro.deb || echo "  [warn] kiro install failed"
+    else
+      echo "  [skip] kiro-cli: install from https://kiro.dev"
+    fi
+  else
+    echo "  kiro-cli             ✓"
+  fi
+
+  echo "  [done] providers"
+}
+
+#######################################
 # Main entry point.
 #######################################
 main() {
@@ -517,6 +588,9 @@ main() {
 
   # Runtime
   install_ollama
+
+  # LLM Providers (optional — non-fatal)
+  install_providers
 
   # Mutation testing (optional — failure should not abort setup)
   install_mull || echo "  [warn] mull install failed (optional, continuing)"

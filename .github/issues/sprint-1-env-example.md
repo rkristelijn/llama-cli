@@ -21,7 +21,7 @@ Then they find .env.example with all settings documented
 Given a contributor runs "cp .env.example .env"
 When they run "make build && ./build/llama-cli"
 Then the tool starts with sensible defaults
-```
+```text
 
 ## Implementation
 
@@ -37,7 +37,7 @@ OLLAMA_TIMEOUT=120
 # Execution limits
 LLAMA_EXEC_TIMEOUT=30
 LLAMA_MAX_OUTPUT=10000
-```
+```text
 
 ## Stacking Effects
 

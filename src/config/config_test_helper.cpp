@@ -21,6 +21,8 @@ bool env_get(const char* name, std::string& out) {
   return true;
 }
 
+/// Load config from environment variables (OLLAMA_HOST, OLLAMA_PORT, etc.).
+/// Returns a copy of defaults with env overrides applied.
 Config load_env(const Config& defaults) {
   Config c = defaults;
   std::string val;
@@ -48,6 +50,7 @@ std::string match_long(const std::string& arg, const char* prefix) {
   return "";
 }
 
+/// Parse CLI arguments into Config. Handles --model, --files, and positional prompt.
 // clang-tidy:skip-complexity — TODO: refactor (see TODO.md)
 Config load_cli(int argc, const char* const argv[], const Config& base) {
   Config c = base;
@@ -97,6 +100,7 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
   return c;
 }
 
+/// Full config loading: env → CLI args (last wins). Entry point for tests.
 Config load_config(int argc, const char* const argv[]) {
   Config c = load_env();
   return load_cli(argc, argv, c);

@@ -1,87 +1,56 @@
 # ADR-077: Free Open-Source Development Services Strategy
 
-*Status*: Accepted
-
-## Date
-
-2026-05-05
+*Status*: Proposed · *Date*: 2026-05-06
 
 ## Context
 
-As a solo developer maintaining an open-source C++ project, we need to maximize quality without budget. Many SaaS tools offer free tiers for public repositories. This ADR documents which services we use, which we should add, and how they complement our local tooling.
+We use several free-for-OSS services (Codecov, SonarCloud, CodeRabbit) but haven't systematically evaluated what's available. Adding more tools increases quality visibility without cost.
 
 ## Decision
 
-### Currently active (free for open source)
+### Currently Active
 
-| Service | Purpose | Integration | Value |
-|---------|---------|-------------|-------|
-| **GitHub Actions** | CI/CD | `.github/workflows/` | 2000 min/month free; runs `make check` |
-| **SonarCloud** | Deep static analysis (C++, shell) | GitHub App + `make sonar-report` | Catches issues local tools miss (S912, S1912) |
-| **CodeRabbit** | AI PR review | GitHub App (auto) | Catches dead code, security gaps, style issues |
-| **Codecov** | Coverage tracking + PR decoration | GitHub Action | Unlimited for public repos; trend tracking |
-| **Dependabot** | Dependency updates | `.github/dependabot.yml` | Built into GitHub, free for all repos |
+| Service | Purpose | Integration |
+|---------|---------|-------------|
+| Codecov | Test coverage tracking + patch coverage | GitHub App |
+| SonarCloud | Code quality, bugs, security hotspots | GitHub App |
+| CodeRabbit | AI-powered PR review | GitHub App |
+| Gitleaks | Secret scanning | CI job |
+| Semgrep | SAST security rules | CI job |
+| Trivy | IaC + vulnerability scanning | CI job |
+| Grype | Container/binary vulnerability | CI job |
 
-### Recommended additions (free for open source)
+### Planned Additions (Priority Order)
 
-| Service | Purpose | Effort | Priority |
-|---------|---------|--------|----------|
-| **OpenSSF Scorecard** | Security posture score (badge) | Add GitHub Action | High — credibility signal |
-| **DeepSource** | Static analysis + auto-fix PRs | GitHub App install | Medium — overlaps SonarCloud but adds auto-fix |
-| **FOSSA** | License compliance (5 projects free) | GitHub App | Low — useful if adding dependencies |
-| **Renovate** | Dependency updates (more flexible than Dependabot) | GitHub App or self-hosted | Low — Dependabot already covers this |
-| **Step Security Harden-Runner** | CI supply-chain protection | Add to workflows | Medium — monitors network egress in CI |
-| **Snyk** | Vulnerability scanning (limited free) | GitHub App | Low — overlaps with osv-scanner/grype |
+| # | Service | Purpose | Effort | Value |
+|---|---------|---------|--------|-------|
+| 1 | **Renovate** | Auto-update pinned action versions + deps | Add `renovate.json` | High — eliminates manual version bumps |
+| 2 | **OpenSSF Scorecard** | Security posture badge + recommendations | GitHub Action | High — credibility + finds gaps |
+| 3 | **Socket.dev** | Supply chain attack detection | GitHub App install | Medium — protects against typosquatting |
+| 4 | **FOSSA** | License compliance scanning | GitHub App install | Medium — ensures OSS license compat |
+| 5 | **Deepsource** | Code quality trends + anti-patterns | GitHub App install | Low — overlaps with SonarCloud |
+| 6 | **Codacy** | Quality metrics over time (trends) | GitHub App install | Low — overlaps with SonarCloud |
+| 7 | **Step Security Harden-Runner** | CI exfiltration detection | 1 line per workflow | Low — defense in depth |
 
-### Not recommended (overlap or low value)
+### Selection Criteria
 
-| Service | Reason |
-|---------|--------|
-| **Codacy** | Overlaps SonarCloud; less C++ support |
-| **Code Climate** | No C++ support |
-| **CircleCI** | GitHub Actions already sufficient |
-| **CodeFactor** | Shallow analysis; SonarCloud is deeper |
+- **Free for public repos** — no paid tier required
+- **Zero maintenance** — GitHub App or single config file
+- **Non-blocking** — informational checks, not required for merge
+- **No overlap** — each tool covers a unique gap
 
-### Strategy: layered quality with zero cost
+### Not Selected
 
-```text
-Local (instant)          → make check (clang-tidy, cppcheck, shellcheck, etc.)
-PR gate (minutes)        → GitHub Actions CI + CodeRabbit AI review
-Cloud analysis (async)   → SonarCloud deep scan + Codecov trends
-Supply chain (passive)   → Dependabot + OpenSSF Scorecard
-```
-
-### How to maximize value from each tool
-
-**CodeRabbit** — Already integrated. Use `make gpf` to pull feedback locally. Fix "Major" and "Potential issue" items; skip "Low value" nitpicks unless trivial.
-
-**SonarCloud** — Use `make sonar-report` for CLI summary. Focus on BLOCKERs and VULNERABILITYs. Code smells in tui/ are known (ADR-074) and tracked for refactoring.
-
-**Codecov** — Already integrated. Enforces coverage doesn't regress on PRs. No action needed.
-
-**OpenSSF Scorecard** (to add) — Provides a public score (0-10) on security practices. Checks: branch protection, CI tests, dependency updates, SAST, signed releases, etc. Adding the badge signals project maturity.
-
-### Implementation plan
-
-1. ✅ SonarCloud — active, `make sonar-report` works
-2. ✅ CodeRabbit — active, `make gpf` pulls feedback
-3. ✅ Codecov — active via CI
-4. ✅ Dependabot — active
-5. ⬚ OpenSSF Scorecard — add `scorecard.yml` workflow + badge
-6. ⬚ Step Security Harden-Runner — add to CI workflows
+| Tool | Reason |
+|------|--------|
+| Snyk | Overlaps with Grype + Trivy for our use case (no npm/pip deps) |
+| Dependabot | Renovate is more configurable and handles non-GitHub sources |
+| CodeClimate | Free tier too limited, SonarCloud covers same ground |
 
 ## Consequences
 
-- Zero monthly cost for all quality tooling
-- Multiple independent analysis engines catch different issue classes
-- Solo developer gets team-level review quality via AI (CodeRabbit) and deep analysis (SonarCloud)
-- OpenSSF Scorecard badge communicates security posture to users
-- Local `make check` remains the primary gate; cloud tools are additive
-
-## References
-
-- @see ADR-074 (SonarCloud integration)
-- @see ADR-002 (quality checks & CI pipeline)
-- @see ADR-048 (quality framework)
-- @see `scripts/gh/pr-feedback.sh` — CodeRabbit feedback script
-- @see `scripts/security/sonar-report.sh` — SonarCloud CLI report
+- More visibility into project health without manual effort
+- Badges on README increase contributor confidence
+- Renovate eliminates stale pinned versions (currently manual `make update`)
+- OpenSSF Scorecard provides actionable security improvements
+- No additional CI minutes cost (GitHub Apps run on their own infra)

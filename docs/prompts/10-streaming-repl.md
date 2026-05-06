@@ -29,7 +29,7 @@ using ChatFn = std::function<std::string(const std::vector<Message>&)>;
 // system_prompt is added as first message if non-empty.
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout);
-```
+```text
 
 Replace it with:
 
@@ -47,7 +47,7 @@ using StreamChatFn = std::function<std::string(const std::vector<Message>&, Stre
 // Returns number of prompts processed.
 int run_repl(ChatFn chat, const Config& cfg = Config{}, std::istream& in = std::cin, std::ostream& out = std::cout,
              StreamChatFn stream_chat = nullptr);
-```
+```text
 
 ## File 2: Update `src/repl/repl.cpp`
 
@@ -57,13 +57,13 @@ Find this struct member (around line 50-60):
 
 ```cpp
   bool bofh = false;              ///< BOFH mode: sarcastic spinner
-```
+```text
 
 Add after it:
 
 ```cpp
   StreamChatFn stream_chat;       ///< Optional streaming chat function
-```
+```text
 
 ### Change 2b: Add streaming chat function
 
@@ -87,7 +87,7 @@ static std::string interruptible_chat(ReplState& s) {
   t.detach();
   return "";
 }
-```
+```text
 
 Replace it with:
 
@@ -143,7 +143,7 @@ static std::string streaming_chat(ReplState& s) {
   t.detach();
   return "";
 }
-```
+```text
 
 ### Change 2c: Use streaming in chat_with_spinner
 
@@ -151,13 +151,13 @@ Find this line in `chat_with_spinner`:
 
 ```cpp
   std::string result = interruptible_chat(s);
-```
+```text
 
 Replace it with:
 
 ```cpp
   std::string result = streaming_chat(s);
-```
+```text
 
 ### Change 2d: Update run_repl signature and state init
 
@@ -165,25 +165,25 @@ Find the `run_repl` function signature (near the end of the file). It will look 
 
 ```cpp
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out) {
-```
+```text
 
 Replace it with:
 
 ```cpp
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, StreamChatFn stream_chat) {
-```
+```text
 
 Then find where `ReplState s` is initialized (a few lines after the signature). Add `stream_chat` to the state. Find:
 
 ```cpp
   s.bofh = cfg.bofh;
-```
+```text
 
 Add after it:
 
 ```cpp
   s.stream_chat = stream_chat;
-```
+```text
 
 ### Change 2e: Skip markdown rendering for streamed responses
 
@@ -194,7 +194,7 @@ In `send_prompt`, the response is already printed token-by-token during streamin
     s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
     return false;
   }
-```
+```text
 
 Replace it with:
 
@@ -206,7 +206,7 @@ Replace it with:
     }
     return false;
   }
-```
+```text
 
 ## File 3: Update `src/main.cpp`
 
@@ -220,7 +220,7 @@ Find this block:
       return ollama_chat(cfg, msgs);
     };
     run_repl(generate, cfg);
-```
+```text
 
 Replace it with:
 
@@ -238,7 +238,7 @@ Replace it with:
       };
     }
     run_repl(generate, cfg, std::cin, std::cout, stream_fn);
-```
+```text
 
 ## Verify
 
@@ -254,7 +254,7 @@ grep -c "streaming_chat" src/repl/repl.cpp && echo "PASS: streaming_chat exists"
 
 # 4. Check main.cpp passes stream function
 grep -c "stream_fn" src/main.cpp && echo "PASS: stream_fn in main" || echo "FAIL"
-```
+```text
 
 ## Expected output
 
@@ -263,7 +263,7 @@ PASS: build succeeds
 PASS: tests pass
 PASS: streaming_chat exists
 PASS: stream_fn in main
-```
+```text
 
 ## Manual test
 
@@ -272,10 +272,10 @@ PASS: stream_fn in main
 ./build/llama-cli
 > hello, count to 5
 # You should see: 1... 2... 3... 4... 5 appearing token by token
-```
+```text
 
 ## Commit message
 
 ```text
 feat: integrate streaming into REPL with token-by-token output
-```
+```text

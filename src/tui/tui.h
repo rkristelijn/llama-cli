@@ -22,8 +22,15 @@
 #include "tui/markdown.h"
 #include "tui/spinner.h"
 #include "tui/table.h"
+#include "tui/theme.h"
 
 namespace tui {
+
+/// Global active theme — set at startup, changeable via /theme
+inline Theme& active_theme() {
+  static Theme t = theme_dark();
+  return t;
+}
 
 /** Check if color output is enabled (TTY + no NO_COLOR + no --no-color) */
 inline bool use_color(bool no_color_flag = false) {
@@ -45,33 +52,33 @@ inline void banner(std::ostream& out, bool color) {
       " / /___/ /___/ ___ |/ /  / / / ___ |/_____// /___/ /____/ /   \n"
       "/_____/_____/_/  |_/_/  /_/ /_/  |_|       \\____/_____/___/   \n";
   if (color) {
-    out << "\033[1;33m" << art << "\033[0m\n";
+    out << active_theme().banner.ansi() << art << Style::reset() << "\n";
   } else {
     out << art << "\n";
   }
 }
 
-/** Print colored prompt marker */
-inline void prompt(std::ostream& out, bool color) { out << (color ? "\033[1;32m> \033[0m" : "> "); }
-
 /** Print a dim system message */
 inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? "\033[2m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << (color ? active_theme().system.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
+}
+
+/// Format a word as bold+white within a system message (stands out from dim text).
+/// Uses \033[1;97m (bold + bright white) and \033[22;39m (bold off + default fg).
+/// This avoids \033[0m which would reset the entire system style (dim, color).
+/// Used in startup messages to highlight commands like /host, /model, /quit.
+inline std::string bold(const std::string& text) {
+  return "\033[1;97m" + text + "\033[22;39m";  // bold+bright white on, then bold off + default fg
 }
 
 /** Print a bold red error message */
 inline void error(std::ostream& out, bool color, const std::string& msg) {
-  out << "\n" << (color ? "\033[1;31m" : "") << msg << (color ? "\033[0m" : "") << "\n";
+  out << "\n" << (color ? active_theme().error.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
 /** Print cyan command output */
 inline void cmd_output(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? "\033[36m" : "") << msg << (color ? "\033[0m" : "") << "\n";
-}
-
-/** Print yellow write proposal */
-inline void write_proposal(std::ostream& out, bool color, const std::string& path) {
-  out << (color ? "\033[33m" : "") << "[proposed: write " << path << "]" << (color ? "\033[0m" : "") << "\n";
+  out << (color ? active_theme().info.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
 }
 
 /** Default spinner messages — shown while waiting for LLM response */

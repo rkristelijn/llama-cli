@@ -148,7 +148,10 @@ SCENARIO ("Write annotation shows diff for existing files") {
           ;
       }
       THEN ("backup exists") {
-        std::ifstream bak(path + ".bak");
+        std::string bn = path;
+        auto sl = bn.rfind('/');
+        if (sl != std::string::npos) bn = bn.substr(sl + 1);
+        std::ifstream bak(".tmp/backups/" + bn + ".bak");
         CHECK (bak.is_open())
           ;
       }
@@ -562,5 +565,75 @@ SCENARIO ("trust-mode str_replace reports error on unwritable path") {
           ;
       }
     }
+  }
+}
+
+SCENARIO ("Write confirmation handles carriage return from raw terminal") {
+  const std::string path = "/tmp/llama-cr-test.txt";
+  std::remove(path.c_str());
+
+  GIVEN ("the LLM responds with a write annotation") {
+    auto write_chat = [&](const std::vector<Message>&) { return "<write file=\"" + path + "\">cr test</write>"; };
+
+    WHEN ("the user confirms with y followed by CR") {
+      std::istringstream in("go\ny\r\nexit\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+      THEN ("the file is written despite the CR") {
+        std::ifstream f(path);
+        CHECK (f.is_open())
+          ;
+      }
+    }
+    std::remove(path.c_str());
+  }
+}
+
+SCENARIO ("Write confirmation shows help on ?") {
+  const std::string path = "/tmp/llama-help-test.txt";
+  std::remove(path.c_str());
+
+  GIVEN ("the LLM responds with a write annotation") {
+    auto write_chat = [&](const std::vector<Message>&) { return "<write file=\"" + path + "\">help test</write>"; };
+
+    WHEN ("the user types ? then y") {
+      std::istringstream in("go\n?\ny\nexit\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+      THEN ("help text is shown") {
+        CHECK (out.str().find("y = apply") != std::string::npos)
+          ;
+        CHECK (out.str().find("t = trust") != std::string::npos)
+          ;
+      }
+      THEN ("the file is still written after help") {
+        std::ifstream f(path);
+        CHECK (f.is_open())
+          ;
+      }
+    }
+    std::remove(path.c_str());
+  }
+}
+
+// ADR-088: Verify that EOF during confirmation (simulates Ctrl-C) skips gracefully
+SCENARIO ("Write confirmation handles EOF gracefully (ADR-088)") {
+  const std::string path = "/tmp/llama-eof-test.txt";
+  std::remove(path.c_str());
+
+  GIVEN ("the LLM responds with a write annotation") {
+    auto write_chat = [&](const std::vector<Message>&) { return "<write file=\"" + path + "\">eof test</write>"; };
+
+    WHEN ("input stream ends before confirmation (simulates Ctrl-C)") {
+      std::istringstream in("go\n");
+      std::ostringstream out;
+      run_repl(write_chat, test_cfg(), in, out);
+      THEN ("the file is NOT written") {
+        std::ifstream f(path);
+        CHECK_FALSE (f.is_open())
+          ;
+      }
+    }
+    std::remove(path.c_str());
   }
 }

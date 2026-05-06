@@ -41,7 +41,7 @@ public:
     // Optional: for one-shot prompts
     virtual std::string generate(const std::string& prompt) = 0;
 };
-```
+```text
 
 A **Factory** was introduced to handle the instantiation logic based on the user's `Config`:
 
@@ -52,7 +52,7 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
     }
     return std::make_unique<OllamaProvider>(cfg);
 }
-```
+```text
 
 ## Consequences
 

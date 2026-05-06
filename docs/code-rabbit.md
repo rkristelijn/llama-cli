@@ -126,7 +126,7 @@ cr --agent
 
 # Interactive mode - terminal UI for manual review
 cr --interactive
-```
+```text
 
 ## Working with review results
 
@@ -189,7 +189,7 @@ Here's a complete prompt you can use with Cursor, Codex, or other AI coding agen
 
 ```text Sample prompt wrap theme={null}
 Please implement phase 7.3 of the planning doc and then run cr --agent, let it run as long as it needs (run it in the background) and fix any issues.
-```
+```text
 
 ### Components of a good prompt
 
@@ -338,10 +338,10 @@ Remove CodeRabbit CLI based on how you installed it.
 
 ```bash If installed using install script theme={null}
 rm $(which coderabbit)
-```
+```text
 
 ```bash If installed using Homebrew theme={null}
 brew remove coderabbit
-```
+```text
 
 Built with [Mintlify](https://mintlify.com).

@@ -24,6 +24,8 @@ struct Event {
   int tokens_prompt = 0;      ///< Prompt tokens
   int tokens_completion = 0;  ///< Completion tokens
   std::string rating;         ///< Rating: "positive", "negative", "saved", or empty
+  std::string host;           ///< Target host:port (e.g., "apsnlmac4050:11434")
+  std::string provider;       ///< Provider name (e.g., "ollama", "mock", "openai")
 };
 
 /// Append-only JSONL logger for agent events
@@ -44,7 +46,7 @@ class Logger {
   static std::mutex log_mutex_;
 };
 
-/// Convenience macro for logging
+/// Convenience macro for logging (includes host/provider from Config)
 #define LOG_EVENT(_agent_, _action_, _inp_, _out_, _dur_, _tp_, _tc_) \
   do {                                                                \
     Event e;                                                          \

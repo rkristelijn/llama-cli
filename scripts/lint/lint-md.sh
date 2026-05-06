@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # lint-md.sh — Run rumdl checks on Markdown files.
+# Config: .config/rumdl.toml
 
 set -o errexit
 set -o nounset

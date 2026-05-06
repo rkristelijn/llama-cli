@@ -39,7 +39,7 @@ classDiagram
     LLMProvider <|-- OllamaProvider
     LLMProvider <|-- TgptProvider
     ProviderFactory ..> LLMProvider
-```
+```text
 
 ## /model Command Flow
 

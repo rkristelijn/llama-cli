@@ -34,7 +34,7 @@ sequenceDiagram
     User->>REPL: "y"
     REPL->>FS: write file
     REPL->>User: "[wrote src/main.cpp — 25 lines]"
-```
+```text
 
 ### User confirmation
 
@@ -56,7 +56,7 @@ When you want to run a command, wrap it in <exec>command</exec>.
 When you need to read a file, use <read path="path"/>.
 The user will be asked to confirm before any action is executed.
 Do not use annotations unless the user asks you to create, modify, or run something.
-```
+```text
 
 ### Parsing rules
 

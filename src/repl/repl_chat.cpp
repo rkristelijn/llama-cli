@@ -21,7 +21,9 @@
 #include <vector>
 
 #include "annotation/annotation.h"
+#include "config/config.h"
 #include "logging/logger.h"
+#include "planner/planner.h"
 #include "repl/repl_annotations.h"
 #include "repl/repl_search.h"
 #include "sync/sync.h"
@@ -38,19 +40,19 @@ void sigint_handler(int);
 // Re-applies AI color after any ANSI reset inside markdown rendering.
 
 static std::string colorize_ai(const std::string& text, const ReplState& s) {
-  if (!s.color || s.ai_color.empty()) {
+  if (!s.color || tui::active_theme().ai.ansi().empty()) {
     return text;
   }
-  std::string color_code = "\033[" + s.ai_color + "m";
+  std::string color_code = tui::active_theme().ai.ansi();
   std::string result = color_code;
-  std::string reset = "\033[0m";
+  std::string reset = Style::reset();
   size_t pos = 0;
   size_t found;
   while ((found = text.find(reset, pos)) != std::string::npos) {
     result += text.substr(pos, found - pos + reset.size()) + color_code;
     pos = found + reset.size();
   }
-  result += text.substr(pos) + "\033[0m";
+  result += text.substr(pos) + Style::reset();
   return result;
 }
 
@@ -214,7 +216,7 @@ bool handle_response(const std::string& response, ReplState& s) {
   if (s.cfg.allow_web_search) {
     for (const auto& action : searches) {
       std::string result = web_search(action.query, s.cfg);
-      s.out << "\033[1;37m[searching: " << action.query << "]\033[0m\n";
+      s.out << tui::active_theme().info.ansi() << "[searching: " << action.query << "]" << Style::reset() << "\n";
       LOG_EVENT("repl", "web_search", action.query, result, 0, 0, 0);
       s.history.push_back({"user", result});
       has_followup = true;
@@ -232,6 +234,49 @@ static constexpr const char* reminder_nudge =
     "session, no scores without criteria.";
 
 void send_prompt(const std::string& line, ReplState& s) {
+  // Prompt gate: validate before expensive calls (ADR-081)
+  LOG_FEATURE("prompt_gate");
+  std::string trimmed = line;
+  while (!trimmed.empty() && (trimmed.front() == ' ' || trimmed.front() == '\t')) {
+    trimmed.erase(trimmed.begin());
+  }
+  if (trimmed.empty()) {
+    s.out << "[empty prompt — type something or /help]\n";
+    return;
+  }
+  // Warn on very short prompts (likely incomplete thought)
+  int words = 1;
+  for (char c : trimmed) {
+    if (c == ' ') {
+      words++;
+    }
+  }
+  if (words < 3 && trimmed.back() != '?') {
+    s.out << tui::active_theme().warning.ansi() << "[hint: short prompt — try adding more context]" << Style::reset() << "\n";
+  }
+  // Detect repeat of previous prompt
+  if (s.history.size() >= 2) {
+    for (int i = static_cast<int>(s.history.size()) - 1; i >= 0; i--) {
+      if (s.history[i].role == "user" && s.history[i].content == line) {
+        s.out << tui::active_theme().warning.ansi() << "[hint: same as a previous prompt — rephrase?]" << Style::reset() << "\n";
+        break;
+      }
+    }
+  }
+
+  // Auto-routing: classify prompt and switch to best host/model
+  if (s.auto_route && s.switch_provider) {
+    auto route = plan_route(line, Config::instance().hosts);
+    if (!route.host.empty() && route.host != Config::instance().host + ":" + Config::instance().port) {
+      auto colon = route.host.find(':');
+      Config::instance().host = (colon != std::string::npos) ? route.host.substr(0, colon) : route.host;
+      Config::instance().port = (colon != std::string::npos) ? route.host.substr(colon + 1) : "11434";
+      Config::instance().model = route.model;
+      s.switch_provider("ollama");
+      s.out << "[auto: " << route.reason << " → " << route.model << "@" << route.host << "]\n";
+    }
+  }
+
   if (s.cfg.trace) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
@@ -272,17 +317,17 @@ void send_prompt(const std::string& line, ReplState& s) {
   // Show response stats: duration, model, response length.
   // Dim text so it doesn't distract from the actual response content.
   if (s.color) {
-    s.out << "\033[2m";
+    s.out << tui::active_theme().system.ansi();
   }
   if (elapsed >= 1000) {
     s.out << "[" << (elapsed / 1000) << "." << ((elapsed % 1000) / 100) << "s";
   } else {
     s.out << "[" << elapsed << "ms";
   }
-  s.out << " · " << s.cfg.model;
+  s.out << " · " << Config::instance().model;
   s.out << " · " << response.size() << " chars]";
   if (s.color) {
-    s.out << "\033[0m";
+    s.out << Style::reset();
   }
   s.out << "\n";
 

@@ -16,7 +16,7 @@ ollama list                   # List installed models
 ollama show <model>           # Show model details
 ollama rm <model>             # Remove a model
 ollama serve                  # Start the API server
-```
+```text
 
 ## API Endpoints
 
@@ -26,7 +26,7 @@ Generate a response from a prompt.
 
 ```text
 POST /api/generate
-```
+```text
 
 **Request:**
 
@@ -42,7 +42,7 @@ POST /api/generate
     "top_p": 0.9
   }
 }
-```
+```text
 
 **Response:**
 
@@ -57,7 +57,7 @@ POST /api/generate
   "prompt_eval_count": 12,
   "eval_count": 42
 }
-```
+```text
 
 ### Chat
 
@@ -65,7 +65,7 @@ Generate a chat message in a conversation.
 
 ```text
 POST /api/chat
-```
+```text
 
 **Request:**
 
@@ -81,7 +81,7 @@ POST /api/chat
   "stream": true,
   "format": "json"
 }
-```
+```text
 
 **Response:**
 
@@ -97,7 +97,7 @@ POST /api/chat
   "total_duration": 5043500291,
   "eval_count": 42
 }
-```
+```text
 
 ### List Models
 
@@ -105,7 +105,7 @@ List available models and their details.
 
 ```text
 GET /api/tags
-```
+```text
 
 **Response:**
 
@@ -127,7 +127,7 @@ GET /api/tags
     }
   ]
 }
-```
+```text
 
 ### Show Model Details
 
@@ -135,7 +135,7 @@ Get detailed information about a specific model.
 
 ```text
 POST /api/show
-```
+```text
 
 **Request:**
 
@@ -143,7 +143,7 @@ POST /api/show
 {
   "name": "gemma3"
 }
-```
+```text
 
 ### Embeddings
 
@@ -151,7 +151,7 @@ Create vector embeddings for text.
 
 ```text
 POST /api/embed
-```
+```text
 
 **Request:**
 
@@ -160,7 +160,7 @@ POST /api/embed
   "model": "nomic-embed-text",
   "input": "The sky is blue"
 }
-```
+```text
 
 ### Running Models
 
@@ -168,7 +168,7 @@ List currently running models.
 
 ```text
 GET /api/ps
-```
+```text
 
 ### Pull Model
 
@@ -176,7 +176,7 @@ Download a model from the registry.
 
 ```text
 POST /api/pull
-```
+```text
 
 **Request:**
 
@@ -185,7 +185,7 @@ POST /api/pull
   "name": "gemma3",
   "stream": true
 }
-```
+```text
 
 ### Delete Model
 
@@ -193,7 +193,7 @@ Remove a model.
 
 ```text
 DELETE /api/delete
-```
+```text
 
 **Request:**
 
@@ -201,7 +201,7 @@ DELETE /api/delete
 {
   "name": "gemma3"
 }
-```
+```text
 
 ### Version
 
@@ -209,7 +209,7 @@ Get Ollama version.
 
 ```text
 GET /api/version
-```
+```text
 
 ## Common Parameters
 
@@ -255,7 +255,7 @@ curl http://localhost:11434/api/chat -d '{
 
 # List models
 curl http://localhost:11434/api/tags
-```
+```text
 
 ### Python
 
@@ -270,7 +270,7 @@ response = requests.post(
     }
 )
 print(response.json())
-```
+```text
 
 ### JavaScript
 
@@ -284,7 +284,7 @@ const response = await fetch("http://localhost:11434/api/generate", {
 });
 const data = await response.json();
 console.log(data);
-```
+```text
 
 ## Notes
 

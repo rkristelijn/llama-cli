@@ -28,6 +28,8 @@ extern volatile sig_atomic_t g_interrupted;
 #include "json/json.h"
 #include "logging/logger.h"
 #include "ollama/ollama.h"
+#include "provider/provider_factory.h"
+#include "provider/registry.h"
 #include "repl/repl.h"
 #include "session/session.h"
 #include "sync/sync.h"
@@ -36,11 +38,16 @@ extern volatile sig_atomic_t g_interrupted;
 /// Load .kiro/agents/*.json: append agent prompt to system prompt,
 /// read resource files into initial context string.
 /// Only used in REPL mode — sync mode skips this for speed (ADR-066).
+/// Respects system prompt budget: skips resources if prompt already exceeds
+/// 4096 chars (~1024 tokens) to avoid overwhelming small models (ADR-087).
 static std::string load_kiro_context(Config& cfg, bool color) {
   DIR* dir = opendir(".kiro/agents");
   if (!dir) {
     return "";
   }
+  // Budget: max chars for system prompt before we stop adding resources
+  constexpr size_t max_prompt_chars = 4096;
+
   std::string context;
   const struct dirent* entry = nullptr;
   // NOLINTNEXTLINE(concurrency-mt-unsafe)
@@ -58,6 +65,13 @@ static std::string load_kiro_context(Config& cfg, bool color) {
     std::string prompt = json_extract_string(json, "prompt");
     if (!prompt.empty()) {
       cfg.system_prompt += "\n\n" + prompt;
+    }
+    // Skip resource loading if system prompt already exceeds budget (ADR-087)
+    if (cfg.system_prompt.size() > max_prompt_chars) {
+      if (cfg.trace) {
+        tui::system_msg(std::cerr, color, "[trace: skipping resources — prompt budget exceeded]");
+      }
+      continue;
     }
     // Read resource files into context
     for (const auto& path : extract_resources(json)) {
@@ -136,9 +150,12 @@ int main(int argc, char* argv[]) {
     cfg.mode = Mode::Sync;
   }
 
+  // Create provider early — used for both sync and REPL mode (ADR-020)
+  auto provider = create_provider(cfg);
+
   // Auto-detect model for sync mode (skip for mock provider)
   if (cfg.model == "auto" && cfg.mode == Mode::Sync && cfg.provider != "mock") {
-    auto models = get_available_models(cfg);
+    auto models = provider->list_models();
     if (!models.empty()) {
       cfg.model = models[0];
       Config::instance().model = models[0];
@@ -162,17 +179,13 @@ int main(int argc, char* argv[]) {
     // so annotation processing and session work identically in tests.
     // Streaming: tokens are printed to stdout as they arrive.
     // The full response is returned for annotation processing.
-    auto generate_response = [&cfg, color](const std::vector<Message>& msgs) -> std::string {
+    // Provider-based response generation (ADR-020).
+    auto generate_response = [&provider, &cfg, color](const std::vector<Message>& msgs) -> std::string {
       if (cfg.provider == "mock") {
         LOG_FEATURE("mock_provider");
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        if (mock_response_env) {
-          return mock_response_env;
-        }
-        return "mock response: " + msgs.back().content;
       }
-      tui::system_msg(std::cerr, color, "Connecting to " + cfg.host + ":" + cfg.port + " with model " + cfg.model + "...");
-      return ollama_chat_stream(cfg, msgs, [](const std::string& token) {
+      tui::system_msg(std::cerr, color, "Connecting to " + provider->host() + " with model " + cfg.model + "...");
+      return provider->chat_stream(msgs, [](const std::string& token) {
         std::cout << token << std::flush;
         return true;
       });
@@ -227,51 +240,53 @@ int main(int argc, char* argv[]) {
   } else {
     // Interactive mode: REPL loop (ADR-012)
     LOG_FEATURE("repl_mode");
-    // Auto-detect model from server when set to "auto"
+
+    // Startup scan: build unified model registry (ADR-081)
+    ModelRegistry registry;
+    if (cfg.provider != "mock") {
+      tui::system_msg(std::cerr, color, "Scanning providers...");
+      registry = scan_all_providers();
+      // Show scan results
+      std::map<std::string, int> prov_counts;
+      for (const auto& m : registry.models) {
+        prov_counts[m.provider + "@" + m.host]++;
+      }
+      for (const auto& [key, count] : prov_counts) {
+        tui::system_msg(std::cerr, color, "  ✓ " + key + " — " + std::to_string(count) + " model" + (count > 1 ? "s" : ""));
+      }
+      tui::system_msg(std::cerr, color,
+                      std::to_string(registry.models.size()) + " models across " + std::to_string(registry.host_count()) + " hosts.");
+    }
+
+    // Auto-detect model: pick fastest in sweetspot (11-28B), or fastest overall
     if (cfg.model == "auto" && cfg.provider != "mock") {
-      auto models = get_available_models(cfg);
-      auto infos = get_model_info(cfg);
-      std::map<std::string, ModelInfo> info_map;
-      for (const auto& info : infos) {
-        info_map[info.name] = info;
-      }
-
-      // Filter and sort potential models: Sweetspot (11B-28B) first, then others.
-      struct Candidate {
-        std::string name;
-        double params;
-        bool sweet;
-      };
-      std::vector<Candidate> candidates;
-
-      for (const auto& m : models) {
-        double p = 0;
-        try {
-          p = std::stod(info_map[m].params);
-        } catch (...) {
+      const ModelEntry* pick = nullptr;
+      // Prefer sweetspot (11-28B) on local hosts
+      for (const auto& m : registry.models) {
+        if (m.params_b >= 11.0 && m.params_b <= 28.0 && m.provider == "ollama") {
+          if (!pick || m.tokens_per_sec > pick->tokens_per_sec) {
+            pick = &m;
+          }
         }
-        candidates.push_back({m, p, (p >= 11.0 && p <= 28.0)});
       }
-
-      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
-        // Prioritize models in sweetspot range (11B-28B)
-        if (a.sweet != b.sweet) {
-          return a.sweet > b.sweet;
+      // Fallback: fastest available
+      if (!pick && !registry.models.empty()) {
+        pick = &registry.models[0];
+      }
+      if (pick) {
+        cfg.model = pick->name;
+        Config::instance().model = pick->name;
+        // Switch to the right host
+        auto colon = pick->host.find(':');
+        if (colon != std::string::npos) {
+          Config::instance().host = pick->host.substr(0, colon);
+          Config::instance().port = pick->host.substr(colon + 1);
         }
-        // Then sort by params ascending (pick the smallest/lightest in the sweetspot)
-        return a.params < b.params;
-      });
-
-      if (!candidates.empty()) {
-        cfg.model = candidates[0].name;
-        Config::instance().model = candidates[0].name;
-        HardwareInfo hw = detect_hardware();
-        tui::system_msg(std::cerr, color,
-                        "Detected hardware: " + hw.cpu + " | " + std::to_string(hw.ram_gb) + "GB RAM | " + std::to_string(hw.vram_gb) +
-                            "GB VRAM estimated.");
-        tui::system_msg(std::cerr, color, "Auto-selected " + cfg.model + " as the optimal sweetspot model for your hardware.");
+        provider = create_provider(Config::instance());
+        std::string speed = pick->tokens_per_sec > 0 ? " (" + std::to_string(static_cast<int>(pick->tokens_per_sec)) + " t/s)" : "";
+        tui::system_msg(std::cerr, color, "Auto-selected: " + pick->name + "@" + pick->host + speed);
       } else {
-        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3.6:27b");
+        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
         return 1;
       }
     }
@@ -281,7 +296,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Optional model warmup (only if not already running, skip for mock provider)
-    if (cfg.provider != "mock" && Config::instance().warmup && !is_model_running(cfg, Config::instance().model)) {
+    if (cfg.provider != "mock" && Config::instance().warmup && !provider->is_model_running(Config::instance().model)) {
       tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
       // Simple spinner loop
       const char* spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
@@ -289,9 +304,9 @@ int main(int argc, char* argv[]) {
       std::vector<Message> warmup_msg = {{"user", "hi"}};
 
       // We need to run this in a way that allows us to check progress
-      // ollama_chat_stream doesn't expose the http object for cancellation easily,
+      // provider->chat_stream doesn't expose the http object for cancellation easily,
       // but we can at least show a spinner.
-      ollama_chat_stream(cfg, warmup_msg, [&](const std::string&) {
+      provider->chat_stream(warmup_msg, [&](const std::string&) {
         if (g_interrupted) {
           return false;
         }
@@ -303,36 +318,58 @@ int main(int argc, char* argv[]) {
     }
 
     tui::system_msg(std::cerr, color, "llama-cli — connected to " + cfg.host + ":" + cfg.port + " (" + Config::instance().model + ")");
-    tui::system_msg(std::cerr, color, "Type /model to switch, /help for commands.");
+    tui::system_msg(std::cerr, color,
+                    "Type " + tui::bold("/host") + " " + tui::bold("/provider") + " " + tui::bold("/model") + " to switch, " +
+                        tui::bold("/help") + " for commands.");
     if (cfg.provider == "mock") {
       tui::system_msg(std::cerr, color, "[MOCK MODE] All prompts will be echoed back.\n");
     }
-    tui::system_msg(std::cerr, color, "Type your prompt. 'exit' or Ctrl+D to quit.\n");
+    tui::system_msg(std::cerr, color, "Type your prompt. " + tui::bold("/quit") + " to exit.\n");
     // Load .kiro/agents/ context if present in cwd
     std::string kiro_ctx = load_kiro_context(cfg, color);
     if (!kiro_ctx.empty()) {
       cfg.system_prompt += "\n\n## Project context\n" + kiro_ctx;
     }
-    auto generate = [&cfg](const std::vector<Message>& msgs) -> std::string {
-      if (cfg.provider == "mock") {
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        if (mock_response_env) {
-          return std::string(mock_response_env);
+    auto generate = [&provider](const std::vector<Message>& msgs) -> std::string { return provider->chat(msgs); };
+    auto stream = [&provider](const std::vector<Message>& msgs, StreamCallback on_token) { return provider->chat_stream(msgs, on_token); };
+    // Provider's list_models wraps get_available_models with the right config
+    auto models_fn = [&provider](const Config& /*cfg*/) { return provider->list_models(); };
+    // Switch provider at runtime — recreates provider instance (ADR-089).
+    // Callers (/model, /host, /use) set Config fields BEFORE calling this.
+    // This only picks a default model if Config::instance().model is still
+    // from a different provider (stale). This prevents the race condition where
+    // /model sets a specific model, then switch_provider overwrites it with
+    // the first model from the registry. The check ensures we only auto-pick
+    // when the current model genuinely doesn't belong to the new provider.
+    auto switch_prov = [&provider, &registry](const std::string& name) {
+      Config::instance().provider = name;
+      // Only auto-pick model if current model isn't on this provider
+      bool model_valid = false;
+      for (const auto& m : registry.models) {
+        if (m.provider == name && m.name == Config::instance().model) {
+          model_valid = true;
+          break;
         }
-        return "mock response: " + msgs.back().content;
       }
-      return ollama_chat(Config::instance(), msgs);
-    };
-    auto stream = [&cfg](const std::vector<Message>& msgs, StreamCallback on_token) {
-      if (cfg.provider == "mock") {
-        const char* mock_response_env = std::getenv("LLAMA_CLI_MOCK_RESPONSE");
-        std::string response = mock_response_env ? std::string(mock_response_env) : "mock response: " + msgs.back().content;
-        on_token(response);
-        return response;
+      if (!model_valid) {
+        for (const auto& m : registry.models) {
+          if (m.provider == name && m.available) {
+            Config::instance().model = m.name;
+            if (m.host != "cloud") {
+              auto colon = m.host.find(':');
+              if (colon != std::string::npos) {
+                Config::instance().host = m.host.substr(0, colon);
+                Config::instance().port = m.host.substr(colon + 1);
+              }
+            }
+            break;
+          }
+        }
       }
-      return ollama_chat_stream(Config::instance(), msgs, on_token);
+      provider = create_provider(Config::instance());
     };
-    run_repl(generate, cfg, std::cin, std::cout, get_available_models, stream);
+    run_repl(generate, cfg, std::cin, std::cout, models_fn, stream, detect_hardware, get_model_info, scan_ollama_hosts, switch_prov,
+             &registry);
   }
   return 0;
 }

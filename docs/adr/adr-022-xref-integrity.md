@@ -27,7 +27,7 @@ Add a `make xref-check` target that validates all internal cross-references, and
 grep -roh '(\./[^)]*\|[^)]*\.md)' docs/ README.md CONTRIBUTING.md \
   | grep -v 'http' \
   | while read -r ref; do [ -f "$ref" ] || echo "DEAD: $ref"; done
-```
+```text
 
 **2. C++ `@see` references to docs**:
 
@@ -35,14 +35,14 @@ grep -roh '(\./[^)]*\|[^)]*\.md)' docs/ README.md CONTRIBUTING.md \
 grep -rh '@see ' src/ \
   | sed 's/.*@see //' \
   | while read -r ref; do [ -f "$ref" ] || echo "DEAD: $ref"; done
-```
+```text
 
 **3. Makefile script references**:
 
 ```sh
 grep -oh 'scripts/[^ ]*\.sh' Makefile \
   | while read -r ref; do [ -f "$ref" ] || echo "DEAD: $ref"; done
-```
+```text
 
 **4. `#include` project headers** (relative, non-system):
 
@@ -50,7 +50,7 @@ grep -oh 'scripts/[^ ]*\.sh' Makefile \
 grep -rh '#include "' src/ \
   | sed 's/.*#include "\(.*\)".*/\1/' \
   | while read -r ref; do [ -f "src/$ref" ] || echo "DEAD: src/$ref"; done
-```
+```text
 
 ### Implementation
 

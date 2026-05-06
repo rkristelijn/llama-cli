@@ -1,0 +1,384 @@
+/**
+ * @file registry.cpp
+ * @brief Scans all providers and builds the unified model registry (ADR-081).
+ */
+
+#include "provider/registry.h"
+
+#include <algorithm>
+#include <fstream>
+#include <set>
+
+#include "config/config.h"
+#include "exec/exec.h"
+#include "ollama/ollama.h"
+
+// --- ModelRegistry methods ---
+// Provides filtering, lookup, and aggregation over the unified model list.
+
+/// Filter models by capability (e.g., Code, Vision, Reasoning).
+std::vector<const ModelEntry*> ModelRegistry::by_capability(Capability cap) const {
+  std::vector<const ModelEntry*> result;
+  for (const auto& m : models) {
+    if (!m.available) {
+      continue;
+    }
+    for (auto c : m.capabilities) {
+      if (c == cap) {
+        result.push_back(&m);
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+/// Find the fastest available model for a given capability (by tokens/sec).
+const ModelEntry* ModelRegistry::fastest(Capability cap) const {
+  const ModelEntry* best = nullptr;
+  for (const auto& m : models) {
+    if (!m.available) {
+      continue;
+    }
+    for (auto c : m.capabilities) {
+      if (c == cap) {
+        if (!best || m.tokens_per_sec > best->tokens_per_sec) {
+          best = &m;
+        }
+        break;
+      }
+    }
+  }
+  return best;
+}
+
+/// Lookup a model by exact name. Returns nullptr if not found.
+const ModelEntry* ModelRegistry::by_name(const std::string& name) const {
+  for (const auto& m : models) {
+    if (m.name == name) {
+      return &m;
+    }
+  }
+  return nullptr;
+}
+
+/// Count distinct providers (ollama, gemini, kiro, etc.).
+int ModelRegistry::provider_count() const {
+  std::set<std::string> seen;
+  for (const auto& m : models) {
+    seen.insert(m.provider);
+  }
+  return static_cast<int>(seen.size());
+}
+
+/// Count distinct hosts (unique server endpoints).
+int ModelRegistry::host_count() const {
+  std::set<std::string> seen;
+  for (const auto& m : models) {
+    seen.insert(m.host);
+  }
+  return static_cast<int>(seen.size());
+}
+
+/// List unique provider names in discovery order.
+std::vector<std::string> ModelRegistry::providers() const {
+  std::vector<std::string> result;
+  std::set<std::string> seen;
+  for (const auto& m : models) {
+    if (seen.insert(m.provider).second) {
+      result.push_back(m.provider);
+    }
+  }
+  return result;
+}
+
+/// Infer capabilities from model name/family.
+static std::vector<Capability> infer_capabilities(const std::string& name, double params) {
+  std::vector<Capability> caps = {Capability::General};
+  // Code models
+  if (name.find("coder") != std::string::npos || name.find("deepseek") != std::string::npos) {
+    caps.push_back(Capability::Code);
+  }
+  // Vision models
+  if (name.find("llava") != std::string::npos || name.find("gemma4") != std::string::npos) {
+    caps.push_back(Capability::Vision);
+  }
+  // Reasoning (larger models)
+  if (params >= 20.0) {
+    caps.push_back(Capability::Reasoning);
+  }
+  return caps;
+}
+
+/// Estimate tokens/sec from parameter size (rough heuristic when no benchmark data).
+static double estimate_speed(double params_b, const std::string& host) {
+  // Rough estimates based on typical hardware
+  if (host.find("localhost") != std::string::npos) {
+    // Likely weaker hardware
+    if (params_b <= 3) {
+      return 20.0;
+    }
+    if (params_b <= 7) {
+      return 10.0;
+    }
+    return 5.0;
+  }
+  // Remote host (assumed decent GPU)
+  if (params_b <= 3) {
+    return 85.0;
+  }
+  if (params_b <= 14) {
+    return 42.0;
+  }
+  if (params_b <= 27) {
+    return 8.0;
+  }
+  return 3.0;
+}
+
+ModelRegistry scan_all_providers() {
+  ModelRegistry reg;
+  const auto& cfg = Config::instance();
+
+  // --- Ollama hosts ---
+  std::vector<std::string> hosts = cfg.hosts;
+  if (hosts.empty()) {
+    hosts.push_back(cfg.host + ":" + cfg.port);
+  }
+
+  for (const auto& hp : hosts) {
+    Config tmp;
+    auto colon = hp.find(':');
+    tmp.host = (colon != std::string::npos) ? hp.substr(0, colon) : hp;
+    tmp.port = (colon != std::string::npos) ? hp.substr(colon + 1) : "11434";
+    tmp.timeout = 3;
+
+    auto infos = get_model_info(tmp);
+    for (const auto& info : infos) {
+      // Skip embedding models
+      if (info.name.find("embed") != std::string::npos) {
+        continue;
+      }
+      double params = 0;
+      try {
+        params = std::stod(info.params);
+      } catch (...) {
+      }
+
+      ModelEntry entry;
+      entry.name = info.name;
+      entry.provider = "ollama";
+      entry.host = hp;
+      entry.params_b = params;
+      entry.tokens_per_sec = estimate_speed(params, hp);
+      entry.cost = CostTier::Free;
+      entry.capabilities = infer_capabilities(info.name, params);
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
+  }
+
+  // --- tgpt ---
+  ExecResult tgpt_check = cmd_exec("which tgpt", 3, 200);
+  if (tgpt_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "tgpt-default";
+    entry.provider = "tgpt";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Free;
+    entry.capabilities = {Capability::General, Capability::CurrentInfo};
+    entry.available = true;
+    reg.models.push_back(entry);
+  }
+
+  // --- gemini ---
+  ExecResult gemini_check = cmd_exec("which gemini", 3, 200);
+  if (gemini_check.exit_code == 0) {
+    // Read model list from .config/gemini-models.txt (no hardcoded names)
+    std::ifstream gf(".config/gemini-models.txt");
+    if (!gf) {
+      gf.open(std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.llama-cli/gemini-models.txt");
+    }
+    if (gf) {
+      std::string line;
+      while (std::getline(gf, line)) {
+        if (line.empty() || line[0] == '#') {
+          continue;
+        }
+        ModelEntry entry;
+        entry.name = line;
+        entry.provider = "gemini";
+        entry.host = "cloud";
+        entry.tokens_per_sec = 0;
+        entry.cost = CostTier::Free;
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+      }
+    } else {
+      // Fallback: single generic entry
+      ModelEntry entry;
+      entry.name = "gemini-cli";
+      entry.provider = "gemini";
+      entry.host = "cloud";
+      entry.cost = CostTier::Free;
+      entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
+  }
+
+  // --- Amazon Q Developer (via q CLI + kiro-cli-chat for model discovery) ---
+  // The `q` binary is the Amazon Q Developer CLI (free tier, single model).
+  // If kiro-cli-chat is also available, we use it to discover the full model
+  // catalog with descriptions and credit costs. Both share the same backend
+  // but `q` is free while kiro-cli uses credits for premium models.
+  ExecResult q_check = cmd_exec("which q", 3, 200);
+  if (q_check.exit_code == 0) {
+    // Try to get full model list via kiro-cli-chat (same backend, richer info)
+    ExecResult q_models = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
+    if (q_models.exit_code == 0 && q_models.output.find("model_name") != std::string::npos) {
+      size_t pos = 0;
+      while ((pos = q_models.output.find("\"model_name\":\"", pos)) != std::string::npos) {
+        pos += 14;
+        auto end = q_models.output.find("\"", pos);
+        std::string name = q_models.output.substr(pos, end - pos);
+        // Extract description
+        std::string desc;
+        auto desc_pos = q_models.output.find("\"description\":\"", pos);
+        if (desc_pos != std::string::npos && desc_pos < pos + 400) {
+          auto desc_start = desc_pos + 15;
+          auto desc_end = q_models.output.find("\"", desc_start);
+          desc = q_models.output.substr(desc_start, desc_end - desc_start);
+        }
+        // Extract rate multiplier
+        double rate = 1.0;
+        auto rate_pos = q_models.output.find("\"rate_multiplier\":", pos);
+        if (rate_pos != std::string::npos && rate_pos < pos + 400) {
+          try {
+            rate = std::stod(q_models.output.substr(rate_pos + 18, 10));
+          } catch (...) {
+          }
+        }
+        ModelEntry entry;
+        entry.name = name;
+        entry.provider = "amazon-q";
+        entry.host = "cloud";
+        entry.description = desc;
+        entry.cost_rate = rate;
+        entry.tokens_per_sec = 0;
+        entry.cost = (rate > 1.5) ? CostTier::Expensive : (rate > 0.5 ? CostTier::Cheap : CostTier::Free);
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+        pos = end;
+      }
+    } else {
+      // Fallback: single generic entry
+      ModelEntry entry;
+      entry.name = "amazon-q";
+      entry.provider = "amazon-q";
+      entry.host = "cloud";
+      entry.cost = CostTier::Free;
+      entry.capabilities = {Capability::General, Capability::Code};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
+  }
+
+  // --- kiro-cli (Amazon Q Developer with model selection + credits) ---
+  // kiro-cli-chat is the Kiro CLI that provides access to premium models
+  // (Claude, DeepSeek, etc.) via Amazon Q Developer credits.
+  // Unlike the free `q` CLI, kiro-cli supports model selection and shows
+  // per-model credit costs. Models are discovered via --list-models -f json.
+  ExecResult kiro_check = cmd_exec("which kiro-cli-chat", 3, 200);
+  if (kiro_check.exit_code == 0) {
+    // Parse model list from kiro-cli-chat for real model names + costs
+    ExecResult kiro_models = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
+    if (kiro_models.exit_code == 0) {
+      size_t pos = 0;
+      while ((pos = kiro_models.output.find("\"model_name\":\"", pos)) != std::string::npos) {
+        pos += 14;
+        auto end = kiro_models.output.find("\"", pos);
+        std::string name = kiro_models.output.substr(pos, end - pos);
+        // Extract description
+        std::string desc;
+        auto desc_pos = kiro_models.output.find("\"description\":\"", pos);
+        if (desc_pos != std::string::npos && desc_pos < pos + 400) {
+          auto desc_start = desc_pos + 15;
+          auto desc_end = kiro_models.output.find("\"", desc_start);
+          desc = kiro_models.output.substr(desc_start, desc_end - desc_start);
+        }
+        // Extract rate multiplier
+        double rate = 1.0;
+        auto rate_pos = kiro_models.output.find("\"rate_multiplier\":", pos);
+        if (rate_pos != std::string::npos && rate_pos < pos + 400) {
+          try {
+            rate = std::stod(kiro_models.output.substr(rate_pos + 18, 10));
+          } catch (...) {
+          }
+        }
+        ModelEntry entry;
+        entry.name = name;
+        entry.provider = "kiro-cli";
+        entry.host = "cloud";
+        entry.description = desc;
+        entry.cost_rate = rate;
+        entry.tokens_per_sec = 0;
+        entry.cost = (rate > 1.5) ? CostTier::Expensive : (rate > 0.5 ? CostTier::Cheap : CostTier::Free);
+        entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+        entry.available = true;
+        reg.models.push_back(entry);
+        pos = end;
+      }
+    } else {
+      ModelEntry entry;
+      entry.name = "kiro-auto";
+      entry.provider = "kiro-cli";
+      entry.host = "cloud";
+      entry.cost = CostTier::Expensive;
+      entry.capabilities = {Capability::General, Capability::Code, Capability::Reasoning};
+      entry.available = true;
+      reg.models.push_back(entry);
+    }
+  }
+
+  // --- sgpt (ShellGPT — uses OpenAI/local backends) ---
+  // ShellGPT is a Python CLI that wraps OpenAI-compatible APIs.
+  // Registered as single-model provider; actual model depends on user config.
+  ExecResult sgpt_check = cmd_exec("which sgpt", 3, 200);
+  if (sgpt_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "sgpt-default";
+    entry.provider = "sgpt";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Cheap;
+    entry.capabilities = {Capability::General, Capability::Code};
+    entry.available = true;
+    reg.models.push_back(entry);
+  }
+
+  // --- opencode (OpenCode AI CLI) ---
+  // OpenCode is a Go-based AI coding assistant CLI.
+  // Registered as single-model provider; actual backend depends on user config.
+  ExecResult opencode_check = cmd_exec("which opencode", 3, 200);
+  if (opencode_check.exit_code == 0) {
+    ModelEntry entry;
+    entry.name = "opencode-default";
+    entry.provider = "opencode";
+    entry.host = "cloud";
+    entry.tokens_per_sec = 0;
+    entry.cost = CostTier::Cheap;
+    entry.capabilities = {Capability::General, Capability::Code};
+    entry.available = true;
+    reg.models.push_back(entry);
+  }
+
+  // Sort: fastest first within each provider
+  std::sort(reg.models.begin(), reg.models.end(),
+            [](const ModelEntry& a, const ModelEntry& b) { return a.tokens_per_sec > b.tokens_per_sec; });
+
+  return reg;
+}

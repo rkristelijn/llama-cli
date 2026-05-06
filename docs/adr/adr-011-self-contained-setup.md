@@ -26,7 +26,7 @@ cd llama-cli
 make setup         # installs everything + git hooks
 sudo make install  # build and install to /usr/local/bin
 llama-cli --help   # verify
-```
+```text
 
 ## Rationale
 

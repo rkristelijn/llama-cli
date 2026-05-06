@@ -24,7 +24,7 @@ Find this exact text:
 std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages);
 
 #endif
-```
+```text
 
 Replace it with:
 
@@ -43,13 +43,13 @@ using StreamCallback = std::function<bool(const std::string& token)>;
 std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& messages, StreamCallback on_token);
 
 #endif
-```
+```text
 
 Also add this include at the top of the file, after `#include <vector>`:
 
 ```cpp
 #include <functional>
-```
+```text
 
 ## File 2: Update `src/ollama/ollama.cpp`
 
@@ -157,7 +157,7 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
   LOG_EVENT("ollama", "chat_stream", build_messages_json(messages), full_response, duration, prompt_tokens, completion_tokens);
   return full_response;
 }
-```
+```text
 
 ## Verify
 
@@ -176,7 +176,7 @@ make build && echo "PASS: build succeeds" || echo "FAIL: build broken"
 
 # 5. Tests still pass
 make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
-```
+```text
 
 ## Expected output
 
@@ -186,10 +186,10 @@ PASS: implementation exists
 PASS: functional included
 PASS: build succeeds
 PASS: tests pass
-```
+```text
 
 ## Commit message
 
 ```text
 feat: add streaming support to Ollama API layer
-```
+```text

@@ -17,7 +17,7 @@ CMMI 1 check 1.1 requires ≥ 60% test coverage. Current CI threshold is 55%. Th
 Given the CI pipeline runs on a pull request
 When the test coverage is below 60%
 Then the pipeline fails with "Coverage below 60%!"
-```
+```text
 
 ## Implementation
 

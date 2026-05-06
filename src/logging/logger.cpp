@@ -17,6 +17,8 @@
 #include <mutex>
 #include <sstream>
 
+#include "config/config.h"
+
 std::mutex Logger::log_mutex_;
 
 Logger::Logger() {
@@ -49,6 +51,16 @@ const std::string& Logger::path() const { return log_path_; }
 /// Writes are serialized via a mutex to ensure each JSONL record is emitted atomically.
 void Logger::log(const Event& e) {
   std::lock_guard<std::mutex> lock(log_mutex_);
+
+  // Auto-fill host/provider from Config if not explicitly set
+  std::string host = e.host;
+  std::string provider = e.provider;
+  if (host.empty()) {
+    host = Config::instance().host + ":" + Config::instance().port;
+  }
+  if (provider.empty()) {
+    provider = Config::instance().provider;
+  }
   // Get current timestamp in UTC
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
@@ -113,6 +125,8 @@ void Logger::log(const Event& e) {
     out << "\"duration_ms\":" << e.duration_ms << ",";
     out << "\"tokens_prompt\":" << e.tokens_prompt << ",";
     out << "\"tokens_completion\":" << e.tokens_completion << ",";
-    out << "\"rating\":\"" << escape(e.rating) << "\"}\n";
+    out << "\"rating\":\"" << escape(e.rating) << "\",";
+    out << "\"host\":\"" << escape(host) << "\",";
+    out << "\"provider\":\"" << escape(provider) << "\"}\n";
   }
 }

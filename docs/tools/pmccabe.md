@@ -12,7 +12,7 @@
 
 ```bash
 make complexity
-```
+```text
 
 ## Notes
 

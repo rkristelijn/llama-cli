@@ -28,7 +28,7 @@ The Eisenhower Matrix helps prioritize tasks by urgency and importance:
 - old code
 + fixed code
 Apply? [y/n]
-```
+```text
 
 Streaming responses, markdown rendering (tables, code blocks, bold, links), file I/O, command execution — all running locally on your hardware.
 
@@ -44,7 +44,7 @@ Streaming responses, markdown rendering (tables, code blocks, bold, links), file
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash
-```
+```text
 
 This auto-detects your OS and architecture (Linux x64/arm64, macOS arm64), downloads the release, verifies the checksum, and installs to `/usr/local/bin`.
 
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.
 
 # Install a specific version
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | VERSION=0.18.1 bash
-```
+```text
 
 ### From source
 
@@ -66,7 +66,7 @@ brew services start ollama
 ollama pull gemma4:e4b
 make setup
 sudo make install
-```
+```text
 
 ## Usage
 
@@ -77,12 +77,22 @@ hello                          # chat with the LLM
 !ls src/                       # run command, output to terminal
 !!cat src/main.cpp             # run command, output as LLM context
 what does this code do?        # LLM can now see the file
+/model                         # list all models across all hosts
+/provider                      # list and switch providers
+/agent bofh                    # switch personality (monk, architect, etc.)
+/auto                          # toggle smart routing by complexity
+/theme hacker                  # switch color theme
+/chat save myproject           # save conversation
+/chat load myproject           # restore conversation
+/image photo.png               # attach image for vision models
+/nick gius                     # set your prompt name
+/compress                      # summarize and compact history
+/usage                         # show session stats
 /set                           # show runtime options
-/set bofh                      # toggle BOFH spinner mode
 /version                       # show version info
 /help                          # show available commands
 exit                           # quit
-```
+```text
 
 The LLM can also propose commands and file writes:
 
@@ -90,7 +100,7 @@ The LLM can also propose commands and file writes:
 > fix the bug in main.cpp
 [proposed: write src/main.cpp]
 Write to src/main.cpp? [y/n/s]
-```
+```text
 
 The LLM can read files and make targeted edits:
 
@@ -103,7 +113,7 @@ The LLM can read files and make targeted edits:
 - old text
 + new text
 Apply str_replace to src/repl/repl.cpp? [y/n]
-```
+```text
 
 ## Configuration
 
@@ -129,39 +139,39 @@ Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by
 
 ### Priority 1 — Core UX
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 1 | Streaming responses | ✅ Done | [005](docs/backlog/005-streaming.md) |
-| 2 | Inline code / markdown rendering | ✅ Done | [031](docs/backlog/031-inline-code-rendering.md) |
-| 3 | Fix release pipeline | ✅ Done | [034](docs/backlog/034-fix-release.md) |
-| 4 | Tab autocompletion | ✅ Done | [033](docs/backlog/033-tab-autocompletion.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 1 | Streaming responses | ✅ Done | — |
+| 2 | Inline code / markdown rendering | ✅ Done | [052](docs/adr/adr-052-markdown-renderer.md) |
+| 3 | Fix release pipeline | ✅ Done | [045](docs/adr/adr-045-fix-release-pipeline.md) |
+| 4 | Tab autocompletion | ✅ Done | — |
 
 ### Priority 2 — Developer Experience
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 5 | Context compression | 🔧 Sliding window | [019](docs/backlog/019-context-compression.md) |
-| 6 | Prompt templates | ⬚ Planned | [021](docs/backlog/021-prompt-templates.md) |
-| 7 | Exec output tuning | ✅ Done | [007](docs/backlog/007-exec-output-tuning.md) |
-| 8 | Smart confirmation | ✅ Done | [004](docs/backlog/004-smart-confirmation.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 5 | Context compression | 🔧 Sliding window | — |
+| 6 | Prompt templates | ⬚ Planned | — |
+| 7 | Exec output tuning | ✅ Done | [015](docs/adr/adr-015-command-execution.md) |
+| 8 | Smart confirmation | ✅ Done | — |
 
 ### Priority 3 — Robustness
 
-| # | Feature | Status | Backlog |
-|---|---------|--------|---------|
-| 9 | Execution sandbox | ⬚ Planned | [016](docs/backlog/016-execution-sandbox.md) |
-| 10 | Command permissions | ⬚ Planned | [010](docs/backlog/010-command-permissions.md) |
-| 11 | Coverage bump 55→60% | ✅ Done | [027](docs/backlog/027-coverage-bump.md) |
-| 12 | Reduce complexity | ⬚ Planned | [018](docs/backlog/018-reduce-complexity.md) |
+| # | Feature | Status | ADR |
+|---|---------|--------|-----|
+| 9 | Execution sandbox | ⬚ Planned | — |
+| 10 | Command permissions | ⬚ Planned | — |
+| 11 | Coverage bump 55→60% | ✅ Done | — |
+| 12 | Reduce complexity | ⬚ Planned | [076](docs/adr/adr-076-code-decomposition-patterns.md) |
 
 ### Priority 4 — Future Differentiation
 
-| # | Feature | Backlog |
-|---|---------|---------|
-| 13 | Provider abstraction | [014](docs/backlog/014-provider-abstraction.md) |
-| 14 | Planner/executor | [015](docs/backlog/015-planner-executor.md) |
-| 15 | Distributed Ollama | [006](docs/backlog/006-distributed-ollama.md) |
-| 16 | Multi-agent | [017](docs/backlog/017-multi-agent.md) |
+| # | Feature | ADR |
+|---|---------|-----|
+| 13 | Provider abstraction | [020](docs/adr/adr-020-provider-abstraction.md) |
+| 14 | Planner/executor | [084](docs/adr/adr-084-planner-executor.md) |
+| 15 | Distributed Ollama | — |
+| 16 | Multi-agent | [085](docs/adr/adr-085-multi-agent.md) |
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 

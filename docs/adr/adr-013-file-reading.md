@@ -10,7 +10,7 @@ Piped stdin is prepended as context to the prompt argument:
 
 ```bash
 cat main.cpp | llama-cli "review this code"
-```
+```text
 
 ### Interactive mode — slash commands
 
@@ -24,7 +24,7 @@ Commands start with `/` and are handled by the REPL, not sent to the LLM:
 > /read test.cpp
 [loaded test.cpp — 40 lines]
 > compare the implementation with the tests
-```
+```text
 
 ### REPL interaction model
 
@@ -44,7 +44,7 @@ stateDiagram-v2
 
     Processing --> Responding: send to Ollama
     Responding --> Waiting: print response
-```
+```text
 
 ### Command reference
 
@@ -71,7 +71,7 @@ graph TB
     C --> D{Prompt arg?}
     D -->|yes| E[Context + prompt → Ollama]
     D -->|no| F[Stdin as prompt → Ollama]
-```
+```text
 
 ## Rationale
 

@@ -34,7 +34,7 @@ LLAMA_MAX_OUTPUT=10000
 
 # Custom system prompt (uncomment to override built-in)
 # OLLAMA_SYSTEM_PROMPT="You are a helpful assistant."
-```
+```text
 
 ## Verify
 
@@ -49,7 +49,7 @@ grep -c "OLLAMA_MODEL" .env.example && echo "PASS: has OLLAMA_MODEL"
 grep -c "OLLAMA_TIMEOUT" .env.example && echo "PASS: has OLLAMA_TIMEOUT"
 grep -c "LLAMA_EXEC_TIMEOUT" .env.example && echo "PASS: has LLAMA_EXEC_TIMEOUT"
 grep -c "LLAMA_MAX_OUTPUT" .env.example && echo "PASS: has LLAMA_MAX_OUTPUT"
-```
+```text
 
 ## Expected output
 
@@ -61,10 +61,10 @@ PASS: has OLLAMA_MODEL
 PASS: has OLLAMA_TIMEOUT
 PASS: has LLAMA_EXEC_TIMEOUT
 PASS: has LLAMA_MAX_OUTPUT
-```
+```text
 
 ## Commit message
 
 ```text
 chore: add .env.example configuration template
-```
+```text

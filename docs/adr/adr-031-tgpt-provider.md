@@ -27,7 +27,7 @@ Integrate `tgpt` (Terminal GPT) as an additional provider, following the provide
 ```cpp
 // ProviderFactory checks for tgpt availability
 bool has_tgpt = (exec("which tgpt") == 0);
-```
+```text
 
 ### Execution Strategy
 
@@ -35,7 +35,7 @@ bool has_tgpt = (exec("which tgpt") == 0);
 // Build command similar to GeminiProvider
 std::string cmd = "tgpt -p \"" + escape(collapsed_history) + "\"";
 ExecResult res = cmd_exec(cmd, cfg.timeout, cfg.max_output);
-```
+```text
 
 ### File Input Support
 
@@ -43,7 +43,7 @@ tgpt supports piping, enabling the `/read` functionality:
 
 ```bash
 cat file.txt | tgpt "summarize this"
-```
+```text
 
 This maps directly to the existing stdin/file input pattern from ADR-030.
 
@@ -80,7 +80,7 @@ std::string cmd = "tgpt -p \"" + escaped_input + "\"";
 
 // NEVER: shell execution mode
 // std::string cmd = "tgpt -s \"" + input + "\""; // DANGEROUS
-```
+```text
 
 ## Configuration
 

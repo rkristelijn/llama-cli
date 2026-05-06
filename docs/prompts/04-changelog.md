@@ -51,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - CI pipeline with 16 quality checks
 - Pre-commit hooks (format, lint, secrets)
 - E2E test suite (5 scenarios)
-```
+
+```text
 
 ## Verify
 
@@ -63,7 +64,7 @@ test -f CHANGELOG.md && echo "PASS: CHANGELOG.md exists" || echo "FAIL: file not
 grep -c "Unreleased" CHANGELOG.md && echo "PASS: has Unreleased section"
 grep -c "Keep a Changelog" CHANGELOG.md && echo "PASS: has format reference"
 grep -c "Semantic Versioning" CHANGELOG.md && echo "PASS: has semver reference"
-```
+```text
 
 ## Expected output
 
@@ -72,10 +73,10 @@ PASS: CHANGELOG.md exists
 PASS: has Unreleased section
 PASS: has format reference
 PASS: has semver reference
-```
+```text
 
 ## Commit message
 
 ```text
 chore: add CHANGELOG.md
-```
+```text

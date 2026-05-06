@@ -22,6 +22,8 @@
 
 StreamRenderer::StreamRenderer(std::ostream& out, bool color) : out_(out), color_(color) {}
 
+/// Feed a token (partial text) into the streaming renderer.
+/// Buffers until newlines are found, then renders complete lines.
 void StreamRenderer::write(const std::string& token) {
   try {
     for (char c : token) {
@@ -35,6 +37,7 @@ void StreamRenderer::write(const std::string& token) {
   }
 }
 
+/// Flush any remaining buffered content (called when stream ends).
 void StreamRenderer::finish() {
   try {
     flush_table_buf();
@@ -51,6 +54,7 @@ void StreamRenderer::finish() {
   }
 }
 
+/// Process a complete line — detects code blocks, tables, headers, lists.
 void StreamRenderer::flush_line() {
   std::string line = buf_;
   buf_.clear();
@@ -129,6 +133,7 @@ void StreamRenderer::flush_line() {
   render_content_line(content);
 }
 
+/// Render a plain text line with inline formatting (bold, italic, code, links).
 void StreamRenderer::flush_line_plain(const std::string& content, const std::string& line) {
   if (tui::is_table_row(content)) {
     table_buf_.push_back(content);
@@ -138,6 +143,7 @@ void StreamRenderer::flush_line_plain(const std::string& content, const std::str
   out_ << line;
 }
 
+/// Render accumulated table rows using the table formatter.
 void StreamRenderer::flush_table_buf() {
   if (!table_buf_.empty()) {
     out_ << tui::render_table(table_buf_, color_);
@@ -145,6 +151,7 @@ void StreamRenderer::flush_table_buf() {
   }
 }
 
+/// Render a content line inside a code block (with syntax highlighting if available).
 void StreamRenderer::render_content_line(const std::string& content) {
   if (!content.empty() && content[0] == '#') {
     std::string h = tui::try_heading(content);

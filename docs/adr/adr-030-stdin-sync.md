@@ -13,7 +13,7 @@ llama-cli "summarize: $(cat complex-file.md)"
 
 # Should work per ADR-007 but doesn't
 cat file.md | llama-cli "summarize this"
-```
+```text
 
 ## Decision
 
@@ -30,7 +30,7 @@ llama-cli --files src/main.cpp src/config.cpp "review these files"
 
 # Glob
 llama-cli --files *.md "list the topics"
-```
+```text
 
 `--files` accepts a single argument (space-separated for multiple files). File contents are concatenated with a `--- filename ---` separator and prepended to the prompt.
 
@@ -39,7 +39,7 @@ llama-cli --files *.md "list the topics"
 ```bash
 cat file.md | llama-cli "summarize this"
 echo "what is 2+2?" | llama-cli
-```
+```text
 
 ### Priority: `--files` > stdin > prompt-only
 
@@ -58,7 +58,7 @@ echo "what is 2+2?" | llama-cli
 
 ```cpp
 std::vector<std::string> files;  ///< Input files for sync mode (--files)
-```
+```text
 
 **config.cpp** — parse `--files` (consumes args until next `--` flag):
 
@@ -70,7 +70,7 @@ if (arg == "--files") {
   c.mode = Mode::Sync;
   continue;
 }
-```
+```text
 
 **main.cpp** — build context from files or stdin before dispatch:
 
@@ -96,13 +96,13 @@ if (!context.empty()) {
   cfg.prompt = cfg.prompt.empty() ? context : cfg.prompt + "\n\n" + context;
   cfg.mode = Mode::Sync;
 }
-```
+```text
 
 ### CLI help update
 
 ```text
   --files FILE [FILE...]  Read files as context (triggers sync mode)
-```
+```text
 
 ### Examples
 
@@ -121,7 +121,7 @@ cat error.log | llama-cli "explain this error"
 
 # Composable
 llama-cli --files main.cpp "review" | tee review.md
-```
+```text
 
 ## Rationale
 

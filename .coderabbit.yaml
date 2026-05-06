@@ -1,0 +1,37 @@
+# CodeRabbit configuration — https://docs.coderabbit.ai/reference/configuration
+language: en
+reviews:
+  profile: assertive
+  high_level_summary: true
+  review_status: true
+  poem: false
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+  path_filters:
+    - "!.tmp/**"
+    - "!build/**"
+    - "!INDEX.md"
+  path_instructions:
+    - path: "src/**/*.cpp"
+      instructions: |
+        Follow CONTRIBUTING.md: simple C++, 20% comment ratio, NOLINTNEXTLINE not NOLINT.
+        Use read_answer() for interactive input (ADR-088), never std::cin directly.
+    - path: "scripts/**/*.sh"
+      instructions: |
+        Bash only, set -o errexit/nounset/pipefail, kebab-case filenames.
+    - path: "docs/adr/**"
+      instructions: |
+        ADRs must have: Status, Context, Decision, Consequences sections.
+  tools:
+    cppcheck:
+      enabled: true
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    actionlint:
+      enabled: true

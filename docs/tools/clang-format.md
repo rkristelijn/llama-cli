@@ -13,7 +13,7 @@
 ```bash
 make format          # format all C++ files in-place
 make format-check    # check formatting without modifying files
-```
+```text
 
 ## Notes
 

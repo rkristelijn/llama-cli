@@ -17,7 +17,7 @@ CMMI 1 check 1.8 requires documentation to stay current when user-facing code ch
 Given a PR changes files in src/
 When no files in docs/ or CHANGELOG.md are changed
 Then CI posts a warning: "Source code changed but no documentation was updated"
-```
+```text
 
 ## Implementation
 

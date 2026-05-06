@@ -105,7 +105,7 @@ TEST_CASE("repl: streaming with annotations parses after complete") {
     }
   }
 }
-```
+```text
 
 ## Verify
 
@@ -118,7 +118,7 @@ make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
 
 # 3. New test cases exist
 grep -c "streaming" src/repl/repl_test.cpp && echo "PASS: streaming tests found" || echo "FAIL"
-```
+```text
 
 ## Expected output
 
@@ -126,10 +126,10 @@ grep -c "streaming" src/repl/repl_test.cpp && echo "PASS: streaming tests found"
 PASS: build succeeds
 PASS: tests pass
 PASS: streaming tests found
-```
+```text
 
 ## Commit message
 
 ```text
 test: add streaming chat tests for REPL
-```
+```text

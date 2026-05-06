@@ -64,15 +64,43 @@ static std::string read_file(const std::string& path) {
 }
 // Wrap rendered AI text with the configured AI color.
 // Re-applies AI color after any ANSI reset inside markdown rendering.
+/// Build the REPL prompt label based on nick, provider, and model.
+/// Build the REPL prompt label based on nick, provider, and model.
+/// Model is shown for all providers with selectable models.
+/// Only tgpt is excluded (single fixed model, no choice).
+/// Format: "nick@provider:model> " or "nick@provider> " or "> "
+/// Examples:
+///   gius\@ollama:gemma4:26b>     (local model visible)
+///   gius\@kiro-cli:claude-sonnet> (cloud model visible)
+///   gius\@tgpt>                   (no model — tgpt has only one)
+std::string build_prompt_label(const std::string& nick, const std::string& provider, const std::string& model) {
+  // tgpt has no model selection — skip model in prompt.
+  // All other providers (ollama, gemini, kiro-cli, amazon-q) show the model.
+  bool show_model = (provider != "tgpt") && !model.empty();
+  if (!nick.empty() && !provider.empty() && show_model) {
+    return nick + "@" + provider + ":" + model + "> ";
+  }
+  if (!nick.empty() && !provider.empty()) {
+    return nick + "@" + provider + "> ";
+  }
+  if (!nick.empty()) {
+    return nick + "> ";
+  }
+  return "> ";
+}
+
 /// Read one line of input using linenoise (interactive) or getline (tests).
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& prompt_ansi = "32") {
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& /*prompt_ansi*/ = "",
+                      const std::string& nick = "", const std::string& model = "", const std::string& provider = "") {
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
   }
   if (!isatty(STDIN_FILENO)) {
     return static_cast<bool>(std::getline(in, line));
   }
-  std::string prompt_str = (color && !prompt_ansi.empty()) ? "\033[1;" + prompt_ansi + "m> \033[0m" : "> ";
+  // Build prompt: "nick@provider:model> " or "nick@provider> " or "nick> " or "> "
+  std::string label = build_prompt_label(nick, provider, model);
+  std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + Style::reset() : label;
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
     return false;
@@ -218,7 +246,7 @@ static void slash_completion(const char* buf, std::vector<std::string>& completi
 
 /** Main REPL loop: read input, dispatch commands/prompts, return prompt count. */
 int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out, ModelsFn models_fn, StreamChatFn stream_chat,
-             HardwareFn hw_fn, ModelInfoFn model_info_fn, ScanFn scan_fn) {
+             HardwareFn hw_fn, ModelInfoFn model_info_fn, ScanFn scan_fn, SwitchProviderFn switch_provider_fn, ModelRegistry* registry) {
   std::string line;
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
@@ -275,18 +303,28 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      cfg.bofh,
                      cfg.warmup,
                      color_name_to_ansi(cfg.prompt_color),
-                     color_name_to_ansi(cfg.ai_color)};
+                     color_name_to_ansi(cfg.ai_color),
+                     false,
+                     -1,
+                     false,
+                     nullptr,
+                     {}};
 
   // Log session start with version, commit, model, and host for traceability
   std::string version_info = std::string(LLAMA_CLI_VERSION) + " (" + GIT_COMMIT + ")";
   LOG_EVENT("repl", "session_start", cfg.model, version_info + " " + cfg.host + ":" + cfg.port, 0, 0, 0);
+
+  // Wire provider switching callback (ADR-020)
+  state.switch_provider = switch_provider_fn;
+  state.registry = registry;
 
   // Auto-start SearXNG when web search is enabled (ADR-057)
   if (cfg.allow_web_search) {
     ensure_searxng(cfg, out);
   }
 
-  while (read_line(in, out, line, state.color, state.prompt_color)) {
+  while (read_line(in, out, line, state.color, state.prompt_color, Config::instance().nick, Config::instance().model,
+                   Config::instance().provider)) {
     if (line.empty()) {
       continue;
     }

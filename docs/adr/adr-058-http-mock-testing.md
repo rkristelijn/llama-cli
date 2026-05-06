@@ -33,7 +33,7 @@ graph LR
         C -->|HTTP request| M[httplib::Server mock]
         M -->|canned response| C
     end
-```
+```text
 
 ### Test lifecycle
 
@@ -51,7 +51,7 @@ sequenceDiagram
     Mock-->>SUT: {"response":"hello"}
     SUT-->>Test: "hello"
     Test->>Mock: ~MockServer() → stop + join
-```
+```text
 
 ### MockServer RAII wrapper
 
@@ -74,7 +74,7 @@ struct MockServer {
     if (thr.joinable()) thr.join();
   }
 };
-```
+```text
 
 Key design choices:
 

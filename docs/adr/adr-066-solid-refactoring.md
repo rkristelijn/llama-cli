@@ -89,7 +89,7 @@ using StreamChatFn = std::function<std::string(const std::vector<Message>&, Stre
 // New: for extracted modules
 using CommandHandler = std::function<bool(const std::string& input, Config& cfg, std::ostream& out)>;
 using AnnotationHandler = std::function<std::string(const std::string& response, const Config& cfg)>;
-```
+```text
 
 Rule: **any function that does I/O or network must be injectable via `std::function` parameter with a default that points to the real implementation.**
 
@@ -146,7 +146,7 @@ Single branch, single PR. Each iteration must leave the code stable:
 [ ] 6. make test   → must pass (unit + e2e)
 [ ] 7. Commit: refactor(repl): extract <thing> to <file> [SRP]
 [ ] 8. Repeat next block
-```
+```text
 
 If `make quick` fails → fix before moving on. Never stack broken extracts.
 
@@ -168,7 +168,7 @@ bool handle_set(const std::string& args, Config& cfg, std::ostream& out);
 bool dispatch_command(const std::string& input, Config& cfg, std::ostream& out);
 
 // LSP: any ChatFn (real or mock) must return a valid response string — no side effects.
-```
+```text
 
 Format: `// <PRINCIPLE>: <one-line reason>`
 

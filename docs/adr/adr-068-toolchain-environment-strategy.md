@@ -1,7 +1,7 @@
 
 # ADR 068: Toolchain Environment Strategy
 
-**Status:** `Accepted`  
+**Status:** Superseded — setup.sh and versions.env cover this  
 **Date:** 2026-05-02  
 **Context:**
 To achieve a "Sonar-level" Quality Gate, the project relies on a "Composable Stack" of specialized tools (e.g., `clang-tidy`, `semgrep`, `pmccabe`, `mull`). The reliability of these checks depends entirely on the consistency of the environment. We need to decide how to manage these tool versions to prevent "environment drift" between local development and CI.

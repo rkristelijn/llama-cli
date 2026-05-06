@@ -11,7 +11,7 @@ cd llama-cli
 
 # Add your fork as a remote
 git remote add fork git@github.com:<your-user>/llama-cli.git
-```
+```text
 
 Verify:
 
@@ -19,7 +19,7 @@ Verify:
 $ git remote -v
 origin  git@github.com:rkristelijn/llama-cli.git   # upstream (read)
 fork    git@github.com:<your-user>/llama-cli.git    # your fork (push)
-```
+```text
 
 ## Workflow overview
 
@@ -39,7 +39,7 @@ sequenceDiagram
     Note over PR: address feedback, push more commits
     PR->>M: 5. Merge PR on GitHub
     M->>B: 6. git checkout main && git pull origin main
-```
+```text
 
 ## Step by step
 
@@ -51,21 +51,21 @@ Always branch from an up-to-date main:
 git checkout main
 git pull origin main
 git checkout -b feat/my-feature    # or fix/, refactor/, docs/
-```
+```text
 
 ### 2. Make changes and verify
 
 ```bash
 # edit files...
 make check                         # runs all 15 quality checks
-```
+```text
 
 ### 3. Commit
 
 ```bash
 git add src/file.cpp src/file.h    # stage specific files, avoid git add .
 git commit -m "feat: add banner toggle option"
-```
+```text
 
 Commit message format: `type: short description`
 Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`
@@ -74,7 +74,7 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`
 
 ```bash
 git push -u fork feat/my-feature
-```
+```text
 
 > **Important**: push to `fork`, not `origin`. Origin is the upstream repo.
 
@@ -85,7 +85,7 @@ git push -u fork feat/my-feature
 gh pr create --repo rkristelijn/llama-cli --base main --head <your-user>:feat/my-feature
 
 # Or use the GitHub web UI — it will suggest creating a PR after you push.
-```
+```text
 
 ### 6. Address review feedback
 
@@ -96,7 +96,7 @@ Push additional commits to the same branch:
 git add -p                         # stage interactively
 git commit -m "fix: address review feedback"
 git push fork feat/my-feature
-```
+```text
 
 The PR updates automatically.
 
@@ -116,14 +116,14 @@ sequenceDiagram
     M->>B: 2. git rebase origin/main
     Note over B: resolve conflicts if any
     B->>F: 3. git push --force-with-lease fork feat/my-feature
-```
+```text
 
 ```bash
 git fetch origin main
 git rebase origin/main
 # resolve any conflicts, then: git rebase --continue
 git push --force-with-lease fork feat/my-feature
-```
+```text
 
 > `--force-with-lease` is required after rebase (history was rewritten).
 > It's safe: it refuses if someone else pushed to your branch.
@@ -144,14 +144,14 @@ sequenceDiagram
     M->>CI: VERSION changed → release.yml triggers
     CI->>CI: build linux-x64, linux-arm64, macos-arm64
     CI->>R: create tag v0.18.3, upload binaries
-```
+```text
 
 ```bash
 make bump patch                    # 0.18.2 → 0.18.3 (also: minor, major)
 git add VERSION
 git commit -m "chore(version): bump"
 # push via PR as usual
-```
+```text
 
 **VERSION format**: plain semver without `v` prefix (e.g. `0.18.3`).
 The release workflow adds the `v` prefix for tags and release names (`v0.18.3`).

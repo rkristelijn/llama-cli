@@ -1,0 +1,7 @@
+{
+  "ignore": ["**/mermaid/**", "**/*_test.cpp", "**/*_it.cpp"],
+  "threshold": 3,
+  "minTokens": 50,
+  "minLines": 8,
+  "reporters": ["console"]
+}

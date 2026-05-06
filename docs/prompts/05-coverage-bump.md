@@ -17,13 +17,13 @@ Find this exact line:
 
 ```yaml
           [ "$(echo "$PERCENT < 55" | bc -l)" -eq 0 ] || { echo "Coverage below 55%!"; exit 1; }
-```
+```text
 
 Replace it with:
 
 ```yaml
           [ "$(echo "$PERCENT < 60" | bc -l)" -eq 0 ] || { echo "Coverage below 60%!"; exit 1; }
-```
+```text
 
 ## Verify
 
@@ -36,7 +36,7 @@ grep "PERCENT < 55" .github/workflows/ci.yml && echo "FAIL: old threshold still 
 
 # 3. Run local tests to check current coverage
 make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
-```
+```text
 
 ## Expected output
 
@@ -44,7 +44,7 @@ make test && echo "PASS: tests pass" || echo "FAIL: tests broken"
 PASS: threshold is 60%
 PASS: old threshold removed
 PASS: tests pass
-```
+```text
 
 ## Note
 
@@ -54,4 +54,4 @@ If CI fails after this change because coverage is between 55-60%, you need to ad
 
 ```text
 chore: bump CI coverage threshold from 55% to 60%
-```
+```text

@@ -35,7 +35,7 @@ build/generated/system_prompt_generated.h
         │
         ▼  (include)
 src/config/config.h  →  default value
-```
+```text
 
 ### File format
 

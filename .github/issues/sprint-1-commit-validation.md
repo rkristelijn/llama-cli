@@ -21,7 +21,7 @@ Then the commit is rejected with a helpful error message
 Given a developer makes a commit
 When the message matches "feat: add streaming support"
 Then the commit succeeds
-```
+```text
 
 ## Implementation
 

@@ -50,7 +50,7 @@ Introduce two persistent stores, both loaded into the system prompt at startup:
 /pref                 — show all preferences
 /pref add <pref>      — append a preference
 /pref clear           — wipe all preferences
-```
+```text
 
 ### Loading at Startup
 
@@ -58,7 +58,7 @@ Both files are read in `run_repl()` (or `main()` alongside `.kiro/agents/`) and 
 
 ```text
 [system prompt] + [preferences] + [memory]
-```
+```text
 
 Preferences come before memory because they define *how* to respond, while memory provides *what* to know. This mirrors the existing pattern where `.kiro/agents/*.json` prompts are appended to the system prompt.
 

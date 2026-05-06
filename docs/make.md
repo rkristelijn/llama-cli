@@ -19,7 +19,7 @@ setup
 └── scripts/dev/setup.sh
 
 clean (removes build artifacts)
-```
+```text
 
 ### 🧹 Aggregators (Simplified Interface)
 
@@ -55,7 +55,7 @@ check (Full Quality Gate)
 └── sast (Aggregator)
     ├── sast-security (semgrep)
     └── sast-secret (gitleaks)
-```
+```text
 
 ### 🚀 Execution & Feedback
 
@@ -71,7 +71,7 @@ quick
 live
 └── all
 └── e2e/test_live.sh (integration test with LLM)
-```
+```text
 
 ### 🛠️ Development & Git Hooks
 
@@ -85,7 +85,7 @@ pre-commit hook
 
 pre-push hook
 └── scripts/git/prepush-check.sh (calls make check)
-```
+```text
 
 ## 📝 Design Principles
 

@@ -39,7 +39,7 @@ struct Config {
   }
 
   bool auto_confirm_write = false;                         ///< Auto-confirm file writes in sync mode (--auto-confirm-write)
-  std::string provider = "ollama";                         ///< LLM provider name (ollama, mock, etc.)
+  std::string provider = "tgpt";                           ///< LLM provider name (tgpt default: fast, no startup)
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port
   std::vector<std::string> hosts;                          ///< Discovered Ollama hosts (OLLAMA_HOSTS, /scan)
@@ -68,6 +68,7 @@ struct Config {
   std::string search_lang = "en-US";                       ///< Search language, e.g. en-US, nl-NL (ADR-057)
   std::string search_location;                             ///< Search location, e.g. "Eindhoven, NL" (ADR-057)
   std::string memory_path = ".cache/llama-memory.md";      ///< Memory file (ADR-059)
+  std::string nick = "";                                   ///< User display name (/nick command, default: login name)
   std::string preferences_path = ".preferences/style.md";  ///< Preferences file (ADR-059)
   std::string system_prompt = DEFAULT_SYSTEM_PROMPT;       ///< System prompt (ADR-069: from res/system-prompt.txt)
   /// Web search tool prompt fragment — appended when allow_web_search is true

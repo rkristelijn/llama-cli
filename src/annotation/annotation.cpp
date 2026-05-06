@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include "tui/tui.h"
+
 // --- helpers -----------------------------------------------------------------
 
 /// Extract the value of attribute `name` from an opening XML tag string.
@@ -295,7 +297,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 8 - start, "\033[1;37m[proposed: write " + path + "]\033[0m");
+    result.replace(start, end + 8 - start, tui::active_theme().info.ansi() + "[proposed: write " + path + "]" + Style::reset());
   }
 
   // strip <str_replace path="...">...</str_replace>
@@ -318,7 +320,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 14 - start, "\033[1;37m[proposed: str_replace " + path + "]\033[0m");
+    result.replace(start, end + 14 - start, tui::active_theme().info.ansi() + "[proposed: str_replace " + path + "]" + Style::reset());
   }
 
   // strip <read ...>
@@ -333,7 +335,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 1);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 1 - start, "\033[1;37m[read " + path + "]\033[0m");
+    result.replace(start, end + 1 - start, tui::active_theme().info.ansi() + "[read " + path + "]" + Style::reset());
   }
 
   // strip <search>...</search>
@@ -347,7 +349,7 @@ std::string strip_annotations(const std::string& text) {
       break;
     }
     std::string query = result.substr(start + 8, end - start - 8);
-    result.replace(start, end + 9 - start, "\033[1;37m[search: " + query + "]\033[0m");
+    result.replace(start, end + 9 - start, tui::active_theme().info.ansi() + "[search: " + query + "]" + Style::reset());
   }
 
   // strip <add_line .../>
@@ -362,7 +364,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 2);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 2 - start, "\033[1;37m[proposed: add line to " + path + "]\033[0m");
+    result.replace(start, end + 2 - start, tui::active_theme().info.ansi() + "[proposed: add line to " + path + "]" + Style::reset());
   }
 
   // strip <delete_line .../>
@@ -377,7 +379,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 2);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 2 - start, "\033[1;37m[proposed: delete line from " + path + "]\033[0m");
+    result.replace(start, end + 2 - start, tui::active_theme().info.ansi() + "[proposed: delete line from " + path + "]" + Style::reset());
   }
 
   return result;
