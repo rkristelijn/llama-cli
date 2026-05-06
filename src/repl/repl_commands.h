@@ -45,7 +45,7 @@ struct ReplState {
   std::string ai_color = "";          ///< ANSI code for AI response (none=default)
   bool trust = false;                 ///< Trust mode: auto-approve all actions
   int last_assistant_idx = -1;        ///< Index of last assistant message for rating
-  bool auto_route = false;            ///< Auto mode: smart routing by prompt complexity
+  bool auto_route = true;             ///< Auto mode: smart routing by prompt complexity
   ModelRegistry* registry = nullptr;  ///< Unified model registry (ADR-081)
 
   /// Callback to switch provider at runtime (set by main.cpp, called by /provider)

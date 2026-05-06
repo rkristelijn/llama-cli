@@ -19,6 +19,7 @@
 #include "repl/repl_commands.h"
 
 #include <dirent.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -624,7 +625,33 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     }
   } else if (command == "help" || command.empty()) {
     LOG_FEATURE("cmd_help");
-    s.out << help::repl;
+    // Paginate help output based on terminal height (same pattern as /model)
+    std::string text = help::repl;
+    std::vector<std::string> lines;
+    std::istringstream iss(text);
+    std::string line;
+    while (std::getline(iss, line)) {
+      lines.push_back(line);
+    }
+    int term_rows = 24;
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_row > 0) {
+      term_rows = ws.ws_row;
+    }
+    int page_size = term_rows - 3;
+    if (page_size < 5) page_size = 5;
+    for (size_t i = 0; i < lines.size(); i++) {
+      s.out << lines[i] << "\n";
+      if (static_cast<int>(lines.size()) > page_size && (i + 1) % static_cast<size_t>(page_size) == 0 && i + 1 < lines.size()) {
+        s.out << "  -- more (" << (i + 1) << "/" << lines.size() << ") press Enter --" << std::flush;
+        std::string dummy;
+        if (&s.in == &std::cin) {
+          linenoise::Readline("", dummy);
+        } else {
+          std::getline(s.in, dummy);
+        }
+      }
+    }
   } else if (command == "scan") {
     LOG_FEATURE("cmd_scan");
     handle_scan(s);
