@@ -112,7 +112,7 @@ std::vector<ModelInfo> KiroProvider::get_model_info() {
   ExecResult result = cmd_exec("kiro-cli-chat chat --list-models -f json", 10, 50000);
   std::vector<ModelInfo> infos;
   if (result.exit_code != 0) {
-    infos.push_back({"kiro-auto", "?", "none", "kiro", 0});
+    infos.push_back({"kiro-auto", "?", "none", "amazon-q", 0});
     return infos;
   }
   // Parse each model entry
@@ -121,15 +121,15 @@ std::vector<ModelInfo> KiroProvider::get_model_info() {
     pos += 14;
     auto end = result.output.find("\"", pos);
     std::string model_name = result.output.substr(pos, end - pos);
-    // Extract rate_multiplier as "params" field for display
+    // Extract rate_multiplier for cost display
     std::string rate = "1.0x";
     auto rate_pos = result.output.find("\"rate_multiplier\":", pos);
-    if (rate_pos != std::string::npos && rate_pos < pos + 200) {
+    if (rate_pos != std::string::npos && rate_pos < pos + 300) {
       auto rate_start = rate_pos + 18;
       auto rate_end = result.output.find_first_of(",}", rate_start);
-      rate = result.output.substr(rate_start, rate_end - rate_start) + "x credits";
+      rate = result.output.substr(rate_start, rate_end - rate_start) + "x";
     }
-    infos.push_back({model_name, rate, "none", "kiro", 0});
+    infos.push_back({model_name, rate, "none", "amazon-q", 0});
     pos = end;
   }
   return infos;
@@ -140,6 +140,6 @@ bool KiroProvider::is_model_running(const std::string& /*model_name*/) {
   return result.exit_code == 0;
 }
 
-std::string KiroProvider::name() const { return "kiro-cli"; }
+std::string KiroProvider::name() const { return "amazon-q"; }
 
 std::string KiroProvider::host() const { return "cloud"; }

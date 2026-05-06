@@ -12,6 +12,8 @@
 
 #include <unistd.h>
 
+#include <sys/ioctl.h>
+
 #include <algorithm>
 #include <csignal>
 #include <iomanip>
@@ -51,6 +53,16 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
     s.out << "\n";
     s.out << "  #  Model                          Provider       Host                   Speed\n";
     s.out << "  ── ────────────────────────────── ────────────── ────────────────────── ─────\n";
+
+    // Paginate: detect terminal height, show page_size models at a time
+    int term_rows = 24;
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_row > 0) {
+      term_rows = ws.ws_row;
+    }
+    int page_size = term_rows - 6;  // header + prompt + margins
+    if (page_size < 5) page_size = 5;
+
     for (size_t i = 0; i < models.size(); i++) {
       const auto& m = models[i];
       std::string marker = (m.name == Config::instance().model && m.host.find(Config::instance().host) != std::string::npos) ? "*" : " ";
@@ -63,6 +75,20 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
       snprintf(buf, sizeof(buf), "%s %2zu %-30s %-14s %-22s %s", marker.c_str(), i + 1, m.name.c_str(), m.provider.c_str(), m.host.c_str(),
                speed.c_str());
       s.out << dim << buf << reset << "\n";
+
+      // Pagination: pause after each page if list is longer than terminal
+      if (static_cast<int>(models.size()) > page_size && (i + 1) % static_cast<size_t>(page_size) == 0 && i + 1 < models.size()) {
+        s.out << "  -- more (" << (i + 1) << "/" << models.size() << ") press Enter --" << std::flush;
+        std::string dummy;
+#ifdef LINENOISE_HPP
+        if (&s.in == &std::cin) {
+          linenoise::Readline("", dummy);
+        } else
+#endif
+        {
+          std::getline(s.in, dummy);
+        }
+      }
     }
     s.out << "\n  Select [1-" << models.size() << "] or /model <name>: ";
     s.out.flush();
