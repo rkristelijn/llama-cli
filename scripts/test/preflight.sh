@@ -50,7 +50,7 @@ discover_hosts() {
   fi
   # Default: check common hosts
   local hosts=""
-  for h in localhost:11434 apsnlmac4050.local:11434 jarvis.local:11434 pepper.local:11434; do
+  for h in localhost:11434 <hostname>.local:11434 <hostname>:11434 <hostname>:11434; do
     local host="${h%%:*}"
     local port="${h##*:}"
     if curl -s --connect-timeout 2 "http://${host}:${port}/api/tags" | grep -q "models" 2>/dev/null; then

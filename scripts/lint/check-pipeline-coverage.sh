@@ -60,6 +60,17 @@ declare -A DENYLIST=(
   [update]="dev tool"
   [precommit]="local hook"
   [prepush]="local hook"
+  [check-unicode]="fast, included in lint aggregator"
+  [check-portability]="fast, included in lint aggregator"
+  [check-interactive-input]="fast, included in lint aggregator"
+  [check-pii]="fast, included in lint aggregator"
+  [slop]="fast, included in lint aggregator"
+  [kill]="dev utility, not a check"
+  [check-casts]="slow (compiles each file), check-all only"
+  [check-conversions]="slow (full rebuild with -Wconversion), check-all only"
+  [check-shadowing]="slow (compiles each file), check-all only"
+  [check-traceability]="needs feature-registry.yml, check-all only"
+  [pipeline-coverage]="meta-check, check-all only"
 )
 
 echo "==> checking pipeline coverage..."

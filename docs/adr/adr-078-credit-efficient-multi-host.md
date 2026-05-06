@@ -8,7 +8,7 @@
 
 ## Context
 
-We have multiple machines (NUC `pepper.local`, MacBook M2 `apsnlmac4050.local`) running Ollama, plus access to free cloud AI tiers. Currently we use one host at a time via `.env`. We want to:
+We have multiple machines (NUC `<hostname>`, MacBook M2 `<hostname>.local`) running Ollama, plus access to free cloud AI tiers. Currently we use one host at a time via `.env`. We want to:
 
 1. Use all local hardware simultaneously (distribute work)
 2. Supplement with free cloud credits when local models aren't sufficient
@@ -25,8 +25,8 @@ We have multiple machines (NUC `pepper.local`, MacBook M2 `apsnlmac4050.local`) 
 │  Decides: which task → which backend                 │
 ├─────────────────────────────────────────────────────┤
 │  Tier 1: Local Ollama (free, private, unlimited)    │
-│    pepper.local — NUC (small models, fast tasks)    │
-│    apsnlmac4050.local — M2 (14b models, code)      │
+│    <hostname> — NUC (small models, fast tasks)    │
+│    <hostname>.local — M2 (14b models, code)      │
 ├─────────────────────────────────────────────────────┤
 │  Tier 2: Free Cloud APIs (rate-limited, free)       │
 │    Google Gemini — 1500 req/day free (AI Studio)    │
@@ -59,7 +59,7 @@ Key insight: **all use OpenAI-compatible API format**. One provider abstraction 
 
 ```env
 # .env
-OLLAMA_HOSTS=apsnlmac4050.local:11434,pepper.local:11434
+OLLAMA_HOSTS=<hostname>.local:11434,<hostname>:11434
 OLLAMA_STRATEGY=model-match   # route by model availability
 ```text
 
@@ -116,8 +116,8 @@ The event log already captures `duration_ms` and `tokens_prompt/completion`. Add
 
 ```bash
 # Kiro delegates to local llama-cli for mechanical work:
-./llama-cli --host pepper.local "explain this function"
-./llama-cli --host apsnlmac4050.local "write unit test for X"
+./llama-cli --host <hostname> "explain this function"
+./llama-cli --host <hostname>.local "write unit test for X"
 
 # For tasks beyond local model capability:
 ./llama-cli --provider groq "architect a solution for Y"

@@ -22,7 +22,7 @@ enum class Capability { Code, Vision, General, Reasoning, CurrentInfo };
 struct ModelEntry {
   std::string name;                      ///< Model name (e.g., "qwen2.5-coder:14b")
   std::string provider;                  ///< Provider name (e.g., "ollama")
-  std::string host;                      ///< Host address (e.g., "apsnlmac4050:11434")
+  std::string host;                      ///< Host address (e.g., "<hostname>:11434")
   std::string description;               ///< Human-readable description
   double tokens_per_sec = 0;             ///< Benchmark speed (0 = unknown)
   double params_b = 0;                   ///< Parameter count in billions

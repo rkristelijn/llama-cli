@@ -57,7 +57,7 @@ assert_feature "cmd_agent"
 
 # --- /auto ---
 output=$(printf "/auto\nexit\n" | "$BINARY" --repl 2>/dev/null)
-assert_contains "$output" "auto routing: on" "/auto toggles on"
+assert_contains "$output" "auto routing: off" "/auto toggles off (default is on)"
 assert_feature "cmd_auto"
 
 # --- /chat save/load ---

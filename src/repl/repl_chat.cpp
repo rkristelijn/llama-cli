@@ -23,6 +23,8 @@
 #include "annotation/annotation.h"
 #include "config/config.h"
 #include "logging/logger.h"
+#include "orchestrator/orchestrator.h"
+#include "orchestrator/subagent.h"
 #include "planner/planner.h"
 #include "repl/repl_annotations.h"
 #include "repl/repl_search.h"
@@ -265,7 +267,24 @@ void send_prompt(const std::string& line, ReplState& s) {
   }
 
   // Auto-routing: classify prompt and switch to best host/model
+  // Skip for mock provider (e2e tests) — no real hosts to route to
   if (s.auto_route && s.switch_provider) {
+    if (should_orchestrate(line)) {
+      LOG_FEATURE("orchestrate_complex");
+    }
+  }
+  if (s.auto_route && s.switch_provider && s.cfg.provider != "mock") {
+    // Orchestrator: complex prompts delegate to external agents (ADR-096)
+    if (should_orchestrate(line)) {
+      auto orch_result = orchestrate(line, s.history);
+      if (orch_result.used_plan) {
+        s.out << "\n" << orch_result.response << "\n";
+        s.history.push_back({"user", line});
+        s.history.push_back({"assistant", orch_result.response});
+        s.count++;
+        return;
+      }
+    }
     auto route = plan_route(line, Config::instance().hosts);
     if (!route.host.empty() && route.host != Config::instance().host + ":" + Config::instance().port) {
       auto colon = route.host.find(':');

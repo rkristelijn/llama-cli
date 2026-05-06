@@ -21,6 +21,7 @@
 #include "command/command.h"
 #include "exec/exec.h"
 #include "logging/logger.h"
+#include "orchestrator/subagent.h"
 #include "repl/repl_chat.h"
 #include "repl/repl_commands.h"
 #include "repl/repl_search.h"
@@ -145,6 +146,16 @@ static bool dispatch(const std::string& line, ReplState& s) {
   }
   if (input.type == InputType::ExecContext) {
     run_exec(input.arg, true, s);
+    return true;
+  }
+  // @mention routing: @q, @opencode, @explore, etc. (ADR-096 Phase 4)
+  auto mention = parse_mention(line);
+  if (mention.has_mention) {
+    tui::system_msg(s.out, s.color, "[routing to @" + mention.agent + "]");
+    std::string response = invoke_subagent(mention.agent, mention.prompt, s.history);
+    s.out << "\n" << response << "\n";
+    s.history.push_back({"user", mention.prompt});
+    s.history.push_back({"assistant", response});
     return true;
   }
   send_prompt(line, s);
@@ -306,7 +317,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.ai_color),
                      false,
                      -1,
-                     false,
+                     true,
                      nullptr,
                      {}};
 

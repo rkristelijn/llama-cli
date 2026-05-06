@@ -13,6 +13,7 @@
 #include "provider/kiro_provider.h"
 #include "provider/multi_host_provider.h"
 #include "provider/ollama_provider.h"
+#include "provider/opencode_provider.h"
 #include "provider/tgpt_provider.h"
 
 /// MockProvider for testing — echoes prompts back or uses env var response.
@@ -64,6 +65,9 @@ std::unique_ptr<LLMProvider> create_provider(const Config& cfg) {
     // "amazon-q" is the user-facing name, "kiro-cli"/"kiro" are aliases.
     // The provider handles model selection via --model flag internally.
     return std::make_unique<KiroProvider>();
+  }
+  if (cfg.provider == "opencode" || cfg.provider == "oc") {
+    return std::make_unique<OpenCodeProvider>();
   }
   if (cfg.provider == "ollama" || cfg.provider.empty()) {
     // Multi-host: if OLLAMA_HOSTS has multiple entries, use routing provider

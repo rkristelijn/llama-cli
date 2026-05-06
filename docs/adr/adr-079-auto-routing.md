@@ -4,7 +4,7 @@
 
 ## Context
 
-llama-cli now supports multiple providers (ollama, tgpt, gemini), multiple hosts (localhost, apsnlmac4050, jarvis, pepper), and multiple models per host. Users need both manual control (single provider/model) and automatic smart routing.
+llama-cli now supports multiple providers (ollama, tgpt, gemini), multiple hosts (localhost, <hostname>, jarvis, pepper), and multiple models per host. Users need both manual control (single provider/model) and automatic smart routing.
 
 ## Decision
 
@@ -31,8 +31,8 @@ When `LLAMA_PROVIDER=auto`, the system:
 | Tier | When | Target | Latency |
 |------|------|--------|---------|
 | 1: Fast local | Simple questions, math, factual | jarvis/pepper 3B | <1s |
-| 2: Smart local | Code, explanation, medium complexity | apsnlmac4050 14B | 2-5s |
-| 3: Power local | Architecture, creative, complex | apsnlmac4050 27B | 5-15s |
+| 2: Smart local | Code, explanation, medium complexity | <hostname> 14B | 2-5s |
+| 3: Power local | Architecture, creative, complex | <hostname> 27B | 5-15s |
 | 4: Cloud | Current info, rate-limited local, fallback | tgpt/gemini | 3-10s |
 
 ### Prompt classification (heuristic, no LLM call)
@@ -87,7 +87,7 @@ Linenoise doesn't support shift-enter (terminal limitation). Instead:
 
 ```text
 Scanning... 
-  ✓ apsnlmac4050:11434 — 9 models (qwen2.5-coder:14b, gemma4:26b, ...)
+  ✓ <hostname>:11434 — 9 models (qwen2.5-coder:14b, gemma4:26b, ...)
   ✓ jarvis:11434 — 1 model (llama3.2:3b)
   ✓ pepper:11434 — 2 models (llama3.2:3b, gemma4:e4b)
   ✓ localhost:11434 — 3 models (gemma2:2b, llama3.2:3b, phi3)

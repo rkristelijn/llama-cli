@@ -23,8 +23,26 @@
 #include "exec/exec.h"
 #include "linenoise.hpp"
 #include "logging/logger.h"
+#include "orchestrator/agent_config.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
+
+// --- Permission enforcement (ADR-096 Phase 3) ---
+// Checks the active agent's permission for a tool before executing.
+// Returns true if the action is blocked (caller should return early).
+static bool permission_blocked(const std::string& tool, std::ostream& out, bool color) {
+  static std::vector<AgentConfig> agents = load_agent_configs();
+  const AgentConfig* agent = find_agent_config(agents, active_agent_name());
+  if (!agent) return false;
+  Permission perm = check_permission(*agent, tool);
+  if (perm == Permission::Deny) {
+    LOG_FEATURE("permission_blocked");
+    tui::error(out, color, "[blocked] agent '" + agent->name + "' does not have " + tool + " permission");
+    LOG_EVENT("repl", "permission_denied", tool, agent->name, 0, 0, 0);
+    return true;
+  }
+  return false;
+}
 
 /// Read a single line for y/n confirmation.
 /// Uses linenoise::Readline in interactive mode (stdin) for proper terminal
@@ -263,6 +281,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 /// Logs both confirmed and declined writes for audit trail.
 void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
   LOG_FEATURE("write_annotation");
+  if (permission_blocked("write", out, color)) return;
   if (confirm_write(action, in, out, color, trust, auto_confirm)) {
     // Backup existing file before overwriting
     std::ifstream exists_check(action.path);
@@ -306,6 +325,7 @@ void process_write(const WriteAction& action, std::istream& in, std::ostream& ou
 /// Creates a .bak backup before modifying the file.
 void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
   LOG_FEATURE("str_replace_annotation");
+  if (permission_blocked("str_replace", out, color)) return;
   if (trust) {
     std::ifstream check(action.path);
     if (!check.good()) {
@@ -324,7 +344,9 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     system("mkdir -p .tmp/backups");
     std::string bn = action.path;
     auto sl = bn.rfind('/');
-    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    if (sl != std::string::npos) {
+      bn = bn.substr(sl + 1);
+    }
     std::ofstream bak(".tmp/backups/" + bn + ".bak");
     if (bak.is_open()) {
       bak << existing;
@@ -399,7 +421,9 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     system("mkdir -p .tmp/backups");
     std::string bn = action.path;
     auto sl = bn.rfind('/');
-    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    if (sl != std::string::npos) {
+      bn = bn.substr(sl + 1);
+    }
     std::ofstream bak(".tmp/backups/" + bn + ".bak");
     bak << existing;
   }
@@ -512,6 +536,7 @@ std::string strip_exec_annotations(const std::string& text) {
 /// Returns command output if executed, empty string if declined/copied.
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
+  if (permission_blocked("exec", out, false)) return "";
   if (!trust) {
     std::string exec_prompt = "Run: " + cmd + "? [y/n/t/c/?] ";
     std::string answer;

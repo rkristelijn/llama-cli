@@ -98,7 +98,7 @@ SCENARIO ("provider factory: ollama provider has correct metadata") {
   GIVEN ("a config with ollama provider and custom host") {
     Config cfg;
     cfg.provider = "ollama";
-    cfg.host = "apsnlmac4050";
+    cfg.host = "<hostname>";
     cfg.port = "11434";
 
     WHEN ("creating the provider") {
@@ -110,7 +110,7 @@ SCENARIO ("provider factory: ollama provider has correct metadata") {
       }
 
       THEN ("host reflects config") {
-        CHECK (provider->host() == "apsnlmac4050:11434")
+        CHECK (provider->host() == "<hostname>:11434")
           ;
       }
     }

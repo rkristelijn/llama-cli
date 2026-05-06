@@ -44,7 +44,7 @@ All providers register at startup into a unified registry:
 ├──────────┬────────────────────┬─────────────────────────────┤
 │ Provider │ Host               │ Models                      │
 ├──────────┼────────────────────┼─────────────────────────────┤
-│ ollama   │ apsnlmac4050:11434 │ qwen2.5-coder:14b (42 t/s) │
+│ ollama   │ <hostname>:11434 │ qwen2.5-coder:14b (42 t/s) │
 │          │                    │ gemma4:26b (8 t/s)          │
 │          │                    │ qwen3.6:27b (3 t/s)         │
 │ ollama   │ jarvis:11434       │ llama3.2:3b (85 t/s)        │
@@ -69,8 +69,8 @@ All list commands use the same numbered-selection pattern:
   Select [1-4]: _
 
 /model                       # list ALL models across all providers/hosts
-  1. qwen2.5-coder:14b    ollama@apsnlmac4050   42 t/s  code
-  2. gemma4:26b            ollama@apsnlmac4050    8 t/s  general
+  1. qwen2.5-coder:14b    ollama@<hostname>   42 t/s  code
+  2. gemma4:26b            ollama@<hostname>    8 t/s  general
   3. llama3.2:3b           ollama@jarvis          85 t/s  general
   4. llama3.2:3b           ollama@pepper          85 t/s  general
   5. tgpt-default          tgpt@cloud              ? t/s  general
@@ -81,7 +81,7 @@ All list commands use the same numbered-selection pattern:
   Session: 12 messages, 3 LLM calls
   Tokens: ~2400 prompt, ~1800 completion
   Cost: free (all local)
-  Providers used: ollama@apsnlmac4050 (2x), ollama@jarvis (1x)
+  Providers used: ollama@<hostname> (2x), ollama@jarvis (1x)
 ```
 
 ### 4. Prompt Gate (Preflight Validation)

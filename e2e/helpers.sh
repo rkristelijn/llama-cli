@@ -1,6 +1,9 @@
 #!/bin/bash
 # Set mock provider for deterministic E2E tests by default
 export LLAMA_PROVIDER="${LLAMA_PROVIDER:-mock}"
+# Prevent auto-routing from connecting to real Ollama hosts during tests
+export OLLAMA_HOSTS=""
+export OLLAMA_HOST="localhost"
 
 # Shared e2e test helpers
 

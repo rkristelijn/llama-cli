@@ -15,6 +15,9 @@ if [[ ! -f "$BINARY" ]]; then
 fi
 
 echo "==> running e2e tests..."
+# Prevent auto-routing from connecting to real Ollama hosts during tests
+export OLLAMA_HOSTS=""
+export OLLAMA_HOST="localhost"
 for t in e2e/*.sh; do
   case "$t" in
   *test_live* | *helpers*) continue ;;

@@ -9,6 +9,7 @@
 #include "provider/tgpt_provider.h"
 
 #include "exec/exec.h"
+#include "util/util.h"
 
 /// Collapse conversation history into a single prompt string.
 /// Format: "System: ...\nUser: ...\nAssistant: ...\nUser: ..."
@@ -24,20 +25,6 @@ static std::string collapse_history(const std::vector<Message>& messages) {
     }
   }
   return prompt;
-}
-
-/// Shell-escape a string for safe embedding in single quotes.
-static std::string shell_escape(const std::string& s) {
-  std::string result = "'";
-  for (char c : s) {
-    if (c == '\'') {
-      result += "'\\''";
-    } else {
-      result += c;
-    }
-  }
-  result += "'";
-  return result;
 }
 
 std::string TgptProvider::chat(const std::vector<Message>& messages) {

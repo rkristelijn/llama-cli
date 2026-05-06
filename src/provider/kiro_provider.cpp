@@ -10,6 +10,7 @@
 
 #include "exec/exec.h"
 #include "json/json.h"
+#include "util/util.h"
 
 /// Collapse conversation history into a single prompt.
 static std::string collapse_history(const std::vector<Message>& messages) {
@@ -24,40 +25,6 @@ static std::string collapse_history(const std::vector<Message>& messages) {
     }
   }
   return prompt;
-}
-
-/// Shell-escape for single quotes.
-static std::string shell_escape(const std::string& s) {
-  std::string result = "'";
-  for (char c : s) {
-    if (c == '\'') {
-      result += "'\\''";
-    } else {
-      result += c;
-    }
-  }
-  result += "'";
-  return result;
-}
-
-/// Strip ANSI escape sequences from output.
-static std::string strip_ansi(const std::string& s) {
-  std::string result;
-  bool in_escape = false;
-  for (size_t i = 0; i < s.size(); i++) {
-    if (s[i] == '\033') {
-      in_escape = true;
-      continue;
-    }
-    if (in_escape) {
-      if ((s[i] >= 'A' && s[i] <= 'Z') || (s[i] >= 'a' && s[i] <= 'z')) {
-        in_escape = false;
-      }
-      continue;
-    }
-    result += s[i];
-  }
-  return result;
 }
 
 /// Send chat to kiro-cli-chat in headless mode and return cleaned response.

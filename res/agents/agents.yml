@@ -1,0 +1,52 @@
+# Agent definitions for llama-cli multi-agent system (ADR-096).
+# Permissions: allow, ask, deny per tool.
+
+- name: build
+  description: Default agent — full tool access
+  mode: primary
+  prompt: build.txt
+  temperature: 0.7
+  read: allow
+  write: allow
+  str_replace: allow
+  exec: allow
+
+- name: plan
+  description: Read-only analysis and planning
+  mode: primary
+  prompt: plan.txt
+  temperature: 0.3
+  read: allow
+  write: deny
+  str_replace: deny
+  exec: deny
+
+- name: general
+  description: Multi-step task execution
+  mode: subagent
+  prompt: general.txt
+  temperature: 0.5
+  read: allow
+  write: allow
+  str_replace: allow
+  exec: ask
+
+- name: explore
+  description: Read-only codebase exploration
+  mode: subagent
+  prompt: explore.txt
+  temperature: 0.3
+  read: allow
+  write: deny
+  str_replace: deny
+  exec: deny
+
+- name: reviewer
+  description: Validate output from other agents
+  mode: subagent
+  prompt: reviewer.txt
+  temperature: 0.1
+  read: allow
+  write: deny
+  str_replace: deny
+  exec: deny
