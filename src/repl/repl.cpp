@@ -317,7 +317,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.ai_color),
                      false,
                      -1,
-                     false,
+                     true,
                      nullptr,
                      {}};
 

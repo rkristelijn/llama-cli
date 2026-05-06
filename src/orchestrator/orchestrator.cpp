@@ -18,6 +18,7 @@
 
 #include "config/config.h"
 #include "exec/exec.h"
+#include "logging/logger.h"
 #include "orchestrator/subagent.h"
 #include "provider/provider_factory.h"
 #include "trace/trace.h"
@@ -88,6 +89,7 @@ OrchestratorResult orchestrate(const std::string& prompt, const std::vector<Mess
   if (std::getenv("TRACE") && std::getenv("TRACE")[0] != '\0') {
     stderr_trace->log("[TRACE] orchestrate: complex prompt, checking available agents\n");
   }
+  LOG_FEATURE("orchestrate_complex");
 
   // Try external agents in priority order (best agentic capability first)
   if (tool_available("q")) {

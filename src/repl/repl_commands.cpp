@@ -726,7 +726,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
           if (s.switch_provider) {
             s.switch_provider(m.provider);
           }
-          s.out << "[host: " << m.host << " → " << m.provider << ":" << m.name << "]\n";
+          s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << "]\n";
           found = true;
           break;
         }
@@ -751,10 +751,11 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         }
       }
       std::string current_host = Config::instance().host + ":" + Config::instance().port;
-      s.out << "[current: " << current_host << "]\n";
+      s.out << "[current: " << resolve_display_name(current_host) << "]\n";
       for (size_t i = 0; i < hosts.size(); i++) {
         std::string marker = (hosts[i] == current_host || hosts[i].find(Config::instance().host) == 0) ? "*" : " ";
-        s.out << marker << " " << (i + 1) << ". " << hosts[i] << "  (" << host_providers[hosts[i]] << ", " << host_counts[hosts[i]]
+        std::string display = resolve_display_name(hosts[i]);
+        s.out << marker << " " << (i + 1) << ". " << display << "  (" << host_providers[hosts[i]] << ", " << host_counts[hosts[i]]
               << " model" << (host_counts[hosts[i]] > 1 ? "s" : "") << ")\n";
       }
       s.out << "Select [1-" << hosts.size() << "] or /host <name>: ";
@@ -786,7 +787,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
               if (s.switch_provider) {
                 s.switch_provider(m.provider);
               }
-              s.out << "[host: " << m.host << " → " << m.provider << ":" << m.name << "]\n";
+              s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << "]\n";
               break;
             }
           }

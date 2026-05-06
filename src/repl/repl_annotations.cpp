@@ -36,6 +36,7 @@ static bool permission_blocked(const std::string& tool, std::ostream& out, bool 
   if (!agent) return false;
   Permission perm = check_permission(*agent, tool);
   if (perm == Permission::Deny) {
+    LOG_FEATURE("permission_blocked");
     tui::error(out, color, "[blocked] agent '" + agent->name + "' does not have " + tool + " permission");
     LOG_EVENT("repl", "permission_denied", tool, agent->name, 0, 0, 0);
     return true;

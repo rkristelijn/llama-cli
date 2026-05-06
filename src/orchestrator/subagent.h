@@ -1,9 +1,9 @@
 /**
  * @file subagent.h
- * @brief Subagent invocation via @mention syntax (ADR-096 Phase 4).
+ * @brief Subagent invocation via at-mention syntax (ADR-096 Phase 4).
  *
- * Parses @agentname from user input and routes to the appropriate
- * provider/subprocess. Supports @q, @opencode, @explore, etc.
+ * Parses at-mention from user input and routes to the appropriate
+ * provider/subprocess. Supports q, opencode, explore, etc.
  */
 
 #ifndef ORCHESTRATOR_SUBAGENT_H
@@ -14,15 +14,15 @@
 
 #include "ollama/ollama.h"
 
-/// Result of parsing a @mention from user input.
+/// Result of parsing an at-mention from user input.
 struct MentionResult {
-  bool has_mention = false;  ///< True if input starts with @agentname
+  bool has_mention = false;  ///< True if input starts with at-sign + agentname
   std::string agent;         ///< Agent name (e.g., "q", "opencode", "explore")
-  std::string prompt;        ///< Remaining text after @agentname
+  std::string prompt;        ///< Remaining text after the agent name
 };
 
-/// Parse @mention from the beginning of user input.
-/// Recognizes: @q, @opencode, @explore, @plan, @general, @reviewer
+/// Parse at-mention from the beginning of user input.
+/// Recognizes: q, opencode, explore, plan, general, reviewer
 MentionResult parse_mention(const std::string& input);
 
 /// Route a prompt to the named subagent and return its response.

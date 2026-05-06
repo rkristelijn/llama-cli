@@ -267,7 +267,13 @@ void send_prompt(const std::string& line, ReplState& s) {
   }
 
   // Auto-routing: classify prompt and switch to best host/model
+  // Skip for mock provider (e2e tests) — no real hosts to route to
   if (s.auto_route && s.switch_provider) {
+    if (should_orchestrate(line)) {
+      LOG_FEATURE("orchestrate_complex");
+    }
+  }
+  if (s.auto_route && s.switch_provider && s.cfg.provider != "mock") {
     // Orchestrator: complex prompts delegate to external agents (ADR-096)
     if (should_orchestrate(line)) {
       auto orch_result = orchestrate(line, s.history);

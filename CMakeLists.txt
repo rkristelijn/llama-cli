@@ -292,7 +292,7 @@ add_executable(test_logger src/logging/logger_test.cpp src/logging/logger.cpp)
 target_include_directories(test_logger PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_logger PRIVATE doctest::doctest)
 
-add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/multi_host_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/provider/kiro_provider.cpp src/provider/opencode_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp)
+add_executable(test_provider src/provider/provider_test.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/multi_host_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/provider/kiro_provider.cpp src/provider/opencode_provider.cpp src/ollama/ollama.cpp src/config/config.cpp src/logging/logger.cpp src/json/json.cpp src/trace/trace.cpp src/exec/exec.cpp src/util/util.cpp)
 target_include_directories(test_provider PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_provider PRIVATE doctest::doctest httplib::httplib)
 

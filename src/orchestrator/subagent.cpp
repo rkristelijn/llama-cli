@@ -1,9 +1,9 @@
 /**
  * @file subagent.cpp
- * @brief Subagent invocation via @mention syntax (ADR-096 Phase 4).
+ * @brief Subagent invocation via at-mention syntax (ADR-096 Phase 4).
  *
- * Routes @q to Amazon Q CLI, @opencode to OpenCode CLI,
- * and @explore/@plan/@general to internal Ollama agents with role prompts.
+ * Routes at-q to Amazon Q CLI, at-opencode to OpenCode CLI,
+ * and at-explore/at-plan/at-general to internal Ollama agents with role prompts.
  */
 
 #include "orchestrator/subagent.h"
@@ -18,49 +18,17 @@
 #include "provider/provider.h"
 #include "provider/provider_factory.h"
 #include "trace/trace.h"
-
-/// Shell-escape a string for safe subprocess invocation.
-static std::string shell_escape(const std::string& s) {
-  std::string result = "'";
-  for (char c : s) {
-    if (c == '\'') {
-      result += "'\\''";
-    } else {
-      result += c;
-    }
-  }
-  result += "'";
-  return result;
-}
-
-/// Strip ANSI escape sequences from subprocess output.
-static std::string strip_ansi(const std::string& s) {
-  std::string result;
-  bool in_escape = false;
-  for (size_t i = 0; i < s.size(); i++) {
-    if (s[i] == '\033') {
-      in_escape = true;
-      continue;
-    }
-    if (in_escape) {
-      if ((s[i] >= 'A' && s[i] <= 'Z') || (s[i] >= 'a' && s[i] <= 'z')) {
-        in_escape = false;
-      }
-      continue;
-    }
-    result += s[i];
-  }
-  return result;
-}
+#include "util/util.h"
 
 MentionResult parse_mention(const std::string& input) {
   MentionResult r;
+  // Must start with @ to be a mention
   if (input.empty() || input[0] != '@') return r;
 
   // Find end of agent name (first space or end of string)
   size_t space = input.find(' ', 1);
   if (space == std::string::npos) {
-    // Just "@agent" with no prompt — not useful
+    // Just "@agent" with no prompt — not actionable
     return r;
   }
   r.agent = input.substr(1, space - 1);
@@ -91,8 +59,10 @@ static std::string invoke_opencode(const std::string& prompt) {
 }
 
 /// Invoke an internal agent via the current Ollama provider with role prompt.
+/// Builds a focused context: system prompt + last 4 messages + user prompt.
+/// This keeps the subagent's context small and focused on the task.
 static std::string invoke_internal(const std::string& agent, const std::string& prompt, const std::vector<Message>& history) {
-  // Load the agent's prompt template
+  // Load the agent's prompt template for its role-specific system prompt
   static std::vector<AgentConfig> agents = load_agent_configs();
   const AgentConfig* cfg = find_agent_config(agents, agent);
   std::string system_prompt;
@@ -126,15 +96,19 @@ static std::string invoke_internal(const std::string& agent, const std::string& 
   return provider->chat(msgs);
 }
 
+/// Route to the named subagent. External agents (q, opencode) use subprocess,
+/// internal agents (explore, plan, general, reviewer) use Ollama with role prompts.
 std::string invoke_subagent(const std::string& agent, const std::string& prompt, const std::vector<Message>& history) {
+  LOG_FEATURE("subagent_invoke");
   LOG_EVENT("orchestrator", "subagent_invoke", agent, prompt, 0, 0, 0);
 
+  // External CLI agents — best agentic capability
   if (agent == "q" || agent == "amazon-q") {
     return invoke_q(prompt);
   }
   if (agent == "opencode" || agent == "oc") {
     return invoke_opencode(prompt);
   }
-  // Internal agents: explore, plan, general, reviewer
+  // Internal agents: use Ollama with role-specific system prompt
   return invoke_internal(agent, prompt, history);
 }
