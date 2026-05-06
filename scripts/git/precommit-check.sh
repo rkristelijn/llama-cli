@@ -35,6 +35,7 @@ $HAS_SH && ((TOTAL++)) || true
 $HAS_IMG && ((TOTAL++)) || true
 ((TOTAL++)) || true # sast-iac (always)
 ((TOTAL++)) || true # sast-secret (always)
+$HAS_CPP && ((TOTAL++)) || true # slop (cpp only)
 
 run_step() {
   local name="$1"
@@ -62,6 +63,7 @@ echo "── Security ──"
 $HAS_IMG && run_step "sast-stegano" make -s sast-stegano
 run_step "sast-iac" make -s sast-iac
 run_step "sast-secret" make -s sast-secret
+$HAS_CPP && run_step "slop" make -s slop
 
 echo ""
 echo "All ${TOTAL} checks passed."

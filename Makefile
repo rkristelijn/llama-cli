@@ -76,7 +76,7 @@ kill: ## Kill running llama-cli instances
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input slop ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
