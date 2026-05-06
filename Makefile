@@ -29,7 +29,8 @@ endif
 	sonar sonar-report trivi learn \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
-	bump major minor patch
+	bump major minor patch \
+	pipeline-coverage check-unicode check-conversions check-casts check-portability check-shadowing check-traceability
 
 ##@ Getting Started
 
@@ -76,7 +77,7 @@ kill: ## Kill running llama-cli instances
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input check-pii slop ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input check-pii slop check-unicode check-portability ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -92,7 +93,7 @@ check: ## Tier 2: full quality gate (CI/pre-push)
 
 check-all: ## Tier 3: everything — exhaustive lint, mutation, SBOM, docs (alias: full-check)
 	@mkdir -p .tmp
-	@$(MAKE) FULL=1 build lint test sast mutation sbom todo summarize-safe index dead-code dead-docs duplication 2>&1 | tee .tmp/check-all.log
+	@$(MAKE) FULL=1 build lint test sast mutation sbom todo summarize-safe index dead-code dead-docs duplication check-casts check-conversions check-shadowing check-traceability pipeline-coverage 2>&1 | tee .tmp/check-all.log
 	$(log_footer)
 full-check: check-all
 
@@ -200,6 +201,34 @@ duplication: ## Detect duplicated code blocks (CPD or line-hash fallback)
 
 slop: ## Detect AI-generated code slop patterns
 	@bash scripts/lint/check-slop.sh
+	$(log_footer)
+
+check-unicode: ## Check for invisible Unicode backdoors (ADR-097)
+	@bash scripts/lint/check-unicode.sh
+	$(log_footer)
+
+check-portability: ## Detect cross-platform issues (ADR-093)
+	@bash scripts/lint/check-portability.sh
+	$(log_footer)
+
+check-casts: ## Detect C-style casts (ES.48, slow — compiles)
+	@bash scripts/lint/check-casts.sh
+	$(log_footer)
+
+check-conversions: ## Detect implicit conversions (slow — compiles)
+	@bash scripts/lint/check-conversions.sh
+	$(log_footer)
+
+check-shadowing: ## Detect variable shadowing (ES.12, slow — compiles)
+	@bash scripts/lint/check-shadowing.sh
+	$(log_footer)
+
+check-traceability: ## Bidirectional traceability check (ADR-095)
+	@bash scripts/ci/check-traceability.sh
+	$(log_footer)
+
+pipeline-coverage: ## Verify all make targets are in CI or denylist
+	@bash scripts/lint/check-pipeline-coverage.sh
 	$(log_footer)
 
 feature-density: ## Check LOG_FEATURE marker density (ADR-063)

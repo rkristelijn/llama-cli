@@ -89,11 +89,13 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-095-bidirectional-traceability.md`](docs/adr/adr-095-bidirectional-traceability.md) — ADR-095: Bidirectional Traceability via Feature Registry
 - [`docs/adr/adr-096-multi-agent-implementation.md`](docs/adr/adr-096-multi-agent-implementation.md) — ADR-096: Multi-Agent Implementation Plan
 - [`docs/adr/adr-097-cpp-quality-checks.md`](docs/adr/adr-097-cpp-quality-checks.md) — ADR-097: C++ Code Quality Checks and Best Practices
+- [`docs/adr/adr-098-pii-detection.md`](docs/adr/adr-098-pii-detection.md) — status: accepted
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
+- [`docs/cpp-core-guidelines.md`](docs/cpp-core-guidelines.md) — Top
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
 - [`docs/feature-coverage.md`](docs/feature-coverage.md) — Feature Coverage Matrix
@@ -167,6 +169,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
 - [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
+- [`scripts/lint/check-casts.sh`](scripts/lint/check-casts.sh)
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
@@ -178,15 +181,25 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
 - [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
+- [`scripts/lint/check-pii.sh`](scripts/lint/check-pii.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
 - [`scripts/lint/check-portability.sh`](scripts/lint/check-portability.sh)
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
+- [`scripts/lint/check-shadowing.sh`](scripts/lint/check-shadowing.sh)
 - [`scripts/lint/check-slop.sh`](scripts/lint/check-slop.sh) — check-slop.sh — Detect common AI-generated code slop patterns.
 - [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
 - [`scripts/lint/check-unicode.sh`](scripts/lint/check-unicode.sh)
 - [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
 - [`scripts/lint/check-xref.sh`](scripts/lint/check-xref.sh)
+- [`scripts/lint/fix-braces.sh`](scripts/lint/fix-braces.sh)
+- [`scripts/lint/fix-casts.sh`](scripts/lint/fix-casts.sh)
+- [`scripts/lint/fix-include-guards.sh`](scripts/lint/fix-include-guards.sh)
+- [`scripts/lint/fix-nullptr.sh`](scripts/lint/fix-nullptr.sh)
+- [`scripts/lint/fix-override.sh`](scripts/lint/fix-override.sh)
+- [`scripts/lint/fix-pii.sh`](scripts/lint/fix-pii.sh)
+- [`scripts/lint/fix-shadowing.sh`](scripts/lint/fix-shadowing.sh)
+- [`scripts/lint/fix-whitespace.sh`](scripts/lint/fix-whitespace.sh)
 - [`scripts/lint/lint-code.sh`](scripts/lint/lint-code.sh) — lint-code.sh — Run cppcheck static analysis on C++ code.
 - [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
 - [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
@@ -245,6 +258,8 @@ Auto-generated overview of all files in this repo.
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
 - [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
+- [`src/orchestrator/agent_config.cpp`](src/orchestrator/agent_config.cpp) — /**
+- [`src/orchestrator/agent_config.h`](src/orchestrator/agent_config.h) — /**
 - [`src/orchestrator/metrics.cpp`](src/orchestrator/metrics.cpp) — /**
 - [`src/orchestrator/metrics.h`](src/orchestrator/metrics.h) — /**
 - [`src/orchestrator/orchestrator.cpp`](src/orchestrator/orchestrator.cpp) — /**
@@ -252,6 +267,8 @@ Auto-generated overview of all files in this repo.
 - [`src/orchestrator/orchestrator_test.cpp`](src/orchestrator/orchestrator_test.cpp) — // test_orchestrator.cpp — Unit tests for metrics + prompt_template (ADR-096)
 - [`src/orchestrator/prompt_template.cpp`](src/orchestrator/prompt_template.cpp) — /**
 - [`src/orchestrator/prompt_template.h`](src/orchestrator/prompt_template.h) — /**
+- [`src/orchestrator/subagent.cpp`](src/orchestrator/subagent.cpp) — /**
+- [`src/orchestrator/subagent.h`](src/orchestrator/subagent.h) — /**
 - [`src/orchestrator/task.cpp`](src/orchestrator/task.cpp) — /**
 - [`src/orchestrator/task.h`](src/orchestrator/task.h) — /**
 - [`src/orchestrator/task_test.cpp`](src/orchestrator/task_test.cpp) — // test_task.cpp — Unit tests for task schema (ADR-096 Phase 1)
@@ -265,6 +282,8 @@ Auto-generated overview of all files in this repo.
 - [`src/provider/multi_host_provider.h`](src/provider/multi_host_provider.h) — /**
 - [`src/provider/ollama_provider.cpp`](src/provider/ollama_provider.cpp) — /**
 - [`src/provider/ollama_provider.h`](src/provider/ollama_provider.h) — /**
+- [`src/provider/opencode_provider.cpp`](src/provider/opencode_provider.cpp) — /**
+- [`src/provider/opencode_provider.h`](src/provider/opencode_provider.h) — /**
 - [`src/provider/provider_factory.cpp`](src/provider/provider_factory.cpp) — /**
 - [`src/provider/provider_factory.h`](src/provider/provider_factory.h) — /**
 - [`src/provider/provider.h`](src/provider/provider.h) — /**
@@ -348,4 +367,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_345 files indexed._
+_364 files indexed._

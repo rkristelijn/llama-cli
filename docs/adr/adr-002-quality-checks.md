@@ -1,6 +1,6 @@
 # ADR-002: Quality Checks & CI Pipeline
 
-*Status*: Implemented · *Date*: 2026-04-10 · *Updated*: 2026-04-11 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
+*Status*: Implemented · *Date*: 2026-04-10 · *Updated*: 2026-05-06 · *Context*: This is a public repo meant to demonstrate structure and discipline. The codebase must stay manageable, secure, and flexible as it grows.
 
 ## Decision
 
@@ -50,6 +50,91 @@ The following automated quality gates are enforced on every PR:
 - **Fast CI**: path-based filtering skips code checks on docs-only PRs (dorny/paths-filter)
 
 ## CI Pipeline
+
+### Quality target coverage
+
+Every `make` target with a `##` comment is either in CI, in a hook, or on the denylist in `scripts/lint/check-pipeline-coverage.sh`. Run `make pipeline-coverage` to verify.
+
+```text
+make targets
+├── pre-commit hook (scripts/git/precommit-check.sh)
+│   ├── format-code      (if *.cpp/*.h staged)
+│   ├── format-yaml      (if *.yml staged)
+│   ├── format-md        (if *.md staged)
+│   ├── format-scripts   (if *.sh staged)
+│   ├── sast-stegano     (if images staged)
+│   ├── sast-iac         (always)
+│   ├── sast-secret      (always)
+│   ├── check-pii        (if .pii file exists)
+│   └── slop             (if *.cpp/*.h staged)
+│
+├── pre-push hook (scripts/git/prepush-check.sh)
+│   ├── build            (if src/ changed)
+│   ├── test-unit        (if src/ changed)
+│   ├── lint-makefile    (if scripts/ changed)
+│   ├── lint-scripts     (if scripts/ changed)
+│   ├── comment-ratio    (if src/ changed)
+│   └── sast-security    (always)
+│
+├── CI — ci.yml (Tier 2, runs on PR + main)
+│   ├── lint-format-code
+│   ├── lint-yaml
+│   ├── lint-md
+│   ├── lint-makefile
+│   ├── lint-scripts
+│   ├── lint-cppcheck
+│   ├── lint-versions
+│   ├── tidy
+│   ├── complexity
+│   ├── comment-ratio
+│   ├── docs (doxygen)
+│   ├── file-size
+│   ├── dead-code
+│   ├── dead-docs
+│   ├── duplication
+│   ├── build
+│   ├── test-unit
+│   ├── e2e
+│   ├── feature-coverage
+│   ├── coverage (+ Codecov + SonarCloud)
+│   ├── sanitizers (ASan/UBSan)
+│   ├── sast-security (semgrep)
+│   ├── sast-secret (gitleaks)
+│   ├── sast-trufflehog
+│   ├── sast-grype
+│   └── sast-checkov
+│
+├── check-all (Tier 3, exhaustive — local only)
+│   ├── everything in CI above (via lint + test + sast)
+│   ├── check-casts (slow, compiles each file)
+│   ├── check-conversions (slow, full rebuild)
+│   ├── check-shadowing (slow, compiles each file)
+│   ├── check-traceability (needs feature-registry)
+│   ├── pipeline-coverage (meta-check)
+│   ├── mutation (30+ min)
+│   └── sbom
+│
+├── lint aggregator (fast, grep/parse-based)
+│   ├── lint-code (format + cppcheck)
+│   ├── lint-md, lint-yaml, lint-makefile, lint-scripts, lint-versions
+│   ├── tidy, complexity, comment-ratio, docs, file-size
+│   ├── consistency, check-theme, check-xref
+│   ├── check-interactive-input, check-pii, slop
+│   ├── check-unicode
+│   └── check-portability
+│
+└── denylist (intentionally not in CI — with reason)
+    ├── mutation          — too slow (30+ min)
+    ├── fuzz             — requires LLVM fuzzer
+    ├── live, bench, preflight — requires running Ollama
+    ├── summarize*       — requires Ollama LLM
+    ├── sonar*           — requires SONAR_TOKEN
+    ├── sast-codeql      — extremely slow (30+ min)
+    ├── sast-iac         — trivy not in CI runner
+    ├── sast-osv         — osv-scanner not in CI runner
+    ├── sast-stegano     — zsteg (Ruby) not in CI runner
+    └── format-*         — runs in pre-commit, not CI gate
+```
 
 ### Path-based filtering
 
