@@ -69,7 +69,7 @@ These decisions are currently being debated or are awaiting formal acceptance.
 
 - [ADR-064](adr-064-dead-code-enforcement.md) - Enforcement of Dead Code Detection
 - [ADR-065](adr-065-code-consistency-refactor.md) - Code Consistency Refactor Plan
-- [ADR-066](adr-066-windows-binary-support.md) - Windows Binary Support
+- [ADR-066](adr-093-windows-binary-support.md) - Windows Binary Support
 - [ADR-073](adr-073-unified-diagram-model.md) - Unified Diagram Model — Cross-Diagram Consistency
 - [ADR-078](adr-078-credit-efficient-multi-host.md) - Credit-Efficient Multi-Host AI Development
 - [ADR-081](adr-081-unified-entity-model.md) - Unified Provider-Host-Model Entity Model
@@ -85,7 +85,7 @@ These decisions are currently being debated or are awaiting formal acceptance.
 - [ADR-067](adr-067-mutation-testing.md) - Mutation Testing via Mull
 - [ADR-068](adr-068-toolchain-environment-strategy.md) - Toolchain Environment Strategy
 - [ADR-069](adr-069-embedded-system-prompt.md) - Embedded System Prompt from Text File
-- [ADR-069](adr-069-memory-safety-verification-strategy.md) - Memory Safety Verification Strategy
+- [ADR-069](adr-094-memory-safety-verification-strategy.md) - Memory Safety Verification Strategy
 - [ADR-070](adr-070-pluggable-mermaid-renderers.md) - Pluggable Mermaid Diagram Renderers
 - [ADR-071](adr-071-markdown-module-split.md) - Markdown Module Split
 - [ADR-072](adr-072-diagram-visualization-strategy.md) - Diagram Visualization Strategy & Element Limits

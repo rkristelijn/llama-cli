@@ -58,11 +58,11 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md) — ADR-064: Enforcement of Dead Code Detection
 - [`docs/adr/adr-065-code-consistency-refactor.md`](docs/adr/adr-065-code-consistency-refactor.md) — ADR-065: Code Consistency Refactor Plan
 - [`docs/adr/adr-066-solid-refactoring.md`](docs/adr/adr-066-solid-refactoring.md) — ADR-066: SOLID Refactoring Strategy
-- [`docs/adr/adr-066-windows-binary-support.md`](docs/adr/adr-066-windows-binary-support.md) — ADR-066: Windows Binary Support
+- [`docs/adr/adr-093-windows-binary-support.md`](docs/adr/adr-093-windows-binary-support.md) — ADR-066: Windows Binary Support
 - [`docs/adr/adr-067-mutation-testing.md`](docs/adr/adr-067-mutation-testing.md) — ADR-067: Mutation Testing via Mull
 - [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md) — ADR 068: Toolchain Environment Strategy
 - [`docs/adr/adr-069-embedded-system-prompt.md`](docs/adr/adr-069-embedded-system-prompt.md) — ADR-069: Embedded System Prompt from Text File
-- [`docs/adr/adr-069-memory-safety-verification-strategy.md`](docs/adr/adr-069-memory-safety-verification-strategy.md) — title: ADR-069: Memory Safety Verification Strategy
+- [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md) — title: ADR-069: Memory Safety Verification Strategy
 - [`docs/adr/adr-070-pluggable-mermaid-renderers.md`](docs/adr/adr-070-pluggable-mermaid-renderers.md) — ADR-070: Pluggable Mermaid Diagram Renderers
 - [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
 - [`docs/adr/adr-072-diagram-visualization-strategy.md`](docs/adr/adr-072-diagram-visualization-strategy.md) — ADR-072: Diagram Visualization Strategy & Element Limits
