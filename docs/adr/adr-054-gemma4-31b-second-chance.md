@@ -1,6 +1,6 @@
 # ADR-054: gemma4:31b — Second Chance with Tweaks
 
-*Status*: Accepted
+*Status*: Rejected — model-specific experiment, not architectural
 
 ## Date
 

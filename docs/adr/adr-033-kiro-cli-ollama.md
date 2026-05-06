@@ -1,6 +1,6 @@
 # ADR-033: kiro-cli Ollama Integration Reference
 
-*Status*: Accepted · *Date*: 2026-04-15 · *Context*: Research on connecting kiro-cli to local Ollama instances for local AI coding assistance.
+*Status*: Superseded by [ADR-081](adr-081-unified-entity-model.md) · *Date*: 2026-04-15
 
 ## Decision
 

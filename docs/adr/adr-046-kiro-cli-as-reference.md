@@ -1,7 +1,7 @@
 # ADR-003: Use Kiro CLI as Reference Implementation
 
 **Date:** 2026-04-15  
-**Status:** Accepted
+**Status:** Superseded by [ADR-089](adr-089-hierarchical-selection.md)
 
 ## Context
 

@@ -1,4 +1,4 @@
-# ADR-066: Windows Binary Support
+# ADR-093: Windows Binary Support
 
 *Status*: Proposed · *Date*: 2026-05-01 · *Context*: Users have requested Windows support for the CLI tool.
 

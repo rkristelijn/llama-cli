@@ -1,6 +1,6 @@
 # ADR-062: Context-First Architecture & Workflow Engine
 
-*Status*: Proposed
+*Status*: Rejected — too ambitious, never implemented
 
 ## Context
 

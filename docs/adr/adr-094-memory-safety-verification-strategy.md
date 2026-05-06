@@ -1,7 +1,7 @@
 
 ---
 
-title: ADR-069: Memory Safety Verification Strategy
+title: ADR-094: Memory Safety Verification Strategy
 date: 2026-04-29
 status: accepted
 deciders: Remi Kristelijn
@@ -10,7 +10,7 @@ deciders: Remi Kristelijn
 
 ---
 
-# ADR-069: Memory Safety Verification Strategy
+# ADR-094: Memory Safety Verification Strategy
 
 ## Context
 

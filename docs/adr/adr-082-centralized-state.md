@@ -1,6 +1,6 @@
 # ADR-082: Centralized Application State
 
-*Status*: Proposed · *Date*: 2026-05-05
+*Status*: Rejected — Config singleton is sufficient · *Date*: 2026-05-05
 
 ## Context
 
