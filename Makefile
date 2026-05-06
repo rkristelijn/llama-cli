@@ -406,6 +406,9 @@ help: ## Show this help
 all: $(if $(filter 1,$(SKIP_DEPS)),,check-deps)
 	@cmake -B $(BUILD_DIR) -S . > /dev/null
 	@cmake --build $(BUILD_DIR) --target llama-cli > /dev/null
+	@if [ -f llama-cli ] && lsof llama-cli >/dev/null 2>&1; then \
+		mv llama-cli llama-cli.old_$$(date +%s) 2>/dev/null || true; \
+	fi
 	@cp $(BINARY) .
 
 check-deps:
