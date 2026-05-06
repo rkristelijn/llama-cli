@@ -140,6 +140,14 @@ assert_feature "cmd_image"
 output=$(printf "/scan\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_feature "cmd_scan"
 
+# --- /host (ADR-089) ---
+output=$(printf "/host\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_host"
+
+# --- /use (ADR-089) ---
+output=$(printf "/use\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_use"
+
 # Cleanup
 [[ "$_OWN_LOG" == "true" ]] && rm -f "$LLAMA_FEATURE_LOG"
 
