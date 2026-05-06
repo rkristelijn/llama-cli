@@ -324,7 +324,9 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     system("mkdir -p .tmp/backups");
     std::string bn = action.path;
     auto sl = bn.rfind('/');
-    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    if (sl != std::string::npos) {
+      bn = bn.substr(sl + 1);
+    }
     std::ofstream bak(".tmp/backups/" + bn + ".bak");
     if (bak.is_open()) {
       bak << existing;
@@ -399,7 +401,9 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     system("mkdir -p .tmp/backups");
     std::string bn = action.path;
     auto sl = bn.rfind('/');
-    if (sl != std::string::npos) bn = bn.substr(sl + 1);
+    if (sl != std::string::npos) {
+      bn = bn.substr(sl + 1);
+    }
     std::ofstream bak(".tmp/backups/" + bn + ".bak");
     bak << existing;
   }
