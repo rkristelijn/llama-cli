@@ -4,6 +4,7 @@ title: "ADR-100: Scaffolding-First — Right the First Time"
 status: accepted
 date: 2026-05-07
 ---
+
 summary: Template-based file generation for quality checks and compliance.
 
 ## ADR-100: Scaffolding-First — Right the First Time

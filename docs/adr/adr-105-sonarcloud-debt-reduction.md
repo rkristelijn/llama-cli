@@ -2,6 +2,7 @@
 summary: Implement incremental refactoring to reduce technical debt in SonarCloud.
 status: accepted
 ---
+
 summary: Implement incremental refactoring to reduce technical debt in SonarCloud.
 
 # ADR-105: SonarCloud Technical Debt Reduction Strategy

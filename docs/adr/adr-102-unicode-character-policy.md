@@ -4,6 +4,7 @@ title: "ADR-102: Unicode Character Policy"
 status: accepted
 date: 2026-05-07
 ---
+
 summary: Policy to allow Unicode characters and symbols in source code, except for emojis.
 
 ## ADR-102: Unicode Character Policy

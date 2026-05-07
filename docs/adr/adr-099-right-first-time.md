@@ -4,6 +4,7 @@ title: "ADR-099: Right the First Time — Tooling ROI and Shift-Left Strategy"
 status: accepted
 date: 2026-05-07
 ---
+
 summary: Analysis of 465 commits reveals high tooling rework, 46% bug fixes, and 37% platform failures caught only at release tim
 
 ## ADR-099: Right the First Time — Tooling ROI and Shift-Left Strategy
