@@ -48,7 +48,7 @@ tags: [architecture, technical, design, modules]
 | Tier | Prompt type | Target |
 |------|-------------|--------|
 | 1 | Simple (< 30 words, factual) | Fastest 3B (jarvis/pepper) |
-| 2 | Medium (question, 30-90 words) | 14B (apsnlmac4050) |
+| 2 | Medium (question, 30-90 words) | 14B (local) |
 | 3 | Complex (code, multi-part) | 27B or cloud |
 | 4 | Current info (news, today) | tgpt/gemini |
 

@@ -23,7 +23,7 @@ set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 BINARY="${1:-.build/llama-cli}"
-REMOTE_HOST="${REMOTE_HOST:-apsnlmac4050.local}"
+REMOTE_HOST="${REMOTE_HOST:-localhost}"
 MODEL="${MODEL:-qwen2.5-coder:14b-instruct-q5_K_M}"
 TEST_FILE="/tmp/test_str_replace_$$.txt"
 
