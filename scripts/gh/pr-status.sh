@@ -31,7 +31,8 @@ if [ -n "$PR_INFO" ]; then
   PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')
   if [ "$IS_DRAFT" = "true" ]; then
     printf "${YELLOW}[info] PR #%s is in DRAFT mode${NC}\n" "$PR_NUMBER"
-    printf "${DIM}       To mark ready for review: make gprr (or: gh pr ready)${NC}\n"
+    printf "${DIM}       Before marking ready: run 'make pre-pr' to validate${NC}\n"
+    printf "${DIM}       Then mark ready: make gprr (or: gh pr ready)${NC}\n"
   else
     printf "${BLUE}[info] PR #%s is ready for review${NC}\n" "$PR_NUMBER"
   fi

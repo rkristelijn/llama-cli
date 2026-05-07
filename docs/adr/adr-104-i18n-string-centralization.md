@@ -7,6 +7,7 @@ status: accepted
 ## Context
 
 User-facing strings (error messages, prompts, UI text) are scattered throughout the codebase as hardcoded literals. This makes:
+
 - Localization impossible
 - Maintenance harder (strings duplicated across files)
 - Testing more fragile (string changes break tests)
@@ -14,6 +15,7 @@ User-facing strings (error messages, prompts, UI text) are scattered throughout 
 ## Decision
 
 Centralize all user-facing strings in `src/ui/messages.h` as constants. This provides:
+
 1. Single source of truth for UI text
 2. Foundation for future i18n/localization
 3. Easier testing (mock messages)
@@ -28,6 +30,7 @@ Centralize all user-facing strings in `src/ui/messages.h` as constants. This pro
 ## Rationale
 
 Centralization is low-risk when done incrementally:
+
 - Start with error messages (highest impact)
 - Add regression tests to prevent backsliding
 - Refactor one module at a time
