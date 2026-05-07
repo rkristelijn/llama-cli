@@ -131,3 +131,47 @@ Runs automatically in pre-commit hook when `.yml` files are staged.
 - Draft PRs get fast feedback (~2 min) without burning heavy credits
 - Commit annotations give developers control over iteration speed
 - CI integrity check prevents broken pipelines from being pushed
+
+### Target Structure (next iteration)
+
+Each check as individual job, grouped by naming prefix:
+
+```text
+changes
+├── lint-code (format, cppcheck, complexity, doxygen, ratio, filesize)
+├── lint-tidy
+├── lint-config (makefile + scripts)
+├── lint-docs (markdown)
+├── lint-yaml
+├── lint-versions
+├── integrity-dead-code
+├── integrity-dead-docs
+├── integrity-duplication
+├── integrity-consistency
+├── integrity-theme
+├── integrity-xref
+├── integrity-unicode
+├── integrity-portability
+├── integrity-slop
+├── security-secrets (gitleaks)
+├── security-trufflehog
+├── security-grype
+├── security-semgrep
+├── build
+│   ├── test-unit
+│   │   └── test-coverage [heavy]
+│   ├── e2e
+│   │   └── feature-coverage [badge]
+│   └── sanitizers [heavy]
+└── build-macos [heavy]
+```
+
+Dependencies:
+
+- All lint-*, integrity-*, security-* depend only on `changes`
+- `build` depends on `changes`
+- `test-unit` and `e2e` depend on `build`
+- `test-coverage` depends on `test-unit` + heavy gate
+- `feature-coverage` depends on `e2e`
+- `sanitizers` depends on `test-unit` + heavy gate
+- `build-macos` depends on `changes` + heavy gate
