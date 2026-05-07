@@ -17,6 +17,7 @@ The project has multiple test types with inconsistent reporting:
 | Coverage (lcov) | - | ~2min | HTML/lcov | ⚠ No JUnit format |
 
 **Problems:**
+
 1. No unified reporting format (JUnit XML)
 2. Slow sequential execution (unit tests: 90s)
 3. CI can't parse test results natively
@@ -24,12 +25,14 @@ The project has multiple test types with inconsistent reporting:
 5. Manual aggregation of test results
 
 **GitHub Actions Support:**
+
 - ✓ Native JUnit XML parsing
 - ✓ Test result annotations on PRs
 - ✓ Trend graphs over time
 - ✓ Flaky test detection
 
 **GitLab Support:**
+
 - ✓ JUnit XML via `artifacts:reports:junit`
 - ✓ Test summary in merge requests
 - ✓ Test failure tracking
@@ -72,6 +75,7 @@ bats --formatter junit e2e/*.bats > e2e-tests.xml
 ```
 
 **BATS benefits:**
+
 - TAP output (Test Anything Protocol)
 - JUnit XML formatter
 - Parallel execution (`--jobs`)
@@ -241,11 +245,13 @@ Only run tests affected by changed files. Requires dependency graph analysis.
 ## Acceptance Criteria
 
 ### Performance
+
 - [ ] Unit tests: 90s → <20s (4-8x speedup)
 - [ ] E2E tests: maintain ~45s (already parallel)
 - [ ] Total test suite: <3 minutes locally
 
 ### Reporting
+
 - [ ] Single `test-results.xml` with all test types
 - [ ] GitHub Actions displays test results natively
 - [ ] Per-test timing and status
@@ -253,6 +259,7 @@ Only run tests affected by changed files. Requires dependency graph analysis.
 - [ ] Summary: X/Y passed, Z failed, N skipped
 
 ### Coverage
+
 - [ ] Unit tests: 347 scenarios → JUnit XML
 - [ ] E2E tests: 13 scripts → JUnit XML
 - [ ] Feature coverage: 49 features → JUnit XML
@@ -261,6 +268,7 @@ Only run tests affected by changed files. Requires dependency graph analysis.
 - [ ] Performance benchmarks: NEW → JUnit XML
 
 ### Compatibility
+
 - [ ] Works on macOS and Linux
 - [ ] GitHub Actions integration
 - [ ] GitLab CI compatible
