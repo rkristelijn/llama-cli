@@ -97,6 +97,13 @@ jobs:
       - run: make docs
       - run: make comment-ratio
       - run: make file-size
+      - run: make consistency
+      - run: make check-theme
+      - run: make check-xref
+      - run: make check-interactive-input
+      - run: make check-unicode
+      - run: make check-portability
+      - run: make slop
 
   lint-tidy:
     needs: changes
