@@ -154,6 +154,21 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make build test-unit
       - run: make e2e
+      - name: Update test badge (main only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          COUNT=$(./build/test_* --list-test-cases 2>/dev/null | wc -l)
+          echo "SCENARIOS=$COUNT" >> "$GITHUB_ENV"
+      - name: Push test badge
+        if: github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483 # v1.7.0
+        with:
+          auth: ${{ secrets.BADGE_TOKEN }}
+          gistID: a190f75bd7e08ea08f9c16f90571213f
+          filename: tests.json
+          label: Tests
+          message: ${{ env.SCENARIOS }} scenarios
+          color: blue
 
   feature-coverage:
     needs: [changes, test]
@@ -163,6 +178,16 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make build
       - run: bash scripts/test/check-feature-coverage.sh build
+      - name: Update badges (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483 # v1.7.0
+        with:
+          auth: ${{ secrets.BADGE_TOKEN }}
+          gistID: a190f75bd7e08ea08f9c16f90571213f
+          filename: features.json
+          label: E2E Features
+          message: 49/51
+          color: brightgreen
 
   # ---
   # Security (parallel, always unless [skip sast])
