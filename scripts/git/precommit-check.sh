@@ -30,6 +30,7 @@ TOTAL=0
 # Count steps dynamically
 $HAS_CPP && ((TOTAL++)) || true
 $HAS_YAML && ((TOTAL++)) || true
+$HAS_YAML && ((TOTAL++)) || true
 $HAS_MD && ((TOTAL++)) || true
 $HAS_SH && ((TOTAL++)) || true
 $HAS_IMG && ((TOTAL++)) || true
@@ -56,6 +57,7 @@ echo ""
 echo "── Formatting ──"
 $HAS_CPP && run_step "format-code" make -s format-code
 $HAS_YAML && run_step "format-yaml" make -s format-yaml
+$HAS_YAML && run_step "check-ci" bash scripts/lint/check-ci-yaml.sh
 $HAS_MD && run_step "format-md" make -s format-md
 $HAS_SH && run_step "format-scripts" make -s format-scripts
 
