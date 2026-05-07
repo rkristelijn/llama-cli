@@ -24,6 +24,19 @@ fi
 BRANCH=$(git branch --show-current)
 printf "${BLUE}[info] branch: %s${NC}\n" "$BRANCH"
 
+# Check if PR exists and get its draft status
+PR_INFO=$(gh pr view "$BRANCH" --json isDraft,number 2>/dev/null || echo "")
+if [ -n "$PR_INFO" ]; then
+  IS_DRAFT=$(echo "$PR_INFO" | jq -r '.isDraft')
+  PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')
+  if [ "$IS_DRAFT" = "true" ]; then
+    printf "${YELLOW}[info] PR #%s is in DRAFT mode${NC}\n" "$PR_NUMBER"
+    printf "${DIM}       To mark ready for review: make gprr (or: gh pr ready)${NC}\n"
+  else
+    printf "${BLUE}[info] PR #%s is ready for review${NC}\n" "$PR_NUMBER"
+  fi
+fi
+
 RUN_ID=$(gh run list --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId')
 if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
   printf "${RED}ERROR: No runs found for branch %s${NC}\n" "$BRANCH"
