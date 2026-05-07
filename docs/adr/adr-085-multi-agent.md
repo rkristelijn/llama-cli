@@ -1,6 +1,10 @@
 # ADR-085: Multi-Agent Support
 
-*Status*: Proposed · *Date*: 2026-05-05 · *Issues*: [#56](https://github.com/rkristelijn/llama-cli/issues/56), [#58](https://github.com/rkristelijn/llama-cli/issues/58)
+*Status*: Partially Implemented · *Date*: 2026-05-05 · *Issues*: [#56](https://github.com/rkristelijn/llama-cli/issues/56), [#58](https://github.com/rkristelijn/llama-cli/issues/58)
+
+> **Update (2026-05-07)**: Implemented via front-LLM async delegation (`<delegate>` annotation).
+> The front LLM proposes subtasks, user approves, tasks run in background.
+> Heuristic routing (ADR-079) removed. See ADR-099.
 
 ## Context
 

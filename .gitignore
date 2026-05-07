@@ -21,3 +21,7 @@ compile_commands.json
 /llama-cli.old
 coverage.info
 events.jsonl
+# Local delegation config (hostnames, not committed)
+.config/delegation.local.ymlbuild-san/
+build-test/
+build-cov/

@@ -101,7 +101,8 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
   }
   // Build prompt: "nick@provider:model> " or "nick@provider> " or "nick> " or "> "
   std::string label = build_prompt_label(nick, provider, model);
-  std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + Style::reset() : label;
+  std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + ThemeStyle::reset() : label;
+  // NOLINTNEXTLINE(readability-identifier-naming)
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
     return false;
@@ -317,9 +318,9 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.ai_color),
                      false,
                      -1,
-                     true,
-                     nullptr,
-                     {}};
+                     static_cast<ModelRegistry*>(nullptr),
+                     {},
+                     nullptr};
 
   // Log session start with version, commit, model, and host for traceability
   std::string version_info = std::string(LLAMA_CLI_VERSION) + " (" + GIT_COMMIT + ")";

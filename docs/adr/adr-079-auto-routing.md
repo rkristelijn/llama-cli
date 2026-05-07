@@ -1,6 +1,10 @@
 # ADR-079: Auto-Routing Multi-Provider Architecture
 
-*Status*: Accepted · *Date*: 2026-05-05
+*Status*: Superseded by [ADR-099](adr-099-right-first-time.md) · *Date*: 2026-05-05
+
+> **Superseded**: Heuristic auto-routing removed in favor of front-LLM async delegation.
+> The LLM itself proposes `<delegate>` annotations when it wants to offload work.
+> See ADR-099 for the replacement approach.
 
 ## Context
 

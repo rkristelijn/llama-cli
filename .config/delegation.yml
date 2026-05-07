@@ -1,0 +1,15 @@
+# delegation.yml — Maps delegation roles to models (ADR-100)
+#
+# The front LLM delegates by role (type="code"), not by model name.
+# This config decides which model handles each role.
+#
+# Format: role: model@host:port
+# If host is omitted, uses current OLLAMA_HOST.
+
+roles:
+  code: "qwen2.5-coder:14b"
+  research: "gemma4:26b"
+  review: "mistral-nemo:12b"
+  fast: "gemma4:e4b"
+  test: "qwen2.5-coder:14b"
+  docs: "gemma4:26b"

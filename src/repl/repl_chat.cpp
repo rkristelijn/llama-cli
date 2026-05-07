@@ -14,7 +14,9 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <thread>
@@ -22,10 +24,9 @@
 
 #include "annotation/annotation.h"
 #include "config/config.h"
+#include "config/delegation.h"
 #include "logging/logger.h"
-#include "orchestrator/orchestrator.h"
-#include "orchestrator/subagent.h"
-#include "planner/planner.h"
+#include "provider/provider_factory.h"
 #include "repl/repl_annotations.h"
 #include "repl/repl_search.h"
 #include "sync/sync.h"
@@ -47,14 +48,14 @@ static std::string colorize_ai(const std::string& text, const ReplState& s) {
   }
   std::string color_code = tui::active_theme().ai.ansi();
   std::string result = color_code;
-  std::string reset = Style::reset();
+  std::string reset = ThemeStyle::reset();
   size_t pos = 0;
   size_t found;
   while ((found = text.find(reset, pos)) != std::string::npos) {
     result += text.substr(pos, found - pos + reset.size()) + color_code;
     pos = found + reset.size();
   }
-  result += text.substr(pos) + Style::reset();
+  result += text.substr(pos) + ThemeStyle::reset();
   return result;
 }
 
@@ -174,8 +175,10 @@ bool handle_response(const std::string& response, ReplState& s) {
   auto reads = parse_read_annotations(response);
   auto execs = parse_exec_tags(response);
   auto searches = parse_search_annotations(response);
+  auto delegates = parse_delegate_annotations(response);
 
-  bool has_annotations = !writes.empty() || !str_replaces.empty() || !reads.empty() || !execs.empty() || !searches.empty();
+  bool has_annotations =
+      !writes.empty() || !str_replaces.empty() || !reads.empty() || !execs.empty() || !searches.empty() || !delegates.empty();
   if (!has_annotations) {
     if (!s.stream_chat) {
       s.out << colorize_ai(tui::render_markdown(response, s.color && s.markdown), s) << "\n";
@@ -218,10 +221,47 @@ bool handle_response(const std::string& response, ReplState& s) {
   if (s.cfg.allow_web_search) {
     for (const auto& action : searches) {
       std::string result = web_search(action.query, s.cfg);
-      s.out << tui::active_theme().info.ansi() << "[searching: " << action.query << "]" << Style::reset() << "\n";
+      s.out << tui::active_theme().info.ansi() << "[searching: " << action.query << "]" << ThemeStyle::reset() << "\n";
       LOG_EVENT("repl", "web_search", action.query, result, 0, 0, 0);
       s.history.push_back({"user", result});
       has_followup = true;
+    }
+  }
+  // Async delegation: LLM proposes subtask for another model (ADR-099)
+  for (const auto& action : delegates) {
+    // Resolve role type to concrete model via .config/delegation.yml
+    auto target = resolve_delegation(action.type);
+    std::string role_label = action.type.empty() ? "default" : action.type;
+    std::string model_label = target.model.empty() ? Config::instance().model : target.model;
+    s.out << tui::active_theme().info.ansi() << "[delegate:" << role_label << " → " << model_label << "] " << ThemeStyle::reset();
+    s.out << action.prompt << "\n";
+    // Confirm with user
+    std::string answer;
+    s.out << "Run in background? [y/n] ";
+    std::getline(s.in, answer);
+    if (answer == "y" || answer == "Y" || s.trust) {
+      LOG_FEATURE("delegate_async");
+      LOG_EVENT("repl", "delegate", action.prompt, role_label + "→" + model_label, 0, 0, 0);
+      // Spawn background task — router decides which model
+      const auto& task_prompt = action.prompt;
+      const auto& task_target = target;
+      auto future = std::async(std::launch::async, [task_prompt, task_target]() {
+        Config task_cfg = Config::instance();
+        if (!task_target.model.empty()) {
+          task_cfg.model = task_target.model;
+        }
+        if (!task_target.host.empty()) {
+          task_cfg.host = task_target.host;
+        }
+        if (!task_target.port.empty()) {
+          task_cfg.port = task_target.port;
+        }
+        auto provider = create_provider(task_cfg);
+        std::vector<Message> msgs = {{"user", task_prompt}};
+        return provider->chat(msgs);
+      });
+      s.pending_tasks.emplace_back(PendingTask{model_label, action.prompt, std::move(future).share()});
+      s.out << tui::active_theme().info.ansi() << "[task started — /tasks to check]" << ThemeStyle::reset() << "\n";
     }
   }
   return has_followup;
@@ -254,45 +294,15 @@ void send_prompt(const std::string& line, ReplState& s) {
     }
   }
   if (words < 3 && trimmed.back() != '?') {
-    s.out << tui::active_theme().warning.ansi() << "[hint: short prompt — try adding more context]" << Style::reset() << "\n";
+    s.out << tui::active_theme().warning.ansi() << "[hint: short prompt — try adding more context]" << ThemeStyle::reset() << "\n";
   }
   // Detect repeat of previous prompt
   if (s.history.size() >= 2) {
     for (int i = static_cast<int>(s.history.size()) - 1; i >= 0; i--) {
       if (s.history[i].role == "user" && s.history[i].content == line) {
-        s.out << tui::active_theme().warning.ansi() << "[hint: same as a previous prompt — rephrase?]" << Style::reset() << "\n";
+        s.out << tui::active_theme().warning.ansi() << "[hint: same as a previous prompt — rephrase?]" << ThemeStyle::reset() << "\n";
         break;
       }
-    }
-  }
-
-  // Auto-routing: classify prompt and switch to best host/model
-  // Skip for mock provider (e2e tests) — no real hosts to route to
-  if (s.auto_route && s.switch_provider) {
-    if (should_orchestrate(line)) {
-      LOG_FEATURE("orchestrate_complex");
-    }
-  }
-  if (s.auto_route && s.switch_provider && s.cfg.provider != "mock") {
-    // Orchestrator: complex prompts delegate to external agents (ADR-096)
-    if (should_orchestrate(line)) {
-      auto orch_result = orchestrate(line, s.history);
-      if (orch_result.used_plan) {
-        s.out << "\n" << orch_result.response << "\n";
-        s.history.push_back({"user", line});
-        s.history.push_back({"assistant", orch_result.response});
-        s.count++;
-        return;
-      }
-    }
-    auto route = plan_route(line, Config::instance().hosts);
-    if (!route.host.empty() && route.host != Config::instance().host + ":" + Config::instance().port) {
-      auto colon = route.host.find(':');
-      Config::instance().host = (colon != std::string::npos) ? route.host.substr(0, colon) : route.host;
-      Config::instance().port = (colon != std::string::npos) ? route.host.substr(colon + 1) : "11434";
-      Config::instance().model = route.model;
-      s.switch_provider("ollama");
-      s.out << "[auto: " << route.reason << " → " << route.model << "@" << route.host << "]\n";
     }
   }
 
@@ -346,7 +356,7 @@ void send_prompt(const std::string& line, ReplState& s) {
   s.out << " · " << Config::instance().model;
   s.out << " · " << response.size() << " chars]";
   if (s.color) {
-    s.out << Style::reset();
+    s.out << ThemeStyle::reset();
   }
   s.out << "\n";
 

@@ -10,7 +10,7 @@ ifdef LOG
 ifneq ($(LOG),0)
 # Wrap recipe output: tee to .tmp/<target>.log and print path at end
 define log_footer
-	@echo "  📄 log: .tmp/$@.log"
+	@echo "  >>> log: .tmp/$@.log"
 endef
 SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -c
@@ -27,6 +27,7 @@ endif
 	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-stegano sast-iac sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
 	coverage coverage-report todo quick index setup install hooks bench features fuzz update \
 	sonar sonar-report trivi learn \
+	live-full log-analysis ci-analysis \
 	gh-pipeline-status gpls gh-pr-status gps gh-create-pr gpr \
 	gh-download-issues gdi gh-pr-feedback gpf create-issue \
 	bump major minor patch \
@@ -66,6 +67,11 @@ hooks: ## Install git hooks (pre-commit, commit-msg, pre-push)
 	@cp scripts/git/pre-push.sh .git/hooks/pre-push
 	@chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/pre-push
 	@echo "Git hooks installed (pre-commit, commit-msg, pre-push)."
+
+build-gcc: ## Cross-compile with GCC (catches CI-only errors, ~6 min)
+	@cmake -B build-gcc -S . -DCMAKE_CXX_COMPILER=g++ > /dev/null
+	@cmake --build build-gcc > /dev/null
+	@echo "  build-gcc            ✓"
 
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR) llama-cli
@@ -231,6 +237,22 @@ pipeline-coverage: ## Verify all make targets are in CI or denylist
 	@bash scripts/lint/check-pipeline-coverage.sh
 	$(log_footer)
 
+cmmi: ## CMMI maturity level audit (ADR-048)
+	@bash scripts/lint/check-cmmi.sh
+	$(log_footer)
+
+smells: ## Detect engineering anti-patterns (fun but real)
+	@bash scripts/lint/check-smells.sh
+	$(log_footer)
+
+inclusivity: ## Inclusivity & accessibility lint (C4I)
+	@bash scripts/lint/check-inclusivity.sh
+	$(log_footer)
+
+licenses: ## Check dependency licenses (permissive only)
+	@bash scripts/lint/check-licenses.sh
+	$(log_footer)
+
 feature-density: ## Check LOG_FEATURE marker density (ADR-063)
 	@bash scripts/test/check-feature-density.sh
 	$(log_footer)
@@ -258,6 +280,18 @@ e2e: ## Run end-to-end tests
 
 live: ## Integration test with real LLM
 	@bash e2e/test_live.sh $(BINARY)
+
+live-full: ## Full feature test with real LLM (~30s)
+	@bash e2e/test_full_feature.sh $(BINARY)
+	$(log_footer)
+
+log-analysis: ## Analyze llama-cli event logs (timing, features, errors)
+	@bash scripts/dev/log-analysis.sh $(ARGS)
+	$(log_footer)
+
+ci-analysis: ## Analyze CI pipeline (timing, failures, success rate)
+	@bash scripts/gh/ci-analysis.sh $(ARGS)
+	$(log_footer)
 
 bench: ## Benchmark local Ollama models (see docs/model-bench.md)
 	@bash scripts/test/bench-models.sh $(ARGS)
@@ -375,11 +409,19 @@ trivi: ## Run implicit decision scan
 	@bash scripts/dev/trivi.sh
 	$(log_footer)
 
+new: ## Scaffold new file (make new TYPE=cpp NAME=module/file BRIEF="...")
+	@bash scripts/dev/scaffold.sh $(ARGS) TYPE=$(TYPE) NAME=$(NAME) BRIEF="$(BRIEF)"
+	$(log_footer)
+
 major minor patch:
 	@true
 
 log: ## View event logs
 	@bash scripts/dev/log-viewer.sh $(ARGS)
+	$(log_footer)
+
+commit-stats: ## Show commit type/scope distribution and health metrics
+	@bash scripts/dev/commit-stats.sh $(ARGS)
 	$(log_footer)
 
 todo: ## Show TODO items from docs and code
@@ -402,6 +444,16 @@ prepush: ## Run pre-push checks
 	@bash scripts/git/prepush-check.sh
 	$(log_footer)
 
+pre-pr: ## Full pre-PR validation (build both compilers, lint, test)
+	@echo "==> Pre-PR validation"
+	@$(MAKE) build
+	@$(MAKE) test-unit
+	@$(MAKE) e2e
+	@$(MAKE) lint
+	@$(MAKE) pipeline-coverage
+	@echo ""
+	@echo "  ✓ Ready to open PR"
+
 ##@ GitHub
 
 gh-pipeline-status: ## Show latest pipeline status (alias: gpls)
@@ -414,10 +466,27 @@ gh-pr-status: ## Show failed PR jobs (alias: gps)
 	$(log_footer)
 gps: gh-pr-status
 
-gh-create-pr: ## Create pull request (alias: gpr)
+gh-pr-check: ## Full PR review: CI + SonarCloud + CodeRabbit (alias: gpc)
+	@echo "── CI Pipeline ──"
+	@bash scripts/gh/pr-status.sh 2>&1 | tail -n +3
+	@echo ""
+	@echo "── SonarCloud ──"
+	@bash scripts/gh/pr-sonar.sh 2>&1 | tail -n +3
+	@echo ""
+	@echo "── CodeRabbit ──"
+	@bash scripts/gh/pr-feedback.sh 2>&1 | tail -n +1
+	$(log_footer)
+gpc: gh-pr-check
+
+gh-create-pr: ## Create draft pull request (alias: gpr)
 	@bash scripts/gh/create-pr.sh 2>&1 | tee .tmp/$@.log
 	$(log_footer)
 gpr: gh-create-pr
+
+gh-pr-ready: ## Mark PR ready for review (triggers heavy checks)
+	@gh pr ready
+	@echo "  ✓ PR marked ready — coverage + sanitizers + macOS build will run"
+gprr: gh-pr-ready
 
 gh-download-issues: ## Download GitHub issues (alias: gdi)
 	@bash scripts/gh/download-issues.sh

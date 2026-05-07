@@ -575,8 +575,10 @@ SCENARIO ("dispatch_command handles slash commands") {
     std::vector<Message> history;
     std::istringstream in("");
     std::ostringstream out;
-    ReplState s = {chat,  nullptr, models, nullptr, nullptr, nullptr, cfg,   history, in,    out,     0,      false,
-                   false, true,    false,  false,   "32",    "",      false, -1,      false, nullptr, nullptr};
+    ReplState s = {chat,    nullptr, models, nullptr, nullptr, nullptr, cfg,
+                   history, in,      out,    0,       false,   false,   true,
+                   false,   false,   "32",   "",      false,   -1,      static_cast<ModelRegistry*>(nullptr),
+                   {},      nullptr};
 
     WHEN ("dispatch_command is called with /clear") {
       history.push_back({"user", "hello"});

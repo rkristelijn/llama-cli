@@ -5,7 +5,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "🔍 Checking for invisible Unicode characters..."
+echo "[?] Checking for invisible Unicode characters..."
 
 FOUND=0
 
@@ -17,14 +17,14 @@ FOUND=0
 
 find src/ -type f \( -name "*.cpp" -o -name "*.h" \) | while read -r file; do
   if grep -qP '[\x{200B}\x{200C}\x{200D}\x{FEFF}]' "$file" 2>/dev/null; then
-    echo "❌ Invisible Unicode character found in: $file"
+    echo "[FAIL] Invisible Unicode character found in: $file"
     FOUND=1
   fi
 done
 
 if [ "$FOUND" -eq 1 ]; then
-  echo "❌ Found invisible Unicode characters (potential backdoor)"
+  echo "[FAIL] Found invisible Unicode characters (potential backdoor)"
   exit 1
 fi
 
-echo "✅ No invisible Unicode characters found"
+echo "[PASS] No invisible Unicode characters found"

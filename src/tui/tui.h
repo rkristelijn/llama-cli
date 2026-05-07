@@ -52,7 +52,7 @@ inline void banner(std::ostream& out, bool color) {
       " / /___/ /___/ ___ |/ /  / / / ___ |/_____// /___/ /____/ /   \n"
       "/_____/_____/_/  |_/_/  /_/ /_/  |_|       \\____/_____/___/   \n";
   if (color) {
-    out << active_theme().banner.ansi() << art << Style::reset() << "\n";
+    out << active_theme().banner.ansi() << art << ThemeStyle::reset() << "\n";
   } else {
     out << art << "\n";
   }
@@ -60,7 +60,7 @@ inline void banner(std::ostream& out, bool color) {
 
 /** Print a dim system message */
 inline void system_msg(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? active_theme().system.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
+  out << (color ? active_theme().system.ansi() : "") << msg << (color ? ThemeStyle::reset() : "") << "\n";
 }
 
 /// Format a word as bold+white within a system message (stands out from dim text).
@@ -73,12 +73,12 @@ inline std::string bold(const std::string& text) {
 
 /** Print a bold red error message */
 inline void error(std::ostream& out, bool color, const std::string& msg) {
-  out << "\n" << (color ? active_theme().error.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
+  out << "\n" << (color ? active_theme().error.ansi() : "") << msg << (color ? ThemeStyle::reset() : "") << "\n";
 }
 
 /** Print cyan command output */
 inline void cmd_output(std::ostream& out, bool color, const std::string& msg) {
-  out << (color ? active_theme().info.ansi() : "") << msg << (color ? Style::reset() : "") << "\n";
+  out << (color ? active_theme().info.ansi() : "") << msg << (color ? ThemeStyle::reset() : "") << "\n";
 }
 
 /** Default spinner messages — shown while waiting for LLM response */

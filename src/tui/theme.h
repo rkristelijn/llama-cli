@@ -2,7 +2,7 @@
  * @file theme.h
  * @brief Color theme system — all styling goes through Theme, never hardcoded.
  *
- * Each role has a Style (fg color, bg color, bold, italic, underline).
+ * Each role has a ThemeStyle (fg color, bg color, bold, italic, underline).
  * Built-in themes: dark (default), light, mono, hacker.
  * Custom: /theme set prompt green bold underline
  */
@@ -13,7 +13,8 @@
 #include <string>
 
 /// A single style — combines foreground, background, and attributes.
-struct Style {
+/// Named ThemeStyle to avoid conflict with macOS MacTypes.h typedef.
+struct ThemeStyle {
   std::string fg;          ///< Foreground: "red","green","blue","cyan","yellow","magenta","white","black","default"
   std::string bg;          ///< Background: same options, or empty for none
   bool bold = false;       ///< Bold text
@@ -129,15 +130,15 @@ struct Style {
 /// All color roles used by the TUI layer.
 /// Each theme defines styles for these roles — see ADR-080.
 struct Theme {
-  std::string name;  ///< Theme identifier
-  Style prompt;      ///< User prompt (nick>)
-  Style ai;          ///< AI response text
-  Style system;      ///< System messages
-  Style error;       ///< Error messages
-  Style info;        ///< Info/command output
-  Style warning;     ///< Warnings/proposals
-  Style banner;      ///< Startup banner
-  Style code;        ///< Inline code
+  std::string name;    ///< Theme identifier
+  ThemeStyle prompt;   ///< User prompt (nick>)
+  ThemeStyle ai;       ///< AI response text
+  ThemeStyle system;   ///< System messages
+  ThemeStyle error;    ///< Error messages
+  ThemeStyle info;     ///< Info/command output
+  ThemeStyle warning;  ///< Warnings/proposals
+  ThemeStyle banner;   ///< Startup banner
+  ThemeStyle code;     ///< Inline code
 };
 
 /// Built-in dark theme (default)

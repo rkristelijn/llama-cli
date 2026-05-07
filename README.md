@@ -4,11 +4,12 @@
 [![Coverage](https://img.shields.io/codecov/c/github/rkristelijn/llama-cli?label=Coverage)](https://codecov.io/gh/rkristelijn/llama-cli)
 [![Release](https://img.shields.io/github/v/release/rkristelijn/llama-cli?label=Release)](https://github.com/rkristelijn/llama-cli/releases/latest)
 [![License](https://img.shields.io/github/license/rkristelijn/llama-cli)](LICENSE)
-[![Semgrep](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-security&label=SAST)](https://github.com/rkristelijn/llama-cli/actions)
-[![Gitleaks](https://img.shields.io/github/actions/workflow/status/rkristelijn/llama-cli/ci.yml?branch=main&event=push&job=sast-secret&label=Secrets)](https://github.com/rkristelijn/llama-cli/actions)
-[![Tests](https://img.shields.io/badge/Tests-154_scenarios-blue)](https://github.com/rkristelijn/llama-cli)
-[![Features](https://img.shields.io/badge/E2E_Features-21%2F21-brightgreen)](scripts/test/check-feature-coverage.sh)
-[![CMMI](https://img.shields.io/badge/CMMI-Level_1-brightgreen)](docs/adr/adr-048-quality-framework.md)
+[![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkristelijn/a190f75bd7e08ea08f9c16f90571213f/raw/tests.json)](https://github.com/rkristelijn/llama-cli/actions/workflows/ci.yml?query=job%3Aunit-test)
+[![Features](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkristelijn/a190f75bd7e08ea08f9c16f90571213f/raw/features.json)](https://github.com/rkristelijn/llama-cli/actions/workflows/ci.yml?query=job%3Afeature-coverage)
+[![CMMI](https://img.shields.io/badge/CMMI-Level_3-brightgreen)](docs/adr/adr-048-quality-framework.md)
+[![Inclusivity](https://img.shields.io/badge/Inclusivity-0_failures-brightgreen)](scripts/lint/check-inclusivity.sh)
+[![Licenses](https://img.shields.io/badge/Licenses-4%2F4_permissive-brightgreen)](scripts/lint/check-licenses.sh)
+[![Deps](https://img.shields.io/badge/Dependencies-4-blue)](CMakeLists.txt)
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
 

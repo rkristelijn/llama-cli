@@ -55,9 +55,9 @@ output=$(printf "/agent bofh\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_contains "$output" "agent: bofh" "/agent activates"
 assert_feature "cmd_agent"
 
-# --- /auto ---
+# --- /auto (deprecated — now shows removal notice) ---
 output=$(printf "/auto\nexit\n" | "$BINARY" --repl 2>/dev/null)
-assert_contains "$output" "auto routing: off" "/auto toggles off (default is on)"
+assert_contains "$output" "auto routing removed" "/auto shows removal notice"
 assert_feature "cmd_auto"
 
 # --- /chat save/load ---

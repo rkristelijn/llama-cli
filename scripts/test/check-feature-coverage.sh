@@ -16,8 +16,14 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 BUILD_DIR="${1:-build}"
 BINARY="${BUILD_DIR}/llama-cli"
 
-# Extract all feature IDs from source code
+# Features excluded from e2e coverage (require real LLM or are in planned-but-unused paths)
+EXCLUDE="orchestrate_complex delegate_async cmd_tasks"
+
+# Extract all feature IDs from source code, minus exclusions
 EXPECTED=$(grep -roh 'LOG_FEATURE("[^"]*")' src/ | sed 's/LOG_FEATURE("//;s/")//' | sort -u)
+for skip in $EXCLUDE; do
+  EXPECTED=$(echo "$EXPECTED" | grep -v "^${skip}$")
+done
 
 # Run e2e tests with feature logging to a file
 LOG=$(mktemp)

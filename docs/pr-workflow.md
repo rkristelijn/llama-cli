@@ -78,16 +78,29 @@ git push -u fork feat/my-feature
 
 > **Important**: push to `fork`, not `origin`. Origin is the upstream repo.
 
-### 5. Create the PR
+### 5. Create a draft PR
 
 ```bash
-# Using GitHub CLI:
-gh pr create --repo rkristelijn/llama-cli --base main --head <your-user>:feat/my-feature
+make gpr                           # Creates a draft PR (light CI runs)
+# Or manually:
+gh pr create --draft --base main
+```
 
-# Or use the GitHub web UI — it will suggest creating a PR after you push.
-```text
+Light checks run immediately: lint, build, unit tests, SAST (~2 min).
 
-### 6. Address review feedback
+### 6. Mark ready for review (triggers heavy checks)
+
+When you're done iterating:
+
+```bash
+make gprr                          # Marks PR ready for review
+# Or manually:
+gh pr ready
+```
+
+This triggers: coverage, sanitizers, macOS build, CodeRabbit, SonarCloud (~12 min).
+
+### 7. Address review feedback
 
 Push additional commits to the same branch:
 
@@ -95,10 +108,10 @@ Push additional commits to the same branch:
 # make fixes...
 git add -p                         # stage interactively
 git commit -m "fix: address review feedback"
-git push fork feat/my-feature
-```text
+git push
+```
 
-The PR updates automatically.
+The PR updates automatically. Heavy checks only re-run if PR is not draft.
 
 ## Rebasing when your branch is behind main
 

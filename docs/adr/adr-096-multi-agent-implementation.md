@@ -1,6 +1,10 @@
 # ADR-096: Multi-Agent Implementation Plan
 
-*Status*: Implemented · *Date*: 2026-05-06 · *Implements*: [ADR-084](adr-084-planner-executor.md), [ADR-085](adr-085-multi-agent.md)
+*Status*: Superseded · *Date*: 2026-05-06 · *Implements*: [ADR-084](adr-084-planner-executor.md), [ADR-085](adr-085-multi-agent.md)
+
+> **Superseded (2026-05-07)**: The orchestrator/planner/subagent architecture was replaced
+> by a simpler front-LLM async delegation model. The LLM proposes `<delegate>` annotations,
+> user approves, tasks run in background via `std::async`. See ADR-099.
 
 ## Context
 
