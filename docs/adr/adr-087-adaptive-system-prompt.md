@@ -1,8 +1,8 @@
+---
+status: accepted
+---
+
 # ADR-087: Adaptive System Prompt
-
-## Status
-
-Accepted
 
 ## Context
 

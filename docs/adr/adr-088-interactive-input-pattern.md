@@ -1,8 +1,8 @@
+---
+status: accepted
+---
+
 # ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
-
-## Status
-
-Accepted
 
 ## Context
 

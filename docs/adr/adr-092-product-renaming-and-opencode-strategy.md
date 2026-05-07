@@ -1,8 +1,8 @@
+---
+status: accepted
+---
+
 # ADR-092: Product Renaming & Integration Strategy with Opencode
-
-## Status
-
-Accepted
 
 ## Context
 
