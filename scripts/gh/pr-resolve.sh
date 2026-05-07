@@ -115,55 +115,55 @@ echo "$THREADS_JSON" | jq -c '.[]' | while IFS= read -r thread; do
   read -rp "  Action: " action
 
   case "$action" in
-    f|F)
-      read -rp "  Fix message (enter for default): " msg
-      if [[ -z "$msg" ]]; then
-        msg="Fixed in $(git rev-parse --short HEAD)."
-      fi
-      # Reply and resolve
-      gh api graphql -f query='
+  f | F)
+    read -rp "  Fix message (enter for default): " msg
+    if [[ -z "$msg" ]]; then
+      msg="Fixed in $(git rev-parse --short HEAD)."
+    fi
+    # Reply and resolve
+    gh api graphql -f query='
         mutation($threadId: ID!, $body: String!) {
           addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) {
             comment { id }
           }
         }
       ' -f threadId="$THREAD_ID" -f body="$msg" --silent
-      gh api graphql -f query='
+    gh api graphql -f query='
         mutation($threadId: ID!) {
           resolveReviewThread(input: {threadId: $threadId}) {
             thread { isResolved }
           }
         }
       ' -f threadId="$THREAD_ID" --silent
-      echo "  ✓ Resolved: $msg"
-      ;;
-    n|N)
-      gh api graphql -f query='
+    echo "  ✓ Resolved: $msg"
+    ;;
+  n | N)
+    gh api graphql -f query='
         mutation($threadId: ID!, $body: String!) {
           addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) {
             comment { id }
           }
         }
       ' -f threadId="$THREAD_ID" -f body="Won't fix — not applicable to this project." --silent
-      gh api graphql -f query='
+    gh api graphql -f query='
         mutation($threadId: ID!) {
           resolveReviewThread(input: {threadId: $threadId}) {
             thread { isResolved }
           }
         }
       ' -f threadId="$THREAD_ID" --silent
-      echo "  ✓ Resolved as won't fix"
-      ;;
-    s|S)
-      echo "  → Skipped"
-      ;;
-    q|Q)
-      echo "  Quit."
-      exit 0
-      ;;
-    *)
-      echo "  → Unknown action, skipping"
-      ;;
+    echo "  ✓ Resolved as won't fix"
+    ;;
+  s | S)
+    echo "  → Skipped"
+    ;;
+  q | Q)
+    echo "  Quit."
+    exit 0
+    ;;
+  *)
+    echo "  → Unknown action, skipping"
+    ;;
   esac
   echo ""
 done

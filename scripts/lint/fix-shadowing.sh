@@ -14,7 +14,7 @@ FIXED=0
 # Pattern: int i; ... for (i = 0; ...) → for (int i = 0; ...)
 for file in src/**/*.cpp; do
   [[ -f "$file" ]] || continue
-  
+
   # This is a simple heuristic - real fix needs AST analysis
   # We'll just report what needs manual fixing
   if grep -q "^\s*int\s\+[a-z]\+\s*;" "$file" 2>/dev/null; then

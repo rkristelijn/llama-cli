@@ -348,7 +348,7 @@ sast-iac: ## Run IaC security scan (trivy)
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
 	@if command -v gitleaks >/dev/null; then \
-		gitleaks detect --source . --log-level error --no-banner; \
+		gitleaks detect --source . --log-level error --no-banner --config .config/.gitleaksignore; \
 	else echo "  [skip] gitleaks not installed"; fi
 	@echo "  [done] sast-secret"
 

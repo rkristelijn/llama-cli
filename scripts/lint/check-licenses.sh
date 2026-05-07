@@ -19,7 +19,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 # Known dependencies and their licenses (from CMakeLists.txt FetchContent)
 # Update this when adding new deps.
 declare -A DEPS=(
-  [cpp-httplib]="MIT"
+  [cpp - httplib]="MIT"
   [doctest]="MIT"
   [dtl]="BSD-3-Clause"
   [cpp_linenoise]="BSD-2-Clause"

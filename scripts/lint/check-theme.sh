@@ -18,12 +18,12 @@ main() {
 
   # Find hardcoded ANSI escape codes outside src/tui/
   local violations
-  violations=$(grep -rn '\\033\[' src/ --include="*.cpp" --include="*.h" \
-    | grep -v "src/tui/" \
-    | grep -v "src/trace/" \
-    | grep -v "_test\." \
-    | grep -v "_it\." \
-    || true)
+  violations=$(grep -rn '\\033\[' src/ --include="*.cpp" --include="*.h" |
+    grep -v "src/tui/" |
+    grep -v "src/trace/" |
+    grep -v "_test\." |
+    grep -v "_it\." ||
+    true)
 
   if [[ -n "${violations}" ]]; then
     echo "  [WARN] Hardcoded ANSI colors found outside src/tui/ (ADR-080 violation):"

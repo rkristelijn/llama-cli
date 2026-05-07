@@ -12,7 +12,7 @@ FIXED=0
 
 for file in src/**/*.cpp src/**/*.h; do
   [[ -f "$file" ]] || continue
-  
+
   # Replace NULL with nullptr (word boundary)
   if sed -i.bak 's/\bNULL\b/nullptr/g' "$file" 2>/dev/null; then
     if ! diff -q "$file" "$file.bak" >/dev/null 2>&1; then
@@ -25,4 +25,3 @@ done
 
 echo "  Fixed $FIXED files (NULL → nullptr)"
 echo "  Note: 0 → nullptr requires manual review (may be integer 0)"
-

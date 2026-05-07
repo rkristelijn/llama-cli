@@ -18,7 +18,7 @@ FAILED=0
 
 for file in src/**/*.cpp src/**/*.h; do
   [[ -f "$file" ]] || continue
-  
+
   if ! "$CXX" -fsyntax-only -Wshadow -Werror=shadow "$file" 2>/dev/null; then
     echo "  [fail] $file has variable shadowing"
     FAILED=1

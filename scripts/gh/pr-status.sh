@@ -90,9 +90,9 @@ if [ -n "$FAILED_JOBS" ]; then
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s ===${NC}\n" "$JOB_NAME"
     # Fetch job log, strip timestamps, show last 30 lines (skips GH setup noise)
-    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
-      | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
-      | tail -n 30
+    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null |
+      sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' |
+      tail -n 30
   done <<<"$FAILED_JOBS"
   exit 1
 fi

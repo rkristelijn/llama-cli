@@ -14,7 +14,7 @@ rm -rf "$BUILD_DIR"
 cmake -B "$BUILD_DIR" \
   -DCMAKE_CXX_FLAGS="-Wconversion -Wsign-conversion" \
   -DCMAKE_BUILD_TYPE=Debug \
-  > /dev/null 2>&1
+  >/dev/null 2>&1
 
 OUTPUT=$(cmake --build "$BUILD_DIR" 2>&1 || true)
 

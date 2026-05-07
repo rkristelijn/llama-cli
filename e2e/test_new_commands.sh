@@ -14,7 +14,7 @@ _OWN_LOG=false
 if [[ -z "${LLAMA_FEATURE_LOG:-}" ]]; then
   export LLAMA_FEATURE_LOG="/tmp/llama-e2e-features-$$.log"
   _OWN_LOG=true
-  : > "$LLAMA_FEATURE_LOG"
+  : >"$LLAMA_FEATURE_LOG"
 fi
 
 pass=0

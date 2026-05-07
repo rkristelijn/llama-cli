@@ -2,6 +2,19 @@
 # format-emojis.sh — Replace emojis with Unicode equivalents in markdown
 # Usage: format-emojis.sh [file ...]
 # Converts emoji characters to Unicode escape sequences for consistency
+#
+# Description:
+#   Standardizes emoji usage in markdown files by replacing emoji characters
+#   with mapped Unicode equivalents. Supports batch processing of all markdown
+#   files in docs/ or individual file arguments.
+#
+# Examples:
+#   format-emojis.sh                          # Process all docs/**/*.md
+#   format-emojis.sh docs/adr/adr-104.md      # Process single file
+#
+# Exit codes:
+#   0 - Success
+#   1 - Error during processing
 
 set -o errexit
 set -o nounset
@@ -36,15 +49,15 @@ declare -A EMOJI_MAP=(
 format_file() {
   local file="$1"
   local temp_file="${file}.tmp"
-  
+
   cp "$file" "$temp_file"
-  
+
   for emoji in "${!EMOJI_MAP[@]}"; do
     unicode="${EMOJI_MAP[$emoji]}"
     sed -i '' "s/${emoji}/${unicode}/g" "$temp_file"
   done
-  
-  if ! diff -q "$file" "$temp_file" > /dev/null 2>&1; then
+
+  if ! diff -q "$file" "$temp_file" >/dev/null 2>&1; then
     mv "$temp_file" "$file"
     echo "  ✓ $file"
   else

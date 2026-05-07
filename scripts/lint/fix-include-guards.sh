@@ -12,7 +12,7 @@ FIXED=0
 
 for file in src/**/*.h; do
   [[ -f "$file" ]] || continue
-  
+
   # Check if file has old-style include guards
   if head -5 "$file" | grep -q "#ifndef.*_H" 2>/dev/null; then
     if ! grep -q "#pragma once" "$file" 2>/dev/null; then

@@ -23,7 +23,7 @@ while IFS= read -r file; do
   [[ "$file" == *_it.cpp ]] && continue
 
   # Check for direct std::cin reads
-  if grep -n 'std::getline(std::cin\|std::cin >>\|std::cin\.get(' "$file" | grep -v '^\s*//' | grep -v 'read_answer' > /dev/null 2>&1; then
+  if grep -n 'std::getline(std::cin\|std::cin >>\|std::cin\.get(' "$file" | grep -v '^\s*//' | grep -v 'read_answer' >/dev/null 2>&1; then
     echo "  [FAIL] $file: direct std::cin usage (use read_answer instead, ADR-088)"
     grep -n 'std::getline(std::cin\|std::cin >>\|std::cin\.get(' "$file" | grep -v '^\s*//' | grep -v 'read_answer' | sed 's/^/     /'
     violations=$((violations + 1))

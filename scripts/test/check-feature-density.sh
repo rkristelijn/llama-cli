@@ -26,11 +26,11 @@ main() {
 
   # Count net LOC (non-test, non-blank, non-comment)
   local loc
-  loc=$(find src -name "*.cpp" -not -name "*_test*" -not -name "*_it*" -not -name "*fuzz*" \
-    | xargs cat | grep -cv "^$\|^/\|^\s*\*\|^\s*//")
+  loc=$(find src -name "*.cpp" -not -name "*_test*" -not -name "*_it*" -not -name "*fuzz*" |
+    xargs cat | grep -cv "^$\|^/\|^\s*\*\|^\s*//")
 
   local kloc=$((loc / 1000))
-  local density=$((markers * 10 / (kloc > 0 ? kloc : 1)))  # x10 for 1 decimal
+  local density=$((markers * 10 / (kloc > 0 ? kloc : 1))) # x10 for 1 decimal
 
   echo "  Markers: ${markers}"
   echo "  LOC: ${loc} (${kloc}K)"

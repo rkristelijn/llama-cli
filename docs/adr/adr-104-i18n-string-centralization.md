@@ -1,6 +1,8 @@
 ---
+summary: Centralize user-facing strings in a single source for easier maintenance and localization.
 status: accepted
 ---
+summary: Centralize user-facing strings in a single source for easier maintenance and localization.
 
 # ADR-104: i18n String Centralization
 

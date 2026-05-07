@@ -1,6 +1,8 @@
 ---
+summary: Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
 status: accepted
 ---
+summary: Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
 
 # ADR-106: Unified Test Reporting & Performance
 

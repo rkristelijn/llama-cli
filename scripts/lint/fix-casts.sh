@@ -16,7 +16,7 @@ fi
 FIXED=0
 for file in src/**/*.cpp src/**/*.h; do
   [[ -f "$file" ]] || continue
-  
+
   if clang-tidy -fix -checks='-*,cppcoreguidelines-pro-type-cstyle-cast' \
     --format-style=file "$file" -- -std=c++17 -I./src 2>/dev/null; then
     if git diff --quiet "$file" 2>/dev/null; then

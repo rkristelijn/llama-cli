@@ -18,7 +18,7 @@ FAILED=0
 
 for file in src/**/*.cpp; do
   [[ -f "$file" ]] || continue
-  
+
   if ! "$CXX" -fsyntax-only -Wold-style-cast -Werror=old-style-cast \
     -I./src -std=c++17 "$file" 2>/dev/null; then
     echo "  [fail] $file has C-style casts"

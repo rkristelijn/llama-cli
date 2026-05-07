@@ -37,8 +37,8 @@ DETAIL_SEVERITY="${1:-}"
 #######################################
 print_summary() {
   curl -s ${AUTH} \
-    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&facets=severities,rules,types&ps=1" \
-  | python3 -c "
+    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&facets=severities,rules,types&ps=1" |
+    python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 total = data['total']
@@ -75,8 +75,8 @@ print(f'    Dashboard: https://sonarcloud.io/project/overview?id=${PROJECT}')
 print_detail() {
   local severity="$1"
   curl -s ${AUTH} \
-    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&severities=${severity}&ps=50" \
-  | python3 -c "
+    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&severities=${severity}&ps=50" |
+    python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 issues = data.get('issues', [])
@@ -100,8 +100,8 @@ for i in issues:
 print_actionable() {
   curl -s ${AUTH} \
     "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&severities=BLOCKER&ps=50" \
-    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&types=BUG,VULNERABILITY&ps=50" \
-  | python3 -c "
+    "${API}/issues/search?projectKeys=${PROJECT}&statuses=OPEN&types=BUG,VULNERABILITY&ps=50" |
+    python3 -c "
 import json, sys, subprocess, os
 
 auth = '${AUTH}'.split()

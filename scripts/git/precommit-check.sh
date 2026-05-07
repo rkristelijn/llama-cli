@@ -34,10 +34,10 @@ $HAS_YAML && ((TOTAL++)) || true
 $HAS_MD && ((TOTAL++)) || true
 $HAS_SH && ((TOTAL++)) || true
 $HAS_IMG && ((TOTAL++)) || true
-((TOTAL++)) || true # sast-iac (always)
-((TOTAL++)) || true # sast-secret (always)
+((TOTAL++)) || true                  # sast-iac (always)
+((TOTAL++)) || true                  # sast-secret (always)
 [[ -f .pii ]] && ((TOTAL++)) || true # pii (optional)
-$HAS_CPP && ((TOTAL++)) || true # slop (cpp only)
+$HAS_CPP && ((TOTAL++)) || true      # slop (cpp only)
 
 run_step() {
   local name="$1"

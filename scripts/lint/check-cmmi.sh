@@ -18,7 +18,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 PASS=0
 FAIL=0
-LEVEL_PASS=(-1)  # Track which levels fully pass
+LEVEL_PASS=(-1) # Track which levels fully pass
 
 check() {
   local level="$1" id="$2" desc="$3" cmd="$4"
@@ -124,7 +124,7 @@ main() {
   if [[ $max_level -ge 0 ]]; then
     echo "  ╔══════════════════════════════════╗"
     printf "  ║  CMMI Level: %-2d %-16s ║\n" "$max_level" \
-      "$(case $max_level in 0) echo "(Essentials)";; 1) echo "(Managed)";; 2) echo "(Defined)";; 3) echo "(Optimizing)";; *) echo "(Unknown)";; esac)"
+      "$(case $max_level in 0) echo "(Essentials)" ;; 1) echo "(Managed)" ;; 2) echo "(Defined)" ;; 3) echo "(Optimizing)" ;; *) echo "(Unknown)" ;; esac)"
     echo "  ╚══════════════════════════════════╝"
   else
     echo "  ⚠ CMMI Level 0 not yet achieved"

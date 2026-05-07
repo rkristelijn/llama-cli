@@ -20,9 +20,18 @@ BRANCH=""
 # Parse args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --runs) RUNS="$2"; shift 2 ;;
-    --branch) BRANCH="$2"; shift 2 ;;
-    *) echo "Unknown arg: $1"; exit 1 ;;
+  --runs)
+    RUNS="$2"
+    shift 2
+    ;;
+  --branch)
+    BRANCH="$2"
+    shift 2
+    ;;
+  *)
+    echo "Unknown arg: $1"
+    exit 1
+    ;;
   esac
 done
 
@@ -72,23 +81,23 @@ main() {
   printf "  %-25s %-10s %s\n" "JOB" "STATUS" "DURATION"
   printf "  %-25s %-10s %s\n" "---" "------" "--------"
 
-  echo "$jobs" | jq -r '.jobs[] | select(.conclusion != "skipped") | [.name, .conclusion, .startedAt, .completedAt] | @tsv' | \
-  while IFS=$'\t' read -r name conclusion started completed; do
-    # Calculate duration in seconds
-    local dur="?"
-    if [[ -n "$started" && -n "$completed" && "$started" != "null" && "$completed" != "null" ]]; then
-      local s_epoch c_epoch
-      s_epoch=$(date -d "$started" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$started" +%s 2>/dev/null || echo 0)
-      c_epoch=$(date -d "$completed" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$completed" +%s 2>/dev/null || echo 0)
-      if [[ "$s_epoch" -gt 0 && "$c_epoch" -gt 0 ]]; then
-        dur="$((c_epoch - s_epoch))s"
+  echo "$jobs" | jq -r '.jobs[] | select(.conclusion != "skipped") | [.name, .conclusion, .startedAt, .completedAt] | @tsv' |
+    while IFS=$'\t' read -r name conclusion started completed; do
+      # Calculate duration in seconds
+      local dur="?"
+      if [[ -n "$started" && -n "$completed" && "$started" != "null" && "$completed" != "null" ]]; then
+        local s_epoch c_epoch
+        s_epoch=$(date -d "$started" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$started" +%s 2>/dev/null || echo 0)
+        c_epoch=$(date -d "$completed" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$completed" +%s 2>/dev/null || echo 0)
+        if [[ "$s_epoch" -gt 0 && "$c_epoch" -gt 0 ]]; then
+          dur="$((c_epoch - s_epoch))s"
+        fi
       fi
-    fi
-    local icon="[PASS]"
-    [[ "$conclusion" == "failure" ]] && icon="[FAIL]"
-    [[ "$conclusion" == "cancelled" ]] && icon="⏹"
-    printf "  %-25s %s %-8s %s\n" "$name" "$icon" "$conclusion" "$dur"
-  done
+      local icon="[PASS]"
+      [[ "$conclusion" == "failure" ]] && icon="[FAIL]"
+      [[ "$conclusion" == "cancelled" ]] && icon="⏹"
+      printf "  %-25s %s %-8s %s\n" "$name" "$icon" "$conclusion" "$dur"
+    done
 
   # Failure analysis
   echo ""
@@ -113,17 +122,17 @@ main() {
   # Slowest jobs (from latest run)
   echo ""
   echo "── Slowest Jobs ──"
-  echo "$jobs" | jq -r '.jobs[] | select(.conclusion != "skipped") | [.name, .startedAt, .completedAt] | @tsv' | \
-  while IFS=$'\t' read -r name started completed; do
-    if [[ -n "$started" && -n "$completed" && "$started" != "null" && "$completed" != "null" ]]; then
-      local s_epoch c_epoch
-      s_epoch=$(date -d "$started" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$started" +%s 2>/dev/null || echo 0)
-      c_epoch=$(date -d "$completed" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$completed" +%s 2>/dev/null || echo 0)
-      if [[ "$s_epoch" -gt 0 && "$c_epoch" -gt 0 ]]; then
-        echo "$((c_epoch - s_epoch)) $name"
+  echo "$jobs" | jq -r '.jobs[] | select(.conclusion != "skipped") | [.name, .startedAt, .completedAt] | @tsv' |
+    while IFS=$'\t' read -r name started completed; do
+      if [[ -n "$started" && -n "$completed" && "$started" != "null" && "$completed" != "null" ]]; then
+        local s_epoch c_epoch
+        s_epoch=$(date -d "$started" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$started" +%s 2>/dev/null || echo 0)
+        c_epoch=$(date -d "$completed" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$completed" +%s 2>/dev/null || echo 0)
+        if [[ "$s_epoch" -gt 0 && "$c_epoch" -gt 0 ]]; then
+          echo "$((c_epoch - s_epoch)) $name"
+        fi
       fi
-    fi
-  done | sort -rn | head -5 | while read -r secs name; do
+    done | sort -rn | head -5 | while read -r secs name; do
     printf "  %3ds  %s\n" "$secs" "$name"
   done
 }

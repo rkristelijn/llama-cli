@@ -19,8 +19,15 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 WARN=0
 FAIL=0
 
-warn() { printf "  ⚠ %s\n" "$1"; WARN=$((WARN + 1)); return 0; }
-pass() { printf "  ✓ %s\n" "$1"; return 0; }
+warn() {
+  printf "  ⚠ %s\n" "$1"
+  WARN=$((WARN + 1))
+  return 0
+}
+pass() {
+  printf "  ✓ %s\n" "$1"
+  return 0
+}
 
 main() {
   echo "==> engineering smell check (¬_¬)"
@@ -41,7 +48,7 @@ main() {
   echo ""
   echo "── Friday deploys ──"
   local day
-  day=$(date +%u)  # 5 = Friday
+  day=$(date +%u) # 5 = Friday
   if [[ "$day" -eq 5 ]]; then
     warn "It's Friday — deploy with caution (ノಠ益ಠ)ノ彡┻━┻"
   else
@@ -52,7 +59,7 @@ main() {
   echo ""
   echo "── Time bombs ──"
   local time_issues
-  time_issues=$(grep -rn "/ *365\|\\* *365\|86400" src/ --include="*.cpp" --include="*.h" 2>/dev/null | \
+  time_issues=$(grep -rn "/ *365\|\\* *365\|86400" src/ --include="*.cpp" --include="*.h" 2>/dev/null |
     grep -v "check-smells" | wc -l || echo 0)
   if [[ "$time_issues" -gt 0 ]]; then
     warn "$time_issues uses of magic time constants (365/86400) — leap year safe?"
@@ -62,7 +69,7 @@ main() {
 
   # Datetime without timezone (localtime without UTC)
   local tz_issues
-  tz_issues=$(grep -rnE "localtime[^_]" src/ --include="*.cpp" --include="*.h" 2>/dev/null | \
+  tz_issues=$(grep -rnE "localtime[^_]" src/ --include="*.cpp" --include="*.h" 2>/dev/null |
     grep -v "gmtime\|UTC\|_test\|_it\.\|check-smells\|timezone\|utc" | wc -l || echo 0)
   if [[ "$tz_issues" -gt 0 ]]; then
     warn "$tz_issues uses of localtime() without UTC — use gmtime + Z suffix"
@@ -74,7 +81,7 @@ main() {
   echo ""
   echo "── Floating point ──"
   local fp_eq
-  fp_eq=$(grep -rnE "==.*\b[0-9]+\.[0-9]+|[0-9]+\.[0-9]+.*==" src/ --include="*.cpp" 2>/dev/null | \
+  fp_eq=$(grep -rnE "==.*\b[0-9]+\.[0-9]+|[0-9]+\.[0-9]+.*==" src/ --include="*.cpp" 2>/dev/null |
     grep -v "check-smells\|npos\|string::" | wc -l || echo 0)
   if [[ "$fp_eq" -gt 0 ]]; then
     warn "$fp_eq direct float equality comparisons (use epsilon)"

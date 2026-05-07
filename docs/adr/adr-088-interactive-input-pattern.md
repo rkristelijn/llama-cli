@@ -1,6 +1,8 @@
 ---
+summary: All interactive user input must use `linenoise::Readline()` for reliable confirmation prompts.
 status: accepted
 ---
+summary: All interactive user input must use `linenoise::Readline()` for reliable confirmation prompts.
 
 # ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
 
