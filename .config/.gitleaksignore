@@ -1,5 +1,6 @@
 # .gitleaksignore — Whitelist false positives from gitleaks scanning
-# Format: <commit_hash>:<file_path>:<line_number>
+# Format: <fingerprint> (from gitleaks verbose output)
 
-# admin:admin in sonar-report.sh (example credentials for documentation)
-# These are not real credentials, just examples in shell scripts
+# admin:admin in sonar-scan.sh (example credentials for documentation)
+519f4472925ca028439e5ecccb76720a31a03a47:scripts/security/sonar-scan.sh:curl-auth-user:128
+519f4472925ca028439e5ecccb76720a31a03a47:scripts/security/sonar-scan.sh:curl-auth-user:131
