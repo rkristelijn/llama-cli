@@ -351,6 +351,8 @@ sast-secret: ## Run gitleaks secret scan
 		gitleaks detect --source . --log-level error --no-banner --gitleaks-ignore-path .config/.gitleaksignore; \
 	else echo "  [skip] gitleaks not installed"; fi
 	@echo "  [done] sast-secret"
+	# Note: --gitleaks-ignore-path requires gitleaks >= 8.18.0
+	# CI installs pinned version via scripts/ci/install-deps.sh
 
 sast-trufflehog: ## Run trufflehog verified secret scan
 	@bash scripts/security/trufflehog-scan.sh

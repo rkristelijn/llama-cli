@@ -10,6 +10,7 @@
 #   bash scripts/ci/install-deps.sh cppcheck pmccabe cloc
 #   bash scripts/ci/install-deps.sh doxygen       # direct download (pinned)
 #   bash scripts/ci/install-deps.sh rumdl         # direct download (pinned)
+#   bash scripts/ci/install-deps.sh gitleaks      # direct download (pinned)
 #   bash scripts/ci/install-deps.sh yamllint
 #   bash scripts/ci/install-deps.sh lcov bc
 #
@@ -55,6 +56,11 @@ install_trufflehog() {
     sudo sh -s -- -b /usr/local/bin "v${TRUFFLEHOG_VERSION}"
 }
 
+install_gitleaks() {
+  curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" |
+    sudo tar xzf - -C /usr/local/bin gitleaks
+}
+
 install_grype() {
   curl -sSfL "https://raw.githubusercontent.com/anchore/grype/main/install.sh" |
     sudo sh -s -- -b /usr/local/bin "v${GRYPE_VERSION}"
@@ -70,6 +76,7 @@ main() {
     llvm) install_llvm ;;
     doxygen) install_doxygen ;;
     rumdl) install_rumdl ;;
+    gitleaks) install_gitleaks ;;
     trufflehog) install_trufflehog ;;
     grype) install_grype ;;
     checkov) install_checkov ;;
