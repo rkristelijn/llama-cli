@@ -26,6 +26,7 @@ echo "Title: $TITLE"
 BODY=$(git log --pretty=format:"- %s" "$BASE..$BRANCH" | head -10)
 
 gh pr create \
+  --draft \
   --title "$TITLE" \
   --body "## Changes
 
@@ -33,8 +34,9 @@ $BODY
 
 ## Testing
 
-Run \`make check\` to verify all quality gates pass." \
+- \`make check\` passes locally
+- Heavy checks (coverage, sanitizers) run when draft is removed: \`gh pr ready\`" \
   --base "$BASE" \
   --head "$BRANCH"
 
-echo "✅ PR created"
+echo "[PASS] Draft PR created — run 'make pr-ready' when done"

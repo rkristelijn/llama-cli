@@ -114,7 +114,7 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
       // Dim non-sweetspot models (only for ollama with known params)
       bool sweet = (m.params_b >= 11.0 && m.params_b <= 28.0) || m.cost_rate > 0;
       std::string dim = (!sweet && s.color) ? tui::active_theme().system.ansi() : "";
-      std::string reset = (!sweet && s.color) ? Style::reset() : "";
+      std::string reset = (!sweet && s.color) ? ThemeStyle::reset() : "";
       // Truncate name to fit
       std::string name = m.name.substr(0, col_model);
       char buf[160];
@@ -323,9 +323,9 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
     bool multi = !hosts.empty();
 
     // Display hardware info
-    s.out << "\n  🖥️  CPU:  " << hw.cpu << "\n";
-    s.out << "  🎮 GPU:  " << hw.gpu << " (" << hw.vram_gb << "GB VRAM estimated)\n";
-    s.out << "  🧠 RAM:  " << hw.ram_gb << "GB\n";
+    s.out << "\n  CPU  CPU:  " << hw.cpu << "\n";
+    s.out << "  GPU GPU:  " << hw.gpu << " (" << hw.vram_gb << "GB VRAM estimated)\n";
+    s.out << "  RAM RAM:  " << hw.ram_gb << "GB\n";
 
     s.out << "\nAvailable models (sorted by "
           << (sort_mode == 'n' ? "name" : (sort_mode == 'p' ? "params" : (sort_mode == 'q' ? "quality" : "size"))) << "):\n\n";
@@ -346,7 +346,7 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
       // Sweetspot: 11B-27.5B models are highlighted (optimal for local hardware)
       bool sweet = (params >= 11.0 && params <= 27.5);
       std::string dim = (sweet || !s.color) ? "" : tui::active_theme().system.ansi();
-      std::string reset = (sweet || !s.color) ? "" : Style::reset();
+      std::string reset = (sweet || !s.color) ? "" : ThemeStyle::reset();
 
       std::string marker = (sorted[i].name == Config::instance().model) ? " *" : "  ";
       s.out << marker << std::setw(2) << std::right << (i + 1) << ". " << dim;

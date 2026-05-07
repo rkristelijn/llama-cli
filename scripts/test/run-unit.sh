@@ -30,10 +30,26 @@ main() {
   done
   # Remove stale coverage data after rebuild to prevent gcda merge errors
   find "${BUILD_DIR}" -name "*.gcda" -delete 2>/dev/null || true
+  local total=0 passed=0 failed=0
   for t in "${BUILD_DIR}"/test_*; do
     [ -x "$t" ] || continue
-    "$t" --no-version --quiet
+    local name
+    name="$(basename "$t")"
+    local count
+    count=$("$t" --list-test-cases 2>/dev/null | wc -l)
+    if "$t" --no-version --quiet 2>/dev/null; then
+      passed=$((passed + count))
+    else
+      echo "  ✗ ${name} FAILED"
+      failed=$((failed + count))
+    fi
+    total=$((total + count))
   done
+  if [[ "$failed" -gt 0 ]]; then
+    echo "  FAIL: ${passed}/${total} passed, ${failed} failed"
+    exit 1
+  fi
+  echo "  ✓ ${total} scenarios across $(ls "${BUILD_DIR}"/test_* 2>/dev/null | wc -l) binaries"
   echo "  [done] test-unit"
 }
 

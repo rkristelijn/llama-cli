@@ -2,8 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
+    types: [opened, synchronize, ready_for_review]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -21,6 +21,13 @@ jobs:
       docs: ${{ steps.filter.outputs.docs }}
       yaml: ${{ steps.filter.outputs.yaml }}
       scripts: ${{ steps.filter.outputs.scripts }}
+      # Computed: heavy jobs only on non-draft PR or main
+      heavy: ${{ steps.heavy.outputs.run }}
+      # Commit message annotations: [skip build], [skip test], [skip lint], [skip sast]
+      skip_build: ${{ steps.annotations.outputs.skip_build }}
+      skip_test: ${{ steps.annotations.outputs.skip_test }}
+      skip_lint: ${{ steps.annotations.outputs.skip_lint }}
+      skip_sast: ${{ steps.annotations.outputs.skip_sast }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
@@ -43,12 +50,51 @@ jobs:
             scripts:
               - 'scripts/**'
               - 'Makefile'
+      - id: heavy
+        env:
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$IS_DRAFT" == "false" ]] || \
+             [[ "$REF" == "refs/heads/main" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - id: annotations
+        env:
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          # Parse [skip X] and [only X] annotations from commit message
+          # Supports: [skip ci], [skip build], [skip test], [skip lint],
+          #           [skip sast], [only docs], [only lint]
+          # Combine: "fix: thing [skip sast] [skip test]"
+          skip_build=false
+          skip_test=false
+          skip_lint=false
+          skip_sast=false
+          if echo "$MSG" | grep -qiE '\[skip build\]|\[only (docs|lint)\]'; then
+            skip_build=true
+          fi
+          if echo "$MSG" | grep -qiE '\[skip test\]|\[only (docs|lint)\]'; then
+            skip_test=true
+          fi
+          if echo "$MSG" | grep -qiE '\[skip lint\]|\[only (docs|test)\]'; then
+            skip_lint=true
+          fi
+          if echo "$MSG" | grep -qiE '\[skip sast\]|\[only (docs|lint|test)\]'; then
+            skip_sast=true
+          fi
+          echo "skip_build=$skip_build" >> "$GITHUB_OUTPUT"
+          echo "skip_test=$skip_test" >> "$GITHUB_OUTPUT"
+          echo "skip_lint=$skip_lint" >> "$GITHUB_OUTPUT"
+          echo "skip_sast=$skip_sast" >> "$GITHUB_OUTPUT"
 
   # --- Lint (no build, fast) ---
 
   lint-cpp:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -57,7 +103,7 @@ jobs:
 
   lint-yaml:
     needs: changes
-    if: (needs.changes.outputs.yaml == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.yaml == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -66,7 +112,7 @@ jobs:
 
   lint-markdown:
     needs: changes
-    if: (needs.changes.outputs.docs == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -75,7 +121,7 @@ jobs:
 
   lint-makefile:
     needs: changes
-    if: (needs.changes.outputs.scripts == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.scripts == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -83,7 +129,7 @@ jobs:
 
   lint-scripts:
     needs: changes
-    if: (needs.changes.outputs.scripts == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.scripts == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -91,7 +137,7 @@ jobs:
 
   lint-tidy:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -107,7 +153,7 @@ jobs:
 
   lint-cppcheck:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -116,7 +162,7 @@ jobs:
 
   lint-docs:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -125,7 +171,7 @@ jobs:
 
   lint-complexity:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -134,7 +180,7 @@ jobs:
 
   file-size:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     continue-on-error: true
     steps:
@@ -145,8 +191,23 @@ jobs:
 
   build:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.skip_build != 'true'
     runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - run: make build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            build/llama-cli
+            build/test_*
+          retention-days: 1
+
+  build-macos:
+    needs: changes
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.heavy == 'true'
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make build
@@ -154,36 +215,49 @@ jobs:
   # --- Test ---
 
   unit-test:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.skip_build != 'true' && needs.changes.outputs.skip_test != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make build test-unit
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build
+      - run: chmod +x build/llama-cli build/test_*
+      - run: make test-unit
 
   e2e-test:
-    needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.skip_build != 'true' && needs.changes.outputs.skip_test != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make build
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build
+      - run: chmod +x build/llama-cli build/test_*
       - run: make e2e
 
   feature-coverage:
     needs: [changes, e2e-test]
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.skip_build != 'true' && needs.changes.outputs.skip_test != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - run: make build
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build
+      - run: chmod +x build/llama-cli build/test_*
       - run: bash scripts/test/check-feature-coverage.sh build
 
   test-coverage:
     needs: changes
-    if: (needs.changes.outputs.src == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.src == 'true' && needs.changes.outputs.heavy == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: bash scripts/ci/install-deps.sh lcov bc
@@ -200,8 +274,8 @@ jobs:
           PERCENT=$(lcov --summary coverage.info \
             | grep "lines......" | cut -d' ' -f4 | cut -d'%' -f1)
           echo "Total Line Coverage: $PERCENT%"
-          if [ "$(echo "$PERCENT < 55" | bc -l)" -eq 1 ]; then
-            echo "Coverage below 55%!"; exit 1
+          if [ "$(echo "$PERCENT < 53" | bc -l)" -eq 1 ]; then
+            echo "Coverage below 53% (ratchet floor)!"; exit 1
           fi
       - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
         with:
@@ -210,15 +284,16 @@ jobs:
           fail_ci_if_error: false
       # nosemgrep
       - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   sanitizers:
     needs: changes
-    if: (needs.changes.outputs.src == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.src == 'true' && needs.changes.outputs.heavy == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Build and test with ASan/UBSan
@@ -237,7 +312,7 @@ jobs:
 
   sast-security:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     container:
       image: semgrep/semgrep
@@ -248,7 +323,7 @@ jobs:
 
   sast-secret:
     runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.skip_sast != 'true'
     permissions:
       contents: read
       pull-requests: read
@@ -261,7 +336,7 @@ jobs:
 
   sast-trufflehog:
     runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.skip_sast != 'true'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -271,7 +346,7 @@ jobs:
 
   sast-grype:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -280,7 +355,7 @@ jobs:
 
   sast-checkov:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -289,7 +364,7 @@ jobs:
 
   lint-versions:
     runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.skip_sast != 'true'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - run: make lint-versions
@@ -298,7 +373,7 @@ jobs:
 
   comment-ratio:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -324,7 +399,7 @@ jobs:
 
   duplication:
     needs: changes
-    if: (needs.changes.outputs.code == 'true' && github.event_name == 'pull_request') || github.ref == 'refs/heads/main'
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

@@ -89,7 +89,7 @@ static std::string read_file(const std::string& path) {
 /// Emit one diff line with optional ANSI color prefix.
 static void emit_diff_line(std::ostream& out, const std::string& ansi, const char* prefix, const std::string& line, bool color) {
   if (color) {
-    out << ansi << prefix << line << Style::reset() << "\n";
+    out << ansi << prefix << line << ThemeStyle::reset() << "\n";
   } else {
     out << prefix << line << "\n";
   }
@@ -187,7 +187,7 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
       }
       out << "@@ -" << o_start << "," << o_count << " +" << n_start << "," << n_count << " @@";
       if (color) {
-        out << Style::reset();
+        out << ThemeStyle::reset();
       }
       out << "\n";
       in_hunk = true;
@@ -514,7 +514,8 @@ std::string strip_exec_annotations(const std::string& text) {
       break;
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
-    result.replace(start, end + close.size() - start, tui::active_theme().info.ansi() + "[proposed: exec " + cmd + "]" + Style::reset());
+    result.replace(start, end + close.size() - start,
+                   tui::active_theme().info.ansi() + "[proposed: exec " + cmd + "]" + ThemeStyle::reset());
   }
   // Strip remaining annotation-like tags so raw XML never reaches the user
   for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read ", "<search>", "</search>"}) {

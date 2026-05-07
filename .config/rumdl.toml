@@ -3,7 +3,7 @@
 # @see docs/adr/adr-44-tidy-boilerplate.md
 
 [global]
-exclude = ["build", "node_modules", "docs/cpp-core-guidelines.md"]
+exclude = ["build*", "node_modules", "docs/cpp-core-guidelines.md"]
 respect-gitignore = true
 cache-dir = ".tmp/rumdl"
 # MD001: heading increment — false positive on subsections (### One-liner, ### From source)

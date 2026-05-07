@@ -45,6 +45,12 @@ struct DeleteLineAction {
   std::string content;  ///< Exact line content to delete
 };
 
+/// A proposed async delegation to another model (ADR-099)
+struct DelegateAction {
+  std::string type;    ///< Role type: "code", "research", "review", "fast"
+  std::string prompt;  ///< Subtask prompt to send
+};
+
 // Extract all <write> annotations from response text
 std::vector<WriteAction> parse_write_annotations(const std::string& text);
 
@@ -62,6 +68,9 @@ std::vector<AddLineAction> parse_add_line_annotations(const std::string& text);
 
 // Extract all <delete_line> annotations from response text
 std::vector<DeleteLineAction> parse_delete_line_annotations(const std::string& text);
+
+// Extract all <delegate> annotations from response text (ADR-099 async delegation)
+std::vector<DelegateAction> parse_delegate_annotations(const std::string& text);
 
 // Remove write/str_replace/read annotations from text, replacing with summary
 std::string strip_annotations(const std::string& text);

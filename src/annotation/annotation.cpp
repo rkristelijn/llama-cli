@@ -263,6 +263,46 @@ std::vector<DeleteLineAction> parse_delete_line_annotations(const std::string& t
   return actions;
 }
 
+// --- delegate ----------------------------------------------------------------
+
+/// Parse `<delegate>` XML annotations from LLM response text.
+std::vector<DelegateAction> parse_delegate_annotations(const std::string& text) {
+  std::vector<DelegateAction> actions;
+  std::string open_tag = "<delegate";
+  std::string close_tag = "</delegate>";
+  size_t pos = 0;
+  while (true) {
+    auto start = text.find(open_tag, pos);
+    if (start == std::string::npos) {
+      break;
+    }
+    auto tag_end = text.find('>', start);
+    if (tag_end == std::string::npos) {
+      break;
+    }
+    std::string tag = text.substr(start, tag_end - start + 1);
+    auto close = text.find(close_tag, tag_end);
+    if (close == std::string::npos) {
+      break;
+    }
+    DelegateAction action;
+    action.type = attr(tag, "type");
+    action.prompt = text.substr(tag_end + 1, close - tag_end - 1);
+    // Trim whitespace from prompt
+    while (!action.prompt.empty() && action.prompt.front() == '\n') {
+      action.prompt.erase(action.prompt.begin());
+    }
+    while (!action.prompt.empty() && action.prompt.back() == '\n') {
+      action.prompt.pop_back();
+    }
+    if (!action.prompt.empty()) {
+      actions.push_back(action);
+    }
+    pos = close + close_tag.size();
+  }
+  return actions;
+}
+
 // --- strip -------------------------------------------------------------------
 
 /**
@@ -297,7 +337,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 8 - start, tui::active_theme().info.ansi() + "[proposed: write " + path + "]" + Style::reset());
+    result.replace(start, end + 8 - start, tui::active_theme().info.ansi() + "[proposed: write " + path + "]" + ThemeStyle::reset());
   }
 
   // strip <str_replace path="...">...</str_replace>
@@ -320,7 +360,7 @@ std::string strip_annotations(const std::string& text) {
     if (end == std::string::npos) {
       break;
     }
-    result.replace(start, end + 14 - start, tui::active_theme().info.ansi() + "[proposed: str_replace " + path + "]" + Style::reset());
+    result.replace(start, end + 14 - start, tui::active_theme().info.ansi() + "[proposed: str_replace " + path + "]" + ThemeStyle::reset());
   }
 
   // strip <read ...>
@@ -335,7 +375,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 1);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 1 - start, tui::active_theme().info.ansi() + "[read " + path + "]" + Style::reset());
+    result.replace(start, end + 1 - start, tui::active_theme().info.ansi() + "[read " + path + "]" + ThemeStyle::reset());
   }
 
   // strip <search>...</search>
@@ -349,7 +389,7 @@ std::string strip_annotations(const std::string& text) {
       break;
     }
     std::string query = result.substr(start + 8, end - start - 8);
-    result.replace(start, end + 9 - start, tui::active_theme().info.ansi() + "[search: " + query + "]" + Style::reset());
+    result.replace(start, end + 9 - start, tui::active_theme().info.ansi() + "[search: " + query + "]" + ThemeStyle::reset());
   }
 
   // strip <add_line .../>
@@ -364,7 +404,7 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 2);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 2 - start, tui::active_theme().info.ansi() + "[proposed: add line to " + path + "]" + Style::reset());
+    result.replace(start, end + 2 - start, tui::active_theme().info.ansi() + "[proposed: add line to " + path + "]" + ThemeStyle::reset());
   }
 
   // strip <delete_line .../>
@@ -379,7 +419,8 @@ std::string strip_annotations(const std::string& text) {
     }
     std::string tag = result.substr(start, end - start + 2);
     std::string path = attr(tag, "path");
-    result.replace(start, end + 2 - start, tui::active_theme().info.ansi() + "[proposed: delete line from " + path + "]" + Style::reset());
+    result.replace(start, end + 2 - start,
+                   tui::active_theme().info.ansi() + "[proposed: delete line from " + path + "]" + ThemeStyle::reset());
   }
 
   return result;

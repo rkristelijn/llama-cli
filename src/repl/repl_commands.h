@@ -11,6 +11,7 @@
 #ifndef LLAMA_CLI_REPL_COMMANDS_H
 #define LLAMA_CLI_REPL_COMMANDS_H
 
+#include <future>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -22,31 +23,41 @@
 #include "provider/registry.h"
 #include "repl/repl.h"
 
+/// A background task spawned by async delegation (ADR-099).
+struct PendingTask {
+  std::string model;                       ///< Which model is running it
+  std::string prompt;                      ///< What was asked
+  std::shared_future<std::string> result;  ///< Future holding the response
+};
+
 /// REPL session state — groups related data to reduce parameter passing.
 /// Shared between repl.cpp (loop) and repl_commands.cpp (handlers).
 struct ReplState {
-  ChatFn& chat;                       ///< Injected chat function (real or mock)
-  StreamChatFn stream_chat;           ///< Streaming chat function (nullable)
-  ModelsFn& models_fn;                ///< Injected model fetcher (real or mock)
-  ModelInfoFn model_info_fn;          ///< Injected model info fetcher (real or mock)
-  HardwareFn hw_fn;                   ///< Injected hardware detector (real or mock)
-  ScanFn scan_fn;                     ///< Injected network scanner (real or mock)
-  const Config& cfg;                  ///< Configuration (timeouts, etc.)
-  std::vector<Message>& history;      ///< Conversation history
-  std::istream& in;                   ///< Input stream
-  std::ostream& out;                  ///< Output stream
-  int count = 0;                      ///< Number of prompts processed
-  bool color = false;                 ///< Whether to use ANSI colors (TTY detect)
-  bool interactive = false;           ///< Whether running on a real TTY (for spinner)
-  bool markdown = true;               ///< Whether to render markdown in LLM output
-  bool bofh = false;                  ///< BOFH mode: sarcastic spinner
-  bool warmup = false;                ///< Whether to warm up model on switch
-  std::string prompt_color = "32";    ///< ANSI code for user prompt (green)
-  std::string ai_color = "";          ///< ANSI code for AI response (none=default)
-  bool trust = false;                 ///< Trust mode: auto-approve all actions
-  int last_assistant_idx = -1;        ///< Index of last assistant message for rating
-  bool auto_route = true;             ///< Auto mode: smart routing by prompt complexity
+  ChatFn& chat;                     ///< Injected chat function (real or mock)
+  StreamChatFn stream_chat;         ///< Streaming chat function (nullable)
+  ModelsFn& models_fn;              ///< Injected model fetcher (real or mock)
+  ModelInfoFn model_info_fn;        ///< Injected model info fetcher (real or mock)
+  HardwareFn hw_fn;                 ///< Injected hardware detector (real or mock)
+  ScanFn scan_fn;                   ///< Injected network scanner (real or mock)
+  const Config& cfg;                ///< Configuration (timeouts, etc.)
+  std::vector<Message>& history;    ///< Conversation history
+  std::istream& in;                 ///< Input stream
+  std::ostream& out;                ///< Output stream
+  int count = 0;                    ///< Number of prompts processed
+  bool color = false;               ///< Whether to use ANSI colors (TTY detect)
+  bool interactive = false;         ///< Whether running on a real TTY (for spinner)
+  bool markdown = true;             ///< Whether to render markdown in LLM output
+  bool bofh = false;                ///< BOFH mode: sarcastic spinner
+  bool warmup = false;              ///< Whether to warm up model on switch
+  std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
+  std::string ai_color = "";        ///< ANSI code for AI response (none=default)
+  bool trust = false;               ///< Trust mode: auto-approve all actions
+  int last_assistant_idx = -1;      ///< Index of last assistant message for rating
+  // auto_route removed (ADR-099) — replaced by async delegation
   ModelRegistry* registry = nullptr;  ///< Unified model registry (ADR-081)
+
+  /// Background tasks from <delegate> annotations (ADR-099)
+  std::vector<PendingTask> pending_tasks;
 
   /// Callback to switch provider at runtime (set by main.cpp, called by /provider)
   std::function<void(const std::string&)> switch_provider;

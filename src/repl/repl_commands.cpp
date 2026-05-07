@@ -37,7 +37,6 @@
 #include "orchestrator/agent_config.h"
 #include "orchestrator/prompt_template.h"
 #include "orchestrator/task.h"
-#include "planner/planner.h"
 #include "provider/provider_factory.h"
 #include "repl/repl_model.h"
 #include "tui/tui.h"
@@ -78,7 +77,8 @@ static void show_options(ReplState& s) {
     if (!s.color) {
       return std::string(val ? "on" : "off");
     }
-    return val ? tui::active_theme().info.ansi() + "on" + Style::reset() : tui::active_theme().error.ansi() + "off" + Style::reset();
+    return val ? tui::active_theme().info.ansi() + "on" + ThemeStyle::reset()
+               : tui::active_theme().error.ansi() + "off" + ThemeStyle::reset();
   };
 
   s.out << "Options (toggle with /set <option>):\n";
@@ -862,14 +862,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << "Try /model to see available options.\n";
       }
     }
-    // --- Auto-routing: smart model selection by prompt complexity (ADR-079) ---
+    // --- Async delegation: run subtask in background (replaces ADR-079 auto-routing) ---
   } else if (command == "auto") {
     LOG_FEATURE("cmd_auto");
-    s.auto_route = !s.auto_route;
-    s.out << "[auto routing: " << (s.auto_route ? "on" : "off") << "]\n";
-    if (s.auto_route) {
-      s.out << "Prompts will be routed by complexity: simple→3B, medium→14B, complex→27B+\n";
-    }
+    s.out << "[auto routing removed — LLM can delegate via <delegate> tags, check /tasks]\n";
     // --- Image attachment for vision models ---
   } else if (command == "image") {
     LOG_FEATURE("cmd_image");
@@ -989,6 +985,44 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     s.out << "  Provider: " << Config::instance().provider << "\n";
     s.out << "  Model: " << Config::instance().model << "\n";
     s.out << "  Host: " << Config::instance().host << ":" << Config::instance().port << "\n";
+    // --- Background tasks: check async delegation results (ADR-099) ---
+  } else if (command == "tasks") {
+    LOG_FEATURE("cmd_tasks");
+    if (s.pending_tasks.empty()) {
+      s.out << "[no background tasks]\n";
+    } else {
+      int done = 0;
+      int running = 0;
+      for (auto it = s.pending_tasks.begin(); it != s.pending_tasks.end();) {
+        auto status = it->result.wait_for(std::chrono::milliseconds(0));
+        if (status == std::future_status::ready) {
+          // Task completed — inject result into conversation
+          try {
+            std::string result = it->result.get();
+            s.out << tui::active_theme().info.ansi() << "[done: " << it->model << "] " << ThemeStyle::reset();
+            s.out << it->prompt.substr(0, 60) << "\n";
+            s.out << tui::render_markdown(result, s.color && s.markdown) << "\n";
+            s.history.emplace_back(Message{"user", "[background task result from " + it->model + "]\n" + result});
+          } catch (const std::exception& e) {
+            s.out << tui::active_theme().error.ansi() << "[failed: " << it->model << "] " << ThemeStyle::reset();
+            s.out << e.what() << "\n";
+          }
+          it = s.pending_tasks.erase(it);
+          done++;
+        } else {
+          s.out << tui::active_theme().warning.ansi() << "[running: " << it->model << "] " << ThemeStyle::reset();
+          s.out << it->prompt.substr(0, 60) << "...\n";
+          ++it;
+          running++;
+        }
+      }
+      if (done > 0) {
+        s.out << done << " task(s) completed, added to context.\n";
+      }
+      if (running > 0) {
+        s.out << running << " task(s) still running.\n";
+      }
+    }
     // --- Theme switching: /theme <name> or /theme set <role> <color> (ADR-080) ---
   } else if (command == "theme") {
     LOG_FEATURE("cmd_theme");
@@ -1009,7 +1043,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       std::istringstream iss(arg.substr(4));
       std::string role, token;
       iss >> role;
-      Style style;
+      ThemeStyle style;
       while (iss >> token) {
         if (token == "bold") {
           style.bold = true;

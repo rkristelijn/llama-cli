@@ -5,7 +5,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "🔍 Checking for implicit conversion issues..."
+echo "[?] Checking for implicit conversion issues..."
 
 BUILD_DIR="${1:-build-conversion-check}"
 rm -rf "$BUILD_DIR"
@@ -22,11 +22,11 @@ OUTPUT=$(cmake --build "$BUILD_DIR" 2>&1 || true)
 OUR_ERRORS=$(echo "$OUTPUT" | grep -E "error:.*conversion" | grep -v "_deps/" || true)
 
 if [[ -n "$OUR_ERRORS" ]]; then
-  echo "❌ Found implicit conversion errors:"
+  echo "[FAIL] Found implicit conversion errors:"
   echo "$OUR_ERRORS" | head -10
   rm -rf "$BUILD_DIR"
   exit 1
 fi
 
-echo "✅ No implicit conversion issues found"
+echo "[PASS] No implicit conversion issues found"
 rm -rf "$BUILD_DIR"

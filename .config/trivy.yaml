@@ -5,6 +5,11 @@ scan:
   skip-dirs:
     - build
     - build-fuzz
+    - build-gcc
+    - build-san
+    - build-cov
+    - build-test
+    - build-mull
     - _deps
     - .tmp
     - .cache
