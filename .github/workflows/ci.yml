@@ -62,10 +62,10 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
           fi
       - id: annotations
-        env:
-          MSG: ${{ github.event.head_commit.message }}
         run: |
-          # Parse [skip X] and [only X] annotations from commit message
+          # Get last commit message (works for both push and PR events)
+          MSG=$(git log -1 --pretty=%B)
+          # Parse [skip X] and [only X] annotations
           # Supports: [skip ci], [skip build], [skip test], [skip lint],
           #           [skip sast], [only docs], [only lint]
           # Combine: "fix: thing [skip sast] [skip test]"
@@ -322,6 +322,7 @@ jobs:
       - run: semgrep scan --config auto --error --quiet
 
   sast-secret:
+    needs: changes
     runs-on: ubuntu-24.04
     if: needs.changes.outputs.skip_sast != 'true'
     permissions:
@@ -335,6 +336,7 @@ jobs:
       - run: make sast-secret
 
   sast-trufflehog:
+    needs: changes
     runs-on: ubuntu-24.04
     if: needs.changes.outputs.skip_sast != 'true'
     steps:
@@ -363,6 +365,7 @@ jobs:
       - run: make sast-checkov
 
   lint-versions:
+    needs: changes
     runs-on: ubuntu-24.04
     if: needs.changes.outputs.skip_sast != 'true'
     steps:
