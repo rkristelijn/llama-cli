@@ -31,7 +31,7 @@ main() {
     local padded
     adr_num=$(echo "$adr_num" | sed 's/^0*//')
     padded=$(printf "%03d" "${adr_num:-0}")
-    if ! ls docs/adr/adr-"${padded}"-*.md > /dev/null 2>&1; then
+    if ! ls docs/adr/adr-"${padded}"-*.md >/dev/null 2>&1; then
       echo "  [warn] ${file}: references ADR-${adr_num} but docs/adr/adr-${padded}-*.md not found"
       ((errors++)) || true
     fi

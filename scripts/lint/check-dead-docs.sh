@@ -27,8 +27,8 @@ main() {
     local base
     base=$(basename "$adr")
     # Referenced if filename appears in any file other than itself
-    if ! grep -rl "$base" docs/ src/ scripts/ Makefile .github/ README.md CONTRIBUTING.md 2>/dev/null \
-        | grep -v "$adr" >/dev/null 2>&1; then
+    if ! grep -rl "$base" docs/ src/ scripts/ Makefile .github/ README.md CONTRIBUTING.md 2>/dev/null |
+      grep -v "$adr" >/dev/null 2>&1; then
       echo "  [warn] unreferenced ADR: $adr"
       count=$((count + 1))
     fi
@@ -53,8 +53,8 @@ main() {
     local base
     base=$(basename "$doc")
     [[ "$base" == "README.md" ]] && continue
-    if ! grep -rl "$base" docs/ README.md CONTRIBUTING.md 2>/dev/null \
-        | grep -v "$doc" >/dev/null 2>&1; then
+    if ! grep -rl "$base" docs/ README.md CONTRIBUTING.md 2>/dev/null |
+      grep -v "$doc" >/dev/null 2>&1; then
       echo "  [warn] unreferenced doc: $doc"
       count=$((count + 1))
     fi

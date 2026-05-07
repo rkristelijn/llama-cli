@@ -24,6 +24,20 @@ fi
 BRANCH=$(git branch --show-current)
 printf "${BLUE}[info] branch: %s${NC}\n" "$BRANCH"
 
+# Check if PR exists and get its draft status
+PR_INFO=$(gh pr view "$BRANCH" --json isDraft,number 2>/dev/null || echo "")
+if [ -n "$PR_INFO" ]; then
+  IS_DRAFT=$(echo "$PR_INFO" | jq -r '.isDraft')
+  PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')
+  if [ "$IS_DRAFT" = "true" ]; then
+    printf "${YELLOW}[info] PR #%s is in DRAFT mode${NC}\n" "$PR_NUMBER"
+    printf "${DIM}       Before marking ready: run 'make pre-pr' to validate${NC}\n"
+    printf "${DIM}       Then mark ready: make gprr (or: gh pr ready)${NC}\n"
+  else
+    printf "${BLUE}[info] PR #%s is ready for review${NC}\n" "$PR_NUMBER"
+  fi
+fi
+
 RUN_ID=$(gh run list --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId')
 if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
   printf "${RED}ERROR: No runs found for branch %s${NC}\n" "$BRANCH"
@@ -76,9 +90,9 @@ if [ -n "$FAILED_JOBS" ]; then
   while IFS=$'\t' read -r JOB_ID JOB_NAME; do
     printf "\n${RED}=== %s ===${NC}\n" "$JOB_NAME"
     # Fetch job log, strip timestamps, show last 30 lines (skips GH setup noise)
-    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null \
-      | sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' \
-      | tail -n 30
+    gh api "repos/{owner}/{repo}/actions/jobs/${JOB_ID}/logs" 2>/dev/null |
+      sed 's/^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9:.]*Z //' |
+      tail -n 30
   done <<<"$FAILED_JOBS"
   exit 1
 fi

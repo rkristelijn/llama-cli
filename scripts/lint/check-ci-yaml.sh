@@ -17,8 +17,15 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 CI=".github/workflows/ci.yml"
 FAIL=0
 
-fail() { printf "  ✗ %s\n" "$1"; FAIL=$((FAIL + 1)); return 0; }
-pass() { printf "  ✓ %s\n" "$1"; return 0; }
+fail() {
+  printf "  ✗ %s\n" "$1"
+  FAIL=$((FAIL + 1))
+  return 0
+}
+pass() {
+  printf "  ✓ %s\n" "$1"
+  return 0
+}
 
 main() {
   echo "==> CI workflow integrity check"
@@ -54,7 +61,7 @@ main() {
   local bad_outputs=0
   grep -oP "needs\.changes\.outputs\.\K[a-z_]+" "$CI" | sort -u | while read -r out; do
     if ! grep -qE "^\s+${out}:" "$CI" | head -1; then
-      true  # grep in outputs section is complex, skip for now
+      true # grep in outputs section is complex, skip for now
     fi
   done
   pass "Output references (manual check)"
@@ -73,7 +80,7 @@ main() {
   grep -n "if:.*needs\." "$CI" | while read -r line; do
     local lno="${line%%:*}"
     local job_needs
-    job_needs=$(sed -n "$((lno-3)),$((lno))p" "$CI" | grep "needs:" || echo "")
+    job_needs=$(sed -n "$((lno - 3)),$((lno))p" "$CI" | grep "needs:" || echo "")
     if [[ -z "$job_needs" ]]; then
       local job_name
       job_name=$(sed -n "1,${lno}p" "$CI" | grep "^  [a-z]" | tail -1 | tr -d ' :')

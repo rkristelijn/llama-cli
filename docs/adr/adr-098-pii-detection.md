@@ -1,8 +1,11 @@
 ---
+summary: Automatic PII detection tool implemented.
 status: accepted
 date: 2026-05-06
 deciders: gius
 ---
+
+summary: Automatic PII detection tool implemented.
 
 # ADR-098: PII Detection in Source Code
 

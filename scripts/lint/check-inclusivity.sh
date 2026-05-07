@@ -21,9 +21,20 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 FAIL=0
 WARN=0
 
-fail() { printf "  ✗ %s\n" "$1"; FAIL=$((FAIL + 1)); return 0; }
-warn() { printf "  ⚠ %s\n" "$1"; WARN=$((WARN + 1)); return 0; }
-pass() { printf "  ✓ %s\n" "$1"; return 0; }
+fail() {
+  printf "  ✗ %s\n" "$1"
+  FAIL=$((FAIL + 1))
+  return 0
+}
+warn() {
+  printf "  ⚠ %s\n" "$1"
+  WARN=$((WARN + 1))
+  return 0
+}
+pass() {
+  printf "  ✓ %s\n" "$1"
+  return 0
+}
 
 main() {
   echo "==> inclusivity check ╰(*°▽°*)╯"
@@ -126,13 +137,13 @@ main() {
 
   # Check for consistent naming (mixed styles are confusing)
   local mixed
-  mixed=$(grep -rn "camelCase\|snake_case" src/ --include="*.h" 2>/dev/null | \
+  mixed=$(grep -rn "camelCase\|snake_case" src/ --include="*.h" 2>/dev/null |
     grep -c "get_\|set_\|is_" || echo 0)
   pass "Naming conventions documented in CONTRIBUTING.md"
 
   # Check for wall-of-text comments (hard to parse for ADHD)
   local walls
-  walls=$(grep -rn "^// " src/ --include="*.cpp" 2>/dev/null | \
+  walls=$(grep -rn "^// " src/ --include="*.cpp" 2>/dev/null |
     awk -F: '{file=$1; line=$2} prev_file==file && line==prev_line+1 {count++} count>10 {print file ":" line " (wall of text)"; count=0} {prev_file=file; prev_line=line}' | wc -l)
   if [[ "$walls" -gt 3 ]]; then
     warn "$walls comment blocks >10 lines (break up with blank lines)"
@@ -146,13 +157,13 @@ main() {
 
   # Color-only information (must have text alternative)
   local color_only
-  color_only=$(grep -rn "color.*only\|colour.*only" src/ docs/ --include="*.cpp" --include="*.md" 2>/dev/null | \
+  color_only=$(grep -rn "color.*only\|colour.*only" src/ docs/ --include="*.cpp" --include="*.md" 2>/dev/null |
     grep -v "check-inclusivity\|no.color\|NO_COLOR" | wc -l)
   pass "NO_COLOR env var supported (--no-color flag)"
 
   # Check that errors have text, not just color
   local red_only
-  red_only=$(grep -rn '\\033\[.*31m\|\\e\[31m' src/ --include="*.cpp" 2>/dev/null | \
+  red_only=$(grep -rn '\\033\[.*31m\|\\e\[31m' src/ --include="*.cpp" 2>/dev/null |
     grep -v "check-inclusivity\|theme\|ThemeStyle\|ansi()" | wc -l)
   if [[ "$red_only" -gt 0 ]]; then
     warn "$red_only hardcoded red ANSI (should use theme system)"

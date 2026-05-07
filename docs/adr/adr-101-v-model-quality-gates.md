@@ -1,8 +1,11 @@
 ---
+summary: Implement quality gates at every V-model phase with automated checks starting from planning and ending at release, to en
 title: "ADR-101: V-Model Quality Gates"
 status: proposed
 date: 2026-05-07
 ---
+
+summary: Implement quality gates at every V-model phase with automated checks starting from planning and ending at release, to en
 
 ## ADR-101: V-Model Quality Gates
 

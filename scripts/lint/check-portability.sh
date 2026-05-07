@@ -47,7 +47,7 @@ while IFS= read -r inc; do
   file=$(echo "$inc" | sed 's/.*#include "//;s/".*//')
   # Skip known external headers
   case "$file" in
-    linenoise*|dtl/*|doctest/*|system_prompt_generated*|version_generated*) continue ;;
+  linenoise* | dtl/* | doctest/* | system_prompt_generated* | version_generated*) continue ;;
   esac
   if [[ -n "$file" ]] && ! find src/ -path "*/$file" -print -quit 2>/dev/null | grep -q .; then
     mismatches+="  $inc\n"

@@ -22,9 +22,18 @@ FORMAT="table"
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --since) SINCE="$2"; shift 2 ;;
-    --format) FORMAT="$2"; shift 2 ;;
-    *) echo "Unknown arg: $1"; exit 1 ;;
+  --since)
+    SINCE="$2"
+    shift 2
+    ;;
+  --format)
+    FORMAT="$2"
+    shift 2
+    ;;
+  *)
+    echo "Unknown arg: $1"
+    exit 1
+    ;;
   esac
 done
 
@@ -51,9 +60,16 @@ PERF=$(count_type "perf")
 BUILD=$(count_type "build")
 STYLE=$(count_type "style")
 # Ensure numeric (grep -c returns empty on some systems)
-FIX=${FIX:-0}; FEAT=${FEAT:-0}; DOCS=${DOCS:-0}; CHORE=${CHORE:-0}
-REFACTOR=${REFACTOR:-0}; TEST=${TEST:-0}; CI=${CI:-0}; PERF=${PERF:-0}
-BUILD=${BUILD:-0}; STYLE=${STYLE:-0}
+FIX=${FIX:-0}
+FEAT=${FEAT:-0}
+DOCS=${DOCS:-0}
+CHORE=${CHORE:-0}
+REFACTOR=${REFACTOR:-0}
+TEST=${TEST:-0}
+CI=${CI:-0}
+PERF=${PERF:-0}
+BUILD=${BUILD:-0}
+STYLE=${STYLE:-0}
 OTHER=$((TOTAL - FIX - FEAT - DOCS - CHORE - REFACTOR - TEST - CI - PERF - BUILD - STYLE))
 
 # --- Fix subcategories ---

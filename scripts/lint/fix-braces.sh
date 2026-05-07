@@ -12,7 +12,7 @@ FIXED=0
 
 for file in src/**/*.cpp src/**/*.h; do
   [[ -f "$file" ]] || continue
-  
+
   # This is complex - needs proper parsing
   # For now, just detect and report
   if grep -E '^\s*(if|for|while)\s*\([^)]+\)\s*[^{]' "$file" | grep -v '//' | head -1 >/dev/null 2>&1; then

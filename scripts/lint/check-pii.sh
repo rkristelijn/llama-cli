@@ -19,7 +19,7 @@ if [[ -z "$PII_FILE" ]]; then
 fi
 
 if [[ -z "$PII_FILE" || ! -f "$PII_FILE" ]]; then
-  cat > ".config/.pii" << 'EOF'
+  cat >".config/.pii" <<'EOF'
 # PII patterns to detect in code (one per line)
 # Examples:
 # apsnl
@@ -45,7 +45,7 @@ while IFS= read -r line; do
   [[ "$line" =~ ^#.*$ ]] && continue
   [[ -z "$line" ]] && continue
   PATTERNS+=("$line")
-done < "$PII_FILE"
+done <"$PII_FILE"
 
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
   echo "  [skip] No PII patterns defined in $PII_FILE"

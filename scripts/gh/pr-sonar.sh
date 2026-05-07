@@ -54,23 +54,23 @@ main() {
 
   # Group by severity
   echo "  ── By Severity ──"
-  echo "$response" | jq -r '.issues | group_by(.severity) | .[] | "\(.[0].severity) \(length)"' | \
+  echo "$response" | jq -r '.issues | group_by(.severity) | .[] | "\(.[0].severity) \(length)"' |
     sort -k2 -rn | while read -r sev count; do
-      local icon="[ ]"
-      case "$sev" in
-        BLOCKER) icon="[!!]" ;;
-        CRITICAL) icon="[!]" ;;
-        MAJOR) icon="[~]" ;;
-        MINOR) icon="[-]" ;;
-        *) icon="[ ]" ;;
-      esac
-      printf "    %s %-10s %d\n" "$icon" "$sev" "$count"
-    done
+    local icon="[ ]"
+    case "$sev" in
+    BLOCKER) icon="[!!]" ;;
+    CRITICAL) icon="[!]" ;;
+    MAJOR) icon="[~]" ;;
+    MINOR) icon="[-]" ;;
+    *) icon="[ ]" ;;
+    esac
+    printf "    %s %-10s %d\n" "$icon" "$sev" "$count"
+  done
   echo ""
 
   # Show CRITICAL + MAJOR issues (the ones to fix)
   echo "  ── Issues to Fix ──"
-  echo "$response" | jq -r '.issues[] | select(.severity == "CRITICAL" or .severity == "MAJOR") | "\(.severity)|\(.component | split(":")[1])|\(.line // "?")|\(.message[0:80])"' | \
+  echo "$response" | jq -r '.issues[] | select(.severity == "CRITICAL" or .severity == "MAJOR") | "\(.severity)|\(.component | split(":")[1])|\(.line // "?")|\(.message[0:80])"' |
     while IFS='|' read -r sev file line msg; do
       local icon="[~]"
       [[ "$sev" == "CRITICAL" ]] && icon="[!]"

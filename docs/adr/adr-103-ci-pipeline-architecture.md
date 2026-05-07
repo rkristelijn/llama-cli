@@ -1,8 +1,11 @@
 ---
+summary: Restructure CI pipeline into 12 grouped jobs with smart filtering, dependency chains, and commit annotations for skip co
 title: "ADR-103: CI Pipeline Architecture"
 status: accepted
 date: 2026-05-07
 ---
+
+summary: Restructure CI pipeline into 12 grouped jobs with smart filtering, dependency chains, and commit annotations for skip co
 
 ## ADR-103: CI Pipeline Architecture
 

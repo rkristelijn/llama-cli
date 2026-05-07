@@ -12,7 +12,7 @@ echo "==> Auto-fixing missing override keywords..."
 NEEDS_FIX=0
 for file in src/**/*.h src/**/*.cpp; do
   [[ -f "$file" ]] || continue
-  
+
   # Simple heuristic: look for virtual functions in derived classes
   if grep -q "virtual.*(" "$file" 2>/dev/null; then
     if ! grep -q "override" "$file" 2>/dev/null; then
@@ -31,7 +31,7 @@ fi
 FIXED=0
 for file in src/**/*.h src/**/*.cpp; do
   [[ -f "$file" ]] || continue
-  
+
   # Pattern: virtual TYPE func(...) { or virtual TYPE func(...);
   # Add override before { or ;
   if sed -i.bak -E 's/(virtual[^;{]+)(\s*[;{])/\1 override\2/g' "$file" 2>/dev/null; then

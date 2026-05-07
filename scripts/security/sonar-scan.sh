@@ -62,7 +62,7 @@ main() {
 
   # Generate compile_commands.json for C++ analysis
   echo "  Generating compilation database..."
-  cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON > /dev/null
+  cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >/dev/null
 
   # Run scan against SonarCloud (config in sonar-project.properties)
   echo "  Running analysis..."

@@ -90,7 +90,7 @@ needs_summary() {
 ask_ollama() {
   local content="$1"
   local prompt
-  prompt="Summarize this file in exactly one line, max 100 characters. No quotes, no filename, just a plain description:\n\n${content}"
+  prompt="Summarize this file in exactly one line, 40-100 characters. No quotes, no filename, just a plain description. Must be at least 40 characters:\n\n${content}"
 
   local response
   response=$(curl -s --max-time 30 "http://${HOST}:${PORT}/api/generate" \

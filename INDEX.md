@@ -54,12 +54,12 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
 - [`docs/adr/adr-062-prompt-format-and-workflow-engine.md`](docs/adr/adr-062-prompt-format-and-workflow-engine.md) — ADR-062: Context-First Architecture & Workflow Engine
-- [`docs/adr/adr-063-dynamic-runtime-feature-coverage.md`](docs/adr/adr-063-dynamic-runtime-feature-coverage.md) — ADR 063: Dynamic Runtime Feature Coverage via Log Instrumentation
-- [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md) — ADR-064: Enforcement of Dead Code Detection
+- [`docs/adr/adr-063-dynamic-runtime-feature-coverage.md`](docs/adr/adr-063-dynamic-runtime-feature-coverage.md)
+- [`docs/adr/adr-064-dead-code-enforcement.md`](docs/adr/adr-064-dead-code-enforcement.md)
 - [`docs/adr/adr-065-code-consistency-refactor.md`](docs/adr/adr-065-code-consistency-refactor.md) — ADR-065: Code Consistency Refactor Plan
 - [`docs/adr/adr-066-solid-refactoring.md`](docs/adr/adr-066-solid-refactoring.md) — ADR-066: SOLID Refactoring Strategy
 - [`docs/adr/adr-067-mutation-testing.md`](docs/adr/adr-067-mutation-testing.md) — ADR-067: Mutation Testing via Mull
-- [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md) — ADR 068: Toolchain Environment Strategy
+- [`docs/adr/adr-068-toolchain-environment-strategy.md`](docs/adr/adr-068-toolchain-environment-strategy.md)
 - [`docs/adr/adr-069-embedded-system-prompt.md`](docs/adr/adr-069-embedded-system-prompt.md) — ADR-069: Embedded System Prompt from Text File
 - [`docs/adr/adr-070-pluggable-mermaid-renderers.md`](docs/adr/adr-070-pluggable-mermaid-renderers.md) — ADR-070: Pluggable Mermaid Diagram Renderers
 - [`docs/adr/adr-071-markdown-module-split.md`](docs/adr/adr-071-markdown-module-split.md) — ADR-071: Markdown Module Split
@@ -78,24 +78,32 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-084-planner-executor.md`](docs/adr/adr-084-planner-executor.md) — ADR-084: Planner / Executor Separation
 - [`docs/adr/adr-085-multi-agent.md`](docs/adr/adr-085-multi-agent.md) — ADR-085: Multi-Agent Support
 - [`docs/adr/adr-086-tree-sitter-highlighting.md`](docs/adr/adr-086-tree-sitter-highlighting.md) — ADR-086: Syntax Highlighting via tree-sitter
-- [`docs/adr/adr-087-adaptive-system-prompt.md`](docs/adr/adr-087-adaptive-system-prompt.md) — ADR-087: Adaptive System Prompt
-- [`docs/adr/adr-088-interactive-input-pattern.md`](docs/adr/adr-088-interactive-input-pattern.md) — ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
+- [`docs/adr/adr-087-adaptive-system-prompt.md`](docs/adr/adr-087-adaptive-system-prompt.md) — The system prompt for local models will have a reduced size to improve model response coherence.
+- [`docs/adr/adr-088-interactive-input-pattern.md`](docs/adr/adr-088-interactive-input-pattern.md) — All interactive user input must use `linenoise::Readline()` for reliable confirmation prompts.
 - [`docs/adr/adr-089-hierarchical-selection.md`](docs/adr/adr-089-hierarchical-selection.md) — ADR-089: Hierarchical Host → Provider → Model Selection
 - [`docs/adr/adr-090-build-version-string.md`](docs/adr/adr-090-build-version-string.md) — ADR-090: Build Version String
 - [`docs/adr/adr-091-tgpt-free-chatgpt-bridge.md`](docs/adr/adr-091-tgpt-free-chatgpt-bridge.md) — ADR-091: Free ChatGPT Integration via tgpt CLI Provider
-- [`docs/adr/adr-092-product-renaming-and-opencode-strategy.md`](docs/adr/adr-092-product-renaming-and-opencode-strategy.md) — ADR-092: Product Renaming & Integration Strategy with Opencode
+- [`docs/adr/adr-092-product-renaming-and-opencode-strategy.md`](docs/adr/adr-092-product-renaming-and-opencode-strategy.md) — FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
 - [`docs/adr/adr-093-windows-binary-support.md`](docs/adr/adr-093-windows-binary-support.md) — ADR-093: Windows Binary Support
-- [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md) — title: ADR-094: Memory Safety Verification Strategy
+- [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md)
 - [`docs/adr/adr-095-bidirectional-traceability.md`](docs/adr/adr-095-bidirectional-traceability.md) — ADR-095: Bidirectional Traceability via Feature Registry
 - [`docs/adr/adr-096-multi-agent-implementation.md`](docs/adr/adr-096-multi-agent-implementation.md) — ADR-096: Multi-Agent Implementation Plan
 - [`docs/adr/adr-097-cpp-quality-checks.md`](docs/adr/adr-097-cpp-quality-checks.md) — ADR-097: C++ Code Quality Checks and Best Practices
-- [`docs/adr/adr-098-pii-detection.md`](docs/adr/adr-098-pii-detection.md) — status: accepted
-- [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
-- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/adr/adr-098-pii-detection.md`](docs/adr/adr-098-pii-detection.md) — Automatic PII detection tool implemented.
+- [`docs/adr/adr-099-right-first-time.md`](docs/adr/adr-099-right-first-time.md) — Analysis of 465 commits reveals high tooling rework, 46% bug fixes, and 37% platform failures caught only at release tim
+- [`docs/adr/adr-100-scaffolding-first.md`](docs/adr/adr-100-scaffolding-first.md) — Template-based file generation for quality checks and compliance.
+- [`docs/adr/adr-101-v-model-quality-gates.md`](docs/adr/adr-101-v-model-quality-gates.md) — Implement quality gates at every V-model phase with automated checks starting from planning and ending at release, to en
+- [`docs/adr/adr-102-unicode-character-policy.md`](docs/adr/adr-102-unicode-character-policy.md) — Policy to allow Unicode characters and symbols in source code, except for emojis.
+- [`docs/adr/adr-103-ci-pipeline-architecture.md`](docs/adr/adr-103-ci-pipeline-architecture.md) — Restructure CI pipeline into 12 grouped jobs with smart filtering, dependency chains, and commit annotations for skip co
+- [`docs/adr/adr-104-i18n-string-centralization.md`](docs/adr/adr-104-i18n-string-centralization.md) — Centralize user-facing strings in a single source for easier maintenance and localization.
+- [`docs/adr/adr-105-sonarcloud-debt-reduction.md`](docs/adr/adr-105-sonarcloud-debt-reduction.md) — Implement incremental refactoring to reduce technical debt in SonarCloud.
+- [`docs/adr/adr-106-high-performance-testing.md`](docs/adr/adr-106-high-performance-testing.md) — Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
+- [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
+- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
-- [`docs/cpp-core-guidelines.md`](docs/cpp-core-guidelines.md) — Top
+- [`docs/cpp-core-guidelines.md`](docs/cpp-core-guidelines.md)
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
 - [`docs/feature-coverage.md`](docs/feature-coverage.md) — Feature Coverage Matrix
@@ -104,10 +112,12 @@ Auto-generated overview of all files in this repo.
 - [`docs/github-integration.md`](docs/github-integration.md) — Work seamlessly with GitHub from the command line.
 - [`docs/loop-design.md`](docs/loop-design.md) — REPL Loop Design
 - [`docs/make.md`](docs/make.md) — Make Command Tree
+- [`docs/manual-test-journey.md`](docs/manual-test-journey.md) — Manual Test Journey
 - [`docs/model-bench.md`](docs/model-bench.md) — Model Benchmark
 - [`docs/model-guide.md`](docs/model-guide.md) — AI Model & Tool Guide
 - [`docs/multi-model-guide.md`](docs/multi-model-guide.md) — Multi-Model Guide: Ollama & Gemini Integration
 - [`docs/ollama-setup.md`](docs/ollama-setup.md) — Ollama Setup
+- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/prompts/01-commit-msg-hook.md`](docs/prompts/01-commit-msg-hook.md) — Prompt 01: Add commit message validation hook
 - [`docs/prompts/02-branch-naming.md`](docs/prompts/02-branch-naming.md) — Prompt 02: Add branch naming validation
 - [`docs/prompts/03-env-example.md`](docs/prompts/03-env-example.md) — Prompt 03: Add .env.example configuration template
@@ -121,7 +131,6 @@ Auto-generated overview of all files in this repo.
 - [`docs/prompts/11-streaming-tests.md`](docs/prompts/11-streaming-tests.md) — Prompt 11: Add streaming tests
 - [`docs/prompts/README.md`](docs/prompts/README.md) — AI Agent Task Prompts
 - [`docs/provider-roadmap.md`](docs/provider-roadmap.md) — Implementation Roadmap: Multi-Model Providers
-- [`docs/pr-workflow.md`](docs/pr-workflow.md) — Pull Request & Release Workflow
 - [`docs/README.md`](docs/README.md) — Documentation
 - [`docs/release.md`](docs/release.md) — Release Process
 - [`docs/roadmap/README.md`](docs/roadmap/README.md) — Roadmap
@@ -136,17 +145,20 @@ Auto-generated overview of all files in this repo.
 - [`docs/tools/pmccabe.md`](docs/tools/pmccabe.md) — pmccabe
 - [`docs/tools/rumdl.md`](docs/tools/rumdl.md) — rumdl
 - [`docs/tools/semgrep.md`](docs/tools/semgrep.md) — Semgrep
-- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/shell-scripts.md`](docs/tools/shell-scripts.md) — Shell Scripts
+- [`docs/tools/shellcheck.md`](docs/tools/shellcheck.md) — ShellCheck
 - [`docs/tools/yamllint.md`](docs/tools/yamllint.md) — yamllint
 - [`docs/user-guide.md`](docs/user-guide.md) — User Guide
 - [`scripts/ci/check-traceability.sh`](scripts/ci/check-traceability.sh)
 - [`scripts/ci/install-deps.sh`](scripts/ci/install-deps.sh)
 - [`scripts/dev/build-index.sh`](scripts/dev/build-index.sh)
 - [`scripts/dev/bump.sh`](scripts/dev/bump.sh) — Auto-bump version based on conventional commits since last tag.
+- [`scripts/dev/commit-stats.sh`](scripts/dev/commit-stats.sh)
 - [`scripts/dev/learn.sh`](scripts/dev/learn.sh)
+- [`scripts/dev/log-analysis.sh`](scripts/dev/log-analysis.sh)
 - [`scripts/dev/log-viewer.sh`](scripts/dev/log-viewer.sh)
 - [`scripts/dev/quick.sh`](scripts/dev/quick.sh)
+- [`scripts/dev/scaffold.sh`](scripts/dev/scaffold.sh)
 - [`scripts/dev/scrape-todo.sh`](scripts/dev/scrape-todo.sh)
 - [`scripts/dev/setup.sh`](scripts/dev/setup.sh)
 - [`scripts/dev/summarize-headers.sh`](scripts/dev/summarize-headers.sh)
@@ -154,22 +166,27 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/trivi.sh`](scripts/dev/trivi.sh)
 - [`scripts/dev/update-tools.sh`](scripts/dev/update-tools.sh)
 - [`scripts/fmt/format-code.sh`](scripts/fmt/format-code.sh) — format-code.sh — Auto-format C++ source files using clang-format.
+- [`scripts/fmt/format-emojis.sh`](scripts/fmt/format-emojis.sh) — format-emojis.sh — Replace emojis with Unicode equivalents in markdown
 - [`scripts/fmt/format-md.sh`](scripts/fmt/format-md.sh) — format-md.sh — Auto-format Markdown files using rumdl.
 - [`scripts/fmt/format-scripts.sh`](scripts/fmt/format-scripts.sh) — format-scripts.sh — Auto-format shell scripts using shfmt.
 - [`scripts/fmt/format-yaml.sh`](scripts/fmt/format-yaml.sh) — format-yaml.sh — Auto-format YAML files (strip trailing whitespace).
+- [`scripts/gh/ci-analysis.sh`](scripts/gh/ci-analysis.sh)
 - [`scripts/gh/create-issue.sh`](scripts/gh/create-issue.sh)
 - [`scripts/gh/create-pr.sh`](scripts/gh/create-pr.sh)
 - [`scripts/gh/download-issues.sh`](scripts/gh/download-issues.sh)
 - [`scripts/gh/pipeline-status.sh`](scripts/gh/pipeline-status.sh)
 - [`scripts/gh/pr-feedback.sh`](scripts/gh/pr-feedback.sh)
 - [`scripts/gh/pr-resolve.sh`](scripts/gh/pr-resolve.sh)
+- [`scripts/gh/pr-sonar.sh`](scripts/gh/pr-sonar.sh)
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
-- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
-- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
+- [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
+- [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
 - [`scripts/lint/check-casts.sh`](scripts/lint/check-casts.sh)
+- [`scripts/lint/check-ci-yaml.sh`](scripts/lint/check-ci-yaml.sh)
+- [`scripts/lint/check-cmmi.sh`](scripts/lint/check-cmmi.sh)
 - [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
 - [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
 - [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
@@ -179,7 +196,9 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
 - [`scripts/lint/check-duplication.sh`](scripts/lint/check-duplication.sh)
 - [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
+- [`scripts/lint/check-inclusivity.sh`](scripts/lint/check-inclusivity.sh)
 - [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
+- [`scripts/lint/check-licenses.sh`](scripts/lint/check-licenses.sh)
 - [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
 - [`scripts/lint/check-pii.sh`](scripts/lint/check-pii.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
@@ -187,8 +206,10 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
 - [`scripts/lint/check-shadowing.sh`](scripts/lint/check-shadowing.sh)
 - [`scripts/lint/check-slop.sh`](scripts/lint/check-slop.sh) — check-slop.sh — Detect common AI-generated code slop patterns.
+- [`scripts/lint/check-smells.sh`](scripts/lint/check-smells.sh)
 - [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
 - [`scripts/lint/check-unicode.sh`](scripts/lint/check-unicode.sh)
+- [`scripts/lint/check-user-facing-strings.sh`](scripts/lint/check-user-facing-strings.sh) — check-user-facing-strings.sh — Find hardcoded user-facing strings (not test/debug)
 - [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
 - [`scripts/lint/check-xref.sh`](scripts/lint/check-xref.sh)
@@ -224,54 +245,56 @@ Auto-generated overview of all files in this repo.
 - [`scripts/test/run-unit.sh`](scripts/test/run-unit.sh)
 - [`src/agent/agent.cpp`](src/agent/agent.cpp) — /**
 - [`src/agent/agent.h`](src/agent/agent.h) — /**
+- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/annotation.cpp`](src/annotation/annotation.cpp) — /**
 - [`src/annotation/annotation.h`](src/annotation/annotation.h) — // Tool extracts and processes LLM response annotations.
 - [`src/annotation/annotations_it.cpp`](src/annotation/annotations_it.cpp) — /**
-- [`src/annotation/annotation_test.cpp`](src/annotation/annotation_test.cpp) — // test_annotation.cpp — Unit tests for LLM annotation parsing
 - [`src/annotation/fuzz_annotation.cpp`](src/annotation/fuzz_annotation.cpp) — /**
+- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
 - [`src/command/command.cpp`](src/command/command.cpp) — /**
 - [`src/command/command.h`](src/command/command.h) — // Parses user input for interactive mode commands and executes specified actions.
 - [`src/command/commands_it.cpp`](src/command/commands_it.cpp) — /**
-- [`src/command/command_test.cpp`](src/command/command_test.cpp) — // test_command.cpp — Unit tests for REPL command parsing and execution
+- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
+- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
+- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
 - [`src/config/config.cpp`](src/config/config.cpp) — /**
 - [`src/config/config.h`](src/config/config.h) — // Application configuration for the Ollama server with customizable settings.
-- [`src/config/config_it.cpp`](src/config/config_it.cpp) — /**
-- [`src/config/config_test.cpp`](src/config/config_test.cpp) — // test_config.cpp — Unit tests for config loading
-- [`src/config/config_test_helper.cpp`](src/config/config_test_helper.cpp) — /**
+- [`src/config/delegation.cpp`](src/config/delegation.cpp) — /**
+- [`src/config/delegation.h`](src/config/delegation.h) — /**
+- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
 - [`src/exec/exec.cpp`](src/exec/exec.cpp) — /**
 - [`src/exec/exec.h`](src/exec/exec.h) — // Executes a shell command with a specified timeout and captures its output.
-- [`src/exec/exec_test.cpp`](src/exec/exec_test.cpp) — // test_exec.cpp — Unit tests for command execution
+- [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
 - [`src/exec/hardware.cpp`](src/exec/hardware.cpp) — /**
 - [`src/exec/hardware.h`](src/exec/hardware.h) — /**
-- [`src/exec/hardware_test.cpp`](src/exec/hardware_test.cpp) — /**
 - [`src/help.h`](src/help.h) — /**
+- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
 - [`src/json/json.cpp`](src/json/json.cpp) — /**
 - [`src/json/json.h`](src/json/json.h) — /**
-- [`src/json/json_test.cpp`](src/json/json_test.cpp) — // test_json.cpp — Unit tests for JSON extraction
+- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/logging/logger.cpp`](src/logging/logger.cpp) — /**
 - [`src/logging/logger.h`](src/logging/logger.h) — /**
-- [`src/logging/logger_test.cpp`](src/logging/logger_test.cpp) — /**
 - [`src/main.cpp`](src/main.cpp) — /**
+- [`src/net/scan_test.cpp`](src/net/scan_test.cpp) — /**
 - [`src/net/scan.cpp`](src/net/scan.cpp) — /**
 - [`src/net/scan.h`](src/net/scan.h) — // Network scanner — discovers Ollama servers on the local subnet.
-- [`src/net/scan_test.cpp`](src/net/scan_test.cpp) — /**
+- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
 - [`src/ollama/ollama.cpp`](src/ollama/ollama.cpp) — /**
 - [`src/ollama/ollama.h`](src/ollama/ollama.h) — // API client for local instance handling HTTP communication and conversation management with Ollama.
-- [`src/ollama/ollama_test.cpp`](src/ollama/ollama_test.cpp) — /**
 - [`src/orchestrator/agent_config.cpp`](src/orchestrator/agent_config.cpp) — /**
 - [`src/orchestrator/agent_config.h`](src/orchestrator/agent_config.h) — /**
 - [`src/orchestrator/metrics.cpp`](src/orchestrator/metrics.cpp) — /**
 - [`src/orchestrator/metrics.h`](src/orchestrator/metrics.h) — /**
+- [`src/orchestrator/orchestrator_test.cpp`](src/orchestrator/orchestrator_test.cpp) — // test_orchestrator.cpp — Unit tests for metrics + prompt_template (ADR-096)
 - [`src/orchestrator/orchestrator.cpp`](src/orchestrator/orchestrator.cpp) — /**
 - [`src/orchestrator/orchestrator.h`](src/orchestrator/orchestrator.h) — /**
-- [`src/orchestrator/orchestrator_test.cpp`](src/orchestrator/orchestrator_test.cpp) — // test_orchestrator.cpp — Unit tests for metrics + prompt_template (ADR-096)
 - [`src/orchestrator/prompt_template.cpp`](src/orchestrator/prompt_template.cpp) — /**
 - [`src/orchestrator/prompt_template.h`](src/orchestrator/prompt_template.h) — /**
 - [`src/orchestrator/subagent.cpp`](src/orchestrator/subagent.cpp) — /**
 - [`src/orchestrator/subagent.h`](src/orchestrator/subagent.h) — /**
+- [`src/orchestrator/task_test.cpp`](src/orchestrator/task_test.cpp) — // test_task.cpp — Unit tests for task schema (ADR-096 Phase 1)
 - [`src/orchestrator/task.cpp`](src/orchestrator/task.cpp) — /**
 - [`src/orchestrator/task.h`](src/orchestrator/task.h) — /**
-- [`src/orchestrator/task_test.cpp`](src/orchestrator/task_test.cpp) — // test_task.cpp — Unit tests for task schema (ADR-096 Phase 1)
 - [`src/planner/planner.cpp`](src/planner/planner.cpp) — /**
 - [`src/planner/planner.h`](src/planner/planner.h) — /**
 - [`src/provider/gemini_provider.cpp`](src/provider/gemini_provider.cpp) — /**
@@ -286,8 +309,8 @@ Auto-generated overview of all files in this repo.
 - [`src/provider/opencode_provider.h`](src/provider/opencode_provider.h) — /**
 - [`src/provider/provider_factory.cpp`](src/provider/provider_factory.cpp) — /**
 - [`src/provider/provider_factory.h`](src/provider/provider_factory.h) — /**
-- [`src/provider/provider.h`](src/provider/provider.h) — /**
 - [`src/provider/provider_test.cpp`](src/provider/provider_test.cpp) — /**
+- [`src/provider/provider.h`](src/provider/provider.h) — /**
 - [`src/provider/registry.cpp`](src/provider/registry.cpp) — /**
 - [`src/provider/registry.h`](src/provider/registry.h) — /**
 - [`src/provider/tgpt_provider.cpp`](src/provider/tgpt_provider.cpp) — /**
@@ -300,33 +323,33 @@ Auto-generated overview of all files in this repo.
 - [`src/repl/repl_chat.h`](src/repl/repl_chat.h) — /**
 - [`src/repl/repl_commands.cpp`](src/repl/repl_commands.cpp) — /**
 - [`src/repl/repl_commands.h`](src/repl/repl_commands.h) — /**
-- [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
-- [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
 - [`src/repl/repl_model.cpp`](src/repl/repl_model.cpp) — /**
 - [`src/repl/repl_model.h`](src/repl/repl_model.h) — /**
 - [`src/repl/repl_rate_test.cpp`](src/repl/repl_rate_test.cpp) — /**
 - [`src/repl/repl_search.cpp`](src/repl/repl_search.cpp) — /**
 - [`src/repl/repl_search.h`](src/repl/repl_search.h) — /**
 - [`src/repl/repl_test.cpp`](src/repl/repl_test.cpp) — // test_repl.cpp — Unit tests for REPL loop
+- [`src/repl/repl.cpp`](src/repl/repl.cpp) — /**
+- [`src/repl/repl.h`](src/repl/repl.h) — // Interactive REPL loop for Ollama with conversation history and testability features.
+- [`src/session/session_test.cpp`](src/session/session_test.cpp) — /**
 - [`src/session/session.cpp`](src/session/session.cpp) — /**
 - [`src/session/session.h`](src/session/session.h) — /**
-- [`src/session/session_test.cpp`](src/session/session_test.cpp) — /**
 - [`src/sync/sync_annotations.cpp`](src/sync/sync_annotations.cpp) — /**
 - [`src/sync/sync_annotations.h`](src/sync/sync_annotations.h) — /**
+- [`src/sync/sync_test.cpp`](src/sync/sync_test.cpp) — /**
 - [`src/sync/sync.cpp`](src/sync/sync.cpp) — /**
 - [`src/sync/sync.h`](src/sync/sync.h) — /**
-- [`src/sync/sync_test.cpp`](src/sync/sync_test.cpp) — /**
 - [`src/test_helpers.h`](src/test_helpers.h) — /**
+- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
 - [`src/trace/trace.cpp`](src/trace/trace.cpp) — /**
 - [`src/trace/trace.h`](src/trace/trace.h) — /**
-- [`src/trace/trace_test.cpp`](src/trace/trace_test.cpp) — /**
+- [`src/tui/highlight_test.cpp`](src/tui/highlight_test.cpp) — /**
 - [`src/tui/highlight.cpp`](src/tui/highlight.cpp) — /**
 - [`src/tui/highlight.h`](src/tui/highlight.h) — /**
-- [`src/tui/highlight_test.cpp`](src/tui/highlight_test.cpp) — /**
-- [`src/tui/markdown.cpp`](src/tui/markdown.cpp) — /**
-- [`src/tui/markdown.h`](src/tui/markdown.h) — /**
 - [`src/tui/markdown_it.cpp`](src/tui/markdown_it.cpp) — /**
 - [`src/tui/markdown_stream.cpp`](src/tui/markdown_stream.cpp) — /**
+- [`src/tui/markdown.cpp`](src/tui/markdown.cpp) — /**
+- [`src/tui/markdown.h`](src/tui/markdown.h) — /**
 - [`src/tui/mermaid/barchart.cpp`](src/tui/mermaid/barchart.cpp) — /**
 - [`src/tui/mermaid/barchart.h`](src/tui/mermaid/barchart.h) — /**
 - [`src/tui/mermaid/flowchart.cpp`](src/tui/mermaid/flowchart.cpp) — /**
@@ -345,10 +368,10 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/mermaid/pie.h`](src/tui/mermaid/pie.h) — /**
 - [`src/tui/mermaid/quadrant.cpp`](src/tui/mermaid/quadrant.cpp) — /**
 - [`src/tui/mermaid/quadrant.h`](src/tui/mermaid/quadrant.h) — /**
-- [`src/tui/mermaid/renderer.cpp`](src/tui/mermaid/renderer.cpp) — /**
 - [`src/tui/mermaid/renderer_extra_test.cpp`](src/tui/mermaid/renderer_extra_test.cpp) — /**
-- [`src/tui/mermaid/renderer.h`](src/tui/mermaid/renderer.h) — /**
 - [`src/tui/mermaid/renderer_test.cpp`](src/tui/mermaid/renderer_test.cpp) — /**
+- [`src/tui/mermaid/renderer.cpp`](src/tui/mermaid/renderer.cpp) — /**
+- [`src/tui/mermaid/renderer.h`](src/tui/mermaid/renderer.h) — /**
 - [`src/tui/mermaid/sequence.cpp`](src/tui/mermaid/sequence.cpp) — /**
 - [`src/tui/mermaid/sequence.h`](src/tui/mermaid/sequence.h) — /**
 - [`src/tui/mermaid/state.cpp`](src/tui/mermaid/state.cpp) — /**
@@ -359,12 +382,14 @@ Auto-generated overview of all files in this repo.
 - [`src/tui/mermaid/venn.h`](src/tui/mermaid/venn.h) — /**
 - [`src/tui/spinner.cpp`](src/tui/spinner.cpp) — /**
 - [`src/tui/spinner.h`](src/tui/spinner.h) — /**
+- [`src/tui/table_test.cpp`](src/tui/table_test.cpp) — /**
 - [`src/tui/table.cpp`](src/tui/table.cpp) — /**
 - [`src/tui/table.h`](src/tui/table.h) — /**
 - [`src/tui/theme.h`](src/tui/theme.h) — /**
 - [`src/tui/tui.h`](src/tui/tui.h) — /**
+- [`src/ui/messages.h`](src/ui/messages.h) — /**
+- [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
-- [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_364 files indexed._
+_389 files indexed._

@@ -78,6 +78,7 @@ These decisions are currently being debated or are awaiting formal acceptance.
 - [ADR-084](adr-084-planner-executor.md) - Planner / Executor Separation
 - [ADR-085](adr-085-multi-agent.md) - Multi-Agent Support
 - [ADR-086](adr-086-tree-sitter-highlighting.md) - Syntax Highlighting via tree-sitter
+- [ADR-106](adr-106-high-performance-testing.md) - High-Performance Test Execution
 
 ### ✅ Accepted (Recent)
 

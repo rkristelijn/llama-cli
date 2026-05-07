@@ -1,8 +1,11 @@
+---
+summary: FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
+status: accepted
+---
+
+summary: FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
+
 # ADR-092: Product Renaming & Integration Strategy with Opencode
-
-## Status
-
-Accepted
 
 ## Context
 

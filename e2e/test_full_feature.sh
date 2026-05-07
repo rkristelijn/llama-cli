@@ -35,9 +35,26 @@ run() {
   printf '%s\n' "$1" | timeout 120 "$BINARY" --repl --no-color 2>&1
 }
 
-pass() { local msg="$1"; echo "  ✓ $msg"; PASS=$((PASS + 1)); return 0; }
-fail() { local msg="$1"; local detail="$2"; echo "  ✗ $msg: $detail"; FAIL=$((FAIL + 1)); return 0; }
-skip() { local msg="$1"; local reason="$2"; echo "  ○ $msg (skipped: $reason)"; SKIP=$((SKIP + 1)); return 0; }
+pass() {
+  local msg="$1"
+  echo "  ✓ $msg"
+  PASS=$((PASS + 1))
+  return 0
+}
+fail() {
+  local msg="$1"
+  local detail="$2"
+  echo "  ✗ $msg: $detail"
+  FAIL=$((FAIL + 1))
+  return 0
+}
+skip() {
+  local msg="$1"
+  local reason="$2"
+  echo "  ○ $msg (skipped: $reason)"
+  SKIP=$((SKIP + 1))
+  return 0
+}
 
 # --- Detect available provider ---
 

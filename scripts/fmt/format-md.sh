@@ -70,10 +70,10 @@ fix_code_block_languages() {
     # Default: text
     return "text"
   }
-  ' "$file" > "$tmp"
+  ' "$file" >"$tmp"
 
   # Only replace if something changed
-  if ! diff -q "$file" "$tmp" > /dev/null 2>&1; then
+  if ! diff -q "$file" "$tmp" >/dev/null 2>&1; then
     mv "$tmp" "$file"
   else
     rm -f "$tmp"

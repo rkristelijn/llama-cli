@@ -40,7 +40,7 @@ while IFS= read -r line; do
   [[ "$line" =~ ^#.*$ ]] && continue
   [[ -z "$line" ]] && continue
   PATTERNS+=("$line")
-done < "$PII_FILE"
+done <"$PII_FILE"
 
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
   echo "  [skip] No PII patterns defined in $PII_FILE"
@@ -52,49 +52,49 @@ echo "  Obfuscating ${#PATTERNS[@]} pattern(s)..."
 # Determine placeholder based on pattern
 get_placeholder() {
   local pattern="$1"
-  
+
   # Email
   if [[ "$pattern" =~ @.*\. ]]; then
     echo "<email>"
     return
   fi
-  
+
   # IP address
   if [[ "$pattern" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "<ip-address>"
     return
   fi
-  
+
   # UUID
   if [[ "$pattern" =~ ^[0-9a-f]{8}-[0-9a-f]{4} ]]; then
     echo "<uuid>"
     return
   fi
-  
+
   # Long hex (token)
   if [[ "$pattern" =~ ^[0-9a-f]{32,}$ ]]; then
     echo "<token>"
     return
   fi
-  
+
   # Credit card (16 digits)
   if [[ "$pattern" =~ ^[0-9]{16}$ ]]; then
     echo "<credit-card>"
     return
   fi
-  
+
   # BSN (9 digits)
   if [[ "$pattern" =~ ^[0-9]{9}$ ]]; then
     echo "<bsn>"
     return
   fi
-  
+
   # IBAN
   if [[ "$pattern" =~ ^[A-Z]{2}[0-9]{2} ]]; then
     echo "<iban>"
     return
   fi
-  
+
   # Default: hostname
   echo "<hostname>"
 }
@@ -102,12 +102,12 @@ get_placeholder() {
 # Fix files
 for pattern in "${PATTERNS[@]}"; do
   placeholder=$(get_placeholder "$pattern")
-  
+
   for file in src/**/*.cpp src/**/*.h src/**/*.sh docs/**/*.md scripts/**/*.sh; do
     [[ -f "$file" ]] || continue
     [[ "$file" == "scripts/lint/check-pii.sh" ]] && continue
     [[ "$file" == "scripts/lint/fix-pii.sh" ]] && continue
-    
+
     if grep -q "$pattern" "$file" 2>/dev/null; then
       sed -i.bak "s/$pattern/$placeholder/g" "$file"
       if ! diff -q "$file" "$file.bak" >/dev/null 2>&1; then
