@@ -30,14 +30,14 @@ main() {
     fail "YAML syntax errors (run: yamllint -d relaxed $CI)"
   fi
 
-  # 2. Line length (<140)
+  # 2. Line length (<140, excluding pinned action SHAs which are always long)
   local long
-  long=$(awk 'length > 140 {print NR}' "$CI" | wc -l)
+  long=$(awk 'length > 140 && !/uses:.*@[a-f0-9]/' "$CI" | wc -l)
   if [[ "$long" -eq 0 ]]; then
-    pass "No lines >140 chars"
+    pass "No lines >140 chars (excl. pinned SHAs)"
   else
     fail "$long lines exceed 140 chars"
-    awk 'length > 140 {print "    L"NR": "length" chars"}' "$CI"
+    awk 'length > 140 && !/uses:.*@[a-f0-9]/ {print "    L"NR": "length" chars"}' "$CI"
   fi
 
   # 3. needs references — every needs.X.outputs.Y must have a matching job
