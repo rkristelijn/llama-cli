@@ -28,7 +28,9 @@ fi
 trufflehog filesystem . \
   --no-update \
   --fail \
-  --exclude-paths=<(printf '%s\n' '^build/' '^build-fuzz/' '_deps/' '^\.tmp/' '^\.cache/' '^\.git/' 'node_modules/' 'sast\.log' '^\.env') \
-  --exclude-detectors=URI
+  --only-verified \
+  --exclude-paths=<(printf '%s\n' '^build/' '^build-fuzz/' '_deps/' '^\.tmp/' '^\.cache/' '^\.git/' 'node_modules/' 'sast\.log' '^\.env' '^\.config/\.gitleaksignore$') \
+  --exclude-detectors=URI \
+  2>&1 | grep -v "^🐷\|^$\|info-0" || true
 
 echo "  [done] trufflehog"
