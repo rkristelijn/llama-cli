@@ -339,6 +339,102 @@ static bool handle_command(const ParsedInput& input, ReplState& s) {
     handle_color(input.arg, s);
   } else if (input.command == "model") {
     handle_model_selection(s);
+  } else if (input.command == "default") {
+    // Save model as default in .env file
+    std::string model_to_save = input.arg.empty() ? s.cfg.model : input.arg;
+    
+    std::string env_file = ".env";
+    
+    // Write .env file
+    std::ofstream cfg(env_file);
+    if (cfg.is_open()) {
+      cfg << "OLLAMA_MODEL=" << model_to_save << "\n";
+      cfg.close();
+      s.out << "[saved " << model_to_save << " to .env]\n";
+    } else {
+      s.out << "[error: could not write to .env]\n";
+    }
+  } else if (input.command == "keep-coding") {
+    // Parse duration from argument (e.g., "1h", "30m")
+    int duration_secs = 3600; // default 1 hour
+    if (!input.arg.empty()) {
+      int num = 0;
+      char unit = 'h';
+      if (sscanf(input.arg.c_str(), "%d%c", &num, &unit) >= 1) {
+        duration_secs = (unit == 'h') ? num * 3600 : num * 60;
+      }
+    }
+    
+    s.out << "[autonomous coding mode: " << (duration_secs/60) << " minutes]\n";
+    s.out << "[Press Ctrl+C to stop]\n\n";
+    
+    auto end_time = std::chrono::steady_clock::now() + std::chrono::seconds(duration_secs);
+    int iteration = 1;
+    
+    while (std::chrono::steady_clock::now() < end_time) {
+      s.out << "=== Iteration " << iteration << " ===\n";
+      
+      // Build prompt for autonomous improvement
+      std::string prompt = "You are an autonomous coding agent. Analyze the code in the current directory and make ONE improvement. "
+                          "Use <write file=\"path\">content</write> to create/modify files. "
+                          "Use <exec>command</exec> to run commands. "
+                          "Explain what you improved.";
+      
+      // Add current directory listing as context
+      s.history.push_back({"user", prompt});
+      
+      // Get LLM response
+      std::string response = s.chat(s.history);
+      s.out << response << "\n\n";
+      
+      s.history.push_back({"assistant", response});
+      
+      iteration++;
+      std::this_thread::sleep_for(std::chrono::seconds(30));
+      
+      if (g_interrupted) {
+        g_interrupted = 0;
+        s.out << "\n[autonomous mode stopped]\n";
+        break;
+      }
+    }
+    
+    s.out << "[completed " << (iteration-1) << " iterations]\n";
+  } else if (input.command == "memory") {
+    // Load memory file into conversation context
+    std::string memory_file = std::string(getenv("HOME")) + "/.llama_memory.txt";
+    std::ifstream mem(memory_file);
+    
+    if (!mem.is_open()) {
+      s.out << "[no memory file found]\n";
+      return true;
+    }
+    
+    std::string content((std::istreambuf_iterator<char>(mem)), std::istreambuf_iterator<char>());
+    mem.close();
+    
+    if (content.empty()) {
+      s.out << "[memory file is empty]\n";
+      return true;
+    }
+    
+    // Inject memory as system context
+    s.history.insert(s.history.begin(), {"system", "Previous conversation context:\n" + content});
+    s.out << "[loaded memory - " << std::count(content.begin(), content.end(), '\n') << " lines]\n";
+  } else if (input.command == "rick") {
+    // Enable Rick Sanchez personality mode
+    std::string rick_prompt = "You are Rick Sanchez from Rick and Morty. Respond with his personality:\n"
+                              "- Burp randomly (use *burp*)\n"
+                              "- Call people 'Morty' sometimes\n"
+                              "- Be cynical, sarcastic, and genius-level smart\n"
+                              "- Make dark science jokes\n"
+                              "- Say 'wubba lubba dub dub' occasionally\n"
+                              "- Be dismissive of stupid questions\n"
+                              "- Reference interdimensional travel and sci-fi concepts\n"
+                              "But still help with coding and technical questions.";
+    
+    s.history.insert(s.history.begin(), {"system", rick_prompt});
+    s.out << "[Rick mode activated] Wubba lubba dub dub!\n";
   } else if (input.command == "version") {
     s.out << "llama-cli " << get_version() << "\n";
   } else if (input.command == "help" || input.command.empty()) {
@@ -930,6 +1026,14 @@ static void send_prompt(const std::string& line, ReplState& s) {
     stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
   }
 
+  // Auto-save user message to memory
+  std::string memory_file = std::string(getenv("HOME")) + "/.llama_memory.txt";
+  std::ofstream mem(memory_file, std::ios::app);
+  if (mem.is_open()) {
+    mem << line << "\n";
+    mem.close();
+  }
+
   s.history.push_back({"user", line});
   std::string response = chat_with_spinner(s);
   if (g_interrupted) {
@@ -993,7 +1097,7 @@ static bool dispatch(const std::string& line, ReplState& s) {
  * Returns number of LLM prompts processed (excludes ! and !! commands) */
 // Tab-completion for slash commands
 static void slash_completion(const char* buf, std::vector<std::string>& completions) {
-  static const std::vector<std::string> cmds = {"/clear", "/color", "/model", "/set", "/version", "/help"};
+  static const std::vector<std::string> cmds = {"/clear", "/color", "/model", "/default", "/keep-coding", "/memory", "/rick", "/set", "/version", "/help"};
   std::string input(buf);
   if (input.empty()) {
     return;
@@ -1015,6 +1119,18 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   if (!cfg.system_prompt.empty()) {
     history.push_back({"system", cfg.system_prompt});
   }
+  
+  // Auto-load memory file if it exists
+  std::string memory_file = std::string(getenv("HOME")) + "/.llama_memory.txt";
+  std::ifstream mem(memory_file);
+  if (mem.is_open()) {
+    std::string content((std::istreambuf_iterator<char>(mem)), std::istreambuf_iterator<char>());
+    mem.close();
+    if (!content.empty()) {
+      history.push_back({"system", "Previous conversation context:\n" + content});
+    }
+  }
+  
   bool is_tty = tui::use_color(cfg.no_color);
   linenoise::SetCompletionCallback(slash_completion);
   ReplState state = {chat,
