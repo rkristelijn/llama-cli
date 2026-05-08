@@ -608,7 +608,7 @@ inline std::string render_markdown(const std::string& text, bool color) {
 // --- Spinner ---
 
 /** Default spinner messages — shown while waiting for LLM response */
-inline std::vector<const char*> default_messages() { return {"thinking...", "processing...", "analyzing..."}; }
+inline std::vector<const char*> default_messages() { return {"warming up...", "processing...", "analyzing..."}; }
 
 /** BOFH spinner messages — activate with --why-so-serious */
 inline std::vector<const char*> bofh_messages() {
