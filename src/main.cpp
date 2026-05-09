@@ -200,12 +200,8 @@ int main(int argc, char* argv[]) {
     // Add system prompt only if starting a new conversation
     if (messages.empty() && !cfg.system_prompt.empty()) {
       std::string sys = cfg.system_prompt;
-      if (!cfg.system_prompt_override) {
-        std::string m = cfg.model;
-        bool is_small = (m.find(":1b") != std::string::npos || m.find(":3b") != std::string::npos || m.find(":4b") != std::string::npos ||
-                         m.find(":7b") != std::string::npos || m.find(":1B") != std::string::npos || m.find(":3B") != std::string::npos ||
-                         m.find(":4B") != std::string::npos || m.find(":7B") != std::string::npos);
-        if (is_small) sys = SMALL_SYSTEM_PROMPT;
+      if (!cfg.system_prompt_override && is_small_model(cfg.model)) {
+        sys = SMALL_SYSTEM_PROMPT;
       }
       messages.push_back({"system", sys});
     }

@@ -11,6 +11,14 @@
 
 #include "system_prompt_generated.h"
 
+/// Named host entry for the host registry (.config/hosts.json, ADR-108)
+struct HostEntry {
+  std::string name;  ///< Friendly name (e.g. "friday")
+  std::string host;  ///< Hostname or IP (e.g. "friday.local")
+  std::string port = "11434";
+  std::string note;  ///< Annotation (e.g. "Intel MacBook")
+};
+
 /**
  * Application configuration container for the CLI.
  *
@@ -43,6 +51,7 @@ struct Config {
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port
   std::vector<std::string> hosts;                          ///< Discovered Ollama hosts (OLLAMA_HOSTS, /scan)
+  std::vector<HostEntry> named_hosts;                      ///< Named host registry (.config/hosts.json, ADR-108)
   std::string model = default_model;                       ///< LLM model name
   int timeout = 120;                                       ///< HTTP request timeout in seconds
   int exec_timeout = 30;                                   ///< Max seconds for command execution
@@ -100,5 +109,17 @@ void print_default_env();
 
 // Save or update a key=value in .env file (persists settings across sessions)
 bool save_to_dotenv(const std::string& key, const std::string& value);
+
+// Check if a model name indicates a small model (≤7B) that needs a simpler prompt
+bool is_small_model(const std::string& model_name);
+
+// Load named hosts from .config/hosts.json (ADR-108)
+std::vector<HostEntry> load_hosts_json(const std::string& path = ".config/hosts.json");
+
+// Save named hosts to .config/hosts.json
+bool save_hosts_json(const std::vector<HostEntry>& hosts, const std::string& path = ".config/hosts.json");
+
+// Lookup a host entry by IP/hostname, returns name+note if found
+std::string host_display_name(const std::string& host_port);
 
 #endif

@@ -498,6 +498,8 @@ Config load_config(int argc, const char* const argv[]) {
   if (!validate_config(c)) {
     std::exit(1);  // validation errors already printed to stderr
   }
+  // Load named hosts registry (ADR-108)
+  c.named_hosts = load_hosts_json(".config/hosts.json");
   Config::instance() = c;
   return c;
 }
@@ -571,4 +573,70 @@ bool save_to_dotenv(const std::string& key, const std::string& value) {
     out << l << "\n";
   }
   return true;
+}
+
+// --- Named host registry (ADR-108) ---
+
+#include "json/json.h"
+
+/// Check if model name indicates a small model (≤7B) needing simpler prompt (ADR-109)
+bool is_small_model(const std::string& model_name) {
+  static const char* small_tags[] = {
+      ":1b", ":2b", ":3b", ":4b", ":7b", ":1B", ":2B", ":3B", ":4B", ":7B", ":e2b", ":e4b", ":E2B", ":E4B",
+  };
+  for (const auto* tag : small_tags) {
+    if (model_name.find(tag) != std::string::npos) return true;
+  }
+  return false;
+}
+
+std::vector<HostEntry> load_hosts_json(const std::string& path) {
+  std::vector<HostEntry> result;
+  std::ifstream f(path);
+  if (!f.is_open()) return result;
+  std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+
+  // Simple array-of-objects parser using existing json helpers
+  size_t pos = 0;
+  while ((pos = content.find('{', pos)) != std::string::npos) {
+    std::string obj = json_extract_object_at(content, pos);
+    if (obj.empty()) break;
+    HostEntry e;
+    e.name = json_extract_string(obj, "name");
+    e.host = json_extract_string(obj, "host");
+    std::string p = json_extract_string(obj, "port");
+    e.port = p.empty() ? "11434" : p;
+    e.note = json_extract_string(obj, "note");
+    if (!e.host.empty()) result.push_back(e);
+    pos += obj.size();
+  }
+  return result;
+}
+
+bool save_hosts_json(const std::vector<HostEntry>& hosts, const std::string& path) {
+  std::ofstream f(path);
+  if (!f.is_open()) return false;
+  f << "[\n";
+  for (size_t i = 0; i < hosts.size(); i++) {
+    f << "  { \"name\": \"" << escape_json(hosts[i].name) << "\", \"host\": \"" << escape_json(hosts[i].host) << "\", \"port\": \""
+      << hosts[i].port << "\", \"note\": \"" << escape_json(hosts[i].note) << "\" }";
+    if (i + 1 < hosts.size()) f << ",";
+    f << "\n";
+  }
+  f << "]\n";
+  return true;
+}
+
+std::string host_display_name(const std::string& host_port) {
+  const auto& named = Config::instance().named_hosts;
+  auto colon = host_port.rfind(':');
+  std::string h = (colon != std::string::npos) ? host_port.substr(0, colon) : host_port;
+  for (const auto& e : named) {
+    if (e.host == h || e.host == host_port || e.name == h) {
+      std::string display = e.name;
+      if (!e.note.empty()) display += " (" + e.note + ")";
+      return display;
+    }
+  }
+  return host_port;  // fallback: raw host:port
 }

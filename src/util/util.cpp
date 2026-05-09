@@ -127,7 +127,13 @@ std::string strip_ansi(const std::string& s) {
 #include <mutex>
 #include <unordered_map>
 
+#include "config/config.h"
+
 std::string resolve_display_name(const std::string& host_port) {
+  // Check named hosts registry first (ADR-108)
+  std::string named = host_display_name(host_port);
+  if (named != host_port) return named;
+
   // Cache: avoid repeated DNS lookups for the same host
   static std::unordered_map<std::string, std::string> cache;
   static std::mutex mtx;

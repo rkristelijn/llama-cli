@@ -1,0 +1,7 @@
+[
+  { "name": "friday", "host": "friday.local", "port": "11434", "note": "Intel MacBook" },
+  { "name": "pepper", "host": "pepper.local", "port": "11434", "note": "NUC" },
+  { "name": "jarvis", "host": "jarvis.local", "port": "11434", "note": "NUC" },
+  { "name": "roz", "host": "roz-desktop", "port": "11434", "note": "Desktop, super GPU" },
+  { "name": "ultron", "host": "ultron.local", "port": "11434", "note": "Mac Mini" }
+]

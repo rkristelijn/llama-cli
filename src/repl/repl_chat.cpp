@@ -278,13 +278,45 @@ static constexpr const char* reminder_nudge =
 void send_prompt(const std::string& line, ReplState& s) {
   // Prompt gate: validate before expensive calls (ADR-081)
   LOG_FEATURE("prompt_gate");
-  std::string trimmed = line;
+  std::string input = line;  // mutable copy for potential rewrite
+  std::string trimmed = input;
   while (!trimmed.empty() && (trimmed.front() == ' ' || trimmed.front() == '\t')) {
     trimmed.erase(trimmed.begin());
   }
   if (trimmed.empty()) {
     s.out << "[empty prompt — type something or /help]\n";
     return;
+  }
+  // Intercept "y"/"yes"/"ja" after model suggested a command in plain text
+  if ((trimmed == "y" || trimmed == "yes" || trimmed == "ja") && !s.history.empty()) {
+    const auto& last = s.history.back();
+    if (last.role == "assistant") {
+      // Check if last response contained a backtick code block with a shell command
+      auto tick = last.content.find('`');
+      if (tick != std::string::npos) {
+        // Extract command from `...` or ```...\n...\n```
+        std::string cmd;
+        if (last.content.substr(tick, 3) == "```") {
+          auto start = last.content.find('\n', tick);
+          auto end = last.content.find("```", tick + 3);
+          if (start != std::string::npos && end != std::string::npos) {
+            cmd = last.content.substr(start + 1, end - start - 1);
+          }
+        } else {
+          auto end = last.content.find('`', tick + 1);
+          if (end != std::string::npos) {
+            cmd = last.content.substr(tick + 1, end - tick - 1);
+          }
+        }
+        // Trim and validate — only single-line commands
+        while (!cmd.empty() && (cmd.back() == '\n' || cmd.back() == ' ')) cmd.pop_back();
+        while (!cmd.empty() && (cmd.front() == '\n' || cmd.front() == ' ')) cmd.erase(cmd.begin());
+        if (!cmd.empty() && cmd.find('\n') == std::string::npos) {
+          s.out << "[running: " << cmd << "]\n";
+          input = "!" + cmd;  // Treat as shell exec
+        }
+      }
+    }
   }
   // Warn on very short prompts (likely incomplete thought)
   int words = 1;
@@ -299,7 +331,7 @@ void send_prompt(const std::string& line, ReplState& s) {
   // Detect repeat of previous prompt
   if (s.history.size() >= 2) {
     for (int i = static_cast<int>(s.history.size()) - 1; i >= 0; i--) {
-      if (s.history[i].role == "user" && s.history[i].content == line) {
+      if (s.history[i].role == "user" && s.history[i].content == input) {
         s.out << tui::active_theme().warning.ansi() << "[hint: same as a previous prompt — rephrase?]" << ThemeStyle::reset() << "\n";
         break;
       }
@@ -307,7 +339,7 @@ void send_prompt(const std::string& line, ReplState& s) {
   }
 
   if (s.cfg.trace) {
-    stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, line.c_str());
+    stderr_trace->log("[TRACE] iteration=%d prompt=%.50s\n", s.count, input.c_str());
   }
 
   // Inject reminder after iteration 2 to prevent model drift (ADR-054)
@@ -316,7 +348,7 @@ void send_prompt(const std::string& line, ReplState& s) {
     s.history.push_back({"system", reminder_nudge});
     inserted_reminder = true;
   }
-  s.history.push_back({"user", line});
+  s.history.push_back({"user", input});
 
   // Sliding window: trim old messages before sending to LLM
   trim_history(s.history, s.cfg.max_history);

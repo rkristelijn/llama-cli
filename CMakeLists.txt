@@ -188,7 +188,7 @@ target_include_directories(llama-cli PRIVATE ${SRC_INCLUDE})
 target_link_libraries(llama-cli PRIVATE httplib::httplib)
 
 # Unit tests
-add_executable(test_config src/config/config_test.cpp src/config/config.cpp)
+add_executable(test_config src/config/config_test.cpp src/config/config.cpp src/json/json.cpp)
 target_include_directories(test_config PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_config PRIVATE doctest::doctest)
 
