@@ -1,0 +1,5 @@
+[
+  { "name": "server1", "host": "server1.local", "port": "11434", "ip": "192.168.1.10", "note": "Main GPU server" },
+  { "name": "laptop", "host": "laptop.local", "port": "11434", "ip": "192.168.1.20", "note": "MacBook M2" },
+  { "name": "nuc", "host": "nuc.local", "port": "11434", "ip": "192.168.1.30", "note": "Intel NUC, CPU only" }
+]

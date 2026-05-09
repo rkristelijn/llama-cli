@@ -19,7 +19,7 @@ std::string ansi_to_name(const std::string& code);
 
 /// Resolve an IP:port string to a friendly display name (hostname:port).
 /// Uses lazy DNS reverse lookup with caching. Returns original if unresolvable.
-/// Example: "10.0.0.72:11434" → "jarvis.local:11434"
+/// Example: "192.168.1.10:11434" → "myhost.local:11434"
 std::string resolve_display_name(const std::string& host_port);
 
 /// Shell-escape a string with single quotes (safe for subprocess invocation).

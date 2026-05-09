@@ -1,7 +1,0 @@
-[
-  { "name": "jarvis", "host": "jarvis.local", "port": "11434", "ip": "10.0.0.93", "note": "NUC, 8 models" },
-  { "name": "pepper", "host": "pepper.local", "port": "11434", "ip": "10.0.0.197", "note": "NUC" },
-  { "name": "ultron", "host": "ultron.local", "port": "11434", "ip": "10.0.0.72", "note": "Mac Mini" },
-  { "name": "friday", "host": "friday.local", "port": "11434", "ip": "10.0.0.42", "note": "Intel MacBook" },
-  { "name": "roz", "host": "roz-desktop", "port": "11434", "ip": "10.0.0.198", "note": "Desktop, super GPU" }
-]
