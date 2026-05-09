@@ -1121,35 +1121,41 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     // --- Context compression: summarize history to reduce token usage ---
   } else if (command == "compress") {
     LOG_FEATURE("cmd_compress");
-    // Compress history: keep system prompt + generate summary of conversation
+    // Compress history: keep system prompt + LLM-generated summary
     if (s.history.size() <= 2) {
       s.out << "[nothing to compress — conversation too short]\n";
     } else {
-      // Build summary from conversation
-      std::string summary = "Previous conversation summary: ";
-      int msg_count = 0;
+      s.out << "Compressing conversation...\n";
+      s.out.flush();
+      // Build the conversation text for summarization
+      std::string conversation;
       for (const auto& msg : s.history) {
-        if (msg.role == "system") {
-          continue;
-        }
-        if (msg.role == "user") {
-          summary += "User asked about: " + msg.content.substr(0, 60);
-          if (msg.content.size() > 60) {
-            summary += "...";
-          }
-          summary += ". ";
-          msg_count++;
-        }
+        if (msg.role == "system") continue;
+        conversation += msg.role + ": " + msg.content.substr(0, 200) + "\n";
       }
-      // Keep system prompt, replace everything else with summary
-      std::vector<Message> compressed;
-      if (!s.history.empty() && s.history[0].role == "system") {
-        compressed.push_back(s.history[0]);
+      // Ask LLM to summarize
+      std::vector<Message> sum_msgs = {{"system",
+                                        "Summarize this conversation in 2-4 bullet points. "
+                                        "Include: topics discussed, decisions made, and any pending items. "
+                                        "Be concise. Respond in the same language as the conversation."},
+                                       {"user", conversation}};
+      std::string summary;
+      s.stream_chat(sum_msgs, [&summary](const std::string& token) {
+        summary += token;
+        return true;
+      });
+      if (summary.empty()) {
+        s.out << "[compress failed — model did not respond]\n";
+      } else {
+        std::vector<Message> compressed;
+        if (!s.history.empty() && s.history[0].role == "system") {
+          compressed.push_back(s.history[0]);
+        }
+        compressed.push_back({"assistant", "Previous conversation summary:\n" + summary});
+        int removed = static_cast<int>(s.history.size()) - static_cast<int>(compressed.size());
+        s.history = compressed;
+        s.out << "\n[compressed: " << removed << " messages → summary]\n";
       }
-      compressed.push_back({"assistant", summary});
-      int removed = static_cast<int>(s.history.size()) - static_cast<int>(compressed.size());
-      s.history = compressed;
-      s.out << "[compressed: " << removed << " messages → summary (" << msg_count << " topics retained)]\n";
     }
   } else {
     s.out << "Unknown command: /" << command << ". Type /help for options.\n";
