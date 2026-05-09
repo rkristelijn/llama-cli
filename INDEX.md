@@ -102,6 +102,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-108-named-host-registry.md`](docs/adr/adr-108-named-host-registry.md) — ADR-108: Named Host Registry
 - [`docs/adr/adr-109-scaled-system-prompt.md`](docs/adr/adr-109-scaled-system-prompt.md) — ADR-109: Scaled System Prompt by Model Size
 - [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — ADR-110: Model Size Classification and Hardware Mapping
+- [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — ADR-111: Hook-Based Plugin Architecture
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -396,4 +397,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_393 files indexed._
+_394 files indexed._
