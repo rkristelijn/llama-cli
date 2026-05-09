@@ -98,4 +98,7 @@ Config load_config(int argc, const char* const argv[]);
 // Print default .env file content to stdout
 void print_default_env();
 
+// Save or update a key=value in .env file (persists settings across sessions)
+bool save_to_dotenv(const std::string& key, const std::string& value);
+
 #endif

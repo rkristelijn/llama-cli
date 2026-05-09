@@ -93,6 +93,12 @@ static void show_options(ReplState& s) {
   s.out << "\nColors (/color prompt|ai <name>):\n";
   s.out << "  prompt    " << ansi_to_name(s.prompt_color) << "\n";
   s.out << "  ai        " << ansi_to_name(s.ai_color) << "\n";
+
+  s.out << "\nConnection (persisted in .env):\n";
+  s.out << "  model     " << Config::instance().model << "\n";
+  s.out << "  host      " << Config::instance().host << "\n";
+  s.out << "  port      " << Config::instance().port << "\n";
+  s.out << "  provider  " << Config::instance().provider << "\n";
 }
 
 /// Toggle a named option, return true if recognized.
@@ -124,39 +130,6 @@ static bool toggle_option(const std::string& name, ReplState& s) {
     }
   }
   return false;
-}
-
-/// Save or update a key=value in .env file.
-/// Reads existing lines, replaces matching key or appends new one.
-/// Used by /color and /scan to persist settings across sessions.
-static bool save_to_dotenv(const std::string& key, const std::string& value) {
-  std::string path = ".env";
-  std::vector<std::string> lines;
-  bool found = false;
-  std::ifstream in(path);
-  if (in.is_open()) {
-    std::string line;
-    while (std::getline(in, line)) {
-      std::string prefix = key + "=";
-      if (line.compare(0, prefix.size(), prefix) == 0) {
-        line = key + "=" + value;
-        found = true;
-      }
-      lines.push_back(line);
-    }
-    in.close();
-  }
-  if (!found) {
-    lines.push_back(key + "=" + value);
-  }
-  std::ofstream out(path);
-  if (!out.is_open()) {
-    return false;
-  }
-  for (const auto& l : lines) {
-    out << l << "\n";
-  }
-  return true;
 }
 
 /// Ensure parent directory exists for a file path (ADR-059)

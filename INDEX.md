@@ -98,6 +98,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-104-i18n-string-centralization.md`](docs/adr/adr-104-i18n-string-centralization.md) — Centralize user-facing strings in a single source for easier maintenance and localization.
 - [`docs/adr/adr-105-sonarcloud-debt-reduction.md`](docs/adr/adr-105-sonarcloud-debt-reduction.md) — Implement incremental refactoring to reduce technical debt in SonarCloud.
 - [`docs/adr/adr-106-high-performance-testing.md`](docs/adr/adr-106-high-performance-testing.md) — Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
+- [`docs/adr/adr-107-env-persistence.md`](docs/adr/adr-107-env-persistence.md) — ADR-107: Persist Model and Host Selection to .env
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
@@ -392,4 +393,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_389 files indexed._
+_390 files indexed._

@@ -541,3 +541,74 @@ SCENARIO ("config from env with invalid numeric value") {
     clean_env();
   }
 }
+
+// --- Tests for save_to_dotenv persistence ---
+
+SCENARIO ("save_to_dotenv creates .env if missing") {
+  GIVEN ("no .env file exists") {
+    std::remove(".env");
+    WHEN ("save_to_dotenv is called") {
+      bool ok = save_to_dotenv("OLLAMA_MODEL", "gemma4:26b");
+      THEN ("it creates the file with the key") {
+        CHECK (ok)
+          ;
+        std::ifstream f(".env");
+        std::string line;
+        std::getline(f, line);
+        CHECK (line == "OLLAMA_MODEL=gemma4:26b")
+          ;
+      }
+    }
+    std::remove(".env");
+  }
+}
+
+SCENARIO ("save_to_dotenv updates existing key") {
+  GIVEN ("a .env file with OLLAMA_MODEL=old") {
+    {
+      std::ofstream f(".env");
+      f << "OLLAMA_HOST=localhost\nOLLAMA_MODEL=old\nOLLAMA_PORT=11434\n";
+    }
+    WHEN ("save_to_dotenv updates OLLAMA_MODEL") {
+      bool ok = save_to_dotenv("OLLAMA_MODEL", "gemma4:e4b");
+      THEN ("only that key is updated, others preserved") {
+        CHECK (ok)
+          ;
+        std::ifstream f(".env");
+        std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        CHECK (content.find("OLLAMA_MODEL=gemma4:e4b") != std::string::npos)
+          ;
+        CHECK (content.find("OLLAMA_HOST=localhost") != std::string::npos)
+          ;
+        CHECK (content.find("OLLAMA_PORT=11434") != std::string::npos)
+          ;
+        CHECK (content.find("OLLAMA_MODEL=old") == std::string::npos)
+          ;
+      }
+    }
+    std::remove(".env");
+  }
+}
+
+SCENARIO ("save_to_dotenv appends new key") {
+  GIVEN ("a .env file without OLLAMA_PORT") {
+    {
+      std::ofstream f(".env");
+      f << "OLLAMA_HOST=myhost\n";
+    }
+    WHEN ("save_to_dotenv adds OLLAMA_PORT") {
+      bool ok = save_to_dotenv("OLLAMA_PORT", "8080");
+      THEN ("the key is appended") {
+        CHECK (ok)
+          ;
+        std::ifstream f(".env");
+        std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        CHECK (content.find("OLLAMA_HOST=myhost") != std::string::npos)
+          ;
+        CHECK (content.find("OLLAMA_PORT=8080") != std::string::npos)
+          ;
+      }
+    }
+    std::remove(".env");
+  }
+}

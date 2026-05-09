@@ -540,3 +540,35 @@ void print_default_env() {
             << "# LLAMA_AI_COLOR=" << c.ai_color << " # AI response color (purple, green, etc.)\n"
             << "# OLLAMA_SYSTEM_PROMPT=\"" << flat_prompt << "\" # System prompt\n";
 }
+
+/// Save or update a key=value in .env file.
+/// Reads existing lines, replaces matching key or appends new one.
+bool save_to_dotenv(const std::string& key, const std::string& value) {
+  std::string path = ".env";
+  std::vector<std::string> lines;
+  bool found = false;
+  std::ifstream in(path);
+  if (in.is_open()) {
+    std::string line;
+    while (std::getline(in, line)) {
+      std::string prefix = key + "=";
+      if (line.compare(0, prefix.size(), prefix) == 0) {
+        line = key + "=" + value;
+        found = true;
+      }
+      lines.push_back(line);
+    }
+    in.close();
+  }
+  if (!found) {
+    lines.push_back(key + "=" + value);
+  }
+  std::ofstream out(path);
+  if (!out.is_open()) {
+    return false;
+  }
+  for (const auto& l : lines) {
+    out << l << "\n";
+  }
+  return true;
+}
