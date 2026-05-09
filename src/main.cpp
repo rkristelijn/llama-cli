@@ -199,7 +199,11 @@ int main(int argc, char* argv[]) {
     }
     // Add system prompt only if starting a new conversation
     if (messages.empty() && !cfg.system_prompt.empty()) {
-      messages.push_back({"system", cfg.system_prompt});
+      std::string sys = cfg.system_prompt;
+      if (!cfg.system_prompt_override && is_small_model(cfg.model)) {
+        sys = SMALL_SYSTEM_PROMPT;
+      }
+      messages.push_back({"system", sys});
     }
     messages.push_back({"user", cfg.prompt});
     std::string response = generate_response(messages);

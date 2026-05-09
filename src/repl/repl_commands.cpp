@@ -93,6 +93,12 @@ static void show_options(ReplState& s) {
   s.out << "\nColors (/color prompt|ai <name>):\n";
   s.out << "  prompt    " << ansi_to_name(s.prompt_color) << "\n";
   s.out << "  ai        " << ansi_to_name(s.ai_color) << "\n";
+
+  s.out << "\nConnection (persisted in .env):\n";
+  s.out << "  model     " << Config::instance().model << "\n";
+  s.out << "  host      " << Config::instance().host << "\n";
+  s.out << "  port      " << Config::instance().port << "\n";
+  s.out << "  provider  " << Config::instance().provider << "\n";
 }
 
 /// Toggle a named option, return true if recognized.
@@ -124,39 +130,6 @@ static bool toggle_option(const std::string& name, ReplState& s) {
     }
   }
   return false;
-}
-
-/// Save or update a key=value in .env file.
-/// Reads existing lines, replaces matching key or appends new one.
-/// Used by /color and /scan to persist settings across sessions.
-static bool save_to_dotenv(const std::string& key, const std::string& value) {
-  std::string path = ".env";
-  std::vector<std::string> lines;
-  bool found = false;
-  std::ifstream in(path);
-  if (in.is_open()) {
-    std::string line;
-    while (std::getline(in, line)) {
-      std::string prefix = key + "=";
-      if (line.compare(0, prefix.size(), prefix) == 0) {
-        line = key + "=" + value;
-        found = true;
-      }
-      lines.push_back(line);
-    }
-    in.close();
-  }
-  if (!found) {
-    lines.push_back(key + "=" + value);
-  }
-  std::ofstream out(path);
-  if (!out.is_open()) {
-    return false;
-  }
-  for (const auto& l : lines) {
-    out << l << "\n";
-  }
-  return true;
 }
 
 /// Ensure parent directory exists for a file path (ADR-059)
@@ -255,8 +228,20 @@ static void handle_scan(ReplState& s) {
     return;
   }
   s.out << "Found " << hosts.size() << " Ollama server(s):\n";
+
+  // Resolve hostnames via mDNS and update hosts.json
+  // Shows friendly names from hosts.json, falls back to reverse DNS lookup
   for (const auto& h : hosts) {
-    s.out << "  " << h << "\n";
+    auto colon = h.find(':');
+    std::string ip = (colon != std::string::npos) ? h.substr(0, colon) : h;
+    std::string display = host_display_name(h);
+    // Try mDNS reverse lookup if not already named
+    if (display == h) {
+      display = resolve_display_name(h);
+    }
+    s.out << "  " << display;
+    if (display != h) s.out << " (" << ip << ")";
+    s.out << "\n";
   }
   // Write to .env (append or update OLLAMA_HOSTS line)
   std::string hosts_str;
@@ -623,6 +608,66 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       s.out << "[clipboard not available — install pbpaste or xclip]\n";
     }
+  } else if (command == "browse") {
+    LOG_FEATURE("cmd_browse");
+    // Show all models across all hosts with performance prediction
+    if (!s.registry || s.registry->models.empty()) {
+      s.out << "[no registry — models not scanned yet]\n";
+    } else {
+      HardwareInfo hw = s.hw_fn();
+      long avail_gb = (hw.vram_gb > 0) ? hw.vram_gb : hw.ram_gb;
+      s.out << "Hardware: " << hw.ram_gb << "GB RAM";
+      if (hw.vram_gb > 0) s.out << ", ~" << hw.vram_gb << "GB usable for LLM";
+      s.out << "\n";
+      s.out << "Rule: params × 0.7 ≈ GB needed (Q4 quantization)\n\n";
+      s.out << std::left << std::setw(28) << "Model" << std::setw(12) << "Params" << std::setw(10) << "Size" << std::setw(16) << "Host"
+            << "Fit\n";
+      s.out << std::string(76, '-') << "\n";
+      for (const auto& m : s.registry->models) {
+        // Get model info if available
+        std::string params_str = "-";
+        double size_gb = 0;
+        // Try to find in model info cache
+        Config tmp = s.cfg;
+        auto colon = m.host.find(':');
+        if (colon != std::string::npos) {
+          tmp.host = m.host.substr(0, colon);
+          tmp.port = m.host.substr(colon + 1);
+        }
+        auto infos = s.model_info_fn(tmp);
+        for (const auto& info : infos) {
+          if (info.name == m.name) {
+            params_str = info.params;
+            size_gb = info.size_gb;
+            break;
+          }
+        }
+        // Predict fit
+        std::string fit;
+        if (size_gb > 0 && avail_gb > 0) {
+          if (size_gb <= avail_gb * 0.7)
+            fit = "✓ fast";
+          else if (size_gb <= avail_gb)
+            fit = "~ tight";
+          else
+            fit = "✗ too large";
+        }
+        std::string host_display = host_display_name(m.host);
+        // Truncate long names
+        std::string name_trunc = m.name;
+        if (name_trunc.size() > 26) name_trunc = name_trunc.substr(0, 24) + "..";
+        if (host_display.size() > 14) host_display = host_display.substr(0, 12) + "..";
+        std::ostringstream size_str;
+        if (size_gb > 0)
+          size_str << std::fixed << std::setprecision(1) << size_gb << "GB";
+        else
+          size_str << "-";
+        s.out << std::left << std::setw(28) << name_trunc << std::setw(12) << params_str << std::setw(10) << size_str.str() << std::setw(16)
+              << host_display << fit << "\n";
+      }
+      s.out << "\n✓=fits in memory, ~=tight fit (may offload), ✗=needs more RAM\n";
+      s.out << "Pull new: ollama pull <model> (on target host)\n";
+    }
   } else if (command == "help" || command.empty()) {
     LOG_FEATURE("cmd_help");
     // Paginate help output based on terminal height (same pattern as /model)
@@ -685,8 +730,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
           } catch (...) {
           }
           if (s.switch_provider) {
+            // Persist provider choice so next session starts with same provider
             s.switch_provider(input);
-            s.out << "[switched to " << input << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
+            save_to_dotenv("LLAMA_PROVIDER", input);
+            s.out << "[switched to " << input << ": " << Config::instance().model << "@" << Config::instance().host << " (saved)]\n";
           }
         }
       } else {
@@ -696,7 +743,8 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       if (s.switch_provider) {
         s.switch_provider(arg);
-        s.out << "[switched to " << arg << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
+        save_to_dotenv("LLAMA_PROVIDER", arg);
+        s.out << "[switched to " << arg << ": " << Config::instance().model << "@" << Config::instance().host << " (saved)]\n";
       } else {
         s.out << "[provider switching not available]\n";
       }
@@ -787,7 +835,11 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
               if (s.switch_provider) {
                 s.switch_provider(m.provider);
               }
-              s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << "]\n";
+              save_to_dotenv("LLAMA_PROVIDER", m.provider);
+              save_to_dotenv("OLLAMA_MODEL", m.name);
+              save_to_dotenv("OLLAMA_HOST", Config::instance().host);
+              save_to_dotenv("OLLAMA_PORT", Config::instance().port);
+              s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << " (saved)]\n";
               break;
             }
           }
@@ -1023,6 +1075,25 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << running << " task(s) still running.\n";
       }
     }
+    // --- Spinner personality: /spinner <name> (plugin from .config/spinners/) ---
+    // Loads custom spinner messages from text files, enabling personality plugins.
+    // Built-in: default (thinking...), bofh (sarcastic). Custom: any .txt file.
+  } else if (command == "spinner") {
+    LOG_FEATURE("cmd_spinner");
+    if (arg.empty()) {
+      std::string current = s.spinner_name.empty() ? (s.bofh ? "bofh" : "default") : s.spinner_name;
+      s.out << "[spinner: " << current << "]\n";
+      s.out << "Usage: /spinner <name> — loads .config/spinners/<name>.txt\n";
+      s.out << "Built-in: default, bofh. Drop .txt files for custom personalities.\n";
+    } else if (arg == "default" || arg == "off") {
+      s.spinner_name.clear();
+      s.bofh = false;
+      s.out << "[spinner: default]\n";
+    } else {
+      s.spinner_name = arg;
+      auto msgs = tui::personality_messages(arg);
+      s.out << "[spinner: " << arg << " (" << msgs.size() << " messages)]\n";
+    }
     // --- Theme switching: /theme <name> or /theme set <role> <color> (ADR-080) ---
   } else if (command == "theme") {
     LOG_FEATURE("cmd_theme");
@@ -1088,35 +1159,41 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     // --- Context compression: summarize history to reduce token usage ---
   } else if (command == "compress") {
     LOG_FEATURE("cmd_compress");
-    // Compress history: keep system prompt + generate summary of conversation
+    // Compress history: keep system prompt + LLM-generated summary
     if (s.history.size() <= 2) {
       s.out << "[nothing to compress — conversation too short]\n";
     } else {
-      // Build summary from conversation
-      std::string summary = "Previous conversation summary: ";
-      int msg_count = 0;
+      s.out << "Compressing conversation...\n";
+      s.out.flush();
+      // Build the conversation text for summarization
+      std::string conversation;
       for (const auto& msg : s.history) {
-        if (msg.role == "system") {
-          continue;
-        }
-        if (msg.role == "user") {
-          summary += "User asked about: " + msg.content.substr(0, 60);
-          if (msg.content.size() > 60) {
-            summary += "...";
-          }
-          summary += ". ";
-          msg_count++;
-        }
+        if (msg.role == "system") continue;
+        conversation += msg.role + ": " + msg.content.substr(0, 200) + "\n";
       }
-      // Keep system prompt, replace everything else with summary
-      std::vector<Message> compressed;
-      if (!s.history.empty() && s.history[0].role == "system") {
-        compressed.push_back(s.history[0]);
+      // Ask LLM to summarize
+      std::vector<Message> sum_msgs = {{"system",
+                                        "Summarize this conversation in 2-4 bullet points. "
+                                        "Include: topics discussed, decisions made, and any pending items. "
+                                        "Be concise. Respond in the same language as the conversation."},
+                                       {"user", conversation}};
+      std::string summary;
+      s.stream_chat(sum_msgs, [&summary](const std::string& token) {
+        summary += token;
+        return true;
+      });
+      if (summary.empty()) {
+        s.out << "[compress failed — model did not respond]\n";
+      } else {
+        std::vector<Message> compressed;
+        if (!s.history.empty() && s.history[0].role == "system") {
+          compressed.push_back(s.history[0]);
+        }
+        compressed.push_back({"assistant", "Previous conversation summary:\n" + summary});
+        int removed = static_cast<int>(s.history.size()) - static_cast<int>(compressed.size());
+        s.history = compressed;
+        s.out << "\n[compressed: " << removed << " messages → summary]\n";
       }
-      compressed.push_back({"assistant", summary});
-      int removed = static_cast<int>(s.history.size()) - static_cast<int>(compressed.size());
-      s.history = compressed;
-      s.out << "[compressed: " << removed << " messages → summary (" << msg_count << " topics retained)]\n";
     }
   } else {
     s.out << "Unknown command: /" << command << ". Type /help for options.\n";

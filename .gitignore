@@ -22,6 +22,8 @@ compile_commands.json
 coverage.info
 events.jsonl
 # Local delegation config (hostnames, not committed)
-.config/delegation.local.ymlbuild-san/
+.config/delegation.local.yml
+.config/hosts.json
+build-san/
 build-test/
 build-cov/

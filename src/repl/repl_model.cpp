@@ -426,10 +426,16 @@ void handle_model_selection(ReplState& s, const std::string& arg) {
     Config::instance().model = selected.name;
     Config::instance().host = selected.host;
     Config::instance().port = selected.port;
+
+    // Persist to .env so next session starts with this model/host
+    save_to_dotenv("OLLAMA_MODEL", selected.name);
+    save_to_dotenv("OLLAMA_HOST", selected.host);
+    save_to_dotenv("OLLAMA_PORT", selected.port);
+
     if (multi) {
-      s.out << "[model set to " << selected.name << " on " << selected.host << ":" << selected.port << "]\n";
+      s.out << "[model set to " << selected.name << " on " << selected.host << ":" << selected.port << " (saved to .env)]\n";
     } else {
-      s.out << "[model set to " << selected.name << "]\n";
+      s.out << "[model set to " << selected.name << " (saved to .env)]\n";
     }
 
     // Optional warmup after switch to avoid first-prompt delay

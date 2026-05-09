@@ -95,6 +95,9 @@ assert_feature "cmd_version"
 # --- /set ---
 output=$(printf "/set\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_contains "$output" "trace" "/set shows options"
+assert_contains "$output" "model" "/set shows model"
+assert_contains "$output" "host" "/set shows host"
+assert_contains "$output" "port" "/set shows port"
 assert_feature "cmd_set"
 
 # --- /clear ---

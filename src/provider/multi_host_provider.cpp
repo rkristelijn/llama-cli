@@ -96,12 +96,17 @@ std::string MultiHostProvider::chat_stream(const std::vector<Message>& messages,
   if (Config::instance().trace) {
     stderr_trace->log("[TRACE] MultiHost: chat_stream → %s model=%s\n", hosts_[active_idx_].provider->host().c_str(), model_.c_str());
   }
-  std::string result = hosts_[active_idx_].provider->chat_stream(messages, on_token);
+  // Downgrade system prompt for small models routed to different hosts (ADR-109)
+  std::vector<Message> adjusted = messages;
+  if (is_small_model(model_) && !adjusted.empty() && adjusted[0].role == "system") {
+    adjusted[0].content = SMALL_SYSTEM_PROMPT;
+  }
+  std::string result = hosts_[active_idx_].provider->chat_stream(adjusted, on_token);
   if (result.empty() && failover()) {
     if (Config::instance().trace) {
       stderr_trace->log("[TRACE] MultiHost: failover → %s\n", hosts_[active_idx_].provider->host().c_str());
     }
-    result = hosts_[active_idx_].provider->chat_stream(messages, on_token);
+    result = hosts_[active_idx_].provider->chat_stream(adjusted, on_token);
   }
   return result;
 }

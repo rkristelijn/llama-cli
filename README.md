@@ -78,7 +78,7 @@ hello                          # chat with the LLM
 !ls src/                       # run command, output to terminal
 !!cat src/main.cpp             # run command, output as LLM context
 what does this code do?        # LLM can now see the file
-/model                         # list all models across all hosts
+/model                         # switch model (persisted to .env)
 /provider                      # list and switch providers
 /agent bofh                    # switch personality (monk, architect, etc.)
 /auto                          # toggle smart routing by complexity

@@ -348,8 +348,12 @@ std::vector<ModelInfo> get_model_info(const Config& cfg) {
       info.quant = json_extract_string(details, "quantization_level");
       info.family = json_extract_string(details, "family");
     }
-    // Size in bytes → GB
-    int size_bytes = json_extract_int(obj, "size");
+    // Size in bytes → GB (use long long to avoid int overflow on large models)
+    auto size_pos = obj.find("\"size\":");
+    long long size_bytes = 0;
+    if (size_pos != std::string::npos) {
+      size_bytes = std::atoll(obj.c_str() + size_pos + 7);
+    }
     info.size_gb = size_bytes / 1073741824.0;
     result.push_back(info);
     pos += obj.size();

@@ -48,6 +48,7 @@ struct ReplState {
   bool interactive = false;         ///< Whether running on a real TTY (for spinner)
   bool markdown = true;             ///< Whether to render markdown in LLM output
   bool bofh = false;                ///< BOFH mode: sarcastic spinner
+  std::string spinner_name;         ///< Spinner personality plugin name (overrides bofh)
   bool warmup = false;              ///< Whether to warm up model on switch
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)

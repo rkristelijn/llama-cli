@@ -263,6 +263,10 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
     std::string sys = cfg.system_prompt;
+    // Use small prompt for models ≤7B (they can't handle complex tool instructions)
+    if (!cfg.system_prompt_override && is_small_model(cfg.model)) {
+      sys = SMALL_SYSTEM_PROMPT;
+    }
     // Append web search tool description when enabled (ADR-057)
     if (cfg.allow_web_search) {
       sys += Config::web_search_prompt;
@@ -313,6 +317,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      is_tty,
                      true,
                      cfg.bofh,
+                     "",
                      cfg.warmup,
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color),
