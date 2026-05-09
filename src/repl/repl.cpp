@@ -317,6 +317,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      is_tty,
                      true,
                      cfg.bofh,
+                     "",
                      cfg.warmup,
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color),

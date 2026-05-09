@@ -98,7 +98,10 @@ static std::string interruptible_chat(ReplState& s) {
     // After that, tokens are rendered directly via StreamRenderer.
     auto first_token = std::make_shared<std::atomic<bool>>(false);
     auto renderer = std::make_shared<StreamRenderer>(s.out, s.color && s.markdown);
-    auto spin = std::make_shared<Spinner>(s.out, s.interactive, s.bofh ? tui::bofh_messages() : tui::default_messages());
+    auto spin = std::make_shared<Spinner>(s.out, s.interactive,
+                                          !s.spinner_name.empty() ? tui::personality_messages(s.spinner_name)
+                                          : s.bofh                ? tui::personality_messages("bofh")
+                                                                  : tui::default_messages());
     // Copy history and stream_chat so the thread owns its data — safe to detach
     auto history_copy = std::make_shared<std::vector<Message>>(s.history);
     auto chat_fn = s.stream_chat;
@@ -156,7 +159,10 @@ static std::string interruptible_chat(ReplState& s) {
 static std::string chat_with_spinner(ReplState& s) {
   g_interrupted = 0;
   auto prev = std::signal(SIGINT, sigint_handler);
-  Spinner spin(s.out, s.interactive && !s.stream_chat, s.bofh ? tui::bofh_messages() : tui::default_messages());
+  Spinner spin(s.out, s.interactive && !s.stream_chat,
+               !s.spinner_name.empty() ? tui::personality_messages(s.spinner_name)
+               : s.bofh                ? tui::personality_messages("bofh")
+                                       : tui::default_messages());
   std::string result = interruptible_chat(s);
   std::signal(SIGINT, prev);
   return result;

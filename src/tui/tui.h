@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -93,6 +94,39 @@ inline std::vector<const char*> bofh_messages() {
       "dividing by almost zero...", "untangling spaghetti...",    "summoning elder functions...", "polishing the bits...",
       "herding pointers...",        "defragmenting thoughts...",  "calibrating the flux...",      "rebooting common sense...",
   };
+}
+
+/** Load spinner messages from a plugin file (one message per line).
+ *  Search: .config/spinners/<name>.txt, ~/.llama-cli/spinners/<name>.txt */
+inline std::vector<std::string> load_spinner_plugin(const std::string& name) {
+  std::vector<std::string> result;
+  const char* home = std::getenv("HOME");
+  std::string paths[] = {".config/spinners/" + name + ".txt", std::string(home ? home : ".") + "/.llama-cli/spinners/" + name + ".txt"};
+  for (const auto& path : paths) {
+    std::ifstream f(path);
+    if (f.is_open()) {
+      std::string line;
+      while (std::getline(f, line)) {
+        if (!line.empty() && line[0] != '#') result.push_back(line);
+      }
+      if (!result.empty()) return result;
+    }
+  }
+  return {};
+}
+
+/** Get spinner messages for a personality. Plugin file overrides built-in. */
+inline std::vector<const char*> personality_messages(const std::string& name) {
+  static std::vector<std::string> data;
+  static std::vector<const char*> ptrs;
+  data = load_spinner_plugin(name);
+  if (!data.empty()) {
+    ptrs.clear();
+    for (const auto& s : data) ptrs.push_back(s.c_str());
+    return ptrs;
+  }
+  if (name == "bofh") return bofh_messages();
+  return default_messages();
 }
 
 }  // namespace tui

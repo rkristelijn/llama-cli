@@ -230,6 +230,7 @@ static void handle_scan(ReplState& s) {
   s.out << "Found " << hosts.size() << " Ollama server(s):\n";
 
   // Resolve hostnames via mDNS and update hosts.json
+  // Shows friendly names from hosts.json, falls back to reverse DNS lookup
   for (const auto& h : hosts) {
     auto colon = h.find(':');
     std::string ip = (colon != std::string::npos) ? h.substr(0, colon) : h;
@@ -1066,6 +1067,25 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       if (running > 0) {
         s.out << running << " task(s) still running.\n";
       }
+    }
+    // --- Spinner personality: /spinner <name> (plugin from .config/spinners/) ---
+    // Loads custom spinner messages from text files, enabling personality plugins.
+    // Built-in: default (thinking...), bofh (sarcastic). Custom: any .txt file.
+  } else if (command == "spinner") {
+    LOG_FEATURE("cmd_spinner");
+    if (arg.empty()) {
+      std::string current = s.spinner_name.empty() ? (s.bofh ? "bofh" : "default") : s.spinner_name;
+      s.out << "[spinner: " << current << "]\n";
+      s.out << "Usage: /spinner <name> — loads .config/spinners/<name>.txt\n";
+      s.out << "Built-in: default, bofh. Drop .txt files for custom personalities.\n";
+    } else if (arg == "default" || arg == "off") {
+      s.spinner_name.clear();
+      s.bofh = false;
+      s.out << "[spinner: default]\n";
+    } else {
+      s.spinner_name = arg;
+      auto msgs = tui::personality_messages(arg);
+      s.out << "[spinner: " << arg << " (" << msgs.size() << " messages)]\n";
     }
     // --- Theme switching: /theme <name> or /theme set <role> <color> (ADR-080) ---
   } else if (command == "theme") {
