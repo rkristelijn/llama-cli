@@ -596,6 +596,66 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       s.out << "[clipboard not available — install pbpaste or xclip]\n";
     }
+  } else if (command == "browse") {
+    LOG_FEATURE("cmd_browse");
+    // Show all models across all hosts with performance prediction
+    if (!s.registry || s.registry->models.empty()) {
+      s.out << "[no registry — models not scanned yet]\n";
+    } else {
+      HardwareInfo hw = s.hw_fn();
+      long avail_gb = (hw.vram_gb > 0) ? hw.vram_gb : hw.ram_gb;
+      s.out << "Hardware: " << hw.ram_gb << "GB RAM";
+      if (hw.vram_gb > 0) s.out << ", ~" << hw.vram_gb << "GB usable for LLM";
+      s.out << "\n";
+      s.out << "Rule: params × 0.7 ≈ GB needed (Q4 quantization)\n\n";
+      s.out << std::left << std::setw(28) << "Model" << std::setw(12) << "Params" << std::setw(10) << "Size" << std::setw(16) << "Host"
+            << "Fit\n";
+      s.out << std::string(76, '-') << "\n";
+      for (const auto& m : s.registry->models) {
+        // Get model info if available
+        std::string params_str = "-";
+        double size_gb = 0;
+        // Try to find in model info cache
+        Config tmp = s.cfg;
+        auto colon = m.host.find(':');
+        if (colon != std::string::npos) {
+          tmp.host = m.host.substr(0, colon);
+          tmp.port = m.host.substr(colon + 1);
+        }
+        auto infos = s.model_info_fn(tmp);
+        for (const auto& info : infos) {
+          if (info.name == m.name) {
+            params_str = info.params;
+            size_gb = info.size_gb;
+            break;
+          }
+        }
+        // Predict fit
+        std::string fit;
+        if (size_gb > 0 && avail_gb > 0) {
+          if (size_gb <= avail_gb * 0.7)
+            fit = "✓ fast";
+          else if (size_gb <= avail_gb)
+            fit = "~ tight";
+          else
+            fit = "✗ too large";
+        }
+        std::string host_display = host_display_name(m.host);
+        // Truncate long names
+        std::string name_trunc = m.name;
+        if (name_trunc.size() > 26) name_trunc = name_trunc.substr(0, 24) + "..";
+        if (host_display.size() > 14) host_display = host_display.substr(0, 12) + "..";
+        std::ostringstream size_str;
+        if (size_gb > 0)
+          size_str << std::fixed << std::setprecision(1) << size_gb << "GB";
+        else
+          size_str << "-";
+        s.out << std::left << std::setw(28) << name_trunc << std::setw(12) << params_str << std::setw(10) << size_str.str() << std::setw(16)
+              << host_display << fit << "\n";
+      }
+      s.out << "\n✓=fits in memory, ~=tight fit (may offload), ✗=needs more RAM\n";
+      s.out << "Pull new: ollama pull <model> (on target host)\n";
+    }
   } else if (command == "help" || command.empty()) {
     LOG_FEATURE("cmd_help");
     // Paginate help output based on terminal height (same pattern as /model)
