@@ -161,6 +161,8 @@ add_compile_definitions(BUILD_TIMEZONE="${BUILD_TZ}")
 # Embed system prompt from res/system-prompt.txt (ADR-069)
 file(READ "${CMAKE_SOURCE_DIR}/res/system-prompt.txt" SYSTEM_PROMPT_CONTENT)
 string(STRIP "${SYSTEM_PROMPT_CONTENT}" SYSTEM_PROMPT_CONTENT)
+file(READ "${CMAKE_SOURCE_DIR}/res/system-prompt-small.txt" SYSTEM_PROMPT_SMALL_CONTENT)
+string(STRIP "${SYSTEM_PROMPT_SMALL_CONTENT}" SYSTEM_PROMPT_SMALL_CONTENT)
 configure_file(
   "${CMAKE_SOURCE_DIR}/res/system_prompt.h.in"
   "${CMAKE_BINARY_DIR}/generated/system_prompt_generated.h"

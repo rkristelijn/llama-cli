@@ -263,6 +263,18 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   std::vector<Message> history;
   if (!cfg.system_prompt.empty()) {
     std::string sys = cfg.system_prompt;
+    // Use small prompt for models ≤7B (they can't handle complex tool instructions)
+    if (!cfg.system_prompt_override) {
+      std::string model_lower = cfg.model;
+      // Quick heuristic: check for known small model patterns
+      bool is_small = (model_lower.find(":1b") != std::string::npos || model_lower.find(":3b") != std::string::npos ||
+                       model_lower.find(":4b") != std::string::npos || model_lower.find(":7b") != std::string::npos ||
+                       model_lower.find(":1B") != std::string::npos || model_lower.find(":3B") != std::string::npos ||
+                       model_lower.find(":4B") != std::string::npos || model_lower.find(":7B") != std::string::npos);
+      if (is_small) {
+        sys = SMALL_SYSTEM_PROMPT;
+      }
+    }
     // Append web search tool description when enabled (ADR-057)
     if (cfg.allow_web_search) {
       sys += Config::web_search_prompt;
