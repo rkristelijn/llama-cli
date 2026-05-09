@@ -730,8 +730,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
           } catch (...) {
           }
           if (s.switch_provider) {
+            // Persist provider choice so next session starts with same provider
             s.switch_provider(input);
-            s.out << "[switched to " << input << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
+            save_to_dotenv("LLAMA_PROVIDER", input);
+            s.out << "[switched to " << input << ": " << Config::instance().model << "@" << Config::instance().host << " (saved)]\n";
           }
         }
       } else {
@@ -741,7 +743,8 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     } else {
       if (s.switch_provider) {
         s.switch_provider(arg);
-        s.out << "[switched to " << arg << ": " << Config::instance().model << "@" << Config::instance().host << "]\n";
+        save_to_dotenv("LLAMA_PROVIDER", arg);
+        s.out << "[switched to " << arg << ": " << Config::instance().model << "@" << Config::instance().host << " (saved)]\n";
       } else {
         s.out << "[provider switching not available]\n";
       }
@@ -832,7 +835,11 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
               if (s.switch_provider) {
                 s.switch_provider(m.provider);
               }
-              s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << "]\n";
+              save_to_dotenv("LLAMA_PROVIDER", m.provider);
+              save_to_dotenv("OLLAMA_MODEL", m.name);
+              save_to_dotenv("OLLAMA_HOST", Config::instance().host);
+              save_to_dotenv("OLLAMA_PORT", Config::instance().port);
+              s.out << "[host: " << resolve_display_name(m.host) << " → " << m.provider << ":" << m.name << " (saved)]\n";
               break;
             }
           }
