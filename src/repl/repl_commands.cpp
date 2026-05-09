@@ -228,8 +228,20 @@ static void handle_scan(ReplState& s) {
     return;
   }
   s.out << "Found " << hosts.size() << " Ollama server(s):\n";
+
+  // Resolve hostnames via mDNS and update hosts.json
+  auto named = Config::instance().named_hosts;
   for (const auto& h : hosts) {
-    s.out << "  " << h << "\n";
+    auto colon = h.find(':');
+    std::string ip = (colon != std::string::npos) ? h.substr(0, colon) : h;
+    std::string display = host_display_name(h);
+    // Try mDNS reverse lookup if not already named
+    if (display == h) {
+      display = resolve_display_name(h);
+    }
+    s.out << "  " << display;
+    if (display != h) s.out << " (" << ip << ")";
+    s.out << "\n";
   }
   // Write to .env (append or update OLLAMA_HOSTS line)
   std::string hosts_str;
