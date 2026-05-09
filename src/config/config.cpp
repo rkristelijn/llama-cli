@@ -607,6 +607,7 @@ std::vector<HostEntry> load_hosts_json(const std::string& path) {
     std::string p = json_extract_string(obj, "port");
     e.port = p.empty() ? "11434" : p;
     e.note = json_extract_string(obj, "note");
+    e.ip = json_extract_string(obj, "ip");
     if (!e.host.empty()) result.push_back(e);
     pos += obj.size();
   }
@@ -619,7 +620,7 @@ bool save_hosts_json(const std::vector<HostEntry>& hosts, const std::string& pat
   f << "[\n";
   for (size_t i = 0; i < hosts.size(); i++) {
     f << "  { \"name\": \"" << escape_json(hosts[i].name) << "\", \"host\": \"" << escape_json(hosts[i].host) << "\", \"port\": \""
-      << hosts[i].port << "\", \"note\": \"" << escape_json(hosts[i].note) << "\" }";
+      << hosts[i].port << "\", \"ip\": \"" << escape_json(hosts[i].ip) << "\", \"note\": \"" << escape_json(hosts[i].note) << "\" }";
     if (i + 1 < hosts.size()) f << ",";
     f << "\n";
   }
@@ -632,7 +633,7 @@ std::string host_display_name(const std::string& host_port) {
   auto colon = host_port.rfind(':');
   std::string h = (colon != std::string::npos) ? host_port.substr(0, colon) : host_port;
   for (const auto& e : named) {
-    if (e.host == h || e.host == host_port || e.name == h) {
+    if (e.host == h || e.host == host_port || e.name == h || e.ip == h) {
       std::string display = e.name;
       if (!e.note.empty()) display += " (" + e.note + ")";
       return display;

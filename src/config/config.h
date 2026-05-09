@@ -14,9 +14,10 @@
 /// Named host entry for the host registry (.config/hosts.json, ADR-108)
 struct HostEntry {
   std::string name;  ///< Friendly name (e.g. "friday")
-  std::string host;  ///< Hostname or IP (e.g. "friday.local")
+  std::string host;  ///< Hostname or IP (e.g. "friday.local" or "10.0.0.42")
   std::string port = "11434";
   std::string note;  ///< Annotation (e.g. "Intel MacBook")
+  std::string ip;    ///< Optional IP for matching scanned hosts
 };
 
 /**
