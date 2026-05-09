@@ -590,6 +590,7 @@ bool is_small_model(const std::string& model_name) {
   return false;
 }
 
+/// Load named hosts from .config/hosts.json (ADR-108).
 std::vector<HostEntry> load_hosts_json(const std::string& path) {
   std::vector<HostEntry> result;
   std::ifstream f(path);
@@ -614,6 +615,7 @@ std::vector<HostEntry> load_hosts_json(const std::string& path) {
   return result;
 }
 
+/// Save named hosts to .config/hosts.json.
 bool save_hosts_json(const std::vector<HostEntry>& hosts, const std::string& path) {
   std::ofstream f(path);
   if (!f.is_open()) return false;
@@ -628,6 +630,7 @@ bool save_hosts_json(const std::vector<HostEntry>& hosts, const std::string& pat
   return true;
 }
 
+/// Lookup a host entry by IP/hostname, returns "name (note)" if found.
 std::string host_display_name(const std::string& host_port) {
   const auto& named = Config::instance().named_hosts;
   auto colon = host_port.rfind(':');

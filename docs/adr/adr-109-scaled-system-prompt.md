@@ -1,8 +1,9 @@
+---
+summary: Scaled System Prompt by Model Size
+status: accepted
+---
+
 # ADR-109: Scaled System Prompt by Model Size
-
-## Status
-
-Accepted
 
 ## Context
 

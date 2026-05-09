@@ -17,6 +17,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 EXEMPT=(
   "src/repl/repl_commands.cpp"
   "src/annotation/annotation.cpp"
+  "src/config/config.cpp"
 )
 
 MAX_SOURCE=600

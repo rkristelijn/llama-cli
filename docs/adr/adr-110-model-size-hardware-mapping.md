@@ -1,8 +1,9 @@
+---
+summary: Model Size Classification and Hardware Mapping
+status: accepted
+---
+
 # ADR-110: Model Size Classification and Hardware Mapping
-
-## Status
-
-Accepted
 
 ## Context
 

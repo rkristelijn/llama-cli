@@ -1,8 +1,9 @@
+---
+summary: Persist Model and Host Selection to .env
+status: accepted
+---
+
 # ADR-107: Persist Model and Host Selection to .env
-
-## Status
-
-Accepted
 
 ## Context
 

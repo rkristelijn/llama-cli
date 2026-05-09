@@ -230,7 +230,6 @@ static void handle_scan(ReplState& s) {
   s.out << "Found " << hosts.size() << " Ollama server(s):\n";
 
   // Resolve hostnames via mDNS and update hosts.json
-  auto named = Config::instance().named_hosts;
   for (const auto& h : hosts) {
     auto colon = h.find(':');
     std::string ip = (colon != std::string::npos) ? h.substr(0, colon) : h;

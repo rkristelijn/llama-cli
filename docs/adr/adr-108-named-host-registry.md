@@ -1,8 +1,9 @@
+---
+summary: Named Host Registry
+status: accepted
+---
+
 # ADR-108: Named Host Registry
-
-## Status
-
-Accepted
 
 ## Context
 

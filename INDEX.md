@@ -98,11 +98,11 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-104-i18n-string-centralization.md`](docs/adr/adr-104-i18n-string-centralization.md) — Centralize user-facing strings in a single source for easier maintenance and localization.
 - [`docs/adr/adr-105-sonarcloud-debt-reduction.md`](docs/adr/adr-105-sonarcloud-debt-reduction.md) — Implement incremental refactoring to reduce technical debt in SonarCloud.
 - [`docs/adr/adr-106-high-performance-testing.md`](docs/adr/adr-106-high-performance-testing.md) — Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
-- [`docs/adr/adr-107-env-persistence.md`](docs/adr/adr-107-env-persistence.md) — ADR-107: Persist Model and Host Selection to .env
-- [`docs/adr/adr-108-named-host-registry.md`](docs/adr/adr-108-named-host-registry.md) — ADR-108: Named Host Registry
-- [`docs/adr/adr-109-scaled-system-prompt.md`](docs/adr/adr-109-scaled-system-prompt.md) — ADR-109: Scaled System Prompt by Model Size
-- [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — ADR-110: Model Size Classification and Hardware Mapping
-- [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — ADR-111: Hook-Based Plugin Architecture
+- [`docs/adr/adr-107-env-persistence.md`](docs/adr/adr-107-env-persistence.md) — Persist Model and Host Selection to .env
+- [`docs/adr/adr-108-named-host-registry.md`](docs/adr/adr-108-named-host-registry.md) — Named Host Registry
+- [`docs/adr/adr-109-scaled-system-prompt.md`](docs/adr/adr-109-scaled-system-prompt.md) — Scaled System Prompt by Model Size
+- [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — Model Size Classification and Hardware Mapping
+- [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — Hook-Based Plugin Architecture
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally

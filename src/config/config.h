@@ -13,11 +13,11 @@
 
 /// Named host entry for the host registry (.config/hosts.json, ADR-108)
 struct HostEntry {
-  std::string name;  ///< Friendly name (e.g. "friday")
-  std::string host;  ///< Hostname or IP (e.g. "myhost.local" or "192.168.1.10")
-  std::string port = "11434";
-  std::string note;  ///< Annotation (e.g. "Intel MacBook")
-  std::string ip;    ///< Optional IP for matching scanned hosts
+  std::string name;            ///< Friendly name (e.g. "friday")
+  std::string host;            ///< Hostname or IP (e.g. "myhost.local" or "192.168.1.10")
+  std::string port = "11434";  ///< Ollama port (default 11434)
+  std::string note;            ///< Annotation (e.g. "Intel MacBook")
+  std::string ip;              ///< Optional IP for matching scanned hosts
 };
 
 /**
