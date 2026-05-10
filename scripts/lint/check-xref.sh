@@ -23,7 +23,7 @@ main() {
   while IFS= read -r line; do
     local file="${line%%:*}"
     local adr_num
-    adr_num=$(echo "$line" | grep -oP 'ADR-\K[0-9]+' | head -1)
+    adr_num=$(echo "$line" | sed -n 's/.*ADR-\([0-9]*\).*/\1/p' | head -1)
     if [[ -z "$adr_num" ]]; then
       continue
     fi
@@ -41,7 +41,7 @@ main() {
   while IFS= read -r line; do
     local file="${line%%:*}"
     local path
-    path=$(echo "$line" | grep -oP '@see \K\S+')
+    path=$(echo "$line" | sed -n 's/.*@see \(\S*\).*/\1/p')
     if [[ -n "$path" && "$path" != http* && "$path" == */* && ! -f "$path" ]]; then
       echo "  [warn] ${file}: @see ${path} — file not found"
       ((errors++)) || true
@@ -55,7 +55,7 @@ main() {
         echo "  [warn] docs/adr/README.md links to ${link} — not found"
         ((errors++)) || true
       fi
-    done < <(grep -oP '\(\K[^)]+\.md' docs/adr/README.md 2>/dev/null || true)
+    done < <(sed -n 's/.*(\([^)]*\.md\)).*/\1/p' docs/adr/README.md 2>/dev/null || true)
   fi
 
   if [[ $errors -eq 0 ]]; then
