@@ -3,19 +3,16 @@ Output demos/chat.gif
 Set FontSize 14
 Set Width 1200
 Set Height 600
-Set Theme "Catppuccin Mocha"
+Set Shell bash
 
-Type "hello"
+Type "./build/llama-cli"
 Enter
-Sleep 1s
+Sleep 2s
 
 Type "what is the eisenhower matrix?"
 Enter
-Sleep 6s
-
-Type "give me a quick python fizzbuzz"
-Enter
-Sleep 5s
+Sleep 8s
 
 Type "exit"
 Enter
+Sleep 1s

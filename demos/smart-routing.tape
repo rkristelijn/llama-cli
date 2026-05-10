@@ -1,13 +1,13 @@
-# demos/smart-routing.tape — Auto model selection by complexity
+# demos/smart-routing.tape — Auto model selection
 Output demos/smart-routing.gif
 Set FontSize 14
 Set Width 1200
 Set Height 600
-Set Theme "Catppuccin Mocha"
+Set Shell bash
 
-Type "hello"
+Type "./build/llama-cli"
 Enter
-Sleep 1s
+Sleep 2s
 
 Type "/auto"
 Enter
@@ -15,11 +15,7 @@ Sleep 1s
 
 Type "hi"
 Enter
-Sleep 3s
-
-Type "explain the CAP theorem and how it applies to distributed databases with examples"
-Enter
-Sleep 6s
+Sleep 4s
 
 Type "/usage"
 Enter
@@ -27,3 +23,4 @@ Sleep 2s
 
 Type "exit"
 Enter
+Sleep 1s

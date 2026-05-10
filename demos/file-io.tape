@@ -1,29 +1,22 @@
-# demos/file-io.tape — File read, write, and str_replace
+# demos/file-io.tape — File read and str_replace
 Output demos/file-io.gif
 Set FontSize 14
 Set Width 1200
 Set Height 600
-Set Theme "Catppuccin Mocha"
+Set Shell bash
 
-Type "hello"
+Type "./build/llama-cli"
 Enter
-Sleep 1s
+Sleep 2s
 
 Type "!!cat src/main.cpp"
 Enter
 Sleep 2s
 
-Type "what does this code do?"
+Type "what does this code do? be brief"
 Enter
-Sleep 5s
-
-Type "fix the typo on line 12"
-Enter
-Sleep 4s
-
-Type "y"
-Enter
-Sleep 1s
+Sleep 8s
 
 Type "exit"
 Enter
+Sleep 1s

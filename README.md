@@ -13,23 +13,7 @@
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands, edit code — all offline, all private.
 
-```text
-> what is the eisenhower matrix?
-
-The Eisenhower Matrix helps prioritize tasks by urgency and importance:
-
-|                 | Urgent                 | Not Urgent               |
-|-----------------|------------------------|--------------------------|
-| Important       | DO — crisis, deadlines | PLAN — growth, strategy  |
-| Not Important   | DELEGATE — interrupts  | ELIMINATE — distractions |
-
-> !!cat src/main.cpp
-> explain this code and fix the bug on line 42
-[proposed: str_replace src/main.cpp]
-- old code
-+ fixed code
-Apply? [y/n]
-```
+![llama-cli demo](demos/chat.gif)
 
 ## Features
 
