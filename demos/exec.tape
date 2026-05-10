@@ -3,7 +3,14 @@ Output demos/exec.gif
 Set FontSize 22
 Set Width 1100
 Set Height 600
+Set Shell bash
+Set Padding 20
 Set Theme "Catppuccin Mocha"
+
+# Mask PII: override prompt and hostname
+Env PS1 "$ "
+Env HOSTNAME "localhost"
+Env HOME "/home/user"
 
 Type "./build/llama-cli"
 Enter
