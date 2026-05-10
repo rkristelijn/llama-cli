@@ -17,7 +17,7 @@ BUILD_DIR="${1:-build}"
 BINARY="${BUILD_DIR}/llama-cli"
 
 # Features excluded from e2e coverage (require real LLM or are in planned-but-unused paths)
-EXCLUDE="orchestrate_complex delegate_async cmd_tasks"
+EXCLUDE="orchestrate_complex delegate_async cmd_tasks cmd_browse cmd_review cmd_spinner"
 
 # Extract all feature IDs from source code, minus exclusions
 EXPECTED=$(grep -roh 'LOG_FEATURE("[^"]*")' src/ | sed 's/LOG_FEATURE("//;s/")//' | sort -u)

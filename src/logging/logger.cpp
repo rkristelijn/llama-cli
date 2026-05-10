@@ -68,7 +68,7 @@ void Logger::log(const Event& e) {
 
   std::ostringstream ts;
   // gmtime_r is thread-safe (S1912)
-  struct tm tm_buf {};
+  struct tm tm_buf{};
   gmtime_r(&time, &tm_buf);
   ts << std::put_time(&tm_buf, "%Y-%m-%dT%H:%M:%S");
   ts << '.' << std::setfill('0') << std::setw(3) << ms.count() << 'Z';

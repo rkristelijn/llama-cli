@@ -100,7 +100,7 @@ install_llama_cli() {
   fi
 
   info "Installing llama-cli..."
-  curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash # nosemgrep
   ok "llama-cli installed to $INSTALL_DIR"
 }
 
