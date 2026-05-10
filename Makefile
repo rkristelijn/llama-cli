@@ -347,16 +347,7 @@ sast-iac: ## Run IaC security scan (trivy)
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
-	@if command -v gitleaks >/dev/null; then \
-		GL_VER=$$(gitleaks version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1); \
-		GL_MAJOR=$$(echo "$$GL_VER" | cut -d. -f1); \
-		GL_MINOR=$$(echo "$$GL_VER" | cut -d. -f2); \
-		if [ "$${GL_MAJOR:-0}" -gt 8 ] || { [ "$${GL_MAJOR:-0}" -eq 8 ] && [ "$${GL_MINOR:-0}" -ge 18 ]; }; then \
-			gitleaks detect --source . --log-level error --no-banner --gitleaks-ignore-path .config/.gitleaksignore; \
-		else \
-			gitleaks detect --source . --log-level error --no-banner; \
-		fi; \
-	else echo "  [skip] gitleaks not installed"; fi
+	@bash scripts/security/sast-secret.sh
 	@echo "  [done] sast-secret"
 
 sast-trufflehog: ## Run trufflehog verified secret scan

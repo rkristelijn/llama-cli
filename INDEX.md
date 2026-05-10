@@ -235,6 +235,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/security/codeql-scan.sh`](scripts/security/codeql-scan.sh)
 - [`scripts/security/grype-scan.sh`](scripts/security/grype-scan.sh)
 - [`scripts/security/osv-scan.sh`](scripts/security/osv-scan.sh)
+- [`scripts/security/sast-secret.sh`](scripts/security/sast-secret.sh) — sast-secret.sh — Run gitleaks with version-aware flags.
 - [`scripts/security/sonar-report.sh`](scripts/security/sonar-report.sh)
 - [`scripts/security/sonar-scan.sh`](scripts/security/sonar-scan.sh)
 - [`scripts/security/steg-check.sh`](scripts/security/steg-check.sh)
@@ -398,4 +399,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_395 files indexed._
+_396 files indexed._
