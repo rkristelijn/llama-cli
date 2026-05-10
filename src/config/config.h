@@ -48,14 +48,15 @@ struct Config {
   }
 
   bool auto_confirm_write = false;                         ///< Auto-confirm file writes in sync mode (--auto-confirm-write)
-  std::string provider = "tgpt";                           ///< LLM provider name (tgpt default: fast, no startup)
+  std::string provider = "tgpt";                           ///< LLM provider name (fallback when auto-detect fails)
+  bool provider_explicit = false;                          ///< True if user explicitly set provider (env/cli/.env)
   std::string host = "localhost";                          ///< Ollama server hostname
   std::string port = "11434";                              ///< Ollama server port
   std::vector<std::string> hosts;                          ///< Discovered Ollama hosts (OLLAMA_HOSTS, /scan)
   std::vector<HostEntry> named_hosts;                      ///< Named host registry (.config/hosts.json, ADR-108)
   std::string model = default_model;                       ///< LLM model name
   int timeout = 120;                                       ///< HTTP request timeout in seconds
-  int exec_timeout = 30;                                   ///< Max seconds for command execution
+  int exec_timeout = 300;                                  ///< Max seconds for command execution
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
   int max_history = 0;                                     ///< Max message pairs to keep (0=unlimited, sliding window)
   bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)
@@ -113,6 +114,9 @@ bool save_to_dotenv(const std::string& key, const std::string& value);
 
 // Check if a model name indicates a small model (≤7B) that needs a simpler prompt
 bool is_small_model(const std::string& model_name);
+
+// Auto-detect provider: probe Ollama, fallback to tgpt (ADR-112)
+std::string auto_detect_provider(const std::string& host, const std::string& port);
 
 // Load named hosts from .config/hosts.json (ADR-108)
 std::vector<HostEntry> load_hosts_json(const std::string& path = ".config/hosts.json");

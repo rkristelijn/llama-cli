@@ -15,11 +15,11 @@ Repeated CI failures revealed patterns of fragile tests that pass locally but fa
 **Fix**: Use commands that produce output so timeout checks trigger in the read loop.
 
 ```cpp
-// ❌ Bad — fgets blocks until sleep finishes, timeout never triggers
+// ✗ Bad — fgets blocks until sleep finishes, timeout never triggers
 auto r = cmd_exec("sleep 2", 1, 1000);
 CHECK(r.timed_out);
 
-// ✅ Good — output triggers timeout check in the loop
+// ✓ Good — output triggers timeout check in the loop
 auto r = cmd_exec("for i in $(seq 1 100); do echo x; sleep 0.1; done", 1, 1000);
 CHECK(r.timed_out);
 ```text
@@ -31,10 +31,10 @@ CHECK(r.timed_out);
 **Fix**: Assert on the observable contract (timeout marker present), not on side-effects.
 
 ```cpp
-// ❌ Bad — assumes no output before timeout
+// ✗ Bad — assumes no output before timeout
 CHECK(r.output.empty());
 
-// ✅ Good — asserts the documented behavior
+// ✓ Good — asserts the documented behavior
 CHECK(r.output.find("[killed: timeout") != std::string::npos);
 ```text
 

@@ -85,6 +85,7 @@ constexpr const char* repl =
     "  /set          Show options (model, host, toggles)\n"
     "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
     "  /compress     Summarize and compact conversation history\n"
+    "  /review       AI code review of git diff (staged, branch, <file>)\n"
     "  /chat save    Save conversation (/chat load, /chat list, /chat delete)\n"
     "  /mem          Show memories (/mem add <fact>, /mem clear)\n"
     "  /pref         Show preferences (/pref add <pref>, /pref clear)\n"

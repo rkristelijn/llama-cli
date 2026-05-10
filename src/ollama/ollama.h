@@ -49,6 +49,9 @@ std::vector<std::string> get_available_models(const Config& cfg);
 // Check if a model is currently loaded in Ollama's memory.
 bool is_model_running(const Config& cfg, const std::string& model_name);
 
+// Get the name of the currently loaded model (empty if none). Uses /api/ps.
+std::string get_running_model(const Config& cfg);
+
 /// Model metadata from Ollama /api/tags
 struct ModelInfo {
   std::string name;    ///< Model name (e.g. "gemma4:26b")

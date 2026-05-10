@@ -12,10 +12,10 @@ The release pipeline currently only builds for Linux (x86_64, arm64) and macOS (
 
 | Dependency | Windows Support |
 |------------|-----------------|
-| cpp-linenoise | ✅ Has Win32_ANSI support |
-| cpp-httplib | ✅ Has `_WIN32` support |
-| dtl | ✅ C++ template library |
-| doctest | ✅ C++ test framework |
+| cpp-linenoise | ✓ Has Win32_ANSI support |
+| cpp-httplib | ✓ Has `_WIN32` support |
+| dtl | ✓ C++ template library |
+| doctest | ✓ C++ test framework |
 
 ### Required Code Changes
 

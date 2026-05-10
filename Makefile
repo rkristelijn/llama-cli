@@ -347,12 +347,8 @@ sast-iac: ## Run IaC security scan (trivy)
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
-	@if command -v gitleaks >/dev/null; then \
-		gitleaks detect --source . --log-level error --no-banner --gitleaks-ignore-path .config/.gitleaksignore; \
-	else echo "  [skip] gitleaks not installed"; fi
+	@bash scripts/security/sast-secret.sh
 	@echo "  [done] sast-secret"
-	# Note: --gitleaks-ignore-path requires gitleaks >= 8.18.0
-	# CI installs pinned version via scripts/ci/install-deps.sh
 
 sast-trufflehog: ## Run trufflehog verified secret scan
 	@bash scripts/security/trufflehog-scan.sh
@@ -506,6 +502,10 @@ gh-pr-resolve: ## Resolve CodeRabbit threads (alias: gpr-resolve)
 
 create-issue: ## Create issue (TITLE="..." DESC="...")
 	@bash scripts/gh/create-issue.sh "$(TITLE)" "$(DESC)"
+	$(log_footer)
+
+release: ## Trigger a GitHub release (from main branch)
+	@bash scripts/gh/release.sh $(ARGS)
 	$(log_footer)
 
 ##@ Help

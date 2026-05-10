@@ -277,6 +277,25 @@ bool is_model_running(const Config& cfg, const std::string& model_name) {
   return false;
 }
 
+/// Get the name of the first currently loaded model (ADR-112).
+/// Returns empty string if no model is loaded.
+std::string get_running_model(const Config& cfg) {
+  auto cli = make_client(cfg);
+  auto res = cli.Get("/api/ps");
+  if (res && res->status == 200) {
+    // Extract first "name":"..." from the models array
+    auto pos = res->body.find("\"name\":\"");
+    if (pos != std::string::npos) {
+      pos += 8;
+      auto end = res->body.find("\"", pos);
+      if (end != std::string::npos) {
+        return res->body.substr(pos, end - pos);
+      }
+    }
+  }
+  return "";
+}
+
 /** Fetch list of available models from Ollama /api/tags endpoint.
  * Parses the JSON response and extracts model names.
  * Returns empty vector on connection error or invalid response. */

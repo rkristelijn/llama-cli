@@ -71,7 +71,7 @@ In ITIL 4, "Standard Changes" are pre-authorized, low-risk, and frequent. [4, 10
 | Quality Goal | ISO 9126 Characteristics | Targeting Reliability, Usability, etc. |
 | Validation | V-Model Level Match | Every design choice has a matching test |
 
-✅ The result is a process that is "Just Enough" governance (Prince2/ITIL) to ensure "High Quality" (ISO 9126/V-Model) at "High Speed" (Agile/Lean).
+✓ The result is a process that is "Just Enough" governance (Prince2/ITIL) to ensure "High Quality" (ISO 9126/V-Model) at "High Speed" (Agile/Lean).
 Should we dive deeper into how to automate the ISO 9126 quality checks within a CI/CD pipeline?
 
 [1] [https://www.manageengine.com](https://www.manageengine.com/products/service-desk/it-incident-management/incident-vs-problem-vs-change-vs-asset-management.html)

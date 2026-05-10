@@ -14,19 +14,19 @@ We run clang-tidy, cppcheck, ASan/UBSan, and `-Wall -Wextra -Werror` but still m
 
 | Bug category | Covered | Tool |
 |---|---|---|
-| Memory leaks | ✅ | ASan (CI sanitizer job) |
-| Use-after-free / dangling pointers | ✅ | ASan + bugprone-use-after-move |
-| Buffer overflow | ✅ | ASan + cppcheck |
-| Integer overflow / division by zero | ✅ | UBSan + bugprone-integer-division |
-| Assignment in condition (`=` vs `==`) | ✅ | -Wall (-Wparentheses) |
-| sizeof misuse | ✅ | bugprone-sizeof-expression |
-| Uninitialized variables | ⚠️ | -Wall catches most, not all |
-| Null pointer dereference | ⚠️ | ASan runtime only, no static check |
-| Unnecessary copies | ❌ | Not checked |
-| Missing const | ❌ | Not checked |
-| Implicit narrowing conversions | ❌ | -Wconversion not enabled |
-| Raw new/delete (vs smart pointers) | ❌ | Not checked (not used currently) |
-| Exception safety | ❌ | Not checked |
+| Memory leaks | ✓ | ASan (CI sanitizer job) |
+| Use-after-free / dangling pointers | ✓ | ASan + bugprone-use-after-move |
+| Buffer overflow | ✓ | ASan + cppcheck |
+| Integer overflow / division by zero | ✓ | UBSan + bugprone-integer-division |
+| Assignment in condition (`=` vs `==`) | ✓ | -Wall (-Wparentheses) |
+| sizeof misuse | ✓ | bugprone-sizeof-expression |
+| Uninitialized variables | ⚠ | -Wall catches most, not all |
+| Null pointer dereference | ⚠ | ASan runtime only, no static check |
+| Unnecessary copies | ✗ | Not checked |
+| Missing const | ✗ | Not checked |
+| Implicit narrowing conversions | ✗ | -Wconversion not enabled |
+| Raw new/delete (vs smart pointers) | ✗ | Not checked (not used currently) |
+| Exception safety | ✗ | Not checked |
 
 ## Decision
 

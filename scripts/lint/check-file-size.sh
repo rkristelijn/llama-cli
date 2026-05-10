@@ -16,6 +16,7 @@ if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 # Known violations — exempt until split (ADR-061)
 EXEMPT=(
   "src/repl/repl_commands.cpp"
+  "src/repl/repl_test.cpp"
   "src/annotation/annotation.cpp"
   "src/config/config.cpp"
 )

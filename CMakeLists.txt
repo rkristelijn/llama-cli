@@ -190,7 +190,7 @@ target_link_libraries(llama-cli PRIVATE httplib::httplib)
 # Unit tests
 add_executable(test_config src/config/config_test.cpp src/config/config.cpp src/json/json.cpp)
 target_include_directories(test_config PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_config PRIVATE doctest::doctest)
+target_link_libraries(test_config PRIVATE doctest::doctest httplib::httplib)
 
 add_executable(test_json src/json/json_test.cpp src/json/json.cpp)
 target_include_directories(test_json PRIVATE ${SRC_INCLUDE})
@@ -236,9 +236,9 @@ add_executable(test_sync src/sync/sync_test.cpp src/sync/sync.cpp)
 target_include_directories(test_sync PRIVATE ${SRC_INCLUDE})
 target_link_libraries(test_sync PRIVATE doctest::doctest)
 
-add_executable(test_util src/util/util_test.cpp src/util/util.cpp)
+add_executable(test_util src/util/util_test.cpp src/util/util.cpp src/config/config.cpp src/json/json.cpp)
 target_include_directories(test_util PRIVATE ${SRC_INCLUDE})
-target_link_libraries(test_util PRIVATE doctest::doctest)
+target_link_libraries(test_util PRIVATE doctest::doctest httplib::httplib)
 
 set(REPL_LIBS src/repl/repl.cpp src/repl/repl_commands.cpp src/repl/repl_annotations.cpp src/repl/repl_chat.cpp src/repl/repl_search.cpp src/repl/repl_model.cpp src/tui/markdown.cpp src/tui/markdown_stream.cpp src/tui/highlight.cpp src/tui/mermaid/mermaid.cpp src/tui/mermaid/renderer.cpp src/tui/mermaid/flowchart.cpp src/tui/mermaid/sequence.cpp src/tui/mermaid/pie.cpp src/tui/mermaid/state.cpp src/tui/mermaid/venn.cpp src/tui/mermaid/gantt.cpp src/tui/mermaid/mindmap.cpp src/tui/mermaid/quadrant.cpp src/tui/mermaid/timeline.cpp src/tui/mermaid/kanban.cpp src/tui/mermaid/barchart.cpp src/tui/mermaid/orgchart.cpp src/tui/table.cpp src/tui/spinner.cpp src/command/command.cpp src/annotation/annotation.cpp src/exec/exec.cpp src/exec/hardware.cpp src/net/scan.cpp src/trace/trace.cpp src/logging/logger.cpp src/ollama/ollama.cpp src/json/json.cpp src/session/session.cpp src/sync/sync.cpp src/sync/sync_annotations.cpp src/util/util.cpp src/agent/agent.cpp src/config/config.cpp src/config/delegation.cpp src/provider/registry.cpp src/provider/provider_factory.cpp src/provider/ollama_provider.cpp src/provider/tgpt_provider.cpp src/provider/gemini_provider.cpp src/provider/kiro_provider.cpp src/provider/multi_host_provider.cpp src/provider/opencode_provider.cpp src/planner/planner.cpp src/orchestrator/agent_config.cpp src/orchestrator/prompt_template.cpp src/orchestrator/task.cpp src/orchestrator/metrics.cpp src/orchestrator/orchestrator.cpp src/orchestrator/subagent.cpp)
 

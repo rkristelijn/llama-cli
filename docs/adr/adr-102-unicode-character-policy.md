@@ -25,7 +25,7 @@ scripts, and TUI output.
 Codepoints U+1F300–U+1FFFF (Supplementary Multilingual Plane emoji):
 
 ```text
-🖥️ 🎮 🧠 🔴 🟠 🟡 🔵 ⚪ ❌ ✅ 🎉 🔍 📄 🚀 💡 🐛 etc.
+🖥️ 🎮 🧠 🔴 🟠 🟡 🔵 ⚪ ✗ ✓ 🎉 🔍 📄 🚀 💡 🐛 etc.
 ```
 
 Enforced by `make inclusivity` (emoji policy check).
@@ -190,10 +190,10 @@ When replacing emoji in existing code:
 
 | Context | Emoji | Replace with |
 |---------|-------|-------------|
-| Pass/success | ✅ | `✓` or `[ok]` |
-| Fail/error | ❌ | `✗` or `[FAIL]` |
-| Warning | ⚠️ | `⚠` (U+26A0, already allowed) |
-| Info | ℹ️ | `(i)` or `·` |
+| Pass/success | ✓ | `✓` or `[ok]` |
+| Fail/error | ✗ | `✗` or `[FAIL]` |
+| Warning | ⚠ | `⚠` (U+26A0, already allowed) |
+| Info | ℹ | `(i)` or `·` |
 | Arrow/next | ➡️ | `→` |
 | Search | 🔍 | `[?]` or `·` |
 | Hardware | 🖥️🎮🧠 | Plain text: `CPU:` `GPU:` `RAM:` |

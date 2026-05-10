@@ -31,6 +31,7 @@
 #include <sstream>
 
 #include "agent/agent.h"
+#include "exec/exec.h"
 #include "help.h"
 #include "logging/logger.h"
 #include "net/scan.h"
@@ -411,6 +412,74 @@ static void handle_rate(const std::string& arg, ReplState& s) {
   s.history[target_idx].rating = rating;
   s.out << "[rated: " << rating << "]\n";
   LOG_EVENT("repl", "rate_response", s.history[target_idx].content, rating, 0, 0, 0);
+}
+
+/// Handle /review — local AI code review of git diff (ADR-113).
+/// Runs git diff variant, sends to LLM with review prompt, streams result.
+static void handle_review(const std::string& arg, ReplState& s) {
+  // Determine which git diff command to run
+  std::string git_cmd = "git diff";
+  std::string label = "uncommitted changes";
+  if (arg == "staged") {
+    git_cmd = "git diff --cached";
+    label = "staged changes";
+  } else if (arg == "branch") {
+    git_cmd = "git diff main...HEAD";
+    label = "branch changes vs main";
+  } else if (!arg.empty()) {
+    // Treat as file path
+    git_cmd = "git diff -- " + arg;
+    label = arg;
+  }
+
+  s.out << "[reviewing " << label << "...]\n";
+  s.out.flush();
+
+  // Run git diff with exec timeout
+  ExecResult diff = cmd_exec(git_cmd, s.cfg.exec_timeout, 50000);
+  if (diff.exit_code != 0 && diff.output.empty()) {
+    s.out << "[error: git diff failed — are you in a git repo?]\n";
+    return;
+  }
+  if (diff.output.empty()) {
+    s.out << "[no changes to review]\n";
+    return;
+  }
+
+  // Truncate large diffs to avoid overwhelming the model
+  constexpr int kMaxDiffChars = 8000;
+  std::string diff_text = diff.output;
+  bool truncated = false;
+  if (static_cast<int>(diff_text.size()) > kMaxDiffChars) {
+    diff_text = diff_text.substr(0, kMaxDiffChars);
+    truncated = true;
+  }
+
+  if (truncated) {
+    s.out << "[diff truncated to " << kMaxDiffChars << " chars — use /review <file> for focused review]\n";
+  }
+
+  // Build review messages with code review system prompt
+  std::vector<Message> review_msgs = {{"system",
+                                       "You are a senior code reviewer. Analyze this git diff and provide a concise review.\n"
+                                       "Focus on: bugs, security issues, performance problems, and readability.\n"
+                                       "Format: use markdown with ## sections for Summary, Issues (if any), and Suggestions.\n"
+                                       "Be specific — reference file names and line numbers from the diff.\n"
+                                       "If the code looks good, say so briefly."},
+                                      {"user", "Review this diff:\n\n```diff\n" + diff_text + "\n```"}};
+
+  // Stream the review response
+  std::string response;
+  s.stream_chat(review_msgs, [&](const std::string& token) {
+    response += token;
+    return true;
+  });
+
+  // Render final markdown output
+  if (!response.empty()) {
+    s.out << tui::render_markdown(response, s.color && s.markdown) << "\n";
+  }
+  LOG_EVENT("repl", "review", label, response.substr(0, 200), 0, 0, 0);
 }
 
 // --- Public dispatch function ---
@@ -1195,6 +1264,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         s.out << "\n[compressed: " << removed << " messages → summary]\n";
       }
     }
+    // --- Local AI code review (ADR-113) ---
+  } else if (command == "review") {
+    LOG_FEATURE("cmd_review");
+    handle_review(arg, s);
   } else {
     s.out << "Unknown command: /" << command << ". Type /help for options.\n";
   }

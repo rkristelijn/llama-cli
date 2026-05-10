@@ -5,7 +5,7 @@ This directory contains the Architecture Decision Records for `llama-cli`. Each 
 
 ## 📋 Status Overview
 
-### ✅ Accepted (Implemented / Standard)
+### ✓ Accepted (Implemented / Standard)
 
 These decisions are part of the core architecture and are actively implemented in the codebase.
 
@@ -80,7 +80,7 @@ These decisions are currently being debated or are awaiting formal acceptance.
 - [ADR-086](adr-086-tree-sitter-highlighting.md) - Syntax Highlighting via tree-sitter
 - [ADR-106](adr-106-high-performance-testing.md) - High-Performance Test Execution
 
-### ✅ Accepted (Recent)
+### ✓ Accepted (Recent)
 
 - [ADR-066](adr-066-solid-refactoring.md) - SOLID Refactoring Strategy
 - [ADR-067](adr-067-mutation-testing.md) - Mutation Testing via Mull

@@ -7,6 +7,8 @@
 
 #include "config/config.h"
 
+#include <httplib.h>
+
 #include <cctype>
 #include <cstdlib>
 #include <fstream>
@@ -133,7 +135,7 @@ void load_dotenv(const std::string& path, Config& c) {
     } else if (key == "OLLAMA_TIMEOUT") {
       c.timeout = safe_stoi(val, 120);
     } else if (key == "LLAMA_EXEC_TIMEOUT") {
-      c.exec_timeout = safe_stoi(val, 30);
+      c.exec_timeout = safe_stoi(val, 300);
     } else if (key == "LLAMA_MAX_OUTPUT") {
       c.max_output = safe_stoi(val, 10000);
     } else if (key == "LLAMA_MAX_HISTORY") {
@@ -143,6 +145,7 @@ void load_dotenv(const std::string& path, Config& c) {
       c.system_prompt_override = true;
     } else if (key == "LLAMA_PROVIDER") {
       c.provider = val;
+      c.provider_explicit = true;
     } else if (key == "LLAMA_PROMPT_COLOR") {
       c.prompt_color = val;
     } else if (key == "LLAMA_AI_COLOR") {
@@ -228,6 +231,7 @@ Config load_env(const Config& defaults) {
   std::string val;
   if (env_get("LLAMA_PROVIDER", val)) {
     c.provider = val;
+    c.provider_explicit = true;
   }
   if (env_get("OLLAMA_HOST", val)) {
     // Support host:port format, including IPv6 bracket notation
@@ -243,7 +247,7 @@ Config load_env(const Config& defaults) {
     c.timeout = safe_stoi(val, 120);
   }
   if (env_get("LLAMA_EXEC_TIMEOUT", val)) {
-    c.exec_timeout = safe_stoi(val, 30);
+    c.exec_timeout = safe_stoi(val, 300);
   }
   if (env_get("LLAMA_MAX_OUTPUT", val)) {
     c.max_output = safe_stoi(val, 10000);
@@ -486,6 +490,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
   if (c.system_prompt != base.system_prompt) {
     c.system_prompt_override = true;
   }
+  // Detect if --provider was explicitly set via CLI (ADR-112)
+  if (c.provider != base.provider) {
+    c.provider_explicit = true;
+  }
   return c;
 }
 
@@ -497,6 +505,14 @@ Config load_config(int argc, const char* const argv[]) {
   c = load_cli(argc, argv, c);
   if (!validate_config(c)) {
     std::exit(1);  // validation errors already printed to stderr
+  }
+  // Auto-detect provider if not explicitly set (ADR-112)
+  if (!c.provider_explicit) {
+    c.provider = auto_detect_provider(c.host, c.port);
+    // Persist so subsequent runs skip the probe
+    if (!save_to_dotenv("LLAMA_PROVIDER", c.provider)) {
+      std::cerr << "Warning: could not persist auto-detected provider to .env\n";
+    }
   }
   // Load named hosts registry (ADR-108)
   c.named_hosts = load_hosts_json(".config/hosts.json");
@@ -643,4 +659,20 @@ std::string host_display_name(const std::string& host_port) {
     }
   }
   return host_port;  // fallback: raw host:port
+}
+
+/// Probe Ollama API to detect if it's running (ADR-112).
+/// Returns "ollama" if reachable, "tgpt" otherwise.
+/// Uses a 2-second timeout to avoid blocking startup.
+/// Called during init when no explicit --provider flag is given.
+std::string auto_detect_provider(const std::string& host, const std::string& port) {
+  httplib::Client cli(host, safe_stoi(port, 11434));
+  cli.set_connection_timeout(2);
+  cli.set_read_timeout(2);
+  // GET /api/tags is the lightest Ollama endpoint (just lists models)
+  auto res = cli.Get("/api/tags");
+  if (res && res->status == 200) {
+    return "ollama";
+  }
+  return "tgpt";
 }

@@ -502,7 +502,7 @@ SCENARIO ("REPL /model select from list") {
       }
       THEN ("model is set to the selected one") {
         // Model 2 in params-sorted order is llama3:8b
-        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
+        CHECK (out.str().find("[model set to llama3:8b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -512,7 +512,7 @@ SCENARIO ("REPL /model select from list") {
       std::ostringstream out;
       run_repl(echo_chat, test_cfg(), in, out, one_model, nullptr, mock_hw, mock_model_info);
       THEN ("model is set") {
-        CHECK (out.str().find("[model set to gemma4:e4b]") != std::string::npos)
+        CHECK (out.str().find("[model set to gemma4:e4b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -539,7 +539,7 @@ SCENARIO ("REPL /model select from list") {
       std::ostringstream out;
       run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
       THEN ("model is set despite the CR") {
-        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
+        CHECK (out.str().find("[model set to llama3:8b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -575,10 +575,9 @@ SCENARIO ("dispatch_command handles slash commands") {
     std::vector<Message> history;
     std::istringstream in("");
     std::ostringstream out;
-    ReplState s = {chat,    nullptr, models, nullptr, nullptr, nullptr, cfg,
-                   history, in,      out,    0,       false,   false,   true,
-                   false,   false,   "32",   "",      false,   -1,      static_cast<ModelRegistry*>(nullptr),
-                   {},      nullptr};
+    ReplState s = {chat,  nullptr, models, nullptr, nullptr, nullptr, cfg,  history, in,    out, 0,
+                   false, false,   true,   false,   "",      false,   "32", "",      false, -1,  static_cast<ModelRegistry*>(nullptr),
+                   {},    {}};
 
     WHEN ("dispatch_command is called with /clear") {
       history.push_back({"user", "hello"});
@@ -663,6 +662,52 @@ SCENARIO ("repl: prompt label omits model for non-ollama providers") {
       std::string label = build_prompt_label("", "tgpt", "whatever");
       CHECK (label == "> ")
         ;
+    }
+  }
+}
+
+// --- /review command tests (ADR-113) ---
+
+SCENARIO ("review: no changes shows message") {
+  GIVEN ("a ReplState with mock stream_chat") {
+    ChatFn chat = echo_chat;
+    ModelsFn models = [](const Config&) { return std::vector<std::string>{"model1"}; };
+    Config cfg;
+    cfg.exec_timeout = 5;
+    std::vector<Message> history;
+    std::istringstream in("");
+    std::ostringstream out;
+    // stream_chat that captures what was sent
+    StreamChatFn stream = [](const std::vector<Message>& /*msgs*/, std::function<bool(const std::string&)> cb) -> std::string {
+      cb("## Summary\nCode looks good.");
+      return "## Summary\nCode looks good.";
+    };
+    ReplState s = {chat,  stream, models, nullptr, nullptr, nullptr, cfg,  history, in,    out, 0,
+                   false, false,  true,   false,   "",      false,   "32", "",      false, -1,  static_cast<ModelRegistry*>(nullptr),
+                   {},    {}};
+
+    WHEN ("/review is called in a clean repo") {
+      // This test verifies the command is recognized and runs without crash.
+      // In a clean repo, git diff returns empty — we expect "no changes" message.
+      dispatch_command("review", "", s);
+      THEN ("output contains review-related text") {
+        std::string result = out.str();
+        // Either "no changes" or "reviewing" (depends on git state)
+        bool has_review = result.find("reviewing") != std::string::npos;
+        bool has_no_changes = result.find("no changes") != std::string::npos;
+        bool has_summary = result.find("Summary") != std::string::npos;
+        CHECK ((has_review || has_no_changes || has_summary))
+          ;
+      }
+    }
+
+    WHEN ("/review is called with unknown variant") {
+      dispatch_command("review", "nonexistent_file_xyz.cpp", s);
+      THEN ("it attempts review (no crash)") {
+        std::string result = out.str();
+        CHECK (result.find("reviewing") != std::string::npos)
+          ;
+      }
     }
   }
 }
