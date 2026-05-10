@@ -13,9 +13,11 @@
 
 A local AI assistant in your terminal. Chat with LLMs, attach files, run commands, edit code — all offline, all private.
 
-![llama-cli demo](demos/chat.gif)
+![llama-cli demo](docs/features/feature-tour.gif)
 
 ## Features
+
+See [full feature demos](./docs/features/README.md) for all examples.
 
 - **Streaming chat** with any Ollama model (Gemma, Llama, Mistral, Qwen, etc.)
 - **Markdown rendering** — tables, code blocks with syntax highlighting, bold, links
@@ -58,14 +60,12 @@ curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | VERSION=0.18.1 bash
 ```
 
-### From source
+### Future
 
 ```bash
-brew install ollama
-brew services start ollama
-ollama pull gemma4:e4b
-make setup
-sudo make install
+# Below is not working yet, still on beta release, use above install instructions for a preview
+brew install ollama-cli
+apt install ollama-cli
 ```
 
 ## Usage
@@ -133,23 +133,7 @@ See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 
 ## Demos
 
-See [`demos/`](demos/) for animated terminal recordings (VHS tapes) showing each feature in action:
-
-| Demo | Shows |
-|------|-------|
-| [chat](demos/chat.tape) | Streaming chat, markdown rendering, code blocks |
-| [file-io](demos/file-io.tape) | File read, write, str_replace edits |
-| [agents](demos/agents.tape) | Agent switching, themes |
-| [web-search](demos/web-search.tape) | SearXNG web search integration |
-| [vision](demos/vision.tape) | Image attachment for multimodal models |
-| [smart-routing](demos/smart-routing.tape) | Auto model selection by complexity |
-
-Record them yourself:
-
-```bash
-brew install charmbracelet/tap/vhs
-for tape in demos/*.tape; do vhs "$tape"; done
-```
+See [docs/features/](docs/features/README.md) for all animated feature demos.
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 

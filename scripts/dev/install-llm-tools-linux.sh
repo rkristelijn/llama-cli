@@ -6,11 +6,14 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
-info()  { printf "${GREEN}[✓]${NC} %s\n" "$1"; }
-warn()  { printf "${YELLOW}[!]${NC} %s\n" "$1"; }
-fail()  { printf "${RED}[✗]${NC} %s\n" "$1"; }
-header(){ printf "\n${GREEN}━━━ %s ━━━${NC}\n" "$1"; }
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+info() { printf "${GREEN}[✓]${NC} %s\n" "$1"; }
+warn() { printf "${YELLOW}[!]${NC} %s\n" "$1"; }
+fail() { printf "${RED}[✗]${NC} %s\n" "$1"; }
+header() { printf "\n${GREEN}━━━ %s ━━━${NC}\n" "$1"; }
 
 command_exists() { command -v "$1" &>/dev/null; }
 
@@ -19,7 +22,8 @@ check_node() {
     warn "Node.js not found — skipping npm-based tools (gemini, copilot, claude-code)"
     return 1
   fi
-  local ver; ver=$(node -v | sed 's/v//' | cut -d. -f1)
+  local ver
+  ver=$(node -v | sed 's/v//' | cut -d. -f1)
   if [ "$ver" -lt 20 ]; then
     warn "Node.js $ver found but 20+ required — skipping npm-based tools"
     return 1
@@ -28,8 +32,14 @@ check_node() {
 }
 
 check_python() {
-  if command_exists python3; then echo "python3"; return 0; fi
-  if command_exists python; then echo "python"; return 0; fi
+  if command_exists python3; then
+    echo "python3"
+    return 0
+  fi
+  if command_exists python; then
+    echo "python"
+    return 0
+  fi
   warn "Python not found — skipping aider"
   return 1
 }

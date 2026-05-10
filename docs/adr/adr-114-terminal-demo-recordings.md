@@ -13,7 +13,7 @@ We need reproducible, version-controlled terminal demos that can be re-recorded 
 
 ## Decision
 
-Use [VHS](https://github.com/charmbracelet/vhs) (Charmbracelet) to create animated terminal recordings from declarative `.tape` files stored in `demos/`.
+Use [VHS](https://github.com/charmbracelet/vhs) (Charmbracelet) to create animated terminal recordings from declarative `.tape` files stored in `demos/tapes/`.
 
 ### Why VHS
 
@@ -38,9 +38,18 @@ Use [VHS](https://github.com/charmbracelet/vhs) (Charmbracelet) to create animat
 
 ```bash
 brew install charmbracelet/tap/vhs
-vhs demos/chat.tape              # single
-for t in demos/*.tape; do vhs "$t"; done  # all
+
+# Feature demos (handwritten tapes, require real LLM)
+vhs demos/tapes/chat.tape              # single
+for t in demos/tapes/*.tape; do vhs "$t"; done  # all
+
+# E2e test recordings (auto-discovered, mock provider, no LLM needed)
+make record-e2e                  # generates docs/features/*.gif
+make record-e2e ARGS=--force     # re-record all
+bash scripts/dev/gen-features-md.sh  # regenerate docs/features/FEATURES.md
 ```
+
+The `record-e2e` target auto-discovers all `e2e/test_*.sh` files and generates a gif per test. New tests get recordings automatically — no manual tape files needed. Feature→gif mapping is documented in `docs/features/README.md`.
 
 Generated GIFs are not committed (`.gitignore`); they are produced on demand or in CI.
 

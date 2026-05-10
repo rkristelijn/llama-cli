@@ -79,6 +79,7 @@ declare -A DENYLIST=(
   [check - pii]="fast, included in lint aggregator"
   [slop]="fast, included in lint aggregator"
   [kill]="dev utility, not a check"
+  [record - e2e]="requires VHS, local dev tool for gif generation"
   [check - casts]="slow (compiles each file), check-all only"
   [check - conversions]="slow (full rebuild with -Wconversion), check-all only"
   [check - shadowing]="slow (compiles each file), check-all only"

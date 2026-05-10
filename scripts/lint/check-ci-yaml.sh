@@ -49,7 +49,7 @@ main() {
 
   # 3. needs references — every needs.X.outputs.Y must have a matching job
   local bad_needs=0
-  grep -oP "needs\.\K[a-z_-]+" "$CI" | sort -u | while read -r job; do
+  grep -oE "needs\.[a-z_-]+" "$CI" | sed 's/needs\.//' | sort -u | while read -r job; do
     if ! grep -qE "^  ${job}:" "$CI"; then
       fail "needs.$job referenced but job '$job' not found"
       bad_needs=$((bad_needs + 1))
@@ -59,7 +59,7 @@ main() {
 
   # 4. outputs referenced must be defined
   local bad_outputs=0
-  grep -oP "needs\.changes\.outputs\.\K[a-z_]+" "$CI" | sort -u | while read -r out; do
+  grep -oE "needs\.changes\.outputs\.[a-z_]+" "$CI" | sed 's/needs\.changes\.outputs\.//' | sort -u | while read -r out; do
     if ! grep -qE "^\s+${out}:" "$CI" | head -1; then
       true # grep in outputs section is complex, skip for now
     fi

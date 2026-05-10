@@ -6,11 +6,17 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
-info()  { printf "${GREEN}[✓]${NC} %s\n" "$1"; }
-warn()  { printf "${YELLOW}[!]${NC} %s\n" "$1"; }
-fail()  { printf "${RED}[✗]${NC} %s\n" "$1"; exit 1; }
-header(){ printf "\n${GREEN}━━━ %s ━━━${NC}\n" "$1"; }
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+info() { printf "${GREEN}[✓]${NC} %s\n" "$1"; }
+warn() { printf "${YELLOW}[!]${NC} %s\n" "$1"; }
+fail() {
+  printf "${RED}[✗]${NC} %s\n" "$1"
+  exit 1
+}
+header() { printf "\n${GREEN}━━━ %s ━━━${NC}\n" "$1"; }
 
 command_exists() { command -v "$1" &>/dev/null; }
 

@@ -12,5 +12,5 @@ fd --type f \
   --exclude .git \
   --exclude .tmp \
   --exclude .cache \
-  --exclude .rumdl_cache \
-  | fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}'
+  --exclude .rumdl_cache |
+  fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}'
