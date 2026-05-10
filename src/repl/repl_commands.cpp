@@ -114,11 +114,8 @@ static bool toggle_option(const std::string& name, ReplState& s) {
     BoolField field;
   };
   static const OptEntry opts[] = {
-      {"markdown", &ReplState::markdown},
-      {"color", &ReplState::color},
-      {"bofh", &ReplState::bofh},
-      {"warmup", &ReplState::warmup},
-      {"mask", &ReplState::mask_pii},
+      {"markdown", &ReplState::markdown}, {"color", &ReplState::color},   {"bofh", &ReplState::bofh},
+      {"warmup", &ReplState::warmup},     {"mask", &ReplState::mask_pii},
   };
   if (name == "trace") {
     Config::instance().trace = !Config::instance().trace;

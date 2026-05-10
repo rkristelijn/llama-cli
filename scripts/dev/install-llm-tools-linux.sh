@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # install-llm-tools-linux.sh — Batch installer for terminal AI/LLM tools (Linux)
 # Usage: curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/scripts/install-llm-tools-linux.sh | bash
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()  { printf "${GREEN}[✓]${NC} %s\n" "$1"; }

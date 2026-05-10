@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # install-vhs.sh — Install VHS (terminal recorder) and dependencies
 # Works on Linux (apt/go) and macOS (brew)
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 command_exists() { command -v "$1" &>/dev/null; }
 

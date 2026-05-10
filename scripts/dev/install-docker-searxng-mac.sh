@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # install-docker-searxng-mac.sh — Install Docker and SearXNG for llama-cli web search (macOS)
 # Usage: curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/scripts/install-docker-searxng-mac.sh | bash
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()  { printf "${GREEN}[✓]${NC} %s\n" "$1"; }
