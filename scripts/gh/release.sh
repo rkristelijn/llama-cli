@@ -20,7 +20,7 @@ DRY_RUN=0
 
 for arg in "$@"; do
   case "$arg" in
-    --dry-run) DRY_RUN=1 ;;
+  --dry-run) DRY_RUN=1 ;;
   esac
 done
 
