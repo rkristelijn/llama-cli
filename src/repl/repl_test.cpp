@@ -502,7 +502,7 @@ SCENARIO ("REPL /model select from list") {
       }
       THEN ("model is set to the selected one") {
         // Model 2 in params-sorted order is llama3:8b
-        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
+        CHECK (out.str().find("[model set to llama3:8b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -512,7 +512,7 @@ SCENARIO ("REPL /model select from list") {
       std::ostringstream out;
       run_repl(echo_chat, test_cfg(), in, out, one_model, nullptr, mock_hw, mock_model_info);
       THEN ("model is set") {
-        CHECK (out.str().find("[model set to gemma4:e4b]") != std::string::npos)
+        CHECK (out.str().find("[model set to gemma4:e4b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -539,7 +539,7 @@ SCENARIO ("REPL /model select from list") {
       std::ostringstream out;
       run_repl(echo_chat, test_cfg(), in, out, five_models, nullptr, mock_hw, mock_model_info);
       THEN ("model is set despite the CR") {
-        CHECK (out.str().find("[model set to llama3:8b]") != std::string::npos)
+        CHECK (out.str().find("[model set to llama3:8b (saved to .env)]") != std::string::npos)
           ;
       }
     }
@@ -575,10 +575,9 @@ SCENARIO ("dispatch_command handles slash commands") {
     std::vector<Message> history;
     std::istringstream in("");
     std::ostringstream out;
-    ReplState s = {chat,    nullptr, models, nullptr, nullptr, nullptr, cfg,
-                   history, in,      out,    0,       false,   false,   true,
-                   false,   false,   "32",   "",      false,   -1,      static_cast<ModelRegistry*>(nullptr),
-                   {},      nullptr};
+    ReplState s = {chat,  nullptr, models, nullptr, nullptr, nullptr, cfg,  history, in,    out, 0,
+                   false, false,   true,   false,   "",      false,   "32", "",      false, -1,  static_cast<ModelRegistry*>(nullptr),
+                   {},    {}};
 
     WHEN ("dispatch_command is called with /clear") {
       history.push_back({"user", "hello"});

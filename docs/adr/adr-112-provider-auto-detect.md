@@ -47,6 +47,7 @@ std::string auto_detect_provider(const std::string& host, const std::string& por
 ### Persistence
 
 On first auto-detection, write `LLAMA_PROVIDER=ollama` (or `tgpt`) to `.env`. This means:
+
 - First run: 2s probe (worst case)
 - All subsequent runs: instant (reads from `.env`)
 
