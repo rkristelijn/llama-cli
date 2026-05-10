@@ -309,3 +309,39 @@ TEST_CASE ("ollama: chat with trace logs to stderr") {
   CHECK (!guard.capture.messages.empty())
     ;
 }
+
+// --- Tests for get_running_model (ADR-112) ---
+
+TEST_CASE ("ollama: get_running_model returns loaded model name") {
+  MockServer m;
+  m.svr.Get("/api/ps", [](const httplib::Request&, httplib::Response& res) {
+    res.set_content(R"({"models":[{"name":"gemma4:26b","model":"gemma4:26b","size":17987581215}]})", "application/json");
+  });
+  m.start();
+
+  auto result = get_running_model(mock_cfg(m.port));
+  CHECK (result == "gemma4:26b")
+    ;
+}
+
+TEST_CASE ("ollama: get_running_model returns empty when no models loaded") {
+  MockServer m;
+  m.svr.Get("/api/ps", [](const httplib::Request&, httplib::Response& res) { res.set_content(R"({"models":[]})", "application/json"); });
+  m.start();
+
+  auto result = get_running_model(mock_cfg(m.port));
+  CHECK (result.empty())
+    ;
+}
+
+TEST_CASE ("ollama: get_running_model returns empty on connection failure") {
+  // No server running on this port
+  Config cfg;
+  cfg.host = "127.0.0.1";
+  cfg.port = "19998";
+  cfg.timeout = 1;
+
+  auto result = get_running_model(cfg);
+  CHECK (result.empty())
+    ;
+}

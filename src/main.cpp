@@ -155,14 +155,23 @@ int main(int argc, char* argv[]) {
 
   // Auto-detect model for sync mode (skip for mock provider)
   if (cfg.model == "auto" && cfg.mode == Mode::Sync && cfg.provider != "mock") {
-    auto models = provider->list_models();
-    if (!models.empty()) {
-      cfg.model = models[0];
-      Config::instance().model = models[0];
+    // Prefer already-loaded model to avoid cold-start delay (ADR-112)
+    std::string running = get_running_model(cfg);
+    if (!running.empty()) {
+      cfg.model = running;
+      Config::instance().model = running;
     } else {
-      tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
-      return 1;
+      auto models = provider->list_models();
+      if (!models.empty()) {
+        cfg.model = models[0];
+        Config::instance().model = models[0];
+      } else {
+        tui::error(std::cerr, color, "No models found. Run: ollama pull qwen3:30b");
+        return 1;
+      }
     }
+    // Recreate provider with the resolved model (ADR-112)
+    provider = create_provider(Config::instance());
   }
 
   if (cfg.mode == Mode::Sync) {

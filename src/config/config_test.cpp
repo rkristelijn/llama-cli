@@ -612,3 +612,76 @@ SCENARIO ("save_to_dotenv appends new key") {
     std::remove(".env");
   }
 }
+
+// --- Tests for provider auto-detection (ADR-112) ---
+
+SCENARIO ("config: provider_explicit is false by default") {
+  GIVEN ("no provider is set") {
+    Config c;
+    THEN ("provider_explicit is false") {
+      CHECK_FALSE (c.provider_explicit)
+        ;
+    }
+  }
+}
+
+SCENARIO ("config: LLAMA_PROVIDER env var sets provider_explicit") {
+  GIVEN ("LLAMA_PROVIDER is set in environment") {
+    setenv("LLAMA_PROVIDER", "ollama", 1);
+    WHEN ("load_env is called") {
+      Config c = load_env();
+      THEN ("provider_explicit is true") {
+        CHECK (c.provider_explicit)
+          ;
+        CHECK (c.provider == "ollama")
+          ;
+      }
+    }
+    unsetenv("LLAMA_PROVIDER");
+  }
+}
+
+SCENARIO ("config: .env LLAMA_PROVIDER sets provider_explicit") {
+  GIVEN ("a .env file with LLAMA_PROVIDER=tgpt") {
+    TmpEnvFile env(".env", "LLAMA_PROVIDER=tgpt\n");
+    Config c;
+    WHEN ("load_dotenv is called") {
+      load_dotenv(".env", c);
+      THEN ("provider_explicit is true") {
+        CHECK (c.provider_explicit)
+          ;
+        CHECK (c.provider == "tgpt")
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("config: --provider CLI arg sets provider_explicit") {
+  GIVEN ("--provider=mock is passed on CLI") {
+    const char* argv[] = {"llama-cli", "--provider=mock"};
+    WHEN ("load_cli is called") {
+      Config base;
+      Config c = load_cli(2, argv, base);
+      THEN ("provider_explicit is true") {
+        CHECK (c.provider_explicit)
+          ;
+        CHECK (c.provider == "mock")
+          ;
+      }
+    }
+  }
+}
+
+SCENARIO ("config: auto_detect_provider returns tgpt when Ollama unreachable") {
+  GIVEN ("a host that is not running Ollama") {
+    // Use a port that's almost certainly not listening
+    WHEN ("auto_detect_provider probes it") {
+      std::string result = auto_detect_provider("127.0.0.1", "19999");
+      THEN ("it falls back to tgpt") {
+        CHECK (result == "tgpt")
+          ;
+      }
+    }
+  }
+}
