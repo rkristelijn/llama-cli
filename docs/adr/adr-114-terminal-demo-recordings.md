@@ -44,6 +44,18 @@ for t in demos/*.tape; do vhs "$t"; done  # all
 
 Generated GIFs are not committed (`.gitignore`); they are produced on demand or in CI.
 
+### PII masking
+
+All tape files override environment variables to prevent hostname, IP addresses, and usernames from appearing in recordings:
+
+```tape
+Env PS1 "$ "
+Env HOSTNAME "localhost"
+Env HOME "/home/user"
+```
+
+This ensures no personal data leaks into GIFs committed to the repository.
+
 ## Consequences
 
 ### Positive
