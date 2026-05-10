@@ -1,40 +1,56 @@
-# Demos
+# Feature Demos
 
-Terminal demo recordings using [VHS](https://github.com/charmbracelet/vhs) by Charmbracelet.
-
-## Prerequisites
+Terminal recordings using [VHS](https://github.com/charmbracelet/vhs). Record them yourself:
 
 ```bash
-brew install charmbracelet/tap/vhs   # macOS
-# or: go install github.com/charmbracelet/vhs@latest
-```
-
-VHS also requires `ffmpeg` and `ttyd` (installed automatically by Homebrew).
-
-## Recording
-
-```bash
-# Record a single demo
-vhs demos/chat.tape
-
-# Record all demos
+bash scripts/dev/install-vhs.sh
 for tape in demos/*.tape; do vhs "$tape"; done
 ```
 
-## Tapes
+## Chat — Streaming + Markdown
 
-| Tape | Shows |
-|------|-------|
-| `chat.tape` | Basic chat, markdown rendering, code blocks |
-| `file-io.tape` | File read, write, str_replace edits |
-| `agents.tape` | Agent switching, themes |
-| `web-search.tape` | SearXNG web search integration |
-| `vision.tape` | Image attachment for multimodal models |
-| `smart-routing.tape` | Auto model selection by complexity |
+Streaming responses with full markdown rendering: tables, code blocks with syntax highlighting, bold, links.
 
-## Tips
+![chat](chat.gif)
 
-- Ensure Ollama is running before recording
-- For web-search demo, SearXNG must be running on port 8888
-- Adjust `Sleep` durations if your model is faster/slower
-- Output formats: `.gif`, `.mp4`, `.webm` (change the `Output` line)
+## File I/O — Read, Write, Edit
+
+The LLM reads files, writes new files, and makes targeted `str_replace` edits with diff preview.
+
+![file-io](file-io.gif)
+
+## Agents — Personas + Themes
+
+Switch personality and permissions at runtime. Each agent has its own system prompt and tool access.
+
+![agents](agents.gif)
+
+## Smart Routing — Auto Model Selection
+
+Automatically selects the best model based on prompt complexity. Simple questions go to fast models, complex tasks to large ones.
+
+![smart-routing](smart-routing.gif)
+
+## Web Search — Real-Time Information
+
+Local SearXNG integration for up-to-date information without cloud APIs.
+
+![web-search](web-search.gif)
+
+## Vision — Image Attachment
+
+Attach images for multimodal models. Supports PNG, JPEG, and other formats.
+
+![vision](vision.gif)
+
+## Command Execution
+
+Run shell commands inline (`!cmd` for output, `!!cmd` for LLM context). The LLM can also propose commands via annotations.
+
+## Spinners
+
+23 random 1-char spinner styles selected per session — braille, circles, arrows, triangles, kiro fill, and more.
+
+## Persistence
+
+Save and load conversations with `/chat save` and `/chat load`. Model and host selection persisted to `.env`.
