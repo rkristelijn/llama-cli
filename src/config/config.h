@@ -56,7 +56,7 @@ struct Config {
   std::vector<HostEntry> named_hosts;                      ///< Named host registry (.config/hosts.json, ADR-108)
   std::string model = default_model;                       ///< LLM model name
   int timeout = 120;                                       ///< HTTP request timeout in seconds
-  int exec_timeout = 30;                                   ///< Max seconds for command execution
+  int exec_timeout = 300;                                  ///< Max seconds for command execution
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
   int max_history = 0;                                     ///< Max message pairs to keep (0=unlimited, sliding window)
   bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)

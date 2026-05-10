@@ -135,7 +135,7 @@ void load_dotenv(const std::string& path, Config& c) {
     } else if (key == "OLLAMA_TIMEOUT") {
       c.timeout = safe_stoi(val, 120);
     } else if (key == "LLAMA_EXEC_TIMEOUT") {
-      c.exec_timeout = safe_stoi(val, 30);
+      c.exec_timeout = safe_stoi(val, 300);
     } else if (key == "LLAMA_MAX_OUTPUT") {
       c.max_output = safe_stoi(val, 10000);
     } else if (key == "LLAMA_MAX_HISTORY") {
@@ -247,7 +247,7 @@ Config load_env(const Config& defaults) {
     c.timeout = safe_stoi(val, 120);
   }
   if (env_get("LLAMA_EXEC_TIMEOUT", val)) {
-    c.exec_timeout = safe_stoi(val, 30);
+    c.exec_timeout = safe_stoi(val, 300);
   }
   if (env_get("LLAMA_MAX_OUTPUT", val)) {
     c.max_output = safe_stoi(val, 10000);
@@ -510,7 +510,9 @@ Config load_config(int argc, const char* const argv[]) {
   if (!c.provider_explicit) {
     c.provider = auto_detect_provider(c.host, c.port);
     // Persist so subsequent runs skip the probe
-    save_to_dotenv("LLAMA_PROVIDER", c.provider);
+    if (!save_to_dotenv("LLAMA_PROVIDER", c.provider)) {
+      std::cerr << "Warning: could not persist auto-detected provider to .env\n";
+    }
   }
   // Load named hosts registry (ADR-108)
   c.named_hosts = load_hosts_json(".config/hosts.json");

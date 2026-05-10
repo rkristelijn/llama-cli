@@ -44,7 +44,7 @@ SCENARIO ("config defaults") {
         ;
       CHECK (c.timeout == 120)
         ;
-      CHECK (c.exec_timeout == 30)
+      CHECK (c.exec_timeout == 300)
         ;
       CHECK (c.max_output == 10000)
         ;

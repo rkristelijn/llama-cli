@@ -104,6 +104,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — Model Size Classification and Hardware Mapping
 - [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — Hook-Based Plugin Architecture
 - [`docs/adr/adr-112-provider-auto-detect.md`](docs/adr/adr-112-provider-auto-detect.md) — Smart Provider Auto-Detection at Startup
+- [`docs/adr/adr-113-local-code-review.md`](docs/adr/adr-113-local-code-review.md) — Local AI Code Review via /review Command
 - [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records (ADR)
 - [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
@@ -399,4 +400,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.h`](src/util/util.h) — /**
 - [`src/util/util_test.cpp`](src/util/util_test.cpp) — /**
 
-_396 files indexed._
+_397 files indexed._
