@@ -504,6 +504,10 @@ create-issue: ## Create issue (TITLE="..." DESC="...")
 	@bash scripts/gh/create-issue.sh "$(TITLE)" "$(DESC)"
 	$(log_footer)
 
+release: ## Trigger a GitHub release (from main branch)
+	@bash scripts/gh/release.sh $(ARGS)
+	$(log_footer)
+
 ##@ Help
 
 help: ## Show this help
