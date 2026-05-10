@@ -21,7 +21,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build clean run start s log test t test-unit e2e check check-fast check-all full-check mutation check-ai \
+.PHONY: all build clean run start s log test t test-unit e2e record-e2e check check-fast check-all full-check mutation check-ai \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts lint-versions \
 	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-stegano sast-iac sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
@@ -276,6 +276,10 @@ t: test-unit
 
 e2e: ## Run end-to-end tests
 	@bash scripts/test/run-e2e.sh "$(BUILD_DIR)" "$(BINARY)"
+	$(log_footer)
+
+record-e2e: build ## Record e2e tests as gifs (auto-discovers new tests)
+	@bash scripts/dev/record-e2e.sh $(ARGS)
 	$(log_footer)
 
 live: ## Integration test with real LLM

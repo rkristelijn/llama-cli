@@ -11,27 +11,28 @@
 [![Licenses](https://img.shields.io/badge/Licenses-4%2F4_permissive-brightgreen)](scripts/lint/check-licenses.sh)
 [![Deps](https://img.shields.io/badge/Dependencies-4-blue)](CMakeLists.txt)
 
-A local AI assistant in your terminal. Chat with LLMs, attach files, run commands — all offline, all private.
+A local AI assistant in your terminal. Chat with LLMs, attach files, run commands, edit code — all offline, all private.
 
-```text
-> what is the eisenhower matrix?
+![llama-cli demo](docs/features/feature-tour.gif)
 
-The Eisenhower Matrix helps prioritize tasks by urgency and importance:
+## Features
 
-|                 | Urgent                 | Not Urgent               |
-|-----------------|------------------------|--------------------------|
-| Important       | DO — crisis, deadlines | PLAN — growth, strategy  |
-| Not Important   | DELEGATE — interrupts  | ELIMINATE — distractions |
+See [full feature demos](./docs/features/README.md) for all examples.
 
-> !!cat src/main.cpp
-> explain this code and fix the bug on line 42
-[proposed: str_replace src/main.cpp]
-- old code
-+ fixed code
-Apply? [y/n]
-```text
-
-Streaming responses, markdown rendering (tables, code blocks, bold, links), file I/O, command execution — all running locally on your hardware.
+- **Streaming chat** with any Ollama model (Gemma, Llama, Mistral, Qwen, etc.)
+- **Markdown rendering** — tables, code blocks with syntax highlighting, bold, links
+- **File I/O** — LLM can read files, write new files, and make targeted `str_replace` edits
+- **Command execution** — run shell commands, pipe output as LLM context (`!!cmd`)
+- **Web search** — local SearXNG integration for real-time information
+- **Multi-provider** — Ollama, OpenAI-compatible APIs, switchable at runtime
+- **Agents/personas** — switch personality and permissions (`/agent bofh`, `/agent architect`)
+- **Smart routing** — auto-select model by prompt complexity (`/auto`)
+- **Vision** — attach images for multimodal models (`/image photo.png`)
+- **Context compression** — summarize and compact long conversations (`/compress`)
+- **Chat persistence** — save/load conversations (`/chat save`, `/chat load`)
+- **Themes** — color themes for the terminal UI (`/theme hacker`)
+- **Tab completion** — autocomplete commands, file paths, model names
+- **Fully offline** — no cloud, no API keys, no telemetry
 
 ## Why
 
@@ -59,19 +60,15 @@ curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.
 curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | VERSION=0.18.1 bash
 ```
 
-### From source
+### Future
 
 ```bash
-brew install ollama
-brew services start ollama
-ollama pull gemma4:e4b
-make setup
-sudo make install
+# Below is not working yet, still on beta release, use above install instructions for a preview
+brew install ollama-cli
+apt install ollama-cli
 ```
 
 ## Usage
-
-> The package will be publised once stable:
 
 ```bash
 hello                          # chat with the LLM
@@ -95,7 +92,7 @@ what does this code do?        # LLM can now see the file
 exit                           # quit
 ```
 
-The LLM can also propose commands and file writes:
+The LLM can propose commands and file writes:
 
 ```text
 > fix the bug in main.cpp
@@ -107,7 +104,7 @@ The LLM can read files and make targeted edits:
 
 ```text
 > what does repl.cpp do?
-[read src/repl/repl.cpp]          # LLM reads the requested file
+[read src/repl/repl.cpp]
 
 > fix the typo on line 42
 [proposed: str_replace src/repl/repl.cpp]
@@ -134,45 +131,9 @@ CLI flags override `.env`, `.env` overrides environment variables, which overrid
 
 See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 
-## Roadmap
+## Demos
 
-Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by usability and differentiation.
-
-### Priority 1 — Core UX
-
-| # | Feature | Status | ADR |
-|---|---------|--------|-----|
-| 1 | Streaming responses | ✅ Done | — |
-| 2 | Inline code / markdown rendering | ✅ Done | [052](docs/adr/adr-052-markdown-renderer.md) |
-| 3 | Fix release pipeline | ✅ Done | [045](docs/adr/adr-045-fix-release-pipeline.md) |
-| 4 | Tab autocompletion | ✅ Done | — |
-
-### Priority 2 — Developer Experience
-
-| # | Feature | Status | ADR |
-|---|---------|--------|-----|
-| 5 | Context compression | ✅ Done | — |
-| 6 | Prompt templates | ✅ Done | — |
-| 7 | Exec output tuning | ✅ Done | [015](docs/adr/adr-015-command-execution.md) |
-| 8 | Smart confirmation | ✅ Done | — |
-
-### Priority 3 — Robustness
-
-| # | Feature | Status | ADR |
-|---|---------|--------|-----|
-| 9 | Execution sandbox | ⬚ Planned | — |
-| 10 | Command permissions | ✅ Done | — |
-| 11 | Coverage bump 55→60% | ✅ Done | — |
-| 12 | Reduce complexity | ⬚ Planned | [076](docs/adr/adr-076-code-decomposition-patterns.md) |
-
-### Priority 4 — Future Differentiation
-
-| # | Feature | Status | ADR |
-|---|---------|--------|-----|
-| 13 | Provider abstraction | ✅ Done | [020](docs/adr/adr-020-provider-abstraction.md) |
-| 14 | Planner/executor | ⬚ Planned | [084](docs/adr/adr-084-planner-executor.md) |
-| 15 | Distributed Ollama | ⬚ Planned | — |
-| 16 | Multi-agent | ⬚ Planned | [085](docs/adr/adr-085-multi-agent.md) |
+See [docs/features/](docs/features/README.md) for all animated feature demos.
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 
@@ -180,7 +141,7 @@ Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by
 
 This project follows [ADR-048](docs/adr/adr-048-quality-framework.md), a lean quality framework designed so that **any AI agent — including small local models — can execute development tasks** by following self-contained prompts with exact file paths, code, and verification commands.
 
-The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 1** (Managed). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-24) for the live audit.
+The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 3** (Defined). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-24) for the live audit.
 
 Task prompts for AI agents live in [`docs/prompts/`](docs/prompts/) — each prompt is copy-paste ready for a local Ollama model.
 

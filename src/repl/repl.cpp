@@ -322,6 +322,7 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color),
                      false,
+                     cfg.mask_pii,
                      -1,
                      static_cast<ModelRegistry*>(nullptr),
                      {},

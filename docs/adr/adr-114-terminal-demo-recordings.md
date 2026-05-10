@@ -1,0 +1,81 @@
+---
+summary: Terminal Demo Recordings with VHS
+status: accepted
+---
+
+# ADR-114: Terminal Demo Recordings with VHS
+
+## Context
+
+All roadmap features are implemented. The README needs to show what llama-cli can do rather than list what's planned. Static code blocks don't convey the streaming, interactive experience.
+
+We need reproducible, version-controlled terminal demos that can be re-recorded after UI changes and embedded in the README or docs site.
+
+## Decision
+
+Use [VHS](https://github.com/charmbracelet/vhs) (Charmbracelet) to create animated terminal recordings from declarative `.tape` files stored in `demos/tapes/`.
+
+### Why VHS
+
+- Declarative: `.tape` files are plain text, diffable, reviewable
+- Reproducible: same tape → same output (given same model responses)
+- Multiple formats: GIF, MP4, WebM from one source
+- No binary dependencies beyond ffmpeg/ttyd (auto-installed via Homebrew)
+- Active maintenance by Charmbracelet (Bubble Tea, Lip Gloss ecosystem)
+
+### Tape inventory
+
+| Tape | Feature demonstrated |
+|------|---------------------|
+| `chat.tape` | Streaming chat, markdown rendering |
+| `file-io.tape` | File read, write, str_replace |
+| `agents.tape` | Agent switching, themes |
+| `web-search.tape` | SearXNG web search |
+| `vision.tape` | Image attachment |
+| `smart-routing.tape` | Auto model selection |
+
+### Recording workflow
+
+```bash
+brew install charmbracelet/tap/vhs
+
+# Feature demos (handwritten tapes, require real LLM)
+vhs demos/tapes/chat.tape              # single
+for t in demos/tapes/*.tape; do vhs "$t"; done  # all
+
+# E2e test recordings (auto-discovered, mock provider, no LLM needed)
+make record-e2e                  # generates docs/features/*.gif
+make record-e2e ARGS=--force     # re-record all
+bash scripts/dev/gen-features-md.sh  # regenerate docs/features/FEATURES.md
+```
+
+The `record-e2e` target auto-discovers all `e2e/test_*.sh` files and generates a gif per test. New tests get recordings automatically — no manual tape files needed. Feature→gif mapping is documented in `docs/features/README.md`.
+
+Generated GIFs are not committed (`.gitignore`); they are produced on demand or in CI.
+
+### PII masking
+
+All tape files override environment variables to prevent hostname, IP addresses, and usernames from appearing in recordings:
+
+```tape
+Env PS1 "$ "
+Env HOSTNAME "localhost"
+Env HOME "/home/user"
+```
+
+This ensures no personal data leaks into GIFs committed to the repository.
+
+## Consequences
+
+### Positive
+
+- README shows real capabilities instead of a roadmap checklist
+- Demos stay in sync with code (re-record after changes)
+- Low maintenance: tape files rarely need updating unless commands change
+- Can be embedded in GitHub README, docs site, or blog posts
+
+### Negative
+
+- Recordings depend on Ollama running with a specific model
+- LLM output is non-deterministic; recordings may vary between runs
+- GIF file sizes can be large for long demos (mitigate with short tapes)

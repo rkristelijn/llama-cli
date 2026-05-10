@@ -1,0 +1,5 @@
+# Install scripts intentionally use curl|bash for tool installation
+scripts/dev/install-docker-searxng-mac.sh
+scripts/dev/install-docker-searxng-linux.sh
+scripts/dev/install-llm-tools-linux.sh
+scripts/dev/install-llm-tools-mac.sh

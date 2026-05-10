@@ -29,7 +29,15 @@ done
 LOG=$(mktemp)
 trap 'rm -f "$LOG"' EXIT
 echo "==> running e2e with feature logging..."
-LLAMA_FEATURE_LOG="$LOG" bash scripts/test/run-e2e.sh "$BUILD_DIR" "$BINARY" >/dev/null 2>&1 || true
+# Run each test individually (don't stop on failure — we want coverage from all passing tests)
+export LLAMA_FEATURE_LOG="$LOG"
+export LLAMA_PROVIDER="${LLAMA_PROVIDER:-mock}"
+export OLLAMA_HOSTS=""
+export OLLAMA_HOST="localhost"
+for t in e2e/test_*.sh; do
+  case "$t" in *test_live*|*test_full_feature*) continue ;; esac
+  bash "$t" "$BINARY" >/dev/null 2>&1 || true
+done
 
 # Check which features were hit
 PASS=0

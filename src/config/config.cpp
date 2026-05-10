@@ -152,6 +152,8 @@ void load_dotenv(const std::string& path, Config& c) {
       c.ai_color = val;
     } else if (key == "NO_COLOR") {
       c.no_color = true;
+    } else if (key == "LLAMA_MASK_PII") {
+      c.mask_pii = (val == "true" || val == "1");
     } else if (key == "LLAMA_NO_BANNER") {
       c.no_banner = (val == "true" || val == "1");
     } else if (key == "TRACE") {
@@ -261,6 +263,9 @@ Config load_env(const Config& defaults) {
   }
   if (std::getenv("NO_COLOR")) {
     c.no_color = true;
+  }
+  if (std::getenv("LLAMA_MASK_PII")) {
+    c.mask_pii = true;
   }
   if (std::getenv("LLAMA_NO_BANNER")) {
     c.no_banner = true;
@@ -455,6 +460,10 @@ Config load_cli(int argc, const char* const argv[], const Config& base) {
     }
     if (arg == "--no-color") {
       c.no_color = true;
+      continue;
+    }
+    if (arg == "--mask-pii") {
+      c.mask_pii = true;
       continue;
     }
     if (arg == "--no-banner") {

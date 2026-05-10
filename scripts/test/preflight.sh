@@ -50,7 +50,7 @@ discover_hosts() {
   fi
   # Default: check common hosts
   local hosts=""
-  for h in localhost:11434 <hostname>.local:11434 <hostname>:11434 <hostname>:11434; do
+  for h in "localhost:11434" "$(hostname).local:11434" "$(hostname):11434"; do
     local host="${h%%:*}"
     local port="${h##*:}"
     if curl -s --connect-timeout 2 "http://${host}:${port}/api/tags" | grep -q "models" 2>/dev/null; then
@@ -63,7 +63,7 @@ discover_hosts() {
 get_models() {
   local host="${1%%:*}"
   local port="${1##*:}"
-  curl -s --connect-timeout 3 "http://${host}:${port}/api/tags" 2>/dev/null | \
+  curl -s --connect-timeout 3 "http://${host}:${port}/api/tags" 2>/dev/null |
     python3 -c "import sys,json; [print(m['name']) for m in json.loads(sys.stdin.read()).get('models',[])]" 2>/dev/null
 }
 
@@ -78,7 +78,7 @@ run_test() {
   result=$(OLLAMA_SYSTEM_PROMPT="Answer in one word or number only. No explanation." \
     "${BINARY}" --host="${h}" --model="${model}" "${question}" 2>/dev/null | head -1)
   end=$(date +%s%N)
-  ms=$(( (end - start) / 1000000 ))
+  ms=$(((end - start) / 1000000))
 
   if echo "${result}" | grep -qi "${expected}"; then
     echo "pass ${ms}"
@@ -97,7 +97,7 @@ run_vague_test() {
   result=$(OLLAMA_SYSTEM_PROMPT="Be creative and brief." \
     "${BINARY}" --host="${h}" --model="${model}" "${question}" 2>/dev/null | head -3)
   end=$(date +%s%N)
-  ms=$(( (end - start) / 1000000 ))
+  ms=$(((end - start) / 1000000))
 
   if [[ -n "${result}" ]]; then
     echo "pass ${ms}"

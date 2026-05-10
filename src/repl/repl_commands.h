@@ -53,6 +53,7 @@ struct ReplState {
   std::string prompt_color = "32";  ///< ANSI code for user prompt (green)
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
   bool trust = false;               ///< Trust mode: auto-approve all actions
+  bool mask_pii = false;            ///< Mask PII in output (ADR-115)
   int last_assistant_idx = -1;      ///< Index of last assistant message for rating
   // auto_route removed (ADR-099) — replaced by async delegation
   ModelRegistry* registry = nullptr;  ///< Unified model registry (ADR-081)

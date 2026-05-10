@@ -63,7 +63,6 @@ ci:
   - "SonarCloud continue-on-error: true — external services must not block coverage gate"
   - "git add -A is dangerous — always stage specific files to avoid committing build dirs"
   - "Run make pipeline-coverage before pushing — catches missing denylist entries"
-prevention:
   - "Pre-push checklist: make build (GCC), make check, make pipeline-coverage"
   - "New feature = new test: no LOG_FEATURE without e2e or exclude-list entry"
   - "Cross-compile check: build with both clang AND gcc locally before pushing"
@@ -73,3 +72,9 @@ documentation:
   - "Badge links must point to PROOF of the claim, not the script that generates it"
   - "CI badge → workflow runs page, Coverage → codecov dashboard, Tests → unit-test job"
   - "Static badges (Tests: 347) need manual update at release — consider CI auto-update"
+demos:
+  - "Don't type 'exit' at the end of VHS tapes — it crashes when test output files are open"
+  - "VHS Env PS1 doesn't override .bashrc — use Hide + export PS1='$ ' + clear instead"
+  - "Use LLAMA_CLI_MOCK_DELAY_MS=1500 to make spinner visible in recordings"
+  - "Set HOME=/tmp/demo-home to prevent /mem, /pref from reading real user files"
+  - "Shared settings go in _defaults.tape, tapes only contain Output + commands"
