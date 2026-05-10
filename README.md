@@ -147,31 +147,25 @@ CLI flags override `.env`, `.env` overrides environment variables, which overrid
 
 See [docs/user-guide.md](docs/user-guide.md) for detailed configuration options.
 
-## Roadmap
+## Demos
 
-Based on [ADR-050](docs/adr/adr-050-reality-check-roadmap.md) — prioritized by usability and differentiation.
+See [`demos/`](demos/) for animated terminal recordings (VHS tapes) showing each feature in action:
 
-| # | Feature | Status |
-|---|---------|--------|
-| 1 | Streaming responses | ✅ Done |
-| 2 | Markdown rendering | ✅ Done |
-| 3 | Release pipeline | ✅ Done |
-| 4 | Tab autocompletion | ✅ Done |
-| 5 | Context compression | ✅ Done |
-| 6 | Prompt templates / agents | ✅ Done |
-| 7 | Command execution + tuning | ✅ Done |
-| 8 | Smart confirmation | ✅ Done |
-| 9 | Command permissions | ✅ Done |
-| 10 | Provider abstraction | ✅ Done |
-| 11 | Web search (SearXNG) | ✅ Done |
-| 12 | File read/write/str_replace | ✅ Done |
-| 13 | Vision (image attach) | ✅ Done |
-| 14 | Themes | ✅ Done |
-| 15 | Smart routing (`/auto`) | ✅ Done |
-| 16 | Execution sandbox | ⬚ Planned |
-| 17 | Reduce complexity | ⬚ Planned |
-| 18 | Planner/executor | ⬚ Planned |
-| 19 | Multi-agent | ⬚ Planned |
+| Demo | Shows |
+|------|-------|
+| [chat](demos/chat.tape) | Streaming chat, markdown rendering, code blocks |
+| [file-io](demos/file-io.tape) | File read, write, str_replace edits |
+| [agents](demos/agents.tape) | Agent switching, themes |
+| [web-search](demos/web-search.tape) | SearXNG web search integration |
+| [vision](demos/vision.tape) | Image attachment for multimodal models |
+| [smart-routing](demos/smart-routing.tape) | Auto model selection by complexity |
+
+Record them yourself:
+
+```bash
+brew install charmbracelet/tap/vhs
+for tape in demos/*.tape; do vhs "$tape"; done
+```
 
 > **Make the local AI assistant work so well that the cloud alternative isn't worth the privacy trade-off.**
 
