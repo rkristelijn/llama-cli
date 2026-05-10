@@ -32,6 +32,7 @@
 #include "sync/sync.h"
 #include "trace/trace.h"
 #include "tui/tui.h"
+#include "util/pii.h"
 
 /// Global interrupt flag (defined in repl.cpp)
 extern volatile sig_atomic_t g_interrupted;
@@ -105,15 +106,16 @@ static std::string interruptible_chat(ReplState& s) {
     // Copy history and stream_chat so the thread owns its data — safe to detach
     auto history_copy = std::make_shared<std::vector<Message>>(s.history);
     auto chat_fn = s.stream_chat;
-    std::thread t([chat_fn, result, done, first_token, spin, renderer, history_copy] {
-      *result = chat_fn(*history_copy, [first_token, spin, renderer](const std::string& token) {
+    bool pii = s.mask_pii;  // ADR-115: capture PII mask setting for thread
+    std::thread t([chat_fn, result, done, first_token, spin, renderer, history_copy, pii] {
+      *result = chat_fn(*history_copy, [first_token, spin, renderer, pii](const std::string& token) {
         if (g_interrupted) {
           return false;
         }
         if (!first_token->exchange(true)) {
           spin->stop();
         }
-        renderer->write(token);
+        renderer->write(pii ? mask_pii(token) : token);  // ADR-115: mask PII before render
         return true;
       });
       renderer->finish();

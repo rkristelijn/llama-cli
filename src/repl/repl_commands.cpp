@@ -88,6 +88,7 @@ static void show_options(ReplState& s) {
   s.out << "  warmup    " << std::left << std::setw(15) << status(s.warmup)
         << "Pre-load model on startup/switch to avoid first-prompt delay\n";
   s.out << "  bofh      " << std::left << std::setw(15) << status(s.bofh) << "Enable 'Bastard Operator From Hell' sarcastic spinner\n";
+  s.out << "  mask      " << std::left << std::setw(15) << status(s.mask_pii) << "Mask PII in output (IPs, hostnames, emails, keys)\n";
   s.out << "  trace     " << std::left << std::setw(15) << status(Config::instance().trace)
         << "Show detailed HTTP traffic and timing logs\n";
 
@@ -117,6 +118,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
       {"color", &ReplState::color},
       {"bofh", &ReplState::bofh},
       {"warmup", &ReplState::warmup},
+      {"mask", &ReplState::mask_pii},
   };
   if (name == "trace") {
     Config::instance().trace = !Config::instance().trace;

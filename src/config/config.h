@@ -60,6 +60,7 @@ struct Config {
   int max_output = 10000;                                  ///< Max chars of command output for LLM context
   int max_history = 0;                                     ///< Max message pairs to keep (0=unlimited, sliding window)
   bool no_color = false;                                   ///< Disable colored output (--no-color, NO_COLOR)
+  bool mask_pii = false;                                   ///< Mask PII in output (--mask-pii, LLAMA_MASK_PII, ADR-115)
   bool no_banner = false;                                  ///< Suppress ASCII banner (--no-banner, LLAMA_NO_BANNER)
   bool bofh = false;                                       ///< BOFH mode: sarcastic spinner messages (--why-so-serious)
   bool trace = false;                                      ///< Trace mode: show HTTP calls and debug info
