@@ -41,7 +41,7 @@ Implement incremental debt reduction:
 
 ## Consequences
 
-- ✅ Improves code quality incrementally
-- ✅ Reduces maintenance burden
-- ✅ Enables better code reviews
-- ⚠️ Requires multiple PRs (not one-shot fix)
+- ✓ Improves code quality incrementally
+- ✓ Reduces maintenance burden
+- ✓ Enables better code reviews
+- ⚠ Requires multiple PRs (not one-shot fix)

@@ -41,7 +41,7 @@ Centralization is low-risk when done incrementally:
 
 ## Consequences
 
-- ✅ Enables future localization
-- ✅ Improves code maintainability
-- ✅ Reduces string duplication
-- ⚠️ Requires gradual refactoring (not all at once)
+- ✓ Enables future localization
+- ✓ Improves code maintainability
+- ✓ Reduces string duplication
+- ⚠ Requires gradual refactoring (not all at once)

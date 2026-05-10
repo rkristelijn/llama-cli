@@ -73,7 +73,7 @@ live
 └── e2e/test_live.sh (integration test with LLM)
 ```text
 
-### 🛠️ Development & Git Hooks
+### 🛠 Development & Git Hooks
 
 ```text
 hooks (installs pre-commit and pre-push)
