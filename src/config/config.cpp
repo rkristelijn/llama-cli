@@ -664,10 +664,12 @@ std::string host_display_name(const std::string& host_port) {
 /// Probe Ollama API to detect if it's running (ADR-112).
 /// Returns "ollama" if reachable, "tgpt" otherwise.
 /// Uses a 2-second timeout to avoid blocking startup.
+/// Called during init when no explicit --provider flag is given.
 std::string auto_detect_provider(const std::string& host, const std::string& port) {
   httplib::Client cli(host, safe_stoi(port, 11434));
   cli.set_connection_timeout(2);
   cli.set_read_timeout(2);
+  // GET /api/tags is the lightest Ollama endpoint (just lists models)
   auto res = cli.Get("/api/tags");
   if (res && res->status == 200) {
     return "ollama";
