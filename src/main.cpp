@@ -313,6 +313,29 @@ int main(int argc, char* argv[]) {
       tui::banner(std::cerr, color);
     }
 
+    // Model fallback: if configured model is not available, warn and pick first available.
+    // This prevents HTTP 404 errors during warmup when .env references a deleted model.
+    // The user can fix permanently via /model or editing .env.
+    if (cfg.provider != "mock") {
+      auto available = provider->list_models();
+      std::string& model = Config::instance().model;
+      bool found = false;
+      for (const auto& m : available) {
+        if (m == model) {
+          found = true;
+          break;
+        }
+      }
+      if (!found && !available.empty()) {
+        // Warn and fallback — don't crash on a stale config
+        tui::system_msg(std::cerr, color, "⚠ model '" + model + "' not found, falling back to " + available[0]);
+        model = available[0];
+      } else if (!found && available.empty()) {
+        // No models at all — host might be unreachable or empty
+        tui::system_msg(std::cerr, color, "⚠ no models available on " + cfg.host + ":" + cfg.port);
+      }
+    }
+
     // Optional model warmup (only if not already running, skip for mock provider)
     if (cfg.provider != "mock" && Config::instance().warmup && !provider->is_model_running(Config::instance().model)) {
       tui::system_msg(std::cerr, color, "Warming up " + Config::instance().model + "... (Ctrl+C to skip)");
