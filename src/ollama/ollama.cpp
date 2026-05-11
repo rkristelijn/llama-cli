@@ -54,20 +54,30 @@ std::string ollama_generate(const Config& cfg, const std::string& prompt) {
   auto end = std::chrono::high_resolution_clock::now();
   int duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-  // Connection failed — Ollama is probably not running
+  // Connection failed — Ollama is probably not running.
+  // Common causes: ollama not started, wrong host/port, firewall.
   if (!res) {
     tui::error(std::cerr, tui::use_color(cfg.no_color), "Error: could not connect to Ollama at " + cfg.host + ":" + cfg.port);
     LOG_EVENT("ollama", "generate", prompt, "connection failed: " + cfg.host + ":" + cfg.port, duration, 0, 0);
     return "";
   }
 
-  // API error — e.g. model not found, invalid request
+  // API error — explain what went wrong and how to fix it.
+  // Pattern: show the raw error from Ollama, plus a human-friendly hint.
   if (res->status < 200 || res->status >= 300) {
     std::string err = json_extract_string(res->body, "error");
-    if (err.empty()) {
+    std::string hint;
+    if (res->status == 404 || err.find("not found") != std::string::npos) {
+      hint = "Model '" + cfg.model + "' is not installed. Run: ollama pull " + cfg.model;
+    } else if (res->status == 500) {
+      hint = "Ollama internal error. Try: ollama restart";
+    } else if (err.empty()) {
       err = "HTTP " + std::to_string(res->status);
     }
-    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    tui::error(std::cerr, tui::use_color(cfg.no_color), err.empty() ? hint : err);
+    if (!hint.empty() && !err.empty()) {
+      tui::error(std::cerr, tui::use_color(cfg.no_color), "  → " + hint);
+    }
     LOG_EVENT("ollama", "generate", prompt, err, duration, 0, 0);
     return "";
   }
@@ -142,13 +152,22 @@ std::string ollama_chat(const Config& cfg, const std::vector<Message>& messages)
     return "";
   }
 
-  // API error — e.g. model not found, invalid request
+  // API error — explain what went wrong and how to fix it.
+  // Same pattern as generate endpoint: raw error + actionable hint.
   if (res->status < 200 || res->status >= 300) {
     std::string err = json_extract_string(res->body, "error");
-    if (err.empty()) {
+    std::string hint;
+    if (res->status == 404 || err.find("not found") != std::string::npos) {
+      hint = "Model '" + cfg.model + "' is not installed. Run: ollama pull " + cfg.model;
+    } else if (res->status == 500) {
+      hint = "Ollama internal error. Try: ollama restart";
+    } else if (err.empty()) {
       err = "HTTP " + std::to_string(res->status);
     }
-    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    tui::error(std::cerr, tui::use_color(cfg.no_color), err.empty() ? hint : err);
+    if (!hint.empty() && !err.empty()) {
+      tui::error(std::cerr, tui::use_color(cfg.no_color), "  → " + hint);
+    }
     LOG_EVENT("ollama", "chat", build_messages_json(messages), err, duration, 0, 0);
     return "";
   }
@@ -249,10 +268,18 @@ std::string ollama_chat_stream(const Config& cfg, const std::vector<Message>& me
 
   if (res && (res->status < 200 || res->status >= 300)) {
     std::string err = json_extract_string(res->body, "error");
-    if (err.empty()) {
+    std::string hint;
+    if (res->status == 404 || err.find("not found") != std::string::npos) {
+      hint = "Model '" + cfg.model + "' is not installed. Run: ollama pull " + cfg.model;
+    } else if (res->status == 500) {
+      hint = "Ollama internal error. Try: ollama restart";
+    } else if (err.empty()) {
       err = "HTTP " + std::to_string(res->status);
     }
-    tui::error(std::cerr, tui::use_color(cfg.no_color), "Ollama error: " + err);
+    tui::error(std::cerr, tui::use_color(cfg.no_color), err.empty() ? hint : err);
+    if (!hint.empty() && !err.empty()) {
+      tui::error(std::cerr, tui::use_color(cfg.no_color), "  → " + hint);
+    }
     LOG_EVENT("ollama", "chat_stream", build_messages_json(messages), err, duration, 0, 0);
     return "";
   }

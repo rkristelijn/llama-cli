@@ -35,7 +35,7 @@ export LLAMA_PROVIDER="${LLAMA_PROVIDER:-mock}"
 export OLLAMA_HOSTS=""
 export OLLAMA_HOST="localhost"
 for t in e2e/test_*.sh; do
-  case "$t" in *test_live*|*test_full_feature*) continue ;; esac
+  case "$t" in *test_live* | *test_full_feature*) continue ;; esac
   bash "$t" "$BINARY" >/dev/null 2>&1 || true
 done
 

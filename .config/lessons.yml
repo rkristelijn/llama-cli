@@ -38,6 +38,7 @@ design:
   - "NBI (Naming by Intention): use names that clearly express purpose and behavior"
   - "Automate over manual: fix the tooling, not the symptom — make format > hand-edit"
   - "Idempotent automation: run make format 100x, same result — no manual investigation"
+  - "Error messages must answer 3 questions: what failed, why, and what to do about it"
   - Prefer testing the public interface's contract rather than internal implementation details.
   - Verify that assertions test the contract, not the implementation details.
 refactoring:

@@ -50,6 +50,7 @@ const std::string& Logger::path() const { return log_path_; }
 /// Each event is one JSON line with timestamp, agent, action, I/O, and metrics.
 /// Writes are serialized via a mutex to ensure each JSONL record is emitted atomically.
 void Logger::log(const Event& e) {
+  if (suppressed) return;
   std::lock_guard<std::mutex> lock(log_mutex_);
 
   // Auto-fill host/provider from Config if not explicitly set

@@ -512,6 +512,14 @@ release: ## Trigger a GitHub release (from main branch)
 	@bash scripts/gh/release.sh $(ARGS)
 	$(log_footer)
 
+merge: ## Merge current PR (squash)
+	@gh pr merge --squash --delete-branch
+	@echo "  ✓ PR merged and branch deleted"
+
+gh-cleanup: ## Remove merged branches (dry-run; use ARGS=--apply to delete)
+	@bash scripts/gh/gh-cleanup.sh $(ARGS)
+	$(log_footer)
+
 ##@ Help
 
 help: ## Show this help

@@ -2,6 +2,7 @@
 # TODO
 
 - [ ] Optimize writes by using small updates.
+- [ ] Refactor functions with >3 parameters to accept a struct/config object instead (Clean Code best practice, applies to C++ too — see run_repl signature).
 - [ ] Fix bug: Input breaking on mobile/telephone (duplicate lines on every keypress and backspace).
 - [ ] String literals audit: UI messages are scattered as inline strings. Consider a central `messages.h` or i18n-ready string table if we ever need localization. For now, keep provider/model names dynamic (from registry scan, never hardcoded).
 - [ ] Confirmation feedback: allow typing a reason when declining (e.g., "n, use sed instead"). Feed the feedback back as a user message so the LLM retries with the correction.
