@@ -1,14 +1,14 @@
 Output docs/features/file-ops.gif
 
-Type "./build/llama-cli --repl"
+Type "./build/llama-cli"
 Enter
 Sleep 3s
 
-Type "!!cat VERSION"
+Type "!!head -1 README.md"
 Enter
 Sleep 2s
 
-Type "what version is this?"
+Type "what project is this?"
 Enter
 Sleep 5s
 

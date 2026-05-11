@@ -1,6 +1,6 @@
 Output docs/features/session.gif
 
-Type "./build/llama-cli --repl"
+Type "./build/llama-cli"
 Enter
 Sleep 3s
 

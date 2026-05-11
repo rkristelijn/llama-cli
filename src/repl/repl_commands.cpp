@@ -184,37 +184,76 @@ static void handle_color(const std::string& arg, ReplState& s) {
   static const char* names =
       "black, red, green, yellow, blue, magenta, cyan, white,\n"
       "         bright-red, bright-green, bright-yellow, bright-blue,\n"
-      "         bright-magenta, bright-cyan, bright-white,\n"
-      "         orange, pink, purple, lime, none";
+      "         bright-magenta, bright-cyan, bright-white, none";
+  static const char* targets = "prompt, ai, system, error, info, spinner";
   if (arg.empty()) {
-    s.out << "Usage: /color prompt <color>  or  /color ai <color>\n";
+    s.out << "Usage: /color <target> <color>  or  /color reset\n";
+    s.out << "Targets: " << targets << "\n";
     s.out << "Colors: " << names << "\n";
-    s.out << "Current: prompt=" << ansi_to_name(s.prompt_color) << ", ai=" << ansi_to_name(s.ai_color) << "\n";
+    auto& t = tui::active_theme();
+    s.out << "Current theme: " << t.name << "\n";
+    return;
+  }
+  // /color reset — restore original theme
+  if (arg == "reset") {
+    tui::active_theme() = get_theme(tui::active_theme().name);
+    s.prompt_color = "";
+    s.ai_color = "";
+    save_to_dotenv("LLAMA_PROMPT_COLOR", "");
+    save_to_dotenv("LLAMA_AI_COLOR", "");
+    s.out << "[colors reset to theme '" << tui::active_theme().name << "' defaults]\n";
     return;
   }
   auto space = arg.find(' ');
   if (space == std::string::npos) {
-    s.out << "Usage: /color prompt <color>  or  /color ai <color>\n";
+    s.out << "Usage: /color <target> <color>  or  /color reset\n";
     return;
   }
   std::string target = arg.substr(0, space);
   std::string cname = arg.substr(space + 1);
-  std::string code = color_name_to_ansi(cname);
-  if (code.empty() && cname != "none" && cname != "default") {
-    s.out << "Unknown color: " << cname << ". Options: " << names << "\n";
+  // Normalize: bright-red → bright_red for theme system
+  std::string theme_color = cname;
+  for (auto& c : theme_color) {
+    if (c == '-') c = '_';
+  }
+  // Validate color name
+  if (cname != "none" && cname != "default") {
+    ThemeStyle test;
+    test.fg = theme_color;
+    if (test.ansi() == "\033[39m" && theme_color != "default") {
+      s.out << "Unknown color: " << cname << ". Options: " << names << "\n";
+      return;
+    }
+  }
+  // Apply to active theme + persist prompt/ai to .env
+  ThemeStyle style;
+  if (cname != "none" && cname != "default") {
+    style.fg = theme_color;
+  }
+  auto& t = tui::active_theme();
+  if (target == "prompt") {
+    t.prompt = style;
+    s.prompt_color = (cname == "none") ? "" : color_name_to_ansi(cname);
+    save_to_dotenv("LLAMA_PROMPT_COLOR", cname);
+  } else if (target == "ai") {
+    t.ai = style;
+    s.ai_color = (cname == "none") ? "" : color_name_to_ansi(cname);
+    save_to_dotenv("LLAMA_AI_COLOR", cname);
+  } else if (target == "system") {
+    t.system = style;
+  } else if (target == "error") {
+    t.error = style;
+  } else if (target == "info") {
+    t.info = style;
+  } else if (target == "spinner") {
+    // Spinner uses dim by default; setting a color overrides
+    style.dim = true;
+    t.system = style;  // spinner uses system style
+  } else {
+    s.out << "Unknown target: " << target << ". Options: " << targets << "\n";
     return;
   }
-  if (target == "prompt") {
-    s.prompt_color = code;
-    bool ok = save_to_dotenv("LLAMA_PROMPT_COLOR", cname);
-    s.out << "[prompt color set to " << cname << (ok ? " (saved)" : " (save failed)") << "]\n";
-  } else if (target == "ai") {
-    s.ai_color = code;
-    bool ok = save_to_dotenv("LLAMA_AI_COLOR", cname);
-    s.out << "[ai color set to " << cname << (ok ? " (saved)" : " (save failed)") << "]\n";
-  } else {
-    s.out << "Unknown target: " << target << ". Use 'prompt' or 'ai'.\n";
-  }
+  s.out << "[" << target << " color set to " << cname << "]\n";
 }
 
 /// Handle /scan — discover Ollama servers on the local network.
@@ -1286,8 +1325,27 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
         return true;
       }
       s.out << "[theme: " << role << " updated]\n";
+    } else if (arg == "demo" || arg.substr(0, 5) == "demo ") {
+      // /theme demo [name] — preview all roles in their styled colors (ADR-080)
+      // Shows each role with its ANSI styling so users can compare themes visually
+      std::string demo_name = (arg.size() > 5) ? arg.substr(5) : tui::active_theme().name;
+      Theme demo_theme = get_theme(demo_name);
+      s.out << "[theme demo: " << demo_theme.name << "]\n";
+      // Lambda renders one role: applies ANSI, prints label, resets
+      auto show = [&](const std::string& label, const ThemeStyle& style) {
+        s.out << "  " << style.ansi() << label << ThemeStyle::reset() << "\n";
+      };
+      // Print each role with representative sample text
+      show("prompt:  user@mock:gemma4:26b>", demo_theme.prompt);
+      show("ai:      I understand your question.", demo_theme.ai);
+      show("system:  [MOCK MODE] All prompts echoed.", demo_theme.system);
+      show("error:   Error: connection refused", demo_theme.error);
+      show("info:    [1.5s · gemma4:26b · 151 chars]", demo_theme.info);
+      show("warning: [proposed: write src/main.cpp]", demo_theme.warning);
+      show("banner:  llama-cli", demo_theme.banner);
+      show("code:    std::string hello = \"world\";", demo_theme.code);
     } else {
-      s.out << "Unknown theme: " << arg << ". Try: dark, light, mono, hacker\n";
+      s.out << "Unknown theme: " << arg << ". Try: dark, light, mono, hacker, demo\n";
     }
     // --- Context compression: summarize history to reduce token usage ---
   } else if (command == "compress") {

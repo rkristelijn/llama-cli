@@ -18,7 +18,16 @@ record_tape() {
   cat "$DEFAULTS" >> "$tmp"
   grep -v "^Output \|^#" "$tape" >> "$tmp"
   echo "  [record] $tape"
+  # Hide .env to prevent it from overriding mock provider env vars
+  if [[ -f .env ]]; then
+    mv .env .env.recording-bak
+    trap 'mv -f .env.recording-bak .env 2>/dev/null' EXIT
+  fi
   vhs "$tmp"
+  # Restore .env
+  if [[ -f .env.recording-bak ]]; then
+    mv .env.recording-bak .env
+  fi
   rm -f "$tmp"
 }
 

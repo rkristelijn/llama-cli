@@ -91,7 +91,7 @@ std::string build_prompt_label(const std::string& nick, const std::string& provi
 }
 
 /// Read one line of input using linenoise (interactive) or getline (tests).
-static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& /*prompt_ansi*/ = "",
+static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line, bool color, const std::string& prompt_ansi = "",
                       const std::string& nick = "", const std::string& model = "", const std::string& provider = "") {
   if (&in != &std::cin) {
     return static_cast<bool>(std::getline(in, line));
@@ -101,7 +101,9 @@ static bool read_line(std::istream& in, std::ostream& /*out*/, std::string& line
   }
   // Build prompt: "nick@provider:model> " or "nick@provider> " or "nick> " or "> "
   std::string label = build_prompt_label(nick, provider, model);
-  std::string prompt_str = color ? tui::active_theme().prompt.ansi() + label + ThemeStyle::reset() : label;
+  // Use explicit /color prompt setting if set, otherwise fall back to theme
+  std::string color_code = prompt_ansi.empty() ? tui::active_theme().prompt.ansi() : "\033[" + prompt_ansi + "m";
+  std::string prompt_str = color ? color_code + label + ThemeStyle::reset() : label;
   // NOLINTNEXTLINE(readability-identifier-naming)
   auto quit = linenoise::Readline(prompt_str.c_str(), line);
   if (quit) {
