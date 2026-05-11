@@ -143,8 +143,6 @@ This project follows [ADR-048](docs/adr/adr-048-quality-framework.md), a lean qu
 
 The framework uses CMMI-inspired maturity levels (0-3) where every automated check serves at least two purposes. Current level: **CMMI 3** (Defined). See [ADR-048 §15](docs/adr/adr-048-quality-framework.md#15-current-status--audit-2026-04-24) for the live audit.
 
-Task prompts for AI agents live in [`docs/prompts/`](docs/prompts/) — each prompt is copy-paste ready for a local Ollama model.
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and [docs/](docs/README.md) for architecture decisions.
