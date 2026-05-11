@@ -28,6 +28,7 @@
 #include "logging/logger.h"
 #include "provider/provider_factory.h"
 #include "repl/repl_annotations.h"
+#include "repl/repl_commands.h"
 #include "repl/repl_search.h"
 #include "sync/sync.h"
 #include "trace/trace.h"
@@ -420,4 +421,7 @@ void send_prompt(const std::string& line, ReplState& s) {
   if (needs_followup) {
     s.out << "[follow-up limit reached]\n";
   }
+
+  // Show periodic tips to help users discover commands
+  show_tip(s);
 }

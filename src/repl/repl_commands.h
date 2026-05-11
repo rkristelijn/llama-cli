@@ -54,6 +54,9 @@ struct ReplState {
   std::string ai_color = "";        ///< ANSI code for AI response (none=default)
   bool trust = false;               ///< Trust mode: auto-approve all actions
   bool mask_pii = false;            ///< Mask PII in output (ADR-115)
+  bool private_mode = false;        ///< Private mode: disable logging (ADR-117)
+  bool tips_enabled = true;         ///< Show periodic command tips
+  int tips_interval = 5;            ///< Show tip every N messages
   int last_assistant_idx = -1;      ///< Index of last assistant message for rating
   // auto_route removed (ADR-099) — replaced by async delegation
   ModelRegistry* registry = nullptr;  ///< Unified model registry (ADR-081)
@@ -68,5 +71,8 @@ struct ReplState {
 /// OCP: dispatch_command routes to handlers — new commands add new functions,
 /// not edits to existing ones.
 bool dispatch_command(const std::string& command, const std::string& arg, ReplState& s);
+
+/// Show a periodic tip about available commands (called after each response).
+void show_tip(ReplState& s);
 
 #endif  // LLAMA_CLI_REPL_COMMANDS_H

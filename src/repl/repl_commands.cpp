@@ -115,7 +115,7 @@ static bool toggle_option(const std::string& name, ReplState& s) {
   };
   static const OptEntry opts[] = {
       {"markdown", &ReplState::markdown}, {"color", &ReplState::color},   {"bofh", &ReplState::bofh},
-      {"warmup", &ReplState::warmup},     {"mask", &ReplState::mask_pii},
+      {"warmup", &ReplState::warmup},     {"mask", &ReplState::mask_pii}, {"tips", &ReplState::tips_enabled},
   };
   if (name == "trace") {
     Config::instance().trace = !Config::instance().trace;
@@ -481,6 +481,70 @@ static void handle_review(const std::string& arg, ReplState& s) {
   LOG_EVENT("repl", "review", label, response.substr(0, 200), 0, 0, 0);
 }
 
+/// Self-update: check GitHub releases and replace binary if newer.
+/// Queries the GitHub API for the latest release tag, compares with
+/// the compiled-in version, and shows the install command if outdated.
+static void handle_update(ReplState& s) {
+  s.out << "[checking for updates...]\n";
+  s.out.flush();
+
+  // Current version is baked in at compile time via -DLLAMA_CLI_VERSION
+  std::string current = LLAMA_CLI_VERSION;
+
+  // Query GitHub for latest release tag via REST API
+  // Uses sed to extract tag_name from JSON (avoids JSON parser dependency)
+  ExecResult result = cmd_exec(
+      "curl -fsSL -H 'Accept: application/vnd.github.v3+json' "
+      "https://api.github.com/repos/rkristelijn/llama-cli/releases/latest "
+      "2>/dev/null | grep '\"tag_name\"' | head -1 | sed 's/.*\"tag_name\"[^\"]*\"\\([^\"]*\\)\".*/\\1/'",
+      10, 200);
+
+  if (result.exit_code != 0 || result.output.empty()) {
+    s.out << "[error: could not reach GitHub releases]\n";
+    return;
+  }
+
+  // Clean up the version string: strip whitespace and leading 'v'
+  std::string latest = result.output;
+  while (!latest.empty() && (latest.back() == '\n' || latest.back() == ' ')) latest.pop_back();
+  if (!latest.empty() && latest.front() == 'v') latest = latest.substr(1);
+
+  // Compare versions (simple string compare — semver is always X.Y.Z)
+  if (latest == current) {
+    s.out << "[up to date: v" << current << "]\n";
+    return;
+  }
+
+  // Show update instructions (reuses the same install.sh as initial install)
+  s.out << "[update available: v" << current << " → v" << latest << "]\n";
+  s.out << "Run: curl -fsSL https://raw.githubusercontent.com/rkristelijn/llama-cli/main/install.sh | bash\n";
+}
+
+/// Tips shown periodically to help users discover commands.
+/// Rotates through the list based on message count.
+/// Disabled via /set tips or /tips toggle.
+static constexpr const char* kTips[] = {
+    "Tip: Use !!command to pipe shell output as LLM context",
+    "Tip: /agent bofh for sarcastic responses, /agent architect for design help",
+    "Tip: /compress to shrink long conversations without losing context",
+    "Tip: /chat save <name> to bookmark a conversation for later",
+    "Tip: /review to get AI code review of your git changes",
+    "Tip: /set trace to see HTTP requests to Ollama",
+    "Tip: /theme hacker for green-on-black terminal vibes",
+    "Tip: /private to disable logging for sensitive conversations",
+    "Tip: /update to check for new versions",
+    "Tip: /help all to see every available command",
+};
+static constexpr int kNumTips = 10;
+
+/// Show a tip if tips are enabled and it's time (every N messages).
+void show_tip(ReplState& s) {
+  if (!s.tips_enabled || s.count == 0) return;
+  if (s.count % s.tips_interval != 0) return;
+  int idx = (s.count / s.tips_interval) % kNumTips;
+  s.out << "\n" << kTips[idx] << " (/set tips to disable)\n";
+}
+
 // --- Public dispatch function ---
 // OCP: new commands are added as new handler functions, then a single
 // else-if branch here. The dispatch table pattern keeps it extensible.
@@ -738,8 +802,8 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
     }
   } else if (command == "help" || command.empty()) {
     LOG_FEATURE("cmd_help");
-    // Paginate help output based on terminal height (same pattern as /model)
-    std::string text = help::repl;
+    // /help shows basic, /help all shows full (with pagination)
+    std::string text = (arg == "all") ? help::repl : help::repl_basic;
     std::vector<std::string> lines;
     std::istringstream iss(text);
     std::string line;
@@ -1267,6 +1331,19 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
   } else if (command == "review") {
     LOG_FEATURE("cmd_review");
     handle_review(arg, s);
+    // --- Privacy and maintenance ---
+  } else if (command == "private") {
+    LOG_FEATURE("cmd_private");
+    s.private_mode = !s.private_mode;
+    Logger::instance().suppressed = s.private_mode;
+    s.out << "[private mode " << (s.private_mode ? "ON — logging disabled" : "OFF — logging resumed") << "]\n";
+  } else if (command == "update") {
+    LOG_FEATURE("cmd_update");
+    handle_update(s);
+  } else if (command == "tips") {
+    LOG_FEATURE("cmd_tips");
+    s.tips_enabled = !s.tips_enabled;
+    s.out << "[tips " << (s.tips_enabled ? "enabled" : "disabled") << "]\n";
   } else {
     s.out << "Unknown command: /" << command << ". Type /help for options.\n";
   }

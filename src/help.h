@@ -65,7 +65,22 @@ inline std::string cli() {
              "To pull a model:          ollama pull llama3.2\n");
 }
 
-/// REPL commands shown by /help
+/// REPL commands shown by /help (basic — most-used commands)
+constexpr const char* repl_basic =
+    "Commands:\n"
+    "  !command      Run command, output to terminal\n"
+    "  !!command     Run command, output as LLM context\n"
+    "  /model        Select a model\n"
+    "  /agent        Switch agent persona\n"
+    "  /theme        Switch color theme\n"
+    "  /clear        Clear conversation history\n"
+    "  /chat save    Save conversation (/chat load to restore)\n"
+    "  /compress     Summarize and compact history\n"
+    "  /set          Show/toggle options\n"
+    "  /help all     Show all commands\n"
+    "  exit          Exit the REPL\n";
+
+/// REPL commands shown by /help all (full list)
 constexpr const char* repl =
     "Commands:\n"
     "  !command      Run command, output to terminal\n"
@@ -83,7 +98,7 @@ constexpr const char* repl =
     "  /color        Set prompt or AI response color\n"
     "  /nick         Set your display name\n"
     "  /set          Show options (model, host, toggles)\n"
-    "  /set <opt>    Toggle option (markdown, color, bofh, trace)\n"
+    "  /set <opt>    Toggle option (markdown, color, bofh, trace, tips)\n"
     "  /compress     Summarize and compact conversation history\n"
     "  /review       AI code review of git diff (staged, branch, <file>)\n"
     "  /chat save    Save conversation (/chat load, /chat list, /chat delete)\n"
@@ -93,8 +108,11 @@ constexpr const char* repl =
     "  /usage        Show session stats (tokens, time, model)\n"
     "  /copy (/c)    Copy last response to clipboard\n"
     "  /paste (/p)   Paste clipboard as LLM context\n"
+    "  /private      Toggle private mode (disables logging)\n"
+    "  /update       Check for updates and self-update\n"
     "  /version      Show version info\n"
-    "  /help         Show this help\n"
+    "  /help         Show basic help\n"
+    "  /help all     Show this full list\n"
     "  exit, quit    Exit the REPL\n"
     "\n"
     "@mention — delegate to a subagent:\n"

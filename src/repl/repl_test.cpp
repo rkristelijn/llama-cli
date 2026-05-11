@@ -575,31 +575,10 @@ SCENARIO ("dispatch_command handles slash commands") {
     std::vector<Message> history;
     std::istringstream in("");
     std::ostringstream out;
-    ReplState s = {chat,
-                   nullptr,
-                   models,
-                   nullptr,
-                   nullptr,
-                   nullptr,
-                   cfg,
-                   history,
-                   in,
-                   out,
-                   0,
-                   false,
-                   false,
-                   true,
-                   false,
-                   "",
-                   false,
-                   "32",
-                   "",
-                   false,
-                   false,
-                   -1,
-                   static_cast<ModelRegistry*>(nullptr),
-                   {},
-                   nullptr};
+    ReplState s = {
+        chat, nullptr, models, nullptr, nullptr, nullptr, cfg,   history, in,    out,  0, false, false,
+        true, false,   "",     false,   "32",    "",      false, false,   false, true, 5, -1,    static_cast<ModelRegistry*>(nullptr),
+        {},   nullptr};
 
     WHEN ("dispatch_command is called with /clear") {
       history.push_back({"user", "hello"});
@@ -704,8 +683,8 @@ SCENARIO ("review: no changes shows message") {
       cb("## Summary\nCode looks good.");
       return "## Summary\nCode looks good.";
     };
-    ReplState s = {chat, stream, models, nullptr, nullptr, nullptr, cfg,   history, in, out,     0,  false, false,
-                   true, false,  "",     false,   "32",    "",      false, false,   -1, nullptr, {}, {}};
+    ReplState s = {chat,  stream, models, nullptr, nullptr, nullptr, cfg,   history, in,   out, 0,  false,   false, true,
+                   false, "",     false,  "32",    "",      false,   false, false,   true, 5,   -1, nullptr, {},    {}};
 
     WHEN ("/review is called in a clean repo") {
       // This test verifies the command is recognized and runs without crash.
