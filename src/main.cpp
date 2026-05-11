@@ -319,13 +319,7 @@ int main(int argc, char* argv[]) {
     if (cfg.provider != "mock") {
       auto available = provider->list_models();
       std::string& model = Config::instance().model;
-      bool found = false;
-      for (const auto& m : available) {
-        if (m == model) {
-          found = true;
-          break;
-        }
-      }
+      bool found = std::find(available.begin(), available.end(), model) != available.end();
       if (!found && !available.empty()) {
         // Warn and fallback — don't crash on a stale config
         tui::system_msg(std::cerr, color, "⚠ model '" + model + "' not found, falling back to " + available[0]);

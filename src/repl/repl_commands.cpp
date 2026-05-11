@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
@@ -523,7 +524,7 @@ static void handle_update(ReplState& s) {
 /// Tips shown periodically to help users discover commands.
 /// Rotates through the list based on message count.
 /// Disabled via /set tips or /tips toggle.
-static constexpr const char* kTips[] = {
+static const std::array<const char*, 10> kTips = {{
     "Tip: Use !!command to pipe shell output as LLM context",
     "Tip: /agent bofh for sarcastic responses, /agent architect for design help",
     "Tip: /compress to shrink long conversations without losing context",
@@ -534,7 +535,7 @@ static constexpr const char* kTips[] = {
     "Tip: /private to disable logging for sensitive conversations",
     "Tip: /update to check for new versions",
     "Tip: /help all to see every available command",
-};
+}};
 static constexpr int kNumTips = 10;
 
 /// Show a tip if tips are enabled and it's time (every N messages).

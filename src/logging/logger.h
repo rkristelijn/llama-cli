@@ -40,7 +40,7 @@ class Logger {
   /// Get log file path
   const std::string& path() const;
 
-  /// Suppress logging (private mode)
+  /// Suppress logging (private mode — set via /private command)
   bool suppressed = false;
 
  private:
