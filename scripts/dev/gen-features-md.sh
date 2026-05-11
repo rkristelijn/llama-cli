@@ -20,7 +20,7 @@ declare -A TEST_FEATURES
 export LLAMA_PROVIDER=mock OLLAMA_HOSTS="" OLLAMA_HOST=localhost
 
 for t in e2e/test_*.sh; do
-  case "$t" in *test_live*|*test_full_feature*|*helpers*) continue ;; esac
+  case "$t" in *test_live* | *test_full_feature* | *helpers*) continue ;; esac
   LOG=$(mktemp)
   LLAMA_FEATURE_LOG="$LOG" bash "$t" "$BINARY" >/dev/null 2>&1 || true
   features=$(grep -o '\[FEATURE: [^]]*\]' "$LOG" 2>/dev/null | sed 's/\[FEATURE: //;s/\]//' | sort -u | paste -sd',' - || true)
@@ -30,7 +30,7 @@ for t in e2e/test_*.sh; do
 done
 
 # Generate markdown
-cat > "$OUTPUT" <<'HEADER'
+cat >"$OUTPUT" <<'HEADER'
 # Feature Coverage
 
 All 48 runtime features are exercised by e2e tests. Each test produces a gif via `make record-e2e`.
@@ -42,7 +42,7 @@ for name in $(echo "${!TEST_FEATURES[@]}" | tr ' ' '\n' | sort); do
   if [[ -n "$features" ]]; then
     # Section title from test name
     title=$(echo "$name" | tr '_' ' ')
-    cat >> "$OUTPUT" <<EOF
+    cat >>"$OUTPUT" <<EOF
 ## ${title}
 
 ![${name}](e2e/${name}.gif)
@@ -55,7 +55,7 @@ EOF
   fi
 done
 
-cat >> "$OUTPUT" <<'FOOTER'
+cat >>"$OUTPUT" <<'FOOTER'
 ---
 
 ## How It Works
