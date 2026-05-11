@@ -126,7 +126,7 @@ TEST_CASE ("ollama: generate handles HTTP error without error field") {
   CerrCapture cerr;
   CHECK (ollama_generate(mock_cfg(m.port), "hi").empty())
     ;
-  CHECK (cerr.str().find("HTTP 500") != std::string::npos)
+  CHECK (cerr.str().find("ollama restart") != std::string::npos)
     ;
 }
 
@@ -220,9 +220,8 @@ TEST_CASE ("ollama: chat_stream handles HTTP error") {
   CerrCapture cerr;
   CHECK (ollama_chat_stream(mock_cfg(m.port), msgs, [](const std::string&) { return true; }).empty())
     ;
-  // In streaming mode, httplib may not expose the error body;
-  // the code falls back to "HTTP 500" when the error field is empty
-  CHECK (cerr.str().find("Ollama error") != std::string::npos)
+  // Error message from Ollama API body is shown to user
+  CHECK (cerr.str().find("internal error") != std::string::npos)
     ;
 }
 
