@@ -25,6 +25,7 @@ llama-cli's design already encourages engagement via confirmation prompts (y/n/s
 4. **Rating system** — /rate forces reflection on response quality
 
 ### Anti-patterns to avoid in our UX
+
 - Don't make "accept all" the default
 - Don't hide what the AI changed
 - Don't discourage manual editing alongside AI suggestions

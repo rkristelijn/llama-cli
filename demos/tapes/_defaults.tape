@@ -6,7 +6,7 @@ Set Height 700
 Set Shell bash
 Set Padding 20
 Set TypingSpeed 40ms
-Set Theme "Catppuccin Mocha"
+Set Theme "Dracula"
 
 Env PS1 "$ "
 Env HOSTNAME "localhost"

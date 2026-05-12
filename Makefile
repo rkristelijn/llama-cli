@@ -44,7 +44,7 @@ build: all ## Build the project
 #          yamllint             ✓
 #          rumdl                ✓
 	@if [ "$${CI:-}" = "true" ]; then \
-		echo "  build                ✓ v$$(cat VERSION) ($$(git rev-parse --short HEAD))"; \
+		echo "  build                ✓ v$$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo '0.0.0') ($$(git rev-parse --short HEAD))"; \
 	else \
 		dirty=""; git diff --quiet -- 'src/*.cpp' 'src/*.h' 'src/**/*.cpp' 'src/**/*.h' 2>/dev/null || dirty=" dirty"; \
 		echo "  build                ✓ $$(git rev-parse --short HEAD)$$dirty"; \

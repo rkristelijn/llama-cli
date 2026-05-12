@@ -151,6 +151,19 @@ assert_feature "cmd_host"
 output=$(printf "/use\nexit\n" | "$BINARY" --repl 2>/dev/null)
 assert_feature "cmd_use"
 
+# --- /private ---
+output=$(printf "/private\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_contains "$output" "private mode" "/private toggles"
+assert_feature "cmd_private"
+
+# --- /tips ---
+output=$(printf "/tips\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_tips"
+
+# --- /update ---
+output=$(printf "/update\nexit\n" | "$BINARY" --repl 2>/dev/null)
+assert_feature "cmd_update"
+
 # Cleanup
 [[ "$_OWN_LOG" == "true" ]] && rm -f "$LLAMA_FEATURE_LOG"
 

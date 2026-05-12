@@ -26,6 +26,12 @@ Streaming chat, `/rate`, `/agent`, `/theme`, `/nick`.
 
 ![session](session.gif)
 
+## Themes & Colors
+
+`/theme` switches between dark, hacker, light, mono. `/color` customizes individual roles.
+
+![theme](theme.gif)
+
 ## File Operations
 
 `!!cmd` (pipe to LLM), `!cmd` (run inline), file context.

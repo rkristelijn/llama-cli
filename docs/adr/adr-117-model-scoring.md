@@ -12,6 +12,7 @@ The `/browse` command shows models with basic hardware fit (✓/~/✗), but lack
 ## Inspiration
 
 llmfit uses 4-dimension scoring (0-100 each):
+
 - **Quality**: parameter count, family reputation, quantization penalty
 - **Speed**: estimated tok/s based on memory bandwidth
 - **Fit**: memory utilization efficiency (sweet spot: 50-80%)
@@ -29,10 +30,12 @@ Enhance `/browse` with a composite score per model:
 4. **Show composite** — single score column in `/browse` output
 
 ### Phase 1 (this release cycle)
+
 - Add tok/s estimate to `/browse` based on model size and known bandwidth
 - Sort by fit score (best-fitting first)
 
 ### Phase 2 (future)
+
 - Cache actual tok/s from event logs (we already log duration + tokens)
 - Use real measurements to refine estimates over time
 

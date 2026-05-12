@@ -624,6 +624,30 @@ SCENARIO ("dispatch_command handles slash commands") {
           ;
       }
     }
+
+    WHEN ("dispatch_command is called with /theme demo") {
+      dispatch_command("theme", "demo", s);
+      THEN ("all roles are printed with ANSI codes") {
+        std::string result = out.str();
+        CHECK (result.find("theme demo: dark") != std::string::npos)
+          ;
+        CHECK (result.find("prompt:") != std::string::npos)
+          ;
+        CHECK (result.find("error:") != std::string::npos)
+          ;
+        // ANSI escape codes are emitted
+        CHECK (result.find("\033[") != std::string::npos)
+          ;
+      }
+    }
+
+    WHEN ("dispatch_command is called with /theme demo hacker") {
+      dispatch_command("theme", "demo hacker", s);
+      THEN ("hacker theme is previewed") {
+        CHECK (out.str().find("theme demo: hacker") != std::string::npos)
+          ;
+      }
+    }
   }
 }
 

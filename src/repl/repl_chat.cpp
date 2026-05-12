@@ -45,10 +45,14 @@ void sigint_handler(int);
 // Re-applies AI color after any ANSI reset inside markdown rendering.
 
 static std::string colorize_ai(const std::string& text, const ReplState& s) {
-  if (!s.color || tui::active_theme().ai.ansi().empty()) {
+  if (!s.color) {
     return text;
   }
-  std::string color_code = tui::active_theme().ai.ansi();
+  // Use explicit /color ai setting if set, otherwise fall back to theme
+  std::string color_code = s.ai_color.empty() ? tui::active_theme().ai.ansi() : "\033[" + s.ai_color + "m";
+  if (color_code.empty()) {
+    return text;
+  }
   std::string result = color_code;
   std::string reset = ThemeStyle::reset();
   size_t pos = 0;

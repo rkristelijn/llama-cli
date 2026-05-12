@@ -34,7 +34,10 @@ SKIP_OLLAMA="${SKIP_OLLAMA:-0}"
 #######################################
 info() { echo "  → $1"; }
 ok() { echo "  ✓ $1"; }
-die() { echo "  ✗ ERROR: $1" >&2; exit 1; }
+die() {
+  echo "  ✗ ERROR: $1" >&2
+  exit 1
+}
 
 #######################################
 # Install Ollama if not present.
@@ -116,7 +119,7 @@ generate_env() {
     return
   fi
 
-  cat > "$env_path" <<EOF
+  cat >"$env_path" <<EOF
 LLAMA_PROVIDER=ollama
 OLLAMA_HOST=localhost
 OLLAMA_PORT=11434
