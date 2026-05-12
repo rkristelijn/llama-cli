@@ -190,7 +190,7 @@ static void handle_color(const std::string& arg, ReplState& s) {
     s.out << "Usage: /color <target> <color>  or  /color reset\n";
     s.out << "Targets: " << targets << "\n";
     s.out << "Colors: " << names << "\n";
-    auto& t = tui::active_theme();
+    const auto& t = tui::active_theme();
     s.out << "Current theme: " << t.name << "\n";
     return;
   }
@@ -1267,8 +1267,10 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "[spinner: " << arg << " (" << msgs.size() << " messages)]\n";
     }
     // --- Theme switching: /theme <name> or /theme set <role> <color> (ADR-080) ---
+    // --- Theme switching: /theme <name>, /theme demo, /theme set (ADR-080) ---
   } else if (command == "theme") {
     LOG_FEATURE("cmd_theme");
+    // No argument: show current theme and usage help
     if (arg.empty()) {
       s.out << "Current theme: " << tui::active_theme().name << "\n";
       s.out << "Available: dark, light, mono, hacker\n";
@@ -1278,6 +1280,7 @@ bool dispatch_command(const std::string& command, const std::string& arg, ReplSt
       s.out << "Options: <color> [bold] [italic] [underline] [dim] [bg:<color>]\n";
       s.out << "Colors: red green blue cyan yellow magenta white black bright_*\n";
     } else if (arg == "dark" || arg == "light" || arg == "mono" || arg == "hacker") {
+      // Switch to named built-in theme; mono disables all color output
       tui::active_theme() = get_theme(arg);
       s.color = (arg != "mono");
       s.out << "[theme: " << arg << "]\n";

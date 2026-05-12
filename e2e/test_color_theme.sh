@@ -13,7 +13,11 @@ export OLLAMA_HOST=localhost
 export HOME="/tmp/test-color-$$"
 mkdir -p "$HOME"
 
-die() { echo "FAIL: $1" >&2; rm -rf "$HOME"; exit 1; }
+die() {
+  echo "FAIL: $1" >&2
+  rm -rf "$HOME"
+  exit 1
+}
 
 # Test 1: /color prompt sets color
 OUTPUT=$(echo "/color prompt yellow" | "$BINARY" --repl 2>/dev/null)
