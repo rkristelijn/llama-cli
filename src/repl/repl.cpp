@@ -304,32 +304,39 @@ int run_repl(ChatFn chat, const Config& cfg, std::istream& in, std::ostream& out
   linenoise::SetHistoryMaxLen(500);
   linenoise::LoadHistory(history_path.c_str());
 
-  ReplState state = {chat,
+  // Initialize REPL state — dependencies first, then config-derived values
+  ReplState state = {// --- Injected dependencies ---
+                     chat,
                      stream_chat,
                      models_fn,
                      model_info_fn,
                      hw_fn,
                      scan_fn,
+                     // --- Config & I/O ---
                      cfg,
                      history,
                      in,
                      out,
+                     // --- Runtime state (count, color, interactive, markdown, bofh) ---
                      0,
                      is_tty,
                      is_tty,
                      true,
                      cfg.bofh,
+                     // --- Spinner, warmup, colors ---
                      "",
                      cfg.warmup,
                      color_name_to_ansi(cfg.prompt_color),
                      color_name_to_ansi(cfg.ai_color),
+                     // --- Flags (trust, mask_pii, private, tips_enabled, tips_interval, last_idx) ---
                      false,
                      cfg.mask_pii,
                      false,
                      true,
                      5,
                      -1,
-                     static_cast<ModelRegistry*>(nullptr),
+                     // --- Registry, pending tasks, switch_provider ---
+                     nullptr,
                      {},
                      nullptr};
 
