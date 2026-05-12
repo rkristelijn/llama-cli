@@ -515,7 +515,7 @@ std::string strip_exec_annotations(const std::string& text) {
     }
     std::string cmd = result.substr(start + open.size(), end - start - open.size());
     result.replace(start, end + close.size() - start,
-                   tui::active_theme().info.ansi() + "[proposed: exec " + cmd + "]" + ThemeStyle::reset());
+                   tui::active_theme().warning.ansi() + "[proposed: exec " + cmd + "]" + ThemeStyle::reset());
   }
   // Strip remaining annotation-like tags so raw XML never reaches the user
   for (const auto& tag : {"<exec>", "</exec>", "<write", "</write>", "<str_replace", "</str_replace>", "<read ", "<search>", "</search>"}) {
