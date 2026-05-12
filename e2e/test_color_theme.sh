@@ -10,12 +10,11 @@ BINARY="${1:-./build/llama-cli}"
 export LLAMA_PROVIDER=mock
 export OLLAMA_HOSTS=""
 export OLLAMA_HOST=localhost
-export HOME="/tmp/test-color-$$"
-mkdir -p "$HOME"
+export HOME="$(mktemp -d)"
+trap 'rm -rf "$HOME"' EXIT
 
 die() {
   echo "FAIL: $1" >&2
-  rm -rf "$HOME"
   exit 1
 }
 
@@ -70,6 +69,5 @@ PROMPT_DARK=$(echo "$OUTPUT_DARK" | grep "prompt:")
 PROMPT_LIGHT=$(echo "$OUTPUT_LIGHT" | grep "prompt:")
 [[ "$PROMPT_DARK" != "$PROMPT_LIGHT" ]] || die "dark and light themes produce identical prompt output"
 
-# Cleanup
-rm -rf "$HOME"
+# Cleanup handled by trap
 echo "  ✓ test_color_theme: all 11 assertions passed"
