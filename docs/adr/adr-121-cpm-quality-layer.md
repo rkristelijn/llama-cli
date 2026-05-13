@@ -245,6 +245,64 @@ full = ["dead-code", "xref", "coverage", "mutation", "e2e"]
   → invalidated when: file hash changes OR check config changes
 ```
 
+### Production-proven patterns
+
+Based on real-world CI/CD component ecosystems at scale (50+ components, multi-language):
+
+**Output directory structure:**
+
+```text
+.tmp/
+├── reports/              ← JUnit XML (CI artifact path)
+│   ├── complexity-junit.xml
+│   └── lint-code-junit.xml
+├── timings.jsonl         ← timing + trend data
+├── cache/                ← file hash → result cache
+└── *.log                 ← tee output per check
+```
+
+CI configures artifact upload from `.tmp/reports/`. Everything in one place.
+
+**Component structure per check:**
+
+```text
+checks/<name>/
+├── check.sh              ← core logic (portable, no CI deps)
+├── check-test.sh         ← self-test (validates the check works)
+├── defaults.toml         ← default config (overridable via cpm.toml)
+└── README.md             ← what it checks, why, how to fix
+```
+
+**JUnit XML output pattern** (proven to work across all CI providers):
+
+```xml
+<testsuites>
+  <testsuite name="cpm-complexity" tests="3" failures="1">
+    <testcase classname="src/config/config.cpp" name="load_dotenv" file="src/config/config.cpp">
+      <failure message="complexity=49 (max 10)" type="warning">
+        Split into smaller functions or annotate: // skip-complexity
+      </failure>
+    </testcase>
+    <testcase classname="src/repl/repl.cpp" name="run_repl" file="src/repl/repl.cpp"/>
+  </testsuite>
+</testsuites>
+```
+
+Key fields: `classname` = file, `name` = function/rule, `failure.message` = what's wrong, CDATA = how to fix.
+
+**Nix as first-class environment:**
+
+```nix
+# flake.nix — reproducible dev environment
+{
+  devShells.default = pkgs.mkShell {
+    packages = [ clang-tools cppcheck pmccabe shellcheck ];
+  };
+}
+```
+
+This maps to cpm's `install-mode = "nix"` — the most reproducible option.
+
 ### Output layer: separation of data and presentation
 
 **Unified severity levels** (every tool adapter maps to these):
