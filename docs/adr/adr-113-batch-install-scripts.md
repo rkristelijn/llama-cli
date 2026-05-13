@@ -1,5 +1,5 @@
 ---
-summary: Batch Install Scripts for LLM Tools and Infrastructure
+summary: The scripts provide an idempotent and OS-aware installation process for various CLI LLM tools and infrastructure on Linux and macOS, leveraging curl piping, while covering tools like llama-cli, kiro-cli, and Docker/SearXNG containers.
 status: accepted
 ---
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # steg-check.sh — Scan image files for steganography using zsteg.
+# lint-exempt: max-exits (multiple exit states: error, skip, success)
 #
 # Usage:
 #   bash scripts/security/steg-check.sh [dir]

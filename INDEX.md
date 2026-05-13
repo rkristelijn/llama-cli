@@ -11,7 +11,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-007-cli-interface.md`](docs/adr/adr-007-cli-interface.md) — ADR-007: CLI Interface Design
 - [`docs/adr/adr-008-test-framework.md`](docs/adr/adr-008-test-framework.md) — ADR-008: Test Framework
 - [`docs/adr/adr-009-code-formatting.md`](docs/adr/adr-009-code-formatting.md) — ADR-009: Code Formatting
-- [`docs/adr/adr-010-documentation-indexing.md`](docs/adr/adr-010-documentation-indexing.md) — Frontmatter + INDEX.md strategy for searchable documentation
+- [`docs/adr/adr-010-documentation-indexing.md`](docs/adr/adr-010-documentation-indexing.md) — This ADR (Application Design Requirements) document outlines the strategy for indexing and searching within the documentation repository of an open-source project. The main goal is to improve the searchability and accessibility of the documentation, especially as the repository grows. Key points fr
 - [`docs/adr/adr-011-self-contained-setup.md`](docs/adr/adr-011-self-contained-setup.md) — ADR-011: Self-Contained Setup
 - [`docs/adr/adr-012-interactive-repl.md`](docs/adr/adr-012-interactive-repl.md) — ADR-012: Interactive REPL
 - [`docs/adr/adr-013-file-reading.md`](docs/adr/adr-013-file-reading.md) — ADR-013: File Reading & REPL Commands
@@ -49,7 +49,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-055-layered-test-strategy.md`](docs/adr/adr-055-layered-test-strategy.md) — ADR-055: Layered Test Strategy — From Unit Tests to Fuzzing
 - [`docs/adr/adr-056-session-sync.md`](docs/adr/adr-056-session-sync.md) — ADR-056: Stateful Sync Mode via `--session`
 - [`docs/adr/adr-057-web-search-integration.md`](docs/adr/adr-057-web-search-integration.md) — ADR-057: Web Search Integration via Tool Annotations
-- [`docs/adr/adr-058-http-mock-testing.md`](docs/adr/adr-058-http-mock-testing.md) — Use httplib::Server as in-process mock for Ollama API unit tests — zero new dependencies
+- [`docs/adr/adr-058-http-mock-testing.md`](docs/adr/adr-058-http-mock-testing.md) — The file content seems to be an implementation of a mock server using `httplib::Server` for unit testing the Ollama API, providing a zero-new-dependency solution that runs in-process without external processes or port conflicts, covering all code paths with fast responses and no real network latency
 - [`docs/adr/adr-059-memory-and-preferences.md`](docs/adr/adr-059-memory-and-preferences.md) — ADR-059: Persistent Memory & Preferences
 - [`docs/adr/adr-060-unified-error-output.md`](docs/adr/adr-060-unified-error-output.md) — Route all error and trace output through an injectable ostream to enable consistent testing and eliminate stderr noise
 - [`docs/adr/adr-061-file-size-limits.md`](docs/adr/adr-061-file-size-limits.md) — Enforce maximum file sizes to drive modular design and improve testability
@@ -83,37 +83,39 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-089-hierarchical-selection.md`](docs/adr/adr-089-hierarchical-selection.md) — ADR-089: Hierarchical Host → Provider → Model Selection
 - [`docs/adr/adr-090-build-version-string.md`](docs/adr/adr-090-build-version-string.md) — ADR-090: Build Version String
 - [`docs/adr/adr-091-tgpt-free-chatgpt-bridge.md`](docs/adr/adr-091-tgpt-free-chatgpt-bridge.md) — ADR-091: Free ChatGPT Integration via tgpt CLI Provider
-- [`docs/adr/adr-092-product-renaming-and-opencode-strategy.md`](docs/adr/adr-092-product-renaming-and-opencode-strategy.md) — FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
+- [`docs/adr/adr-092-product-renaming-and-opencode-strategy.md`](docs/adr/adr-092-product-renaming-and-opencode-strategy.md) — The FlyAI rebranding initiative aims to integrate advanced AI agent architecture patterns with Opencode for enhanced synergy while maintaining local control, privacy focus, and streamlined workflow capabilities, with a new product name, branding, and prompt/banner update.
 - [`docs/adr/adr-093-windows-binary-support.md`](docs/adr/adr-093-windows-binary-support.md) — ADR-093: Windows Binary Support
 - [`docs/adr/adr-094-memory-safety-verification-strategy.md`](docs/adr/adr-094-memory-safety-verification-strategy.md)
 - [`docs/adr/adr-095-bidirectional-traceability.md`](docs/adr/adr-095-bidirectional-traceability.md) — ADR-095: Bidirectional Traceability via Feature Registry
 - [`docs/adr/adr-096-multi-agent-implementation.md`](docs/adr/adr-096-multi-agent-implementation.md) — ADR-096: Multi-Agent Implementation Plan
 - [`docs/adr/adr-097-cpp-quality-checks.md`](docs/adr/adr-097-cpp-quality-checks.md) — ADR-097: C++ Code Quality Checks and Best Practices
-- [`docs/adr/adr-098-pii-detection.md`](docs/adr/adr-098-pii-detection.md) — Automatic PII detection tool implemented.
-- [`docs/adr/adr-099-right-first-time.md`](docs/adr/adr-099-right-first-time.md) — Analysis of 465 commits reveals high tooling rework, 46% bug fixes, and 37% platform failures caught only at release tim
-- [`docs/adr/adr-100-scaffolding-first.md`](docs/adr/adr-100-scaffolding-first.md) — Template-based file generation for quality checks and compliance.
+- [`docs/adr/adr-098-pii-detection.md`](docs/adr/adr-098-pii-detection.md) — This document provides a detailed explanation of an Automatic PII (Personally Identifiable Information) detection tool implemented as part of the ADR-098 process for detecting PII patterns in source code. Key Features: 1. Detection: The tool scans `src/`, `scripts/`, and `docs/` directories for PI
+- [`docs/adr/adr-099-right-first-time.md`](docs/adr/adr-099-right-first-time.md) — The analysis of 465 commits reveals high tooling rework, but the current status and health targets need improvement, with a goal of reducing tooling rework to <20% and bug fix ratio to <40%.
+- [`docs/adr/adr-100-scaffolding-first.md`](docs/adr/adr-100-scaffolding-first.md) — This file provides a clear overview of the implementation plan for introducing template-based file generation to improve quality checks and compliance for new files. It outlines three phases with specific templates to cover different aspects, aiming to reduce fix commits by 55%. The scaffolder ensur
 - [`docs/adr/adr-101-v-model-quality-gates.md`](docs/adr/adr-101-v-model-quality-gates.md) — Implement quality gates at every V-model phase with automated checks starting from planning and ending at release, to en
 - [`docs/adr/adr-102-unicode-character-policy.md`](docs/adr/adr-102-unicode-character-policy.md) — Policy to allow Unicode characters and symbols in source code, except for emojis.
 - [`docs/adr/adr-103-ci-pipeline-architecture.md`](docs/adr/adr-103-ci-pipeline-architecture.md) — Restructure CI pipeline into 12 grouped jobs with smart filtering, dependency chains, and commit annotations for skip co
 - [`docs/adr/adr-104-i18n-string-centralization.md`](docs/adr/adr-104-i18n-string-centralization.md) — Centralize user-facing strings in a single source for easier maintenance and localization.
-- [`docs/adr/adr-105-sonarcloud-debt-reduction.md`](docs/adr/adr-105-sonarcloud-debt-reduction.md) — Implement incremental refactoring to reduce technical debt in SonarCloud.
+- [`docs/adr/adr-105-sonarcloud-debt-reduction.md`](docs/adr/adr-105-sonarcloud-debt-reduction.md) — The proposed implementation for incremental refactoring to reduce technical debt in SonarCloud is accurate and detailed, providing a clear explanation of the phased approach to address shell script issues, high-complexity functions, and nested conditionals.
 - [`docs/adr/adr-106-high-performance-testing.md`](docs/adr/adr-106-high-performance-testing.md) — Unified test reporting with JUnit XML across all test types, enabling better performance and developer productivity.
 - [`docs/adr/adr-107-env-persistence.md`](docs/adr/adr-107-env-persistence.md) — Persist Model and Host Selection to .env
 - [`docs/adr/adr-108-named-host-registry.md`](docs/adr/adr-108-named-host-registry.md) — Named Host Registry
-- [`docs/adr/adr-109-scaled-system-prompt.md`](docs/adr/adr-109-scaled-system-prompt.md) — Scaled System Prompt by Model Size
-- [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — Model Size Classification and Hardware Mapping
-- [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — Hook-Based Plugin Architecture
+- [`docs/adr/adr-109-scaled-system-prompt.md`](docs/adr/adr-109-scaled-system-prompt.md) — The document proposes scaling system prompts based on model size for small language models (≤7B parameters), reducing hallucinations of tool calls by adopting minimal prompts with ≤7 billion parameters.
+- [`docs/adr/adr-110-model-size-hardware-mapping.md`](docs/adr/adr-110-model-size-hardware-mapping.md) — The model size classification and hardware mapping guidelines are current but require further clarification on how model sizes affect VRAM requirements for Apple Silicon devices.
+- [`docs/adr/adr-111-hook-based-plugin-architecture.md`](docs/adr/adr-111-hook-based-plugin-architecture.md) — The provided summary outlines a proposal for adding hook-based plugin architecture to llama-cli, a tool that utilizes large language models (LLMs) to generate responses. The goal of this feature is to allow users to customize the pipeline by adding custom markdown renderers or code highlighters, blo
 - [`docs/adr/adr-112-provider-auto-detect.md`](docs/adr/adr-112-provider-auto-detect.md) — Smart Provider Auto-Detection at Startup
-- [`docs/adr/adr-113-batch-install-scripts.md`](docs/adr/adr-113-batch-install-scripts.md) — Batch Install Scripts for LLM Tools and Infrastructure
-- [`docs/adr/adr-113-local-code-review.md`](docs/adr/adr-113-local-code-review.md) — Local AI Code Review via /review Command
+- [`docs/adr/adr-113-batch-install-scripts.md`](docs/adr/adr-113-batch-install-scripts.md) — The scripts provide an idempotent and OS-aware installation process for various CLI LLM tools and infrastructure on Linux and macOS, leveraging curl piping, while covering tools like llama-cli, kiro-cli, and Docker/SearXNG containers.
+- [`docs/adr/adr-113-local-code-review.md`](docs/adr/adr-113-local-code-review.md) — This appears to be a detailed specification for adding a "/review" REPL (Read-Eval-Print Loop) command to the llama-cli tool, which would offer local AI-powered code review capabilities similar to CodeRabbit's service. Here's an overview of the key components and decisions made in this specificatio
 - [`docs/adr/adr-114-terminal-demo-recordings.md`](docs/adr/adr-114-terminal-demo-recordings.md) — Terminal Demo Recordings with VHS
 - [`docs/adr/adr-115-branch-cleanup.md`](docs/adr/adr-115-branch-cleanup.md) — Automated Branch Cleanup
 - [`docs/adr/adr-116-self-update.md`](docs/adr/adr-116-self-update.md) — Self-Update Command
 - [`docs/adr/adr-117-model-scoring.md`](docs/adr/adr-117-model-scoring.md) — Hardware-Aware Model Scoring (inspired by llmfit)
 - [`docs/adr/adr-118-cognitive-engagement.md`](docs/adr/adr-118-cognitive-engagement.md) — Cognitive Engagement Patterns for AI-Assisted Development
+- [`docs/adr/adr-119-slop-detection.md`](docs/adr/adr-119-slop-detection.md) — 25 deterministic grep-based patterns in check-slop.sh detect AI-generated code anti-patterns (pass-through wrappers, catch-log-rethrow, AI naming, uniform line length, emoji bullets, em-dash overuse) in git diffs, backed by arxiv research and slop-scan benchmarks.
+- [`docs/adr/adr-120-research-freshness.md`](docs/adr/adr-120-research-freshness.md) — Track last-researched dates per topic in .config/research-dates.env; warn during make lint when any topic exceeds 30 days with a ready-to-use research prompt. Covers slop detection, model guide, security tools, and portability.
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
-- [`docs/architecture.md`](docs/architecture.md) — Technical architecture overview — how llama-cli works internally
+- [`docs/architecture.md`](docs/architecture.md) — The provided text is a documentation for a command-line interface (CLI) tool called `llama-cli`. The documentation covers various aspects of the tool's architecture, startup flow, provider switching, auto-routing tiers, legacy overview, modules, request flow, and more. Here are some key takeaways f
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
@@ -215,6 +217,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/check-pii.sh`](scripts/lint/check-pii.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
 - [`scripts/lint/check-portability.sh`](scripts/lint/check-portability.sh)
+- [`scripts/lint/check-research-freshness.sh`](scripts/lint/check-research-freshness.sh) — check-research-freshness.sh — Warn when research-backed scripts are stale (>30 days).
 - [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
 - [`scripts/lint/check-shadowing.sh`](scripts/lint/check-shadowing.sh)
 - [`scripts/lint/check-slop.sh`](scripts/lint/check-slop.sh) — check-slop.sh — Detect common AI-generated code slop patterns.
@@ -407,4 +410,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_404 files indexed._
+_407 files indexed._

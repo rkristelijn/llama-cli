@@ -1,5 +1,5 @@
 ---
-summary: Hook-Based Plugin Architecture
+summary: The provided summary outlines a proposal for adding hook-based plugin architecture to llama-cli, a tool that utilizes large language models (LLMs) to generate responses. The goal of this feature is to allow users to customize the pipeline by adding custom markdown renderers or code highlighters, blo
 status: proposed
 ---
 

@@ -1,11 +1,11 @@
 ---
-summary: Automatic PII detection tool implemented.
+summary: This document provides a detailed explanation of an Automatic PII (Personally Identifiable Information) detection tool implemented as part of the ADR-098 process for detecting PII patterns in source code.  Key Features:  1. Detection: The tool scans `src/`, `scripts/`, and `docs/` directories for PI
 status: accepted
 date: 2026-05-06
 deciders: gius
 ---
 
-summary: Automatic PII detection tool implemented.
+summary: This document provides a detailed explanation of an Automatic PII (Personally Identifiable Information) detection tool implemented as part of the ADR-098 process for detecting PII patterns in source code. Key Features: 1. Detection: The tool scans `src/`, `scripts/`, and `docs/` directories for PI
 
 # ADR-098: PII Detection in Source Code
 

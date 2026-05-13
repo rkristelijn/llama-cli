@@ -1,9 +1,9 @@
 ---
-summary: FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
+summary: The FlyAI rebranding initiative aims to integrate advanced AI agent architecture patterns with Opencode for enhanced synergy while maintaining local control, privacy focus, and streamlined workflow capabilities, with a new product name, branding, and prompt/banner update.
 status: accepted
 ---
 
-summary: FlyAI to replace llama-cli with a new identity featuring punny branding, while exploring synergy with Opencode for enhan
+summary: The FlyAI rebranding initiative aims to integrate advanced AI agent architecture patterns with Opencode for enhanced synergy while maintaining local control, privacy focus, and streamlined workflow capabilities, with a new product name, branding, and prompt/banner update.
 
 # ADR-092: Product Renaming & Integration Strategy with Opencode
 

@@ -1,5 +1,5 @@
 ---
-summary: Local AI Code Review via /review Command
+summary: This appears to be a detailed specification for adding a "/review" REPL (Read-Eval-Print Loop) command to the llama-cli tool, which would offer local AI-powered code review capabilities similar to CodeRabbit's service.  Here's an overview of the key components and decisions made in this specificatio
 status: accepted
 ---
 

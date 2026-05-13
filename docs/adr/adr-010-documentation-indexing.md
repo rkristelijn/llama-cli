@@ -1,5 +1,5 @@
 ---
-summary: Frontmatter + INDEX.md strategy for searchable documentation
+summary: This ADR (Application Design Requirements) document outlines the strategy for indexing and searching within the documentation repository of an open-source project. The main goal is to improve the searchability and accessibility of the documentation, especially as the repository grows.  Key points fr
 tags: [documentation, indexing, frontmatter, dogfooding]
 ---
 
@@ -15,7 +15,7 @@ Every markdown file gets frontmatter with a summary and tags. A central `INDEX.m
 
 ```markdown
 ---
-summary: One-line description of this document
+summary: This ADR (Application Design Requirements) document outlines the strategy for indexing and searching within the documentation repository of an open-source project. The main goal is to improve the searchability and accessibility of the documentation, especially as the repository grows.  Key points fr
 tags: [tag1, tag2, tag3]
 ---
 
@@ -23,8 +23,15 @@ tags: [tag1, tag2, tag3]
 
 | Field | Required | Description |
 |---|---|---|
-| `summary` | Yes | 1 sentence, max 120 chars |
+| `summary` | Yes | 1 sentence, 200-300 chars, specific and technical |
 | `tags` | Yes | 3-5 searchable keywords, lowercase |
+
+### Staleness detection
+
+`make summarize` detects stale summaries by checking `git diff main...HEAD`.
+Modified files with an existing summary are re-verified by the LLM: if the
+summary still matches the content, it responds "up to date" and no change is
+made. This avoids unnecessary commits while keeping summaries accurate.
 
 ### INDEX.md
 

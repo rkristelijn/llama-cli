@@ -1,5 +1,5 @@
 ---
-summary: Scaled System Prompt by Model Size
+summary: The document proposes scaling system prompts based on model size for small language models (≤7B parameters), reducing hallucinations of tool calls by adopting minimal prompts with ≤7 billion parameters.
 status: accepted
 ---
 
