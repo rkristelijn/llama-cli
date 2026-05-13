@@ -14,6 +14,7 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/ui.sh"
+source "$SCRIPT_DIR/junit.sh"
 
 TIER="${1:-normal}"
 CPM_RUN_MODE="${CPM_RUN_MODE:-collect}"
@@ -55,6 +56,7 @@ run_checks() {
   local total=0 passed=0 failed=0 skipped=0
   local errors=""
 
+  junit_start "cpm"
   print_header "cpm check (tier: $TIER)"
 
   # Read check blocks from cpm.toml
@@ -89,6 +91,7 @@ run_checks() {
   [[ -n "$name" && -n "$command" ]] && run_single_check
 
   # Summary
+  junit_finish
   echo ""
   if [[ $failed -eq 0 ]]; then
     print_summary "${total} checks (${passed} passed, ${skipped} skipped)"
@@ -109,20 +112,29 @@ run_single_check() {
   if [[ "$scope" != "full" ]] && ! triggers_match "$triggers" "$changes"; then
     skipped=$((skipped + 1))
     print_step "" "$name" skip "no matching changes"
+    junit_testcase "$name" "skip" "0" "no matching changes"
     return
   fi
 
-  # Run via wrapper
+  # Run via wrapper, capture timing from timings.jsonl
+  local start_ms
+  start_ms=$(date +%s%N)
   if bash "$SCRIPT_DIR/run.sh" "$name" bash "$command" 2>/dev/null; then
+    local end_ms; end_ms=$(date +%s%N)
+    local dur=$(( (end_ms - start_ms) / 1000000 ))
     passed=$((passed + 1))
+    junit_testcase "$name" "success" "$dur" ""
   else
+    local end_ms; end_ms=$(date +%s%N)
+    local dur=$(( (end_ms - start_ms) / 1000000 ))
     if [[ "$severity" == "error" ]]; then
       failed=$((failed + 1))
       errors+="  ✗ $name (severity: error)\n"
-      [[ "$CPM_RUN_MODE" == "fail-fast" ]] && { echo "$errors"; exit 1; }
+      junit_testcase "$name" "error" "$dur" "check failed with exit code"
+      [[ "$CPM_RUN_MODE" == "fail-fast" ]] && { junit_finish; echo "$errors"; exit 1; }
     else
-      # warning/info — count as passed but show
       passed=$((passed + 1))
+      junit_testcase "$name" "success" "$dur" ""
     fi
   fi
 }

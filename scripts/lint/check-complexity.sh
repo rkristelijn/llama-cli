@@ -62,7 +62,7 @@ main() {
     func_name=$(echo "$line" | awk -F': ' '{print $2}')
     print_warning "$file:$lno $func_name complexity=$complexity (max $THRESHOLD)"
     failed=1
-  done <<< "$violations"
+  done <<<"$violations"
 
   if ((failed)); then
     echo ""

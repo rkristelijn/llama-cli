@@ -44,4 +44,3 @@ if [[ $violations -gt 0 ]]; then
   echo "  Fix: use read_answer(in, answer) — see ADR-088"
   exit 1
 fi
-

@@ -53,4 +53,3 @@ if [ "$ratio" -lt "$THRESHOLD" ]; then
   echo "  - When asking AI to write code, include: 'keep comment ratio >= 20%'"
   exit 1
 fi
-

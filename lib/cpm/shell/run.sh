@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# run.sh — Universal wrapper: timing, delta detection, output routing.
+# run.sh — Universal wrapper: timing, live output, logging.
 #
 # Usage:
 #   bash lib/cpm/shell/run.sh <name> <command> [args...]
 #
-# Environment:
-#   CPM_OUTPUT    — both | console | file (default: both)
-#   CPM_SCOPE    — override scope: full | changed | diff
-#   CPM_CHANGED  — pre-computed changed files (newline-separated)
+# Output is LIVE (streamed to console) AND logged to file simultaneously.
 #
 # @see docs/adr/adr-121-cpm-quality-layer.md
 
@@ -17,7 +14,6 @@ source "$SCRIPT_DIR/ui.sh"
 name="$1"
 shift
 
-# Output routing
 CPM_OUTPUT="${CPM_OUTPUT:-both}"
 CPM_LOG_DIR="${CPM_LOG_DIR:-.tmp}"
 mkdir -p "$CPM_LOG_DIR"
@@ -25,7 +21,6 @@ logfile="$CPM_LOG_DIR/${name}.log"
 
 timer_start "$name"
 
-# Run command, capture exit code
 case "$CPM_OUTPUT" in
   file)
     "$@" > "$logfile" 2>&1
@@ -36,9 +31,12 @@ case "$CPM_OUTPUT" in
     rc=$?
     ;;
   *)
-    "$@" > "$logfile" 2>&1
-    rc=$?
-    cat "$logfile"
+    # Live output: tee to file AND console simultaneously
+    # Use pipe with PIPESTATUS to get real exit code
+    set +o pipefail
+    "$@" 2>&1 | tee "$logfile"
+    rc=${PIPESTATUS[0]}
+    set -o pipefail
     ;;
 esac
 
