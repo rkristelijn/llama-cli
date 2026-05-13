@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Show PR status and failed pipeline jobs with colors and timings.
+# lint-exempt: max-exits (multiple exit states: error, skip, success)
 
 set -o errexit
 set -o nounset

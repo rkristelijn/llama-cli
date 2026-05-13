@@ -1,5 +1,5 @@
 ---
-summary: Technical architecture overview — how llama-cli works internally
+summary: The provided text is a documentation for a command-line interface (CLI) tool called `llama-cli`. The documentation covers various aspects of the tool's architecture, startup flow, provider switching, auto-routing tiers, legacy overview, modules, request flow, and more.  Here are some key takeaways f
 tags: [architecture, technical, design, modules]
 ---
 

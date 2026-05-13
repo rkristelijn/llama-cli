@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # scaffold.sh — Generate new files from templates (ADR-100).
+# lint-exempt: max-exits (CLI tool with per-branch input validation)
 #
 # Usage:
 #   bash scripts/dev/scaffold.sh TYPE=cpp NAME=parser/tokenizer BRIEF="Tokenizes input"

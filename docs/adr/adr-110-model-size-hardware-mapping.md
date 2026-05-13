@@ -1,5 +1,5 @@
 ---
-summary: Model Size Classification and Hardware Mapping
+summary: The model size classification and hardware mapping guidelines are current but require further clarification on how model sizes affect VRAM requirements for Apple Silicon devices.
 status: accepted
 ---
 

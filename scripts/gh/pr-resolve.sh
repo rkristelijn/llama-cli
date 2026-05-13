@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # pr-resolve.sh — Interactive loop to review, fix, and resolve PR feedback.
+# lint-exempt: max-exits (multiple exit states: error, skip, success)
 #
 # Walks through unresolved CodeRabbit threads one by one.
 # For each: shows the finding, lets you fix it, then resolves with a message.

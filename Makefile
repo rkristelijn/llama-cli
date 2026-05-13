@@ -83,7 +83,7 @@ kill: ## Kill running llama-cli instances
 
 format: format-code format-md format-yaml format-scripts ## Auto-format all files
 
-lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input check-pii slop check-unicode check-portability ## Run all passive checks
+lint: lint-code lint-md lint-yaml lint-makefile lint-scripts lint-versions tidy complexity comment-ratio docs file-size consistency check-theme check-xref check-interactive-input check-pii slop check-unicode check-portability research-freshness ## Run all passive checks
 
 test: build test-unit e2e ## Run all tests (builds first)
 
@@ -216,6 +216,15 @@ check-unicode: ## Check for invisible Unicode backdoors (ADR-097)
 check-portability: ## Detect cross-platform issues (ADR-093)
 	@bash scripts/lint/check-portability.sh
 	$(log_footer)
+
+research-freshness: ## Warn when research-backed scripts are stale (ADR-120)
+	@bash scripts/lint/check-research-freshness.sh
+	$(log_footer)
+
+research-update: ## Mark a research topic as freshly researched (TOPIC=...)
+	@if [ -z "$(TOPIC)" ]; then echo "Usage: make research-update TOPIC=SLOP_DETECTION"; exit 1; fi
+	@sed -i '' "s/^$(TOPIC)=.*/$(TOPIC)=$$(date +%Y-%m-%d)/" .config/research-dates.env
+	@echo "  ✓ $(TOPIC) updated to $$(date +%Y-%m-%d)"
 
 check-casts: ## Detect C-style casts (ES.48, slow — compiles)
 	@bash scripts/lint/check-casts.sh
@@ -351,7 +360,7 @@ sast-iac: ## Run IaC security scan (trivy)
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
-	@bash scripts/security/sast-secret.sh
+	@bash scripts/security/sast-secret.sh 2>&1 | tee .tmp/sast-secret.log
 	@echo "  [done] sast-secret"
 
 sast-trufflehog: ## Run trufflehog verified secret scan
@@ -380,7 +389,7 @@ sbom: ## Generate SBOM with syft
 
 summarize-safe: ## Summarize headers (skips if Ollama unavailable)
 	@if curl -s --max-time 3 "http://$${OLLAMA_HOST:-localhost}:$${OLLAMA_PORT:-11434}/api/tags" >/dev/null 2>&1; then \
-		bash scripts/dev/summarize-headers.sh; \
+		bash scripts/dev/summarize-headers.sh 2>&1 | tee .tmp/summarize-safe.log; \
 	else \
 		echo "  [skip] summarize — Ollama not reachable"; \
 	fi
@@ -435,7 +444,7 @@ index: ## Regenerate INDEX.md
 	$(log_footer)
 
 summarize: ## Summarize file headers with Ollama (--dry-run supported)
-	@bash scripts/dev/summarize-headers.sh $(ARGS)
+	@bash scripts/dev/summarize-headers.sh $(ARGS) 2>&1 | tee .tmp/summarize.log
 	$(log_footer)
 
 precommit: ## Run pre-commit checks
@@ -469,14 +478,14 @@ gh-pr-status: ## Show failed PR jobs (alias: gps)
 gps: gh-pr-status
 
 gh-pr-check: ## Full PR review: CI + SonarCloud + CodeRabbit (alias: gpc)
-	@echo "── CI Pipeline ──"
-	@bash scripts/gh/pr-status.sh 2>&1 | tail -n +3
-	@echo ""
-	@echo "── SonarCloud ──"
-	@bash scripts/gh/pr-sonar.sh 2>&1 | tail -n +3
-	@echo ""
-	@echo "── CodeRabbit ──"
-	@bash scripts/gh/pr-feedback.sh 2>&1 | tail -n +1
+	@(echo "── CI Pipeline ──" && \
+	bash scripts/gh/pr-status.sh 2>&1 | tail -n +3 && \
+	echo "" && \
+	echo "── SonarCloud ──" && \
+	bash scripts/gh/pr-sonar.sh 2>&1 | tail -n +3 && \
+	echo "" && \
+	echo "── CodeRabbit ──" && \
+	bash scripts/gh/pr-feedback.sh 2>&1 | tail -n +1) | tee .tmp/gh-pr-check.log
 	$(log_footer)
 gpc: gh-pr-check
 

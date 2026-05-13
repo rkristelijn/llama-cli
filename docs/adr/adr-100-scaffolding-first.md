@@ -1,11 +1,11 @@
 ---
-summary: Template-based file generation for quality checks and compliance.
+summary: This file provides a clear overview of the implementation plan for introducing template-based file generation to improve quality checks and compliance for new files. It outlines three phases with specific templates to cover different aspects, aiming to reduce fix commits by 55%. The scaffolder ensur
 title: "ADR-100: Scaffolding-First — Right the First Time"
 status: accepted
 date: 2026-05-07
 ---
 
-summary: Template-based file generation for quality checks and compliance.
+summary: This file provides a clear overview of the implementation plan for introducing template-based file generation to improve quality checks and compliance for new files. It outlines three phases with specific templates to cover different aspects, aiming to reduce fix commits by 55%. The scaffolder ensur
 
 ## ADR-100: Scaffolding-First — Right the First Time
 

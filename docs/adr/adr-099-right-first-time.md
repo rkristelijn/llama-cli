@@ -1,11 +1,11 @@
 ---
-summary: Analysis of 465 commits reveals high tooling rework, 46% bug fixes, and 37% platform failures caught only at release tim
+summary: The analysis of 465 commits reveals high tooling rework, but the current status and health targets need improvement, with a goal of reducing tooling rework to <20% and bug fix ratio to <40%.
 title: "ADR-099: Right the First Time — Tooling ROI and Shift-Left Strategy"
 status: accepted
 date: 2026-05-07
 ---
 
-summary: Analysis of 465 commits reveals high tooling rework, 46% bug fixes, and 37% platform failures caught only at release tim
+summary: The analysis of 465 commits reveals high tooling rework, but the current status and health targets need improvement, with a goal of reducing tooling rework to <20% and bug fix ratio to <40%.
 
 ## ADR-099: Right the First Time — Tooling ROI and Shift-Left Strategy
 
