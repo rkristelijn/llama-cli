@@ -91,6 +91,160 @@ fi
 
 Scripts must work identically with or without cpm present.
 
+### First-time-right output principle
+
+One run gives you everything to act on. No re-runs, no `--verbose`, no "check the log".
+
+| Result | What you see |
+|--------|-------------|
+| ✓ pass | Name + timing |
+| ⚠ warning | Name + timing + what + where + why + fix suggestion |
+| ✗ error | Name + timing + what + where + why + exact command to fix |
+
+Every check finding is a structured record:
+
+```text
+{
+  severity: "warning",
+  check: "complexity",
+  file: "src/config/config.cpp",
+  line: 78,
+  rule: "cyclomatic-complexity",
+  message: "load_dotenv complexity=49 (max 10)",
+  fix: "Split into smaller functions or annotate: // skip-complexity"
+}
+```
+
+The renderer always shows actionable context — not just pass/fail. Compact but complete.
+
+### Checks registry (datamodel)
+
+Every check is declared with its metadata. The runner uses this to decide what to run, how to interpret output, and when to block.
+
+```toml
+[[checks]]
+name = "format-code"
+phase = "implement"
+tool = "clang-format"
+command = "scripts/fmt/format-code.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "changed"             # only run on changed files
+autofix = true
+severity = "error"            # always fix
+timeout = 30
+
+[[checks]]
+name = "complexity"
+phase = "implement"
+tool = "pmccabe"
+command = "scripts/lint/check-complexity.sh"
+triggers = ["src/**/*.cpp"]
+scope = "changed"
+autofix = false
+severity = "warning"
+timeout = 30
+threshold = 10
+
+[[checks]]
+name = "slop"
+phase = "implement"
+tool = "grep"
+command = "scripts/lint/check-slop.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "diff"                # only the git diff, not full files
+autofix = false
+severity = "info"
+timeout = 10
+
+[[checks]]
+name = "dead-code"
+phase = "design"
+tool = "custom"
+command = "scripts/lint/check-dead-code.sh"
+triggers = ["src/**"]
+scope = "full"                # always scan everything
+autofix = false
+severity = "warning"
+timeout = 60
+
+[[checks]]
+name = "shellcheck"
+phase = "implement"
+tool = "shellcheck"
+command = "scripts/lint/check-scripts.sh"
+triggers = ["scripts/**/*.sh"]
+scope = "changed"
+severity = "warning"
+timeout = 60
+
+[checks.shellcheck.mapping]
+# Tool-specific codes → cpm severity
+"SC2264" = "error"            # infinite recursion
+"SC1090" = "info"             # can't follow dynamic source
+"SC2034" = "info"             # unused var in sourced context
+"*" = "warning"               # default for unmapped codes
+```
+
+### Incremental execution strategy
+
+Not every check needs to run on every change. The runner decides based on triggers and scope.
+
+**Scope types:**
+
+| Scope | Meaning | Example |
+|-------|---------|---------|
+| `changed` | Only files in the delta | format, lint, complexity |
+| `diff` | Only the git diff content | slop detection |
+| `full` | Always scan everything | dead-code, xref, traceability |
+| `affected` | Changed files + their dependents | clang-tidy (includes) |
+
+**Decision flow:**
+
+```text
+1. git diff --name-only → which files changed?
+2. For each check: do triggers match any changed file?
+   No  → skip entirely
+   Yes → check scope:
+         changed  → pass file list to script
+         diff     → pass diff content
+         full     → run without args
+         affected → resolve deps, pass expanded list
+3. Check cache: file hash unchanged? → skip
+4. Run check, record result + hash
+```
+
+**Execution tiers:**
+
+```toml
+[run.tiers]
+# Tier 1: instant (<5s) — pre-commit, AI auto-fix loop
+fast = ["format-*", "file-size", "slop"]
+
+# Tier 2: thorough (<60s) — pre-push
+normal = ["lint-*", "complexity", "shellcheck", "test-unit"]
+
+# Tier 3: exhaustive (minutes) — CI only, pre-PR
+full = ["dead-code", "xref", "coverage", "mutation", "e2e"]
+```
+
+**Performance mechanisms:**
+
+| Mechanism | Saving | How |
+|-----------|--------|-----|
+| Skip irrelevant checks | 50-80% | Only YAML changed? Skip all C++ checks |
+| Delta file list | 30-50% | clang-format on 3 files, not 200 |
+| Result cache (hash→result) | 90%+ | No change = no re-check |
+| Parallel execution | 2-4x | Independent checks run simultaneously |
+| Timeout | Prevents hangs | Kill after N seconds, report as error |
+
+**Cache model:**
+
+```text
+.tmp/cache/<check>/<file-path-hash>.result
+  → contains: severity, message, file hash
+  → invalidated when: file hash changes OR check config changes
+```
+
 ### Output layer: separation of data and presentation
 
 **Unified severity levels** (every tool adapter maps to these):
