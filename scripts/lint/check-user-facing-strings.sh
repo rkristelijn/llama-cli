@@ -31,7 +31,7 @@ else
   print_error() { echo "  ERROR: $1"; }
   print_warning() { echo "  WARNING: $1"; }
 fi
-echo "==> checking for user-facing string literals..."
+print_header "checking for user-facing string literals..."
 
 # Find user-facing strings in src/ (exclude: tests, debug, comments, log messages)
 # Pattern: strings in cout, printf, error messages, UI prompts

@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Auto-fixing missing braces..."
+print_header "Auto-fixing missing braces..."
 
 FIXED=0
 

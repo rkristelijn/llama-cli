@@ -46,7 +46,7 @@ pass() {
 }
 
 main() {
-  echo "==> inclusivity check ╰(*°▽°*)╯"
+  print_header "inclusivity check ╰(*°▽°*)╯"
   echo ""
 
   # ── 1. Branch naming ──
@@ -191,7 +191,6 @@ main() {
   else
     echo "  ✗ $FAIL failure(s), $WARN warning(s) — needs attention (╥_╥)"
   fi
-  echo "  [done] inclusivity"
 
   [[ $FAIL -eq 0 ]] || exit 1
 }

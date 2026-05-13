@@ -93,6 +93,38 @@ Scripts must work identically with or without cpm present.
 
 ### Output layer: separation of data and presentation
 
+**Unified severity levels** (every tool adapter maps to these):
+
+| Level | Meaning | Blocks build? |
+|-------|---------|---------------|
+| `error` | Must fix, breaks the gate | Yes |
+| `warning` | Should fix, not urgent | Only at CMMI level 4+ |
+| `info` | Informational, no action needed | Never |
+
+Each tool has an adapter that translates tool-specific output:
+
+```text
+shellcheck SC2264 (error)   → cpm error
+shellcheck SC1090 (warning) → cpm info (known, non-actionable)
+pmccabe complexity > 10     → cpm warning (level 3) or error (level 4)
+clang-format diff           → cpm error (always fixable)
+```
+
+**Run modes:**
+
+```toml
+# cpm.toml
+[run]
+mode = "collect"  # collect | fail-fast
+```
+
+| Mode | Behavior | Use case |
+|------|----------|----------|
+| `fail-fast` | Stop at first error | AI auto-fix loop, quick feedback |
+| `collect` | Run everything, report all at end | Pre-push, CI, full review |
+
+In `collect` mode, the wrapper accumulates all results and exits non-zero only if any `error` was found. Warnings and info are shown but don't block.
+
 Checks produce **structured data**. The UI layer decides how to present it. Output format is a provider.
 
 ```text

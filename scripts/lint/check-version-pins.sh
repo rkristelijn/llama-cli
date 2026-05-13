@@ -35,7 +35,7 @@ source .config/versions.env
 
 FAIL=0
 
-echo "==> checking version pinning..."
+print_header "checking version pinning..."
 
 # --- Check 1: No mutable tags in GitHub Actions workflows ---
 # Actions must use SHA@<hash> # <version>, not @v4 or @v2
@@ -46,7 +46,7 @@ while IFS= read -r line; do
   fi
   # Flag mutable tag references like @v4, @v2.1, @main
   if echo "${line}" | grep -qE 'uses:.*@'; then
-    echo "  FAIL: mutable action tag: ${line}"
+    print_error "mutable action tag: ${line}"
     FAIL=1
   fi
 done < <(grep -rn 'uses:' .github/workflows/ 2>/dev/null | grep -v '#')
@@ -58,7 +58,7 @@ verify_sha() {
   found=$(grep -rh "uses: ${action}@" .github/workflows/ 2>/dev/null | head -1 || true)
   if [[ -n "${found}" ]]; then
     if ! echo "${found}" | grep -q "${expected_sha}"; then
-      echo "  FAIL: ${action} SHA mismatch (expected ${expected_sha} # ${expected_ver})"
+      print_error "${action} SHA mismatch (expected ${expected_sha} # ${expected_ver})"
       FAIL=1
     fi
   fi
@@ -83,13 +83,13 @@ HARDCODED=$(grep -rn --include='*.sh' -E '(VERSION|_VER|_VERSION)="?[0-9]+\.[0-9
   true)
 
 if [[ -n "${HARDCODED}" ]]; then
-  echo "  FAIL: hardcoded versions found in scripts (should use versions.env):"
+  print_error "hardcoded versions found in scripts (should use versions.env):"
   echo "${HARDCODED}" | sed 's/^/    /'
   FAIL=1
 fi
 
 if [[ "${FAIL}" -eq 0 ]]; then
-  echo "  [done] all versions pinned via versions.env"
+  :
 else
   echo ""
   echo "  FIX: Pin actions to SHA in workflows, use \$VAR from versions.env in scripts."

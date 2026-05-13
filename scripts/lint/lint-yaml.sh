@@ -16,10 +16,9 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 if ! command -v yamllint >/dev/null; then
-  echo "  [skip] yamllint not installed"
+  print_step "" "$(basename "$0" .sh)" skip "yamllint not installed"
   exit 0
 fi
 
-echo "==> linting yaml..."
+print_header "linting yaml..."
 yamllint -c .config/yamllint.yml .github/
-echo "  [done] lint-yaml"

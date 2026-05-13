@@ -54,7 +54,7 @@ find_tool() {
 }
 
 main() {
-  echo "==> Checking required tools..."
+  print_header "Checking required tools..."
   for tool in "${REQUIRED[@]}"; do
     if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"
@@ -65,7 +65,7 @@ main() {
   done
 
   echo ""
-  echo "==> Checking optional tools..."
+  print_header "Checking optional tools..."
   for tool in "${OPTIONAL[@]}"; do
     if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"

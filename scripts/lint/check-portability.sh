@@ -29,7 +29,7 @@ fi
 FAIL=0
 WARN=0
 
-echo "==> checking portability..."
+print_header "checking portability..."
 
 # --- Check 1: Names that conflict with macOS system headers ---
 MACOS_RESERVED="Style|Byte|Handle|Ptr|Fixed|Fract"
@@ -174,4 +174,3 @@ fi
 if [[ $WARN -gt 0 && $FAIL -eq 0 ]]; then
   echo "  ✓ no failures (${WARN} warning(s) — informational)"
 fi
-echo "  [done] portability"

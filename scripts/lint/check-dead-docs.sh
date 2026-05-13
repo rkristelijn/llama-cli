@@ -27,7 +27,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 main() {
-  echo "==> checking for dead docs and configs..."
+  print_header "checking for dead docs and configs..."
   local count=0
 
   # 1. ADRs not referenced anywhere (README counts as a valid reference)
@@ -74,7 +74,6 @@ main() {
   else
     echo "  [${count} items — review and link or remove]"
   fi
-  echo "  [done] dead-docs"
 }
 
 main "$@"

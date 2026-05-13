@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Removing trailing whitespace..."
+print_header "Removing trailing whitespace..."
 
 FIXED=0
 

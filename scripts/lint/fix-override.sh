@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Auto-fixing missing override keywords..."
+print_header "Auto-fixing missing override keywords..."
 
 # First check if we have any virtual functions that need override
 NEEDS_FIX=0

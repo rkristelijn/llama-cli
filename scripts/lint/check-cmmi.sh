@@ -43,7 +43,7 @@ check() {
 }
 
 main() {
-  echo "==> CMMI Maturity Audit (ADR-048)"
+  print_header "CMMI Maturity Audit (ADR-048)"
   echo ""
 
   # ── CMMI 0: Essentials ──

@@ -23,7 +23,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 main() {
-  echo "==> checking theme compliance (ADR-080)..."
+  print_header "checking theme compliance (ADR-080)..."
 
   # Find hardcoded ANSI escape codes outside src/tui/
   local violations
@@ -41,10 +41,8 @@ main() {
     echo "  Fix: use tui::active_theme().<role>.ansi() + Style::reset() instead."
     echo "  See docs/adr/adr-080-theme-system.md"
     # Warning only for now — change to exit 1 once migration is complete
-    echo "  [done] check-theme (warnings only)"
   else
     echo "  ✓ no hardcoded ANSI codes outside src/tui/"
-    echo "  [done] check-theme"
   fi
 }
 

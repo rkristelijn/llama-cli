@@ -25,7 +25,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 main() {
-  echo "==> checking cross-references..."
+  print_header "checking cross-references..."
   local errors=0
 
   # Check 1: ADR-NNN references in source have matching files
@@ -72,7 +72,6 @@ main() {
   else
     echo "  [${errors} broken references found]"
   fi
-  echo "  [done] check-xref"
 }
 
 main "$@"

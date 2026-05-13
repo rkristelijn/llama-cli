@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Auto-fixing NULL to nullptr..."
+print_header "Auto-fixing NULL to nullptr..."
 
 FIXED=0
 

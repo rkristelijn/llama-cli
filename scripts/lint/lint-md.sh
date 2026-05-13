@@ -17,10 +17,9 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 if ! command -v rumdl >/dev/null; then
-  echo "  [skip] rumdl not installed"
+  print_step "" "$(basename "$0" .sh)" skip "rumdl not installed"
   exit 0
 fi
 
-echo "==> linting markdown..."
+print_header "linting markdown..."
 rumdl check .
-echo "  [done] lint-md"

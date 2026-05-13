@@ -16,10 +16,10 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Auto-fixing C-style casts to C++ casts..."
+print_header "Auto-fixing C-style casts to C++ casts..."
 
 if ! command -v clang-tidy >/dev/null; then
-  echo "  [skip] clang-tidy not installed"
+  print_step "" "$(basename "$0" .sh)" skip "clang-tidy not installed"
   exit 0
 fi
 

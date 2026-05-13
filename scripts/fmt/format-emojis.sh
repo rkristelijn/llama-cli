@@ -68,14 +68,14 @@ format_file() {
 
   if ! diff -q "$file" "$temp_file" >/dev/null 2>&1; then
     mv "$temp_file" "$file"
-    echo "  ✓ $file"
+    print_step "" "$file" success
   else
     rm "$temp_file"
   fi
 }
 
 if [ $# -eq 0 ]; then
-  echo "==> formatting emojis in markdown files..."
+  print_header "formatting emojis in markdown files..."
   find docs -name '*.md' -type f | while read -r file; do
     format_file "$file"
   done

@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Converting include guards to #pragma once..."
+print_header "Converting include guards to #pragma once..."
 
 FIXED=0
 

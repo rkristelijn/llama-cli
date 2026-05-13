@@ -43,7 +43,7 @@ check() {
 }
 
 main() {
-  echo "==> Checking tool versions against .config/versions.env"
+  print_header "Checking tool versions against .config/versions.env"
 
   local clang_tidy="clang-tidy"
   if ! command -v clang-tidy >/dev/null 2>&1 && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then

@@ -41,7 +41,7 @@ check() {
   fi
 }
 
-echo "==> checking code consistency (ADR-065)..."
+print_header "checking code consistency (ADR-065)..."
 
 # 1. No #pragma once — project uses #ifndef guards
 check "no #pragma once in headers" \
@@ -94,4 +94,3 @@ if [ "$FAIL" -gt 0 ]; then
   echo "FAIL: $FAIL consistency issue(s) found"
   exit 1
 fi
-echo "  [done] consistency"

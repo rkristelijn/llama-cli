@@ -16,10 +16,10 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Checking for variable shadowing..."
+print_header "Checking for variable shadowing..."
 
 if ! command -v g++ >/dev/null && ! command -v clang++ >/dev/null; then
-  echo "  [skip] no C++ compiler found"
+  print_step "" "$(basename "$0" .sh)" skip "no C++ compiler found"
   exit 0
 fi
 

@@ -39,7 +39,7 @@ pass() {
 }
 
 main() {
-  echo "==> engineering smell check (¬_¬)"
+  print_header "engineering smell check (¬_¬)"
   echo ""
 
   # ── #58: "Temporary fix" that stays forever ──
@@ -179,7 +179,6 @@ main() {
     echo "  ✗ $FAIL serious smell(s) — fix before shipping"
     exit 1
   fi
-  echo "  [done] smells"
 }
 
 main "$@"

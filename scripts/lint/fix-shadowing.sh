@@ -16,7 +16,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 
-echo "==> Auto-fixing variable shadowing..."
+print_header "Auto-fixing variable shadowing..."
 echo "  Note: Only fixes loop variables declared outside loop"
 
 FIXED=0

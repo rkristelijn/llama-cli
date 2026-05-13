@@ -4,12 +4,8 @@
 # Usage (from Makefile):
 #   @bash lib/cpm/shell/run.sh "check-name" command args...
 #
-# Output modes (CPM_OUTPUT or cpm.toml [output] section):
-#   both    — console + file (default)
-#   console — console only
-#   file    — file only (quiet, for CI)
-#
-# Log dir: .tmp/<name>.log
+# Output modes (CPM_OUTPUT): both | console | file
+# Run modes (CPM_RUN_MODE): collect | fail-fast
 #
 # @see docs/adr/adr-121-cpm-quality-layer.md
 
@@ -27,12 +23,8 @@ logfile="$CPM_LOG_DIR/${name}.log"
 
 timer_start "$name"
 
-set +e
+# Run command and capture exit code reliably
 case "$CPM_OUTPUT" in
-  both)
-    "$@" 2>&1 | tee "$logfile"
-    rc=${PIPESTATUS[0]}
-    ;;
   file)
     "$@" > "$logfile" 2>&1
     rc=$?
@@ -41,12 +33,13 @@ case "$CPM_OUTPUT" in
     "$@"
     rc=$?
     ;;
-  *)
-    "$@" 2>&1 | tee "$logfile"
-    rc=${PIPESTATUS[0]}
+  *)  # both (default)
+    # Use temp file to avoid PIPESTATUS issues with tee
+    "$@" > "$logfile" 2>&1
+    rc=$?
+    cat "$logfile"
     ;;
 esac
-set -e
 
 if ((rc == 0)); then
   timer_stop "$name" success

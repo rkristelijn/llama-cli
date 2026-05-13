@@ -22,7 +22,7 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 main() {
-  echo "==> checking for dead code (ADR-064)..."
+  print_header "checking for dead code (ADR-064)..."
   local count=0
 
   # 1. Unused functions (cppcheck, skip test files)
@@ -59,7 +59,6 @@ main() {
   else
     echo "  [${count} items — review and remove or suppress]"
   fi
-  echo "  [done] dead-code"
 }
 
 main "$@"

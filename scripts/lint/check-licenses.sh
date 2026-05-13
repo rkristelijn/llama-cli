@@ -38,7 +38,7 @@ declare -A DEPS=(
 ALLOWED="MIT BSD-2-Clause BSD-3-Clause Apache-2.0 Zlib ISC Unlicense"
 
 main() {
-  echo "==> license check"
+  print_header "license check"
   local fail=0
 
   for dep in "${!DEPS[@]}"; do
@@ -63,11 +63,10 @@ main() {
 
   echo ""
   if [[ $fail -gt 0 ]]; then
-    echo "  FAIL: $fail license issue(s)"
+    print_error "$fail license issue(s)"
     exit 1
   fi
   echo "  ✓ all dependencies have permissive licenses"
-  echo "  [done] licenses"
 }
 
 main "$@"

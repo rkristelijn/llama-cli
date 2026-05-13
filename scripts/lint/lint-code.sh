@@ -16,11 +16,11 @@ else
   print_warning() { echo "  WARNING: $1"; }
 fi
 if ! command -v cppcheck >/dev/null; then
-  echo "  [skip] cppcheck not installed"
+  print_step "" "$(basename "$0" .sh)" skip "cppcheck not installed"
   exit 0
 fi
 
-echo "==> running cppcheck..."
+print_header "running cppcheck..."
 # Use cppcheck with specific suppressions for tests and internal libraries
 output=$(cppcheck --enable=all \
   --inline-suppr \
@@ -45,4 +45,3 @@ output=$(cppcheck --enable=all \
 }
 
 echo "$output" | grep -v "Checking\|files checked" || true
-echo "  [done] lint-code"

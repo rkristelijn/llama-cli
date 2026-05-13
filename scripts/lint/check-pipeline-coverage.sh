@@ -96,7 +96,7 @@ declare -A DENYLIST=(
   [pipeline - coverage]="meta-check, check-all only"
 )
 
-echo "==> checking pipeline coverage..."
+print_header "checking pipeline coverage..."
 
 CI_FILE=".github/workflows/ci.yml"
 if [[ ! -f "$CI_FILE" ]]; then
@@ -133,4 +133,3 @@ else
   echo "  [${missing} targets missing — add to CI or denylist in this script]"
   exit 1
 fi
-echo "  [done] pipeline-coverage"

@@ -37,7 +37,7 @@ pass() {
 }
 
 main() {
-  echo "==> CI workflow integrity check"
+  print_header "CI workflow integrity check"
 
   # 1. YAML syntax
   if yamllint -d relaxed "$CI" >/dev/null 2>&1; then
@@ -101,7 +101,7 @@ main() {
 
   echo ""
   if [[ "$FAIL" -gt 0 ]]; then
-    echo "  FAIL: $FAIL issue(s)"
+    print_error "$FAIL issue(s)"
     exit 1
   fi
   echo "  ✓ CI workflow is valid"

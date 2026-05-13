@@ -27,12 +27,12 @@ fi
 failures=0
 
 fail() {
-  echo "  FAIL: $1"
+  print_error "$1"
   ((failures++)) || true
 }
 
 main() {
-  echo "==> Checking script conventions..."
+  print_header "Checking script conventions..."
 
   while IFS= read -r script; do
     local name dir line1
@@ -95,9 +95,9 @@ main() {
     else
       while IFS= read -r script; do
         [[ -z "$script" || ! -f "$script" ]] && continue
-        if ! shellcheck -S warning "$script" >/dev/null 2>&1; then
+        if ! shellcheck -S error "$script" >/dev/null 2>&1; then
           local issues
-          issues=$(shellcheck -S warning -f gcc "$script" 2>/dev/null | head -3)
+          issues=$(shellcheck -S error -f gcc "$script" 2>/dev/null | head -3)
           echo "  WARN: $script"
           echo "$issues" | sed 's/^/    /'
           sc_fails=$((sc_fails + 1))

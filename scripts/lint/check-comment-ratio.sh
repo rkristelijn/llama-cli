@@ -54,4 +54,3 @@ if [ "$ratio" -lt "$THRESHOLD" ]; then
   exit 1
 fi
 
-echo "  [done] comment-ratio"
