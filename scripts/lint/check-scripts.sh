@@ -15,6 +15,15 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+# Source cpm ui.sh if available, otherwise define minimal fallback
+if [[ -f "${CPM_UI:-lib/cpm/shell/ui.sh}" ]]; then
+  source "${CPM_UI:-lib/cpm/shell/ui.sh}"
+else
+  print_step() { echo "  $2 $3${4:+ $4}"; }
+  print_header() { echo "==> $1"; }
+  print_error() { echo "  ERROR: $1"; }
+  print_warning() { echo "  WARNING: $1"; }
+fi
 failures=0
 
 fail() {
@@ -84,21 +93,21 @@ main() {
     if [[ -z "$sc_files" ]]; then
       echo "  ✓ shellcheck (no changed scripts vs main)"
     else
-    while IFS= read -r script; do
-      [[ -z "$script" || ! -f "$script" ]] && continue
-      if ! shellcheck -S warning "$script" >/dev/null 2>&1; then
-        local issues
-        issues=$(shellcheck -S warning -f gcc "$script" 2>/dev/null | head -3)
-        echo "  WARN: $script"
-        echo "$issues" | sed 's/^/    /'
-        sc_fails=$((sc_fails + 1))
+      while IFS= read -r script; do
+        [[ -z "$script" || ! -f "$script" ]] && continue
+        if ! shellcheck -S warning "$script" >/dev/null 2>&1; then
+          local issues
+          issues=$(shellcheck -S warning -f gcc "$script" 2>/dev/null | head -3)
+          echo "  WARN: $script"
+          echo "$issues" | sed 's/^/    /'
+          sc_fails=$((sc_fails + 1))
+        fi
+      done <<<"$sc_files"
+      if [[ $sc_fails -eq 0 ]]; then
+        echo "  ✓ all scripts pass shellcheck"
+      else
+        echo "  $sc_fails script(s) have shellcheck warnings"
       fi
-    done <<<"$sc_files"
-    if [[ $sc_fails -eq 0 ]]; then
-      echo "  ✓ all scripts pass shellcheck"
-    else
-      echo "  $sc_fails script(s) have shellcheck warnings"
-    fi
     fi
   fi
 

@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # format-md.sh — Auto-format Markdown files using rumdl.
 # Also auto-detects missing language tags on fenced code blocks (MD040).
+# @see docs/adr/adr-121-cpm-quality-layer.md
 
 set -o errexit
 set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
+# Source cpm ui.sh if available, otherwise define minimal fallback
+if [[ -f "${CPM_UI:-lib/cpm/shell/ui.sh}" ]]; then
+  source "${CPM_UI:-lib/cpm/shell/ui.sh}"
+else
+  print_step() { echo "  $2 $3${4:+ $4}"; }
+  print_header() { echo "==> $1"; }
+fi
 
 # Auto-detect language for bare ``` blocks based on content heuristics.
 # Fixes MD040 violations in-place.
@@ -81,11 +90,11 @@ fix_code_block_languages() {
 }
 
 if ! command -v rumdl >/dev/null; then
-  echo "  [skip] rumdl not installed"
+  print_step 1 "format-md" skip "rumdl not installed"
   exit 0
 fi
 
-echo "==> formatting markdown..."
+print_header "formatting markdown..."
 
 # Phase 1: fix missing code block languages (MD040)
 for f in $(find . -name '*.md' -not -path './node_modules/*' -not -path './build*' -not -path './.tmp/*'); do
@@ -96,4 +105,3 @@ done
 
 # Phase 2: run rumdl formatter
 rumdl fmt .
-echo "  [done] format-md"

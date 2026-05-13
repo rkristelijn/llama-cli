@@ -1,0 +1,57 @@
+# cpm.toml — CPM quality framework configuration for llama-cli
+# @see docs/adr/adr-121-cpm-quality-layer.md
+#
+# Supported formats (first found wins): cpm.toml, cpm.yml, cpm.json, .cpmrc
+
+[project]
+name = "llama-cli"
+level = 3
+lang = "cpp"
+build = "make"
+
+[limits]
+source-lines = 600
+header-lines = 300
+test-lines = 700
+script-lines = 300
+files-per-dir = 30
+
+[limits.multipliers]
+dispatch-table = 2
+generated = 0
+data = 0
+
+[severity]
+filesize = "error"
+files-per-dir = "error"
+slop = "warning"
+research-freshness = "info"
+complexity = "warning"
+dead-code = "warning"
+
+[exempt.dispatch-tables]
+files = [
+  "src/repl/repl_commands.cpp",
+]
+
+[exempt.tech-debt]
+files = [
+  "src/repl/repl_test.cpp",
+  "src/annotation/annotation.cpp",
+  "src/config/config.cpp",
+]
+
+[providers]
+ci = "github"
+cache = "filesystem"
+config = "toml"
+
+[hooks]
+pre-format = []
+post-format = []
+pre-lint = []
+post-lint = []
+pre-build = []
+post-build = []
+pre-test = []
+post-test = []

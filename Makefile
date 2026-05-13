@@ -36,7 +36,7 @@ endif
 ##@ Getting Started
 
 setup: ## Install all dependencies
-	@bash scripts/dev/setup.sh
+	@bash lib/cpm/shell/run.sh setup bash scripts/dev/setup.sh
 	$(log_footer)
 
 build: all ## Build the project
@@ -104,7 +104,7 @@ check-all: ## Tier 3: everything — exhaustive lint, mutation, SBOM, docs (alia
 full-check: check-all
 
 mutation: ## Run mutation testing (Mull, slow — PR only)
-	@bash scripts/test/run-mutation.sh
+	@bash lib/cpm/shell/run.sh run-mutation bash scripts/test/run-mutation.sh
 	$(log_footer)
 
 check-ai: ## Run checks with condensed output
@@ -113,19 +113,19 @@ check-ai: ## Run checks with condensed output
 ##@ Formatting
 
 format-code: ## Format C++ code (clang-format)
-	@bash scripts/fmt/format-code.sh
+	@bash lib/cpm/shell/run.sh format-code bash scripts/fmt/format-code.sh
 	$(log_footer)
 
 format-md: ## Format Markdown files (rumdl)
-	@bash scripts/fmt/format-md.sh
+	@bash lib/cpm/shell/run.sh format-md bash scripts/fmt/format-md.sh
 	$(log_footer)
 
 format-yaml: ## Format YAML files (trailing whitespace)
-	@bash scripts/fmt/format-yaml.sh
+	@bash lib/cpm/shell/run.sh format-yaml bash scripts/fmt/format-yaml.sh
 	$(log_footer)
 
 format-scripts: ## Format shell scripts (shfmt)
-	@bash scripts/fmt/format-scripts.sh
+	@bash lib/cpm/shell/run.sh format-scripts bash scripts/fmt/format-scripts.sh
 	$(log_footer)
 
 ##@ Linting
@@ -138,87 +138,87 @@ lint-format-code: ## Check C++ formatting (no changes)
 	@echo "  [done] lint-format-code"
 
 lint-cppcheck: ## Run cppcheck static analysis
-	@bash scripts/lint/lint-code.sh
+	@bash lib/cpm/shell/run.sh lint-code bash scripts/lint/lint-code.sh
 	$(log_footer)
 
 lint-md: ## Lint Markdown files (rumdl)
-	@bash scripts/lint/lint-md.sh
+	@bash lib/cpm/shell/run.sh lint-md bash scripts/lint/lint-md.sh
 	$(log_footer)
 
 lint-yaml: ## Lint YAML files (yamllint)
-	@bash scripts/lint/lint-yaml.sh
+	@bash lib/cpm/shell/run.sh lint-yaml bash scripts/lint/lint-yaml.sh
 	$(log_footer)
 
 lint-makefile: ## Check Makefile conventions
-	@bash scripts/lint/check-makefile.sh
+	@bash lib/cpm/shell/run.sh check-makefile bash scripts/lint/check-makefile.sh
 	$(log_footer)
 
 lint-scripts: ## Check shell script conventions (shellcheck)
-	@bash scripts/lint/check-scripts.sh
+	@bash lib/cpm/shell/run.sh check-scripts bash scripts/lint/check-scripts.sh
 	$(log_footer)
 
 lint-versions: ## Check version pinning (no hardcoded versions)
-	@bash scripts/lint/check-version-pins.sh
+	@bash lib/cpm/shell/run.sh check-version-pins bash scripts/lint/check-version-pins.sh
 	$(log_footer)
 
 tidy: ## Run clang-tidy (smart: changed files only)
-	@bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
+	@bash lib/cpm/shell/run.sh run-tidy bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
 	$(log_footer)
 
 complexity: ## Check cyclomatic complexity (pmccabe)
-	@bash scripts/lint/check-complexity.sh
+	@bash lib/cpm/shell/run.sh check-complexity bash scripts/lint/check-complexity.sh
 	$(log_footer)
 
 comment-ratio: ## Show comment ratio per file
-	@bash scripts/lint/check-comment-ratio.sh
+	@bash lib/cpm/shell/run.sh check-comment-ratio bash scripts/lint/check-comment-ratio.sh
 	$(log_footer)
 
 consistency: ## Check code consistency (ADR-065)
-	@bash scripts/lint/check-consistency.sh
+	@bash lib/cpm/shell/run.sh check-consistency bash scripts/lint/check-consistency.sh
 	$(log_footer)
 
 check-theme: ## Check no hardcoded ANSI outside tui/ (ADR-080)
-	@bash scripts/lint/check-theme.sh
+	@bash lib/cpm/shell/run.sh check-theme bash scripts/lint/check-theme.sh
 	$(log_footer)
 
 check-xref: ## Validate ADR cross-references in code (ADR-022)
-	@bash scripts/lint/check-xref.sh
+	@bash lib/cpm/shell/run.sh check-xref bash scripts/lint/check-xref.sh
 	$(log_footer)
 
 check-interactive-input: ## Check no direct std::cin usage (ADR-088)
-	@bash scripts/lint/check-interactive-input.sh
+	@bash lib/cpm/shell/run.sh check-interactive-input bash scripts/lint/check-interactive-input.sh
 	$(log_footer)
 
 check-pii: ## Check for PII in source code (ADR-098)
-	@bash scripts/lint/check-pii.sh
+	@bash lib/cpm/shell/run.sh check-pii bash scripts/lint/check-pii.sh
 	$(log_footer)
 
 dead-code: ## Detect unused functions and orphaned scripts (ADR-064)
-	@bash scripts/lint/check-dead-code.sh
+	@bash lib/cpm/shell/run.sh check-dead-code bash scripts/lint/check-dead-code.sh
 	$(log_footer)
 
 dead-docs: ## Detect unreferenced docs, configs, and backlog items
-	@bash scripts/lint/check-dead-docs.sh
+	@bash lib/cpm/shell/run.sh check-dead-docs bash scripts/lint/check-dead-docs.sh
 	$(log_footer)
 
 duplication: ## Detect duplicated code blocks (CPD or line-hash fallback)
-	@bash scripts/lint/check-duplication.sh
+	@bash lib/cpm/shell/run.sh check-duplication bash scripts/lint/check-duplication.sh
 	$(log_footer)
 
 slop: ## Detect AI-generated code slop patterns
-	@bash scripts/lint/check-slop.sh
+	@bash lib/cpm/shell/run.sh check-slop bash scripts/lint/check-slop.sh
 	$(log_footer)
 
 check-unicode: ## Check for invisible Unicode backdoors (ADR-097)
-	@bash scripts/lint/check-unicode.sh
+	@bash lib/cpm/shell/run.sh check-unicode bash scripts/lint/check-unicode.sh
 	$(log_footer)
 
 check-portability: ## Detect cross-platform issues (ADR-093)
-	@bash scripts/lint/check-portability.sh
+	@bash lib/cpm/shell/run.sh check-portability bash scripts/lint/check-portability.sh
 	$(log_footer)
 
 research-freshness: ## Warn when research-backed scripts are stale (ADR-120)
-	@bash scripts/lint/check-research-freshness.sh
+	@bash lib/cpm/shell/run.sh check-research-freshness bash scripts/lint/check-research-freshness.sh
 	$(log_footer)
 
 research-update: ## Mark a research topic as freshly researched (TOPIC=...)
@@ -227,43 +227,43 @@ research-update: ## Mark a research topic as freshly researched (TOPIC=...)
 	@echo "  ✓ $(TOPIC) updated to $$(date +%Y-%m-%d)"
 
 check-casts: ## Detect C-style casts (ES.48, slow — compiles)
-	@bash scripts/lint/check-casts.sh
+	@bash lib/cpm/shell/run.sh check-casts bash scripts/lint/check-casts.sh
 	$(log_footer)
 
 check-conversions: ## Detect implicit conversions (slow — compiles)
-	@bash scripts/lint/check-conversions.sh
+	@bash lib/cpm/shell/run.sh check-conversions bash scripts/lint/check-conversions.sh
 	$(log_footer)
 
 check-shadowing: ## Detect variable shadowing (ES.12, slow — compiles)
-	@bash scripts/lint/check-shadowing.sh
+	@bash lib/cpm/shell/run.sh check-shadowing bash scripts/lint/check-shadowing.sh
 	$(log_footer)
 
 check-traceability: ## Bidirectional traceability check (ADR-095)
-	@bash scripts/ci/check-traceability.sh
+	@bash lib/cpm/shell/run.sh check-traceability bash scripts/ci/check-traceability.sh
 	$(log_footer)
 
 pipeline-coverage: ## Verify all make targets are in CI or denylist
-	@bash scripts/lint/check-pipeline-coverage.sh
+	@bash lib/cpm/shell/run.sh check-pipeline-coverage bash scripts/lint/check-pipeline-coverage.sh
 	$(log_footer)
 
 cmmi: ## CMMI maturity level audit (ADR-048)
-	@bash scripts/lint/check-cmmi.sh
+	@bash lib/cpm/shell/run.sh check-cmmi bash scripts/lint/check-cmmi.sh
 	$(log_footer)
 
 smells: ## Detect engineering anti-patterns (fun but real)
-	@bash scripts/lint/check-smells.sh
+	@bash lib/cpm/shell/run.sh check-smells bash scripts/lint/check-smells.sh
 	$(log_footer)
 
 inclusivity: ## Inclusivity & accessibility lint (C4I)
-	@bash scripts/lint/check-inclusivity.sh
+	@bash lib/cpm/shell/run.sh check-inclusivity bash scripts/lint/check-inclusivity.sh
 	$(log_footer)
 
 licenses: ## Check dependency licenses (permissive only)
-	@bash scripts/lint/check-licenses.sh
+	@bash lib/cpm/shell/run.sh check-licenses bash scripts/lint/check-licenses.sh
 	$(log_footer)
 
 feature-density: ## Check LOG_FEATURE marker density (ADR-063)
-	@bash scripts/test/check-feature-density.sh
+	@bash lib/cpm/shell/run.sh check-feature-density bash scripts/test/check-feature-density.sh
 	$(log_footer)
 
 docs: ## Check doxygen warnings
@@ -273,13 +273,13 @@ docs: ## Check doxygen warnings
 	@echo "  [done] docs"
 
 file-size: ## Check source file sizes (ADR-061)
-	@bash scripts/lint/check-file-size.sh
+	@bash lib/cpm/shell/run.sh check-file-size bash scripts/lint/check-file-size.sh
 	$(log_footer)
 
 ##@ Testing
 
 test-unit: ## Run unit tests
-	@bash scripts/test/run-unit.sh "$(BUILD_DIR)"
+	@bash lib/cpm/shell/run.sh run-unit bash scripts/test/run-unit.sh "$(BUILD_DIR)"
 	$(log_footer)
 t: test-unit
 
@@ -299,32 +299,32 @@ live-full: ## Full feature test with real LLM (~30s)
 	$(log_footer)
 
 log-analysis: ## Analyze llama-cli event logs (timing, features, errors)
-	@bash scripts/dev/log-analysis.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh log-analysis bash scripts/dev/log-analysis.sh $(ARGS)
 	$(log_footer)
 
 ci-analysis: ## Analyze CI pipeline (timing, failures, success rate)
-	@bash scripts/gh/ci-analysis.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh ci-analysis bash scripts/gh/ci-analysis.sh $(ARGS)
 	$(log_footer)
 
 bench: ## Benchmark local Ollama models (see docs/model-bench.md)
-	@bash scripts/test/bench-models.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh bench-models bash scripts/test/bench-models.sh $(ARGS)
 	$(log_footer)
 
 preflight: ## Quick model capability check (math, reasoning, speed)
-	@bash scripts/test/preflight.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh preflight bash scripts/test/preflight.sh $(ARGS)
 	$(log_footer)
 
 coverage: ## Build with coverage and run tests
-	@bash scripts/test/run-coverage.sh "$(BUILD_DIR)"
+	@bash lib/cpm/shell/run.sh run-coverage bash scripts/test/run-coverage.sh "$(BUILD_DIR)"
 	$(log_footer)
 
 coverage-report: coverage ## Show coverage summary per directory
-	@bash scripts/test/report-coverage.sh "$(BUILD_DIR)"
+	@bash lib/cpm/shell/run.sh report-coverage bash scripts/test/report-coverage.sh "$(BUILD_DIR)"
 	$(log_footer)
 
 quick: ## Fast feedback: build + unit tests + comment ratio
 	@$(MAKE) build
-	@bash scripts/dev/quick.sh "$(BUILD_DIR)"
+	@bash lib/cpm/shell/run.sh quick bash scripts/dev/quick.sh "$(BUILD_DIR)"
 	$(log_footer)
 
 features: ## List all test scenarios (feature spec)
@@ -350,7 +350,7 @@ sast-security: ## Run semgrep security scan
 	else echo "  [skip] semgrep not installed"; fi
 
 sast-stegano: ## Run steganography scan (zsteg)
-	@bash scripts/security/steg-check.sh
+	@bash lib/cpm/shell/run.sh steg-check bash scripts/security/steg-check.sh
 	$(log_footer)
 
 sast-iac: ## Run IaC security scan (trivy)
@@ -360,31 +360,31 @@ sast-iac: ## Run IaC security scan (trivy)
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
-	@bash scripts/security/sast-secret.sh 2>&1 | tee .tmp/sast-secret.log
+	@bash lib/cpm/shell/run.sh sast-secret bash scripts/security/sast-secret.sh 2>&1 | tee .tmp/sast-secret.log
 	@echo "  [done] sast-secret"
 
 sast-trufflehog: ## Run trufflehog verified secret scan
-	@bash scripts/security/trufflehog-scan.sh
+	@bash lib/cpm/shell/run.sh trufflehog-scan bash scripts/security/trufflehog-scan.sh
 	$(log_footer)
 
 sast-grype: ## Run grype vulnerability scan
-	@bash scripts/security/grype-scan.sh
+	@bash lib/cpm/shell/run.sh grype-scan bash scripts/security/grype-scan.sh
 	$(log_footer)
 
 sast-osv: ## Run osv-scanner vulnerability scan
-	@bash scripts/security/osv-scan.sh
+	@bash lib/cpm/shell/run.sh osv-scan bash scripts/security/osv-scan.sh
 	$(log_footer)
 
 sast-checkov: ## Run checkov IaC policy scan
-	@bash scripts/security/checkov-scan.sh
+	@bash lib/cpm/shell/run.sh checkov-scan bash scripts/security/checkov-scan.sh
 	$(log_footer)
 
 sast-codeql: ## Run CodeQL deep analysis (slow)
-	@bash scripts/security/codeql-scan.sh
+	@bash lib/cpm/shell/run.sh codeql-scan bash scripts/security/codeql-scan.sh
 	$(log_footer)
 
 sbom: ## Generate SBOM with syft
-	@bash scripts/security/syft-sbom.sh
+	@bash lib/cpm/shell/run.sh syft-sbom bash scripts/security/syft-sbom.sh
 	$(log_footer)
 
 summarize-safe: ## Summarize headers (skips if Ollama unavailable)
@@ -395,64 +395,64 @@ summarize-safe: ## Summarize headers (skips if Ollama unavailable)
 	fi
 
 sonar: ## Run SonarCloud scan (requires SONAR_TOKEN)
-	@bash scripts/security/sonar-scan.sh
+	@bash lib/cpm/shell/run.sh sonar-scan bash scripts/security/sonar-scan.sh
 	$(log_footer)
 
 sonar-report: ## Show SonarCloud issue summary (ARGS=BLOCKER for detail)
-	@bash scripts/security/sonar-report.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh sonar-report bash scripts/security/sonar-report.sh $(ARGS)
 	$(log_footer)
 
 ##@ Development
 
 learn: ## AI-assisted pattern discovery (5-min budget, uses llama-cli)
-	@bash scripts/dev/learn.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh learn bash scripts/dev/learn.sh $(ARGS)
 	$(log_footer)
 
 update: ## Update all development tools to pinned versions
-	@bash scripts/dev/update-tools.sh
+	@bash lib/cpm/shell/run.sh update-tools bash scripts/dev/update-tools.sh
 	$(log_footer)
 
 bump: ## Bump version (make bump PART=patch|minor|major)
-	@bash scripts/dev/bump.sh "$(or $(PART),$(filter major minor patch,$(MAKECMDGOALS)))"
+	@bash lib/cpm/shell/run.sh bump bash scripts/dev/bump.sh "$(or $(PART),$(filter major minor patch,$(MAKECMDGOALS)))"
 	$(log_footer)
 
 trivi: ## Run implicit decision scan
-	@bash scripts/dev/trivi.sh
+	@bash lib/cpm/shell/run.sh trivi bash scripts/dev/trivi.sh
 	$(log_footer)
 
 new: ## Scaffold new file (make new TYPE=cpp NAME=module/file BRIEF="...")
-	@bash scripts/dev/scaffold.sh $(ARGS) TYPE=$(TYPE) NAME=$(NAME) BRIEF="$(BRIEF)"
+	@bash lib/cpm/shell/run.sh scaffold bash scripts/dev/scaffold.sh $(ARGS) TYPE=$(TYPE) NAME=$(NAME) BRIEF="$(BRIEF)"
 	$(log_footer)
 
 major minor patch:
 	@true
 
 log: ## View event logs
-	@bash scripts/dev/log-viewer.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh log-viewer bash scripts/dev/log-viewer.sh $(ARGS)
 	$(log_footer)
 
 commit-stats: ## Show commit type/scope distribution and health metrics
-	@bash scripts/dev/commit-stats.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh commit-stats bash scripts/dev/commit-stats.sh $(ARGS)
 	$(log_footer)
 
 todo: ## Show TODO items from docs and code
-	@bash scripts/dev/todo.sh
+	@bash lib/cpm/shell/run.sh todo bash scripts/dev/todo.sh
 	$(log_footer)
 
 index: ## Regenerate INDEX.md
-	@bash scripts/dev/build-index.sh
+	@bash lib/cpm/shell/run.sh build-index bash scripts/dev/build-index.sh
 	$(log_footer)
 
 summarize: ## Summarize file headers with Ollama (--dry-run supported)
-	@bash scripts/dev/summarize-headers.sh $(ARGS) 2>&1 | tee .tmp/summarize.log
+	@bash lib/cpm/shell/run.sh summarize-headers bash scripts/dev/summarize-headers.sh $(ARGS) 2>&1 | tee .tmp/summarize.log
 	$(log_footer)
 
 precommit: ## Run pre-commit checks
-	@bash scripts/git/precommit-check.sh
+	@bash lib/cpm/shell/run.sh precommit-check bash scripts/git/precommit-check.sh
 	$(log_footer)
 
 prepush: ## Run pre-push checks
-	@bash scripts/git/prepush-check.sh
+	@bash lib/cpm/shell/run.sh prepush-check bash scripts/git/prepush-check.sh
 	$(log_footer)
 
 pre-pr: ## Full pre-PR validation (build both compilers, lint, test)
@@ -468,12 +468,12 @@ pre-pr: ## Full pre-PR validation (build both compilers, lint, test)
 ##@ GitHub
 
 gh-pipeline-status: ## Show latest pipeline status (alias: gpls)
-	@bash scripts/gh/pipeline-status.sh 2>&1 | tee .tmp/$@.log
+	@bash lib/cpm/shell/run.sh pipeline-status bash scripts/gh/pipeline-status.sh 2>&1 | tee .tmp/$@.log
 	$(log_footer)
 gpls: gh-pipeline-status
 
 gh-pr-status: ## Show failed PR jobs (alias: gps)
-	@bash scripts/gh/pr-status.sh $(ARGS) 2>&1 | tee .tmp/$@.log
+	@bash lib/cpm/shell/run.sh pr-status bash scripts/gh/pr-status.sh $(ARGS) 2>&1 | tee .tmp/$@.log
 	$(log_footer)
 gps: gh-pr-status
 
@@ -490,7 +490,7 @@ gh-pr-check: ## Full PR review: CI + SonarCloud + CodeRabbit (alias: gpc)
 gpc: gh-pr-check
 
 gh-create-pr: ## Create draft pull request (alias: gpr)
-	@bash scripts/gh/create-pr.sh 2>&1 | tee .tmp/$@.log
+	@bash lib/cpm/shell/run.sh create-pr bash scripts/gh/create-pr.sh 2>&1 | tee .tmp/$@.log
 	$(log_footer)
 gpr: gh-create-pr
 
@@ -500,25 +500,25 @@ gh-pr-ready: ## Mark PR ready for review (triggers heavy checks)
 gprr: gh-pr-ready
 
 gh-download-issues: ## Download GitHub issues (alias: gdi)
-	@bash scripts/gh/download-issues.sh
+	@bash lib/cpm/shell/run.sh download-issues bash scripts/gh/download-issues.sh
 	$(log_footer)
 gdi: gh-download-issues
 
 gh-pr-feedback: ## Show CodeRabbit feedback (alias: gpf)
-	@bash scripts/gh/pr-feedback.sh
+	@bash lib/cpm/shell/run.sh pr-feedback bash scripts/gh/pr-feedback.sh
 	$(log_footer)
 gpf: gh-pr-feedback
 
 gh-pr-resolve: ## Resolve CodeRabbit threads (alias: gpr-resolve)
-	@bash scripts/gh/pr-resolve.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh pr-resolve bash scripts/gh/pr-resolve.sh $(ARGS)
 	$(log_footer)
 
 create-issue: ## Create issue (TITLE="..." DESC="...")
-	@bash scripts/gh/create-issue.sh "$(TITLE)" "$(DESC)"
+	@bash lib/cpm/shell/run.sh create-issue bash scripts/gh/create-issue.sh "$(TITLE)" "$(DESC)"
 	$(log_footer)
 
 release: ## Trigger a GitHub release (from main branch)
-	@bash scripts/gh/release.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh release bash scripts/gh/release.sh $(ARGS)
 	$(log_footer)
 
 merge: ## Merge current PR (squash)
@@ -526,7 +526,7 @@ merge: ## Merge current PR (squash)
 	@echo "  ✓ PR merged and branch deleted"
 
 gh-cleanup: ## Remove merged branches (dry-run; use ARGS=--apply to delete)
-	@bash scripts/gh/gh-cleanup.sh $(ARGS)
+	@bash lib/cpm/shell/run.sh gh-cleanup bash scripts/gh/gh-cleanup.sh $(ARGS)
 	$(log_footer)
 
 ##@ Help
@@ -544,11 +544,11 @@ all: $(if $(filter 1,$(SKIP_DEPS)),,check-deps)
 	@cp $(BINARY) .
 
 check-deps:
-	@bash scripts/lint/check-deps.sh
+	@bash lib/cpm/shell/run.sh check-deps bash scripts/lint/check-deps.sh
 	$(log_footer)
 
 check-versions:
-	@bash scripts/lint/check-versions.sh
+	@bash lib/cpm/shell/run.sh check-versions bash scripts/lint/check-versions.sh
 	$(log_footer)
 
 # Catch-all: suggest similar targets for typos
@@ -557,3 +557,7 @@ check-versions:
 	@echo "Did you mean one of these?"
 	@awk '/^[a-zA-Z_0-9-]+:.*?##/ { printf "  %s\n", $$1 }' $(MAKEFILE_LIST) | grep -i "$(shell echo $@ | cut -c1-4)" || \
 		echo "  make help    (show all targets)"
+
+# CPM integration (Phase 1: shell lib only, make targets later)
+# @see docs/adr/adr-121-cpm-quality-layer.md
+# Scripts source lib/cpm/shell/ui.sh with fallback if symlink absent

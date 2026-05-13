@@ -8,6 +8,15 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+# Source cpm ui.sh if available, otherwise define minimal fallback
+if [[ -f "${CPM_UI:-lib/cpm/shell/ui.sh}" ]]; then
+  source "${CPM_UI:-lib/cpm/shell/ui.sh}"
+else
+  print_step() { echo "  $2 $3${4:+ $4}"; }
+  print_header() { echo "==> $1"; }
+  print_error() { echo "  ERROR: $1"; }
+  print_warning() { echo "  WARNING: $1"; }
+fi
 THRESHOLD=20
 
 totals=$(cloc src/ --exclude-dir=test --not-match-f='(_test|_it)\.cpp$' --csv --quiet | grep SUM)
