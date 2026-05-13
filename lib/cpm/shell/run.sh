@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# run.sh — Universal wrapper: timing, output routing, trend analysis.
+# run.sh — Universal wrapper: timing, delta detection, output routing.
 #
-# Usage (from Makefile):
-#   @bash lib/cpm/shell/run.sh "check-name" command args...
+# Usage:
+#   bash lib/cpm/shell/run.sh <name> <command> [args...]
 #
-# Output modes (CPM_OUTPUT): both | console | file
-# Run modes (CPM_RUN_MODE): collect | fail-fast
+# Environment:
+#   CPM_OUTPUT    — both | console | file (default: both)
+#   CPM_SCOPE    — override scope: full | changed | diff
+#   CPM_CHANGED  — pre-computed changed files (newline-separated)
 #
 # @see docs/adr/adr-121-cpm-quality-layer.md
 
@@ -23,7 +25,7 @@ logfile="$CPM_LOG_DIR/${name}.log"
 
 timer_start "$name"
 
-# Run command and capture exit code reliably
+# Run command, capture exit code
 case "$CPM_OUTPUT" in
   file)
     "$@" > "$logfile" 2>&1
@@ -33,8 +35,7 @@ case "$CPM_OUTPUT" in
     "$@"
     rc=$?
     ;;
-  *)  # both (default)
-    # Use temp file to avoid PIPESTATUS issues with tee
+  *)
     "$@" > "$logfile" 2>&1
     rc=$?
     cat "$logfile"
