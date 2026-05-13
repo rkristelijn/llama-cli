@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# cpm-check.sh — Run checks based on registry, delta detection, and tier.
+# cpm-check.sh — Orchestrator: runs checks from registry with delta detection.
 #
 # Usage:
-#   bash lib/cpm/shell/cpm-check.sh [tier]
-#   tier: fast | normal | full (default: normal)
+#   bash lib/cpm/shell/cpm-check.sh [fast|normal|full]
 #
-# Reads [[checks]] from cpm.toml, detects changed files, skips irrelevant checks.
+# Responsibilities (single): coordinate modules, report results.
+# Delegates to: delta.sh (what changed), registry.sh (what to run),
+#               run.sh (execute + time), junit.sh (report).
 #
 # @see docs/adr/adr-121-cpm-quality-layer.md
 
@@ -13,130 +14,71 @@ set -o nounset
 set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/ui.sh"
+source "$SCRIPT_DIR/init.sh"
+source "$SCRIPT_DIR/delta.sh"
+source "$SCRIPT_DIR/registry.sh"
 source "$SCRIPT_DIR/junit.sh"
 
 TIER="${1:-normal}"
 CPM_RUN_MODE="${CPM_RUN_MODE:-collect}"
 
-# Get changed files vs main
-changed_files() {
-  git diff --name-only main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || find src scripts -type f
-}
+# Counters
+_total=0 _passed=0 _failed=0 _skipped=0
+_errors=""
+_changes=""
 
-# Check if any trigger pattern matches changed files
-triggers_match() {
-  local triggers="$1"
-  local changes="$2"
+# Handler called for each check in the registry
+handle_check() {
+  local name="$1" command="$2" triggers="$3" scope="$4" severity="$5"
+  _total=$((_total + 1))
 
-  # If triggers contain "**" (match all), always run
-  [[ "$triggers" == *'**'* ]] && echo "$triggers" | grep -q '"\*\*"' && return 0
-
-  # Check each changed file against trigger patterns
-  while IFS= read -r file; do
-    [[ -z "$file" ]] && continue
-    # Simple glob matching
-    case "$triggers" in
-      *"src/"*) [[ "$file" == src/* ]] && return 0 ;;
-      *"scripts/"*) [[ "$file" == scripts/* ]] && return 0 ;;
-      *".md"*) [[ "$file" == *.md ]] && return 0 ;;
-      *".yml"*|*".yaml"*) [[ "$file" == *.yml || "$file" == *.yaml ]] && return 0 ;;
-      *".sh"*) [[ "$file" == *.sh ]] && return 0 ;;
-      *"CMakeLists"*) [[ "$file" == *CMakeLists* ]] && return 0 ;;
-      *"e2e/"*) [[ "$file" == e2e/* ]] && return 0 ;;
-    esac
-  done <<< "$changes"
-  return 1
-}
-
-# Parse checks from cpm.toml (simple grep-based, no deps)
-run_checks() {
-  local changes
-  changes=$(changed_files)
-  local total=0 passed=0 failed=0 skipped=0
-  local errors=""
-
-  junit_start "cpm"
-  print_header "cpm check (tier: $TIER)"
-
-  # Read check blocks from cpm.toml
-  local in_check=false name="" command="" triggers="" severity="" scope=""
-
-  while IFS= read -r line; do
-    # New check block
-    if [[ "$line" == "[[checks]]" ]]; then
-      # Process previous check
-      if [[ -n "$name" && -n "$command" ]]; then
-        run_single_check
-      fi
-      name="" command="" triggers="" severity="warning" scope="changed"
-      in_check=true
-      continue
-    fi
-
-    [[ "$in_check" != true ]] && continue
-
-    # Parse fields
-    case "$line" in
-      name*=*) name=$(echo "$line" | sed 's/.*= *"//;s/".*//') ;;
-      command*=*) command=$(echo "$line" | sed 's/.*= *"//;s/".*//') ;;
-      triggers*=*) triggers="$line" ;;
-      severity*=*) severity=$(echo "$line" | sed 's/.*= *"//;s/".*//') ;;
-      scope*=*) scope=$(echo "$line" | sed 's/.*= *"//;s/".*//') ;;
-      "["*) in_check=false ;;  # New section, stop
-    esac
-  done < cpm.toml
-
-  # Process last check
-  [[ -n "$name" && -n "$command" ]] && run_single_check
-
-  # Summary
-  junit_finish
-  echo ""
-  if [[ $failed -eq 0 ]]; then
-    print_summary "${total} checks (${passed} passed, ${skipped} skipped)"
-  else
-    echo -e "  ${RED}${failed} failed${RESET}, ${passed} passed, ${skipped} skipped (${total} total)"
-    if [[ -n "$errors" ]]; then
-      echo ""
-      echo "$errors"
-    fi
-    exit 1
-  fi
-}
-
-run_single_check() {
-  total=$((total + 1))
-
-  # Delta detection: skip if triggers don't match
-  if [[ "$scope" != "full" ]] && ! triggers_match "$triggers" "$changes"; then
-    skipped=$((skipped + 1))
+  # Delta detection
+  if [[ "$scope" != "full" ]] && ! cpm_triggers_match "$triggers" "$_changes"; then
+    _skipped=$((_skipped + 1))
     print_step "" "$name" skip "no matching changes"
     junit_testcase "$name" "skip" "0" "no matching changes"
     return
   fi
 
-  # Run via wrapper, capture timing from timings.jsonl
-  local start_ms
-  start_ms=$(date +%s%N)
+  # Execute
+  local start; start=$(date +%s%N)
   if bash "$SCRIPT_DIR/run.sh" "$name" bash "$command" 2>/dev/null; then
-    local end_ms; end_ms=$(date +%s%N)
-    local dur=$(( (end_ms - start_ms) / 1000000 ))
-    passed=$((passed + 1))
+    local dur=$(( ($(date +%s%N) - start) / 1000000 ))
+    _passed=$((_passed + 1))
     junit_testcase "$name" "success" "$dur" ""
   else
-    local end_ms; end_ms=$(date +%s%N)
-    local dur=$(( (end_ms - start_ms) / 1000000 ))
+    local dur=$(( ($(date +%s%N) - start) / 1000000 ))
     if [[ "$severity" == "error" ]]; then
-      failed=$((failed + 1))
-      errors+="  ✗ $name (severity: error)\n"
-      junit_testcase "$name" "error" "$dur" "check failed with exit code"
-      [[ "$CPM_RUN_MODE" == "fail-fast" ]] && { junit_finish; echo "$errors"; exit 1; }
+      _failed=$((_failed + 1))
+      _errors+="  ✗ $name (severity: error)\n"
+      junit_testcase "$name" "error" "$dur" "check failed"
+      [[ "$CPM_RUN_MODE" == "fail-fast" ]] && { junit_finish; printf "%b" "$_errors"; exit 1; }
     else
-      passed=$((passed + 1))
+      _passed=$((_passed + 1))
       junit_testcase "$name" "success" "$dur" ""
     fi
   fi
 }
 
-run_checks
+main() {
+  _changes=$(cpm_changed_files)
+
+  junit_start "cpm"
+  print_header "cpm check (tier: $TIER)"
+
+  cpm_parse_checks handle_check
+
+  junit_finish
+
+  # Summary
+  echo ""
+  if [[ $_failed -eq 0 ]]; then
+    print_summary "$_total checks ($_passed passed, $_skipped skipped)"
+  else
+    echo -e "  ${RED:-}${_failed} failed${RESET:-}, $_passed passed, $_skipped skipped ($_total total)"
+    [[ -n "$_errors" ]] && printf "\n%b" "$_errors"
+    exit 1
+  fi
+}
+
+main
