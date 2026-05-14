@@ -287,17 +287,19 @@ jobs:
     needs: [changes, test]
     if: needs.changes.outputs.src == 'true' && needs.changes.outputs.heavy == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - name: Build and test with ASan/UBSan
+      - name: Build with ASan/UBSan
         run: |
           cmake -B build -DENABLE_SANITIZERS=ON
-          cmake --build build
+          cmake --build build --parallel $(nproc)
+      - name: Run sanitized tests
+        run: |
           ./build/test_config
           ./build/test_json
-          ./build/test_repl
           ./build/test_command
-          ./build/test_annotation
           ./build/test_exec
+          ./build/test_annotation
+          ./build/test_repl
           ./build/test_markdown
