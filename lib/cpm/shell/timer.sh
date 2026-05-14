@@ -62,11 +62,21 @@ timer_stop() {
     fi
   fi
 
+  # Timing threshold colors (ADR-123: accessible — symbol + label, not just color)
+  local CPM_SLOW_MS="${CPM_SLOW_MS:-5000}"
+  local CPM_VERY_SLOW_MS="${CPM_VERY_SLOW_MS:-10000}"
+  local time_indicator=""
+  if ((duration_ms > CPM_VERY_SLOW_MS)); then
+    time_indicator=" ${RED:-}[SLOW]${RESET:-}"
+  elif ((duration_ms > CPM_SLOW_MS)); then
+    time_indicator=" ${YELLOW:-}[slow]${RESET:-}"
+  fi
+
   # Print with color if ui.sh is loaded
   if declare -f print_step >/dev/null 2>&1; then
-    print_step "" "$name" "$status" "${duration_str}${trend}"
+    print_step "" "$name" "$status" "${duration_str}${trend}${time_indicator}"
   else
-    echo "  $name $status ${duration_str}${trend}"
+    echo "  $name $status ${duration_str}${trend}${time_indicator}"
   fi
 
   # Log to JSONL
