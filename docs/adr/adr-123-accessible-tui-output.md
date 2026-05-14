@@ -8,6 +8,7 @@ status: accepted
 ## Context
 
 cpm uses colored output (green ✓, red ✗) for status. This fails for:
+
 - Color-blind users (8% of men, 0.5% of women)
 - Terminals without color support
 - Screen readers
@@ -48,6 +49,7 @@ very-slow = 10 # seconds → red
 ### NO_COLOR compliance
 
 When `NO_COLOR` is set or output is not a TTY:
+
 - No ANSI escape codes
 - Status shown as text label: `[pass]`, `[fail]`, `[skip]`, `[slow]`
 - Symbols still shown (Unicode, not color-dependent)
@@ -61,6 +63,7 @@ Accessibility is not a checkbox. The principle:
 If yes → accessible. If no → fix it.
 
 This applies to:
+
 - Terminal output (cpm TUI)
 - JUnit XML (no color, structured data)
 - Log files (no color, readable)
@@ -75,12 +78,12 @@ This applies to:
 ## Consequences
 
 - Output is readable by everyone regardless of vision
-- NO_COLOR standard respected (https://no-color.org/)
+- NO_COLOR standard respected (<https://no-color.org/>)
 - Performance issues visible at a glance (yellow/red timing)
 - No additional dependencies
 
 ## References
 
-- https://no-color.org/ (standard for disabling color)
+- <https://no-color.org/> (standard for disabling color)
 - @see lib/cpm/shell/ui.sh (implements NO_COLOR)
 - @see docs/adr/adr-121-cpm-quality-layer.md (output layer)
