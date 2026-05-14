@@ -45,17 +45,17 @@ print_header "pre-commit"
 
 # Formatting (autofix)
 $HAS_CPP && run_step "format-code" bash scripts/fmt/format-code.sh
-$HAS_YAML && run_step "format-yaml" bash scripts/fmt/format-yaml.sh
+$HAS_YAML && run_step "format-yaml" bash lib/cpm/checks/universal/format-yaml.sh
 $HAS_YAML && run_step "check-ci" bash scripts/lint/check-ci-yaml.sh
-$HAS_MD && run_step "format-md" bash scripts/fmt/format-md.sh
-$HAS_SH && run_step "format-scripts" bash scripts/fmt/format-scripts.sh
+$HAS_MD && run_step "format-md" bash lib/cpm/checks/universal/format-md.sh
+$HAS_SH && run_step "format-scripts" bash lib/cpm/checks/universal/format-scripts.sh
 
 # Security
-$HAS_IMG && run_step "sast-stegano" bash scripts/security/steg-check.sh
-run_step "sast-iac" bash scripts/security/checkov-scan.sh
-run_step "sast-secret" bash scripts/security/sast-secret.sh
-[[ -f .config/.pii ]] && run_step "check-pii" bash scripts/lint/check-pii.sh
-$HAS_CPP && run_step "slop" bash scripts/lint/check-slop.sh
+$HAS_IMG && run_step "sast-stegano" bash lib/cpm/checks/universal/steg-check.sh
+run_step "sast-iac" bash lib/cpm/checks/universal/checkov-scan.sh
+run_step "sast-secret" bash lib/cpm/checks/universal/sast-secret.sh
+[[ -f .config/.pii ]] && run_step "check-pii" bash lib/cpm/checks/universal/check-pii.sh
+$HAS_CPP && run_step "slop" bash lib/cpm/checks/universal/check-slop.sh
 
 # Summary
 echo ""
