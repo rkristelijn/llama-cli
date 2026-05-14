@@ -701,6 +701,60 @@ make gpc              make review             # full review
 
 **Principle:** if a command name requires tribal knowledge, add a readable alias. Both work, neither is deprecated.
 
+### V-model workflow integration
+
+Development follows a V-shape: define (left, getting specific) → build (bottom) → verify (right, getting broad).
+
+```text
+V-DOWN (define)                              V-UP (verify)
+───────────────                              ──────────────
+1. Motivation   ←─────────────────────────→  Acceptance
+2. Options      ←─────────────────────────→  System (e2e)
+3. Design       ←─────────────────────────→  Integration
+4. Contract     ←─────────────────────────→  Unit
+                         5. Build
+```
+
+**Each level has a quality gate:**
+
+| V-level | V-DOWN activity | V-UP gate | make target |
+|---------|----------------|-----------|-------------|
+| 1 | Motivation: why, value, ADR | Acceptance: criteria met, PR approved | `make review` |
+| 2 | Options: trade-offs, alternatives | System: e2e, live test | `make cpm-full` |
+| 3 | Design: architecture, flow | Integration: components together | `make full-check` |
+| 4 | Contract: API, interfaces, mocks | Unit: individual functions | `make quick-check` |
+| 5 | Implement: write code | Build compiles | `make build` |
+
+**When to push:**
+
+| Intent | V-UP level required | How |
+|--------|-------------------|-----|
+| Safe work (backup) | None | `git push` (WIP branch, no gate) |
+| Ready for CI | 4 (unit green) | `make quick-check && git push` |
+| Ready for review | 3 (integration green) | `make full-check && git push` |
+| Ready for merge | 1 (acceptance) | CI + review + `make review` |
+
+**`make next` (future):**
+
+Tracks where you are in the V-model and suggests the next step:
+
+```text
+$ make next
+  Current: V-DOWN level 3 (design)
+  ✓ ADR-121 exists (motivation)
+  ✓ Options documented (options)
+  → Design: define interfaces for registry parser
+  
+  Next steps:
+    1. Write contract (interfaces, mocks)
+    2. Write unit tests
+    3. Implement
+    4. make quick-check
+    5. Push
+```
+
+Implementation: reads git state (branch name, changed files, test results) to infer position. Could also be a prompt/agent that guides the developer.
+
 ### Reality check: current state assessment
 
 | Principle | Status | Issue |
