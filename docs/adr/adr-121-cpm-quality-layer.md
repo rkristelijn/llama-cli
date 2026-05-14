@@ -744,7 +744,7 @@ $ make next
   ✓ ADR-121 exists (motivation)
   ✓ Options documented (options)
   → Design: define interfaces for registry parser
-  
+
   Next steps:
     1. Write contract (interfaces, mocks)
     2. Write unit tests
@@ -801,7 +801,7 @@ The Makefile's role shrinks to: build, run, install, workflow aliases. Everythin
 | JUnit XML in `.tmp/reports/` | Single output dir, CI configures artifact upload path once |
 | Checks run sequentially (not parallel) | Simpler output, no interleaving; parallel is a future optimization |
 
-## Consequences
+## Expected outcomes
 
 - Scripts get consistent output via shared TUI library
 - Quality checks become portable across repos
