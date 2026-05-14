@@ -60,6 +60,16 @@ post-test = []
 # Each check declares: phase, tool, triggers, scope, severity, timeout
 
 [[checks]]
+name = "syntax-bash"
+phase = "implement"
+command = "lib/cpm/checks/universal/syntax-bash.sh"
+triggers = ["scripts/**/*.sh", "e2e/**/*.sh"]
+scope = "changed"
+severity = "error"
+autofix = false
+timeout = 10
+
+[[checks]]
 name = "format-code"
 phase = "implement"
 command = "scripts/fmt/format-code.sh"

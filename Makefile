@@ -19,6 +19,7 @@ endif
 .DEFAULT_GOAL := help
 
 .PHONY: all build clean run start s log test t test-unit e2e record-e2e check check-fast check-all full-check mutation check-ai \
+	quick-check create-pr status ready review workflow \
 	format format-code format-yaml format-md format-scripts \
 	lint lint-code lint-yaml lint-md lint-makefile lint-scripts lint-versions \
 	tidy complexity comment-ratio docs file-size sast sast-secret sast-security sast-stegano sast-iac sast-trufflehog sast-grype sast-osv sast-checkov sast-codeql sbom consistency \
@@ -40,6 +41,30 @@ cpm: ## Tier 2: lint + complexity + tests (<60s, pre-push)
 
 cpm-full: ## Tier 3: everything — dead-code, xref, e2e (CI)
 	@bash lib/cpm/shell/cpm-check.sh full
+
+##@ Workflow (daily flow: code → check → push → PR → merge)
+
+workflow: ## Show the recommended workflow steps
+	@echo ""
+	@echo "  Daily workflow:"
+	@echo "  ─────────────────────────────────────────────"
+	@echo "  1. make build          Build the project"
+	@echo "  2. make quick-check    Quick checks (<5s)"
+	@echo "  3. make full-check     Full checks before push"
+	@echo "  4. make create-pr      Create draft PR"
+	@echo "  5. make status         Check CI status"
+	@echo "  6. make ready          Mark ready for review"
+	@echo "  7. make review         Review: CI + Sonar + CodeRabbit"
+	@echo "  8. make merge          Merge when green"
+	@echo ""
+
+# Human-readable aliases (same targets, friendlier names)
+quick-check: cpm-fast ## Quick quality check (<5s)
+full-check: cpm ## Full quality check before push
+create-pr: gpr ## Create a draft pull request
+status: gps ## Show CI pipeline status
+ready: gprr ## Mark PR ready for review
+review: gpc ## Show full review (CI + Sonar + CodeRabbit)
 
 ##@ Getting Started
 

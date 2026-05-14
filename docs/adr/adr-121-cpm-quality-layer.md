@@ -683,6 +683,126 @@ Built-in providers:
 
 ## Consequences
 
+### Developer experience: inclusivity by design
+
+Every target has two names: a short alias for power users and a human-readable name for newcomers.
+
+```makefile
+# Power user          # Newcomer              # Same thing
+make cpm-fast         make quick-check        # quick quality check
+make cpm              make full-check         # full check before push
+make gpr              make create-pr          # create PR
+make gps              make status             # CI status
+make gprr             make ready              # mark ready for review
+make gpc              make review             # full review
+```
+
+`make workflow` shows the numbered daily flow — no guessing which of 50+ targets to use.
+
+**Principle:** if a command name requires tribal knowledge, add a readable alias. Both work, neither is deprecated.
+
+### V-model workflow integration
+
+Development follows a V-shape: define (left, getting specific) → build (bottom) → verify (right, getting broad).
+
+```text
+V-DOWN (define)                              V-UP (verify)
+───────────────                              ──────────────
+1. Motivation   ←─────────────────────────→  Acceptance
+2. Options      ←─────────────────────────→  System (e2e)
+3. Design       ←─────────────────────────→  Integration
+4. Contract     ←─────────────────────────→  Unit
+                         5. Build
+```
+
+**Each level has a quality gate:**
+
+| V-level | V-DOWN activity | V-UP gate | make target |
+|---------|----------------|-----------|-------------|
+| 1 | Motivation: why, value, ADR | Acceptance: criteria met, PR approved | `make review` |
+| 2 | Options: trade-offs, alternatives | System: e2e, live test | `make cpm-full` |
+| 3 | Design: architecture, flow | Integration: components together | `make full-check` |
+| 4 | Contract: API, interfaces, mocks | Unit: individual functions | `make quick-check` |
+| 5 | Implement: write code | Build compiles | `make build` |
+
+**When to push:**
+
+| Intent | V-UP level required | How |
+|--------|-------------------|-----|
+| Safe work (backup) | None | `git push` (WIP branch, no gate) |
+| Ready for CI | 4 (unit green) | `make quick-check && git push` |
+| Ready for review | 3 (integration green) | `make full-check && git push` |
+| Ready for merge | 1 (acceptance) | CI + review + `make review` |
+
+**`make next` (future):**
+
+Tracks where you are in the V-model and suggests the next step:
+
+```text
+$ make next
+  Current: V-DOWN level 3 (design)
+  ✓ ADR-121 exists (motivation)
+  ✓ Options documented (options)
+  → Design: define interfaces for registry parser
+
+  Next steps:
+    1. Write contract (interfaces, mocks)
+    2. Write unit tests
+    3. Implement
+    4. make quick-check
+    5. Push
+```
+
+Implementation: reads git state (branch name, changed files, test results) to infer position. Could also be a prompt/agent that guides the developer.
+
+### Reality check: current state assessment
+
+| Principle | Status | Issue |
+|-----------|--------|-------|
+| DRY | ❌ | 79 Makefile targets duplicate what cpm.toml already defines |
+| KISS | ⚠️ | Two systems (Makefile + cpm) orchestrate the same checks |
+| SOLID (SRP) | ⚠️ | Makefile does orchestration AND check definition |
+| Pluggable | ✅ | cpm.toml registry is extensible |
+| Performance | ✅ | Delta detection, timing, trend analysis work |
+| Framework as intended | ❌ | cpm is the framework but Makefile still does the work |
+| Inclusivity | ✅ | Human-readable aliases, `make workflow` |
+
+**Root cause:** The Makefile grew organically (120+ scripts) before cpm existed. Now cpm.toml is the source of truth for checks, but the Makefile still has individual targets for each one.
+
+**Target state:**
+
+```text
+Current:  Makefile (511 lines) → scripts/
+          cpm.toml (19 checks) → scripts/   ← duplicate path
+
+Target:   Makefile (thin) → cpm → scripts/
+          Only workflow aliases + build/run/install in Makefile
+```
+
+**Migration path (backwards compatible):**
+
+1. Phase A (done): cpm.toml registry + `make cpm-fast` / `make quick-check`
+2. Phase B (next): individual Makefile targets become one-liners calling cpm
+3. Phase C (later): remove individual targets, only workflow aliases remain
+
+The Makefile's role shrinks to: build, run, install, workflow aliases. Everything else is cpm's job.
+
+### Implicit decisions captured
+
+| Decision | Rationale |
+|----------|-----------|
+| `cpm.toml` in root, tool configs in `.config/` | Project manifest = root (like Cargo.toml), tool configs = hidden |
+| Shell scripts for checks, not the binary | Binary doesn't support [[checks]] yet; shell is portable and debuggable |
+| `init.sh` as single source line | One line per script, fallback logic in one place, not 108 copies |
+| `set +o pipefail` around tee in run.sh | grep-based scripts return exit 1 on no match; tee propagates this |
+| Severity warning = non-blocking | Only `error` blocks the build; warnings are informational until CMMI level 4 |
+| Delta detection via git diff | No file watcher, no daemon — simple, stateless, works in CI |
+| Timer uses temp files not associative arrays | macOS /bin/bash is 3.2 (no `declare -A`); temp files work everywhere |
+| JUnit XML in `.tmp/reports/` | Single output dir, CI configures artifact upload path once |
+| Checks run sequentially (not parallel) | Simpler output, no interleaving; parallel is a future optimization |
+
+## Expected outcomes
+
 - Scripts get consistent output via shared TUI library
 - Quality checks become portable across repos
 - New repos start at level 0.3 and grow organically
