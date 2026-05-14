@@ -79,3 +79,7 @@ demos:
   - "Use LLAMA_CLI_MOCK_DELAY_MS=1500 to make spinner visible in recordings"
   - "Set HOME=/tmp/demo-home to prevent /mem, /pref from reading real user files"
   - "Shared settings go in _defaults.tape, tapes only contain Output + commands"
+workflow:
+  - "Never call gh/git CLI directly for workflow actions — always use make targets (make ready, make merge, make create-pr, make status)"
+  - "Direct CLI access bypasses the abstraction layer and breaks consistency for other devs/AI"
+  - "If a make target doesn't exist for what you need, create one first"

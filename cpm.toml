@@ -240,3 +240,42 @@ timeout = 30
 fast = ["format-*", "check-file-size", "check-slop", "sast-secret"]
 normal = ["lint-*", "check-*", "run-tidy", "test-unit"]
 full = ["dead-code", "check-xref", "e2e"]
+
+# --- Project-specific checks (extend cpm, not portable) ---
+# These run via the same registry but live in scripts/ (not lib/cpm/)
+
+[[extend]]
+name = "check-theme"
+command = "scripts/lint/check-theme.sh"
+triggers = ["src/**"]
+severity = "warning"
+
+[[extend]]
+name = "check-xref"
+command = "scripts/lint/check-xref.sh"
+triggers = ["docs/**", "src/**"]
+severity = "warning"
+
+[[extend]]
+name = "check-interactive-input"
+command = "scripts/lint/check-interactive-input.sh"
+triggers = ["src/**"]
+severity = "error"
+
+[[extend]]
+name = "check-pipeline-coverage"
+command = "scripts/lint/check-pipeline-coverage.sh"
+triggers = ["Makefile", ".github/**"]
+severity = "warning"
+
+[[extend]]
+name = "check-cmmi"
+command = "scripts/lint/check-cmmi.sh"
+triggers = ["src/**", "scripts/**", "docs/**"]
+severity = "info"
+
+[[extend]]
+name = "check-versions"
+command = "scripts/lint/check-versions.sh"
+triggers = [".config/versions.env"]
+severity = "warning"

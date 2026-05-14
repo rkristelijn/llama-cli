@@ -1,5 +1,5 @@
 ---
-summary: Cognitive Engagement Patterns for AI-Assisted Development
+summary: File content has been updated with recommendations for cognitive engagement while using AI-assisted development tools, emphasizing user review and modification of generated outputs, and incorporating anti-patterns to avoid in the UX design.
 status: accepted
 ---
 

@@ -1,5 +1,5 @@
 ---
-summary: Use CI build caching to cut pipeline time by 40-60%, with a portable strategy that works across GitHub Actions, GitLab CI, Codeberg/Forgejo, and self-hosted runners without vendor lock-in.
+summary: The ADR proposal effectively outlines a two-layer caching strategy for CI build caching across multiple providers, including GitHub Actions, GitLab CI, Codeberg/Forgejo, and self-hosted runners, aiming to reduce pipeline time by 40-60%.
 status: proposed
 ---
 
