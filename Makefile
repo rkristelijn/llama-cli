@@ -144,13 +144,13 @@ format-code: ## Format C++ code (clang-format)
 	@bash lib/cpm/shell/run.sh format-code bash scripts/fmt/format-code.sh
 
 format-md: ## Format Markdown files (rumdl)
-	@bash lib/cpm/shell/run.sh format-md bash scripts/fmt/format-md.sh
+	@bash lib/cpm/shell/run.sh format-md bash lib/cpm/checks/universal/format-md.sh
 
 format-yaml: ## Format YAML files (trailing whitespace)
-	@bash lib/cpm/shell/run.sh format-yaml bash scripts/fmt/format-yaml.sh
+	@bash lib/cpm/shell/run.sh format-yaml bash lib/cpm/checks/universal/format-yaml.sh
 
 format-scripts: ## Format shell scripts (shfmt)
-	@bash lib/cpm/shell/run.sh format-scripts bash scripts/fmt/format-scripts.sh
+	@bash lib/cpm/shell/run.sh format-scripts bash lib/cpm/checks/universal/format-scripts.sh
 
 ##@ Linting
 
@@ -331,7 +331,7 @@ sast-security: ## Run semgrep security scan
 	else echo "  [skip] semgrep not installed"; fi
 
 sast-stegano: ## Run steganography scan (zsteg)
-	@bash lib/cpm/shell/run.sh steg-check bash scripts/security/steg-check.sh
+	@bash lib/cpm/shell/run.sh steg-check bash lib/cpm/checks/universal/steg-check.sh
 
 sast-iac: ## Run IaC security scan (trivy)
 	@if command -v trivy >/dev/null; then \
@@ -340,20 +340,20 @@ sast-iac: ## Run IaC security scan (trivy)
 
 sast-secret: ## Run gitleaks secret scan
 	@echo "==> running sast-secret (gitleaks...)"
-	@bash lib/cpm/shell/run.sh sast-secret bash scripts/security/sast-secret.sh 2>&1 | tee .tmp/sast-secret.log
+	@bash lib/cpm/shell/run.sh sast-secret bash lib/cpm/checks/universal/sast-secret.sh 2>&1 | tee .tmp/sast-secret.log
 	@echo "  [done] sast-secret"
 
 sast-trufflehog: ## Run trufflehog verified secret scan
-	@bash lib/cpm/shell/run.sh trufflehog-scan bash scripts/security/trufflehog-scan.sh
+	@bash lib/cpm/shell/run.sh trufflehog-scan bash lib/cpm/checks/universal/trufflehog-scan.sh
 
 sast-grype: ## Run grype vulnerability scan
-	@bash lib/cpm/shell/run.sh grype-scan bash scripts/security/grype-scan.sh
+	@bash lib/cpm/shell/run.sh grype-scan bash lib/cpm/checks/universal/grype-scan.sh
 
 sast-osv: ## Run osv-scanner vulnerability scan
-	@bash lib/cpm/shell/run.sh osv-scan bash scripts/security/osv-scan.sh
+	@bash lib/cpm/shell/run.sh osv-scan bash lib/cpm/checks/universal/osv-scan.sh
 
 sast-checkov: ## Run checkov IaC policy scan
-	@bash lib/cpm/shell/run.sh checkov-scan bash scripts/security/checkov-scan.sh
+	@bash lib/cpm/shell/run.sh checkov-scan bash lib/cpm/checks/universal/checkov-scan.sh
 
 sast-codeql: ## Run CodeQL deep analysis (slow)
 	@bash lib/cpm/shell/run.sh codeql-scan bash scripts/security/codeql-scan.sh
