@@ -165,19 +165,19 @@ lint-cppcheck: ## Run cppcheck static analysis
 	@bash lib/cpm/shell/run.sh lint-code bash scripts/lint/lint-code.sh
 
 lint-md: ## Lint Markdown files (rumdl)
-	@bash lib/cpm/shell/run.sh lint-md bash scripts/lint/lint-md.sh
+	@bash lib/cpm/shell/run.sh lint-md bash lib/cpm/checks/universal/lint-md.sh
 
 lint-yaml: ## Lint YAML files (yamllint)
-	@bash lib/cpm/shell/run.sh lint-yaml bash scripts/lint/lint-yaml.sh
+	@bash lib/cpm/shell/run.sh lint-yaml bash lib/cpm/checks/universal/lint-yaml.sh
 
 lint-makefile: ## Check Makefile conventions
-	@bash lib/cpm/shell/run.sh check-makefile bash scripts/lint/check-makefile.sh
+	@bash lib/cpm/shell/run.sh check-makefile bash lib/cpm/checks/universal/check-makefile.sh
 
 lint-scripts: ## Check shell script conventions (shellcheck)
-	@bash lib/cpm/shell/run.sh check-scripts bash scripts/lint/check-scripts.sh
+	@bash lib/cpm/shell/run.sh check-scripts bash lib/cpm/checks/universal/check-scripts.sh
 
 lint-versions: ## Check version pinning (no hardcoded versions)
-	@bash lib/cpm/shell/run.sh check-version-pins bash scripts/lint/check-version-pins.sh
+	@bash lib/cpm/shell/run.sh check-version-pins bash lib/cpm/checks/universal/check-version-pins.sh
 
 tidy: ## Run clang-tidy (smart: changed files only)
 	@bash lib/cpm/shell/run.sh run-tidy bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
@@ -186,7 +186,7 @@ complexity: ## Check cyclomatic complexity (pmccabe)
 	@bash lib/cpm/shell/run.sh check-complexity bash scripts/lint/check-complexity.sh
 
 comment-ratio: ## Show comment ratio per file
-	@bash lib/cpm/shell/run.sh check-comment-ratio bash scripts/lint/check-comment-ratio.sh
+	@bash lib/cpm/shell/run.sh check-comment-ratio bash lib/cpm/checks/universal/check-comment-ratio.sh
 
 consistency: ## Check code consistency (ADR-065)
 	@bash lib/cpm/shell/run.sh check-consistency bash scripts/lint/check-consistency.sh
@@ -201,28 +201,28 @@ check-interactive-input: ## Check no direct std::cin usage (ADR-088)
 	@bash lib/cpm/shell/run.sh check-interactive-input bash scripts/lint/check-interactive-input.sh
 
 check-pii: ## Check for PII in source code (ADR-098)
-	@bash lib/cpm/shell/run.sh check-pii bash scripts/lint/check-pii.sh
+	@bash lib/cpm/shell/run.sh check-pii bash lib/cpm/checks/universal/check-pii.sh
 
 dead-code: ## Detect unused functions and orphaned scripts (ADR-064)
 	@bash lib/cpm/shell/run.sh check-dead-code bash scripts/lint/check-dead-code.sh
 
 dead-docs: ## Detect unreferenced docs, configs, and backlog items
-	@bash lib/cpm/shell/run.sh check-dead-docs bash scripts/lint/check-dead-docs.sh
+	@bash lib/cpm/shell/run.sh check-dead-docs bash lib/cpm/checks/universal/check-dead-docs.sh
 
 duplication: ## Detect duplicated code blocks (CPD or line-hash fallback)
-	@bash lib/cpm/shell/run.sh check-duplication bash scripts/lint/check-duplication.sh
+	@bash lib/cpm/shell/run.sh check-duplication bash lib/cpm/checks/universal/check-duplication.sh
 
 slop: ## Detect AI-generated code slop patterns
-	@bash lib/cpm/shell/run.sh check-slop bash scripts/lint/check-slop.sh
+	@bash lib/cpm/shell/run.sh check-slop bash lib/cpm/checks/universal/check-slop.sh
 
 check-unicode: ## Check for invisible Unicode backdoors (ADR-097)
-	@bash lib/cpm/shell/run.sh check-unicode bash scripts/lint/check-unicode.sh
+	@bash lib/cpm/shell/run.sh check-unicode bash lib/cpm/checks/universal/check-unicode.sh
 
 check-portability: ## Detect cross-platform issues (ADR-093)
-	@bash lib/cpm/shell/run.sh check-portability bash scripts/lint/check-portability.sh
+	@bash lib/cpm/shell/run.sh check-portability bash lib/cpm/checks/universal/check-portability.sh
 
 research-freshness: ## Warn when research-backed scripts are stale (ADR-120)
-	@bash lib/cpm/shell/run.sh check-research-freshness bash scripts/lint/check-research-freshness.sh
+	@bash lib/cpm/shell/run.sh check-research-freshness bash lib/cpm/checks/universal/check-research-freshness.sh
 
 research-update: ## Mark a research topic as freshly researched (TOPIC=...)
 	@if [ -z "$(TOPIC)" ]; then echo "Usage: make research-update TOPIC=SLOP_DETECTION"; exit 1; fi
@@ -251,10 +251,10 @@ smells: ## Detect engineering anti-patterns (fun but real)
 	@bash lib/cpm/shell/run.sh check-smells bash scripts/lint/check-smells.sh
 
 inclusivity: ## Inclusivity & accessibility lint (C4I)
-	@bash lib/cpm/shell/run.sh check-inclusivity bash scripts/lint/check-inclusivity.sh
+	@bash lib/cpm/shell/run.sh check-inclusivity bash lib/cpm/checks/universal/check-inclusivity.sh
 
 licenses: ## Check dependency licenses (permissive only)
-	@bash lib/cpm/shell/run.sh check-licenses bash scripts/lint/check-licenses.sh
+	@bash lib/cpm/shell/run.sh check-licenses bash lib/cpm/checks/universal/check-licenses.sh
 
 feature-density: ## Check LOG_FEATURE marker density (ADR-063)
 	@bash lib/cpm/shell/run.sh check-feature-density bash scripts/test/check-feature-density.sh
@@ -266,7 +266,7 @@ docs: ## Check doxygen warnings
 	@echo "  [done] docs"
 
 file-size: ## Check source file sizes (ADR-061)
-	@bash lib/cpm/shell/run.sh check-file-size bash scripts/lint/check-file-size.sh
+	@bash lib/cpm/shell/run.sh check-file-size bash lib/cpm/checks/universal/check-file-size.sh
 
 ##@ Testing
 
