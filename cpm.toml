@@ -121,7 +121,7 @@ timeout = 60
 [[checks]]
 name = "lint-md"
 phase = "implement"
-command = "scripts/lint/lint-md.sh"
+command = "lib/cpm/checks/universal/lint-md.sh"
 triggers = ["**/*.md"]
 scope = "changed"
 severity = "warning"
@@ -130,7 +130,7 @@ timeout = 30
 [[checks]]
 name = "lint-yaml"
 phase = "implement"
-command = "scripts/lint/lint-yaml.sh"
+command = "lib/cpm/checks/universal/lint-yaml.sh"
 triggers = ["**/*.yml", "**/*.yaml"]
 scope = "changed"
 severity = "warning"
@@ -139,7 +139,7 @@ timeout = 30
 [[checks]]
 name = "check-scripts"
 phase = "implement"
-command = "scripts/lint/check-scripts.sh"
+command = "lib/cpm/checks/universal/check-scripts.sh"
 triggers = ["scripts/**/*.sh"]
 scope = "changed"
 severity = "warning"
@@ -157,7 +157,7 @@ timeout = 30
 [[checks]]
 name = "check-file-size"
 phase = "design"
-command = "scripts/lint/check-file-size.sh"
+command = "lib/cpm/checks/universal/check-file-size.sh"
 triggers = ["src/**", "scripts/**/*.sh"]
 scope = "changed"
 severity = "error"
@@ -166,7 +166,7 @@ timeout = 30
 [[checks]]
 name = "check-slop"
 phase = "implement"
-command = "scripts/lint/check-slop.sh"
+command = "lib/cpm/checks/universal/check-slop.sh"
 triggers = ["src/**/*.cpp", "src/**/*.h"]
 scope = "diff"
 severity = "info"
@@ -175,7 +175,7 @@ timeout = 10
 [[checks]]
 name = "check-consistency"
 phase = "implement"
-command = "scripts/lint/check-consistency.sh"
+command = "lib/cpm/checks/universal/check-consistency.sh"
 triggers = ["src/**"]
 scope = "full"
 severity = "warning"
@@ -220,7 +220,7 @@ timeout = 300
 [[checks]]
 name = "dead-code"
 phase = "design"
-command = "scripts/lint/check-dead-code.sh"
+command = "lib/cpm/checks/universal/check-dead-docs.sh"
 triggers = ["src/**", "scripts/**"]
 scope = "full"
 severity = "warning"
