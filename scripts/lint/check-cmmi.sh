@@ -16,6 +16,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 PASS=0
 FAIL=0
 LEVEL_PASS=(-1) # Track which levels fully pass
@@ -34,7 +35,7 @@ check() {
 }
 
 main() {
-  echo "==> CMMI Maturity Audit (ADR-048)"
+  print_header "CMMI Maturity Audit (ADR-048)"
   echo ""
 
   # ── CMMI 0: Essentials ──

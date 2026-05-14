@@ -9,6 +9,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 LOG_FILE="${LLAMA_LOG_FILE:-$HOME/.llama-cli/events.jsonl}"
 COUNT=50
 PATTERN=""

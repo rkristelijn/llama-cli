@@ -7,6 +7,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 REPO="${1:-$(git remote get-url origin 2>/dev/null | sed 's/.*github.com[/:]//' | sed 's/\.git$//')}"
 OWNER="${2:-${REPO%/*}}"
 NAME="${3:-${REPO#*/}}"

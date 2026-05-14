@@ -14,6 +14,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # TODO: !! move clang-tidy and pmccabe back to REQUIRED after brew install llvm
 # See docs/backlog/022-fix-make-setup.md for install instructions
 REQUIRED=(cmake clang-format cppcheck cloc doxygen)
@@ -45,7 +46,7 @@ find_tool() {
 }
 
 main() {
-  echo "==> Checking required tools..."
+  print_header "Checking required tools..."
   for tool in "${REQUIRED[@]}"; do
     if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"
@@ -56,7 +57,7 @@ main() {
   done
 
   echo ""
-  echo "==> Checking optional tools..."
+  print_header "Checking optional tools..."
   for tool in "${OPTIONAL[@]}"; do
     if find_tool "${tool}" >/dev/null; then
       printf "  %-20s ✓\n" "${tool}"

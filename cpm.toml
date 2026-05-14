@@ -1,0 +1,232 @@
+# cpm.toml — CPM quality framework configuration for llama-cli
+# @see docs/adr/adr-121-cpm-quality-layer.md
+#
+# Supported formats (first found wins): cpm.toml, cpm.yml, cpm.json, .cpmrc
+
+[project]
+name = "llama-cli"
+level = 3
+lang = "cpp"
+build = "make"
+
+[limits]
+source-lines = 600
+header-lines = 300
+test-lines = 700
+script-lines = 300
+files-per-dir = 30
+
+[limits.multipliers]
+dispatch-table = 2
+generated = 0
+data = 0
+
+[severity]
+filesize = "error"
+files-per-dir = "error"
+slop = "warning"
+research-freshness = "info"
+complexity = "warning"
+dead-code = "warning"
+
+[exempt.dispatch-tables]
+files = [
+  "src/repl/repl_commands.cpp",
+]
+
+[exempt.tech-debt]
+files = [
+  "src/repl/repl_test.cpp",
+  "src/annotation/annotation.cpp",
+  "src/config/config.cpp",
+]
+
+[providers]
+ci = "github"
+cache = "filesystem"
+config = "toml"
+
+[hooks]
+pre-format = []
+post-format = []
+pre-lint = []
+post-lint = []
+pre-build = []
+post-build = []
+pre-test = []
+post-test = []
+
+# --- Checks Registry ---
+# Each check declares: phase, tool, triggers, scope, severity, timeout
+
+[[checks]]
+name = "format-code"
+phase = "implement"
+command = "scripts/fmt/format-code.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "changed"
+severity = "error"
+autofix = true
+timeout = 30
+
+[[checks]]
+name = "format-md"
+phase = "implement"
+command = "scripts/fmt/format-md.sh"
+triggers = ["**/*.md"]
+scope = "changed"
+severity = "error"
+autofix = true
+timeout = 30
+
+[[checks]]
+name = "format-yaml"
+phase = "implement"
+command = "scripts/fmt/format-yaml.sh"
+triggers = ["**/*.yml", "**/*.yaml"]
+scope = "changed"
+severity = "error"
+autofix = true
+timeout = 30
+
+[[checks]]
+name = "format-scripts"
+phase = "implement"
+command = "scripts/fmt/format-scripts.sh"
+triggers = ["scripts/**/*.sh", "e2e/**/*.sh"]
+scope = "changed"
+severity = "error"
+autofix = true
+timeout = 30
+
+[[checks]]
+name = "lint-code"
+phase = "implement"
+command = "scripts/lint/lint-code.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "changed"
+severity = "error"
+timeout = 60
+
+[[checks]]
+name = "lint-md"
+phase = "implement"
+command = "scripts/lint/lint-md.sh"
+triggers = ["**/*.md"]
+scope = "changed"
+severity = "warning"
+timeout = 30
+
+[[checks]]
+name = "lint-yaml"
+phase = "implement"
+command = "scripts/lint/lint-yaml.sh"
+triggers = ["**/*.yml", "**/*.yaml"]
+scope = "changed"
+severity = "warning"
+timeout = 30
+
+[[checks]]
+name = "check-scripts"
+phase = "implement"
+command = "scripts/lint/check-scripts.sh"
+triggers = ["scripts/**/*.sh"]
+scope = "changed"
+severity = "warning"
+timeout = 60
+
+[[checks]]
+name = "check-complexity"
+phase = "implement"
+command = "scripts/lint/check-complexity.sh"
+triggers = ["src/**/*.cpp"]
+scope = "changed"
+severity = "warning"
+timeout = 30
+
+[[checks]]
+name = "check-file-size"
+phase = "design"
+command = "scripts/lint/check-file-size.sh"
+triggers = ["src/**", "scripts/**/*.sh"]
+scope = "changed"
+severity = "error"
+timeout = 30
+
+[[checks]]
+name = "check-slop"
+phase = "implement"
+command = "scripts/lint/check-slop.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "diff"
+severity = "info"
+timeout = 10
+
+[[checks]]
+name = "check-consistency"
+phase = "implement"
+command = "scripts/lint/check-consistency.sh"
+triggers = ["src/**"]
+scope = "full"
+severity = "warning"
+timeout = 30
+
+[[checks]]
+name = "sast-secret"
+phase = "implement"
+command = "scripts/security/sast-secret.sh"
+triggers = ["**"]
+scope = "diff"
+severity = "error"
+timeout = 30
+
+[[checks]]
+name = "run-tidy"
+phase = "implement"
+command = "scripts/lint/run-tidy.sh"
+triggers = ["src/**/*.cpp", "src/**/*.h"]
+scope = "changed"
+severity = "warning"
+timeout = 120
+
+[[checks]]
+name = "test-unit"
+phase = "test"
+command = "scripts/test/run-unit.sh"
+triggers = ["src/**", "CMakeLists.txt"]
+scope = "full"
+severity = "error"
+timeout = 120
+
+[[checks]]
+name = "e2e"
+phase = "test"
+command = "scripts/test/run-e2e.sh"
+triggers = ["src/**", "e2e/**"]
+scope = "full"
+severity = "error"
+timeout = 300
+
+[[checks]]
+name = "dead-code"
+phase = "design"
+command = "scripts/lint/check-dead-code.sh"
+triggers = ["src/**", "scripts/**"]
+scope = "full"
+severity = "warning"
+timeout = 60
+
+[[checks]]
+name = "check-xref"
+phase = "design"
+command = "scripts/lint/check-xref.sh"
+triggers = ["docs/**", "src/**"]
+scope = "full"
+severity = "warning"
+timeout = 30
+
+# --- Tiers ---
+[tiers]
+fast = ["format-*", "check-file-size", "check-slop", "sast-secret"]
+normal = ["lint-*", "check-*", "run-tidy", "test-unit"]
+full = ["dead-code", "check-xref", "e2e"]

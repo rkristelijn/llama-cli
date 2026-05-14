@@ -23,6 +23,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 MODEL="${MODEL:-gemma4:e4b}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 SKIP_OLLAMA="${SKIP_OLLAMA:-0}"

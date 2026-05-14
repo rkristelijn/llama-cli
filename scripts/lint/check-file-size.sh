@@ -1,17 +1,38 @@
 #!/usr/bin/env bash
 #
-# check-file-size.sh — Enforce maximum file sizes in src/.
+# check-file-size.sh — Enforce maximum file sizes (net code lines) and max files per directory.
 #
-# Limits: source 600, headers 300, tests 700 lines.
-# Existing violations are listed as known tech debt (ADR-061).
+# Net code = total lines minus comments and blank lines.
+# Comments don't count — they're documentation, not complexity.
 #
-# Usage:
-#   bash scripts/lint/check-file-size.sh
+# Limits (configurable via env):
+#   CPP source: 600 net code lines
+#   Headers:    300 net code lines
+#   Tests:      700 net code lines
+#   Scripts:    200 net code lines
+#   Max files per src/ subdirectory: 15
+#
+# @see docs/adr/adr-061-file-size-limits.md
+# @see docs/adr/adr-121-cpm-quality-layer.md
 
 set -o errexit
 set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+# Load config from cpm.toml (or fallback defaults)
+if [[ -f "${CPM_CONFIG:-lib/cpm/shell/config.sh}" ]]; then
+  source "${CPM_CONFIG:-lib/cpm/shell/config.sh}"
+fi
+
+# Limits from cpm.toml (via config.sh) or env override
+MAX_SOURCE="${CPM_LIMIT_SOURCE_LINES:-600}"
+MAX_HEADER="${CPM_LIMIT_HEADER_LINES:-300}"
+MAX_TEST="${CPM_LIMIT_TEST_LINES:-700}"
+MAX_SCRIPT="${CPM_LIMIT_SCRIPT_LINES:-200}"
+MAX_FILES_PER_DIR="${CPM_LIMIT_FILES_PER_DIR:-20}"
 
 # Known violations — exempt until split (ADR-061)
 EXEMPT=(
@@ -21,28 +42,61 @@ EXEMPT=(
   "src/config/config.cpp"
 )
 
-MAX_SOURCE=600
-MAX_HEADER=300
-MAX_TEST=700
+# In-file annotation: FILE-SIZE-EXEMPT: <reason>
+# Recognized reasons and their multiplier:
+#   dispatch-table  → 2x limit (switch/case, command maps)
+#   test-suite      → uses MAX_TEST already
+#   generated       → skip entirely
+#   data            → skip entirely
+get_file_multiplier() {
+  local file="$1"
+  local reason
+  reason=$(grep -o 'FILE-SIZE-EXEMPT: *[a-z-]*' "$file" 2>/dev/null | head -1 | sed 's/FILE-SIZE-EXEMPT: *//')
+  case "$reason" in
+  dispatch-table) echo 2 ;;
+  generated | data) echo 0 ;; # 0 = skip
+  *) echo 1 ;;
+  esac
+}
 
-# Check if a file is in the exempt list
+# Count net code lines (strip comments and blanks)
+# Works for C++ (// and /* */ style) and shell (# style)
+count_code_lines() {
+  local file="$1"
+  case "$file" in
+  *.sh)
+    grep -cvE '^\s*(#|$)' "$file" 2>/dev/null || echo 0
+    ;;
+  *)
+    grep -cvE '^\s*(//|/\*|\*|\*/|\s*$)' "$file" 2>/dev/null || echo 0
+    ;;
+  esac
+}
+
 is_exempt() {
   local file="$1"
   for e in "${EXEMPT[@]}"; do
-    if [[ "$file" == "$e" ]]; then
-      return 0
-    fi
+    [[ "$file" == "$e" ]] && return 0
   done
   return 1
 }
 
-main() {
-  echo "==> checking file sizes (ADR-061)..."
+check_file_sizes() {
   local failed=0
 
+  # C++ files
   while IFS= read -r file; do
-    lines=$(wc -l <"$file")
+    local multiplier
+    multiplier=$(get_file_multiplier "$file")
+
+    # Skip files marked as generated/data
+    [[ "$multiplier" == "0" ]] && continue
+
+    local lines
+    lines=$(count_code_lines "$file")
+
     # Determine limit based on file type
+    local max
     if [[ "$file" == *_test.cpp || "$file" == *_it.cpp ]]; then
       max=$MAX_TEST
     elif [[ "$file" == *.h ]]; then
@@ -51,21 +105,64 @@ main() {
       max=$MAX_SOURCE
     fi
 
+    # Apply multiplier (dispatch-table gets 2x)
+    max=$((max * multiplier))
+
     if ((lines > max)); then
       if is_exempt "$file"; then
-        echo "  [exempt] $file ($lines > $max) — tech debt, see ADR-061"
+        print_warning "$file ($lines/$max net lines) — exempt, see ADR-061"
       else
-        echo "  [FAIL] $file: $lines lines (max $max)"
+        print_error "$file: $lines net code lines (max $max)"
         failed=1
       fi
     fi
   done < <(find src -name '*.cpp' -o -name '*.h')
 
+  # Shell scripts
+  while IFS= read -r file; do
+    local multiplier
+    multiplier=$(get_file_multiplier "$file")
+    [[ "$multiplier" == "0" ]] && continue
+
+    local lines
+    lines=$(count_code_lines "$file")
+    local max=$((MAX_SCRIPT * multiplier))
+    if ((lines > max)); then
+      print_error "$file: $lines net code lines (max $max)"
+      failed=1
+    fi
+  done < <(find scripts -name '*.sh' 2>/dev/null)
+
+  return $failed
+}
+
+check_files_per_dir() {
+  local failed=0
+
+  while IFS= read -r dir; do
+    local count
+    count=$(find "$dir" -maxdepth 1 -type f \( -name '*.cpp' -o -name '*.h' \) | wc -l | tr -d ' ')
+    if ((count > MAX_FILES_PER_DIR)); then
+      print_error "$dir: $count files (max $MAX_FILES_PER_DIR) — split into submodules"
+      failed=1
+    fi
+  done < <(find src -type d)
+
+  return $failed
+}
+
+main() {
+  print_header "checking file sizes (net code, ADR-061)..."
+  local failed=0
+
+  check_file_sizes || failed=1
+  check_files_per_dir || failed=1
+
   if ((failed)); then
-    echo "  FAIL: files exceed size limit. Split them or add to EXEMPT in ADR-061."
+    print_step 1 "file-size" error
     exit 1
   fi
-  echo "  [done] file-size"
+  print_step 1 "file-size" success
 }
 
 main "$@"

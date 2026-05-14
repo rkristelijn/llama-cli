@@ -8,6 +8,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 THRESHOLD=20
 
 totals=$(cloc src/ --exclude-dir=test --not-match-f='(_test|_it)\.cpp$' --csv --quiet | grep SUM)
@@ -44,5 +45,3 @@ if [ "$ratio" -lt "$THRESHOLD" ]; then
   echo "  - When asking AI to write code, include: 'keep comment ratio >= 20%'"
   exit 1
 fi
-
-echo "  [done] comment-ratio"

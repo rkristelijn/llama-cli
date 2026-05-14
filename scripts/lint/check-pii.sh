@@ -6,6 +6,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 PII_FILE="${PII_FILE:-}"
 INTERACTIVE="${INTERACTIVE:-true}"
 
@@ -28,13 +30,13 @@ if [[ -z "$PII_FILE" || ! -f "$PII_FILE" ]]; then
 # my-secret-hostname
 
 EOF
-  echo "==> Created .config/.pii template"
+  print_header "Created .config/.pii template"
   echo "    Add your PII patterns (one per line) and re-run"
   echo "    Note: .config/.pii is in .gitignore - each developer maintains their own"
   exit 0
 fi
 
-echo "==> Checking for PII in code..."
+print_header "Checking for PII in code..."
 
 FOUND=0
 PATTERNS=()
@@ -48,7 +50,7 @@ while IFS= read -r line; do
 done <"$PII_FILE"
 
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
-  echo "  [skip] No PII patterns defined in $PII_FILE"
+  print_step "" "$(basename "$0" .sh)" skip "No PII patterns defined in $PII_FILE"
   exit 0
 fi
 
@@ -60,14 +62,14 @@ for pattern in "${PATTERNS[@]}"; do
   if grep -r --include="*.cpp" --include="*.h" --include="*.sh" \
     --exclude="check-pii.sh" \
     -n "$pattern" src/ scripts/ docs/ 2>/dev/null | grep -v "^Binary"; then
-    echo "  [FAIL] Found PII pattern: $pattern"
+    print_error "Found PII pattern: $pattern"
     FOUND=1
   fi
 done
 
 if [[ $FOUND -eq 1 ]]; then
   echo ""
-  echo "  [FAIL] PII detected in code"
+  print_error "PII detected in code"
   echo "  Remove sensitive data and use placeholders like <hostname>, <email>"
   exit 1
 fi

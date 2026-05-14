@@ -22,6 +22,7 @@ set -o pipefail
 
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Emoji to Unicode mapping (common in ADRs)
 declare -A EMOJI_MAP=(
   ["✅"]="✓"
@@ -59,14 +60,14 @@ format_file() {
 
   if ! diff -q "$file" "$temp_file" >/dev/null 2>&1; then
     mv "$temp_file" "$file"
-    echo "  ✓ $file"
+    print_step "" "$file" success
   else
     rm "$temp_file"
   fi
 }
 
 if [ $# -eq 0 ]; then
-  echo "==> formatting emojis in markdown files..."
+  print_header "formatting emojis in markdown files..."
   find docs -name '*.md' -type f | while read -r file; do
     format_file "$file"
   done

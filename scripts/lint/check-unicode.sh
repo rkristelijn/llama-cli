@@ -5,6 +5,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 echo "[?] Checking for invisible Unicode characters..."
 
 FOUND=0

@@ -6,10 +6,12 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Auto-fixing C-style casts to C++ casts..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Auto-fixing C-style casts to C++ casts..."
 
 if ! command -v clang-tidy >/dev/null; then
-  echo "  [skip] clang-tidy not installed"
+  print_step "" "$(basename "$0" .sh)" skip "clang-tidy not installed"
   exit 0
 fi
 

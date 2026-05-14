@@ -16,6 +16,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 CLANG_TIDY="${CLANG_TIDY:-$(command -v clang-tidy 2>/dev/null || echo /opt/homebrew/opt/llvm/bin/clang-tidy)}"
 FULL=false
 [[ "${1-}" == "--full" ]] && FULL=true
@@ -25,12 +26,12 @@ FILTER="linenoise\|SCENARIO\|cognitive complexity\|identifier-naming\|function-s
 
 main() {
   if [[ "${FULL}" == true ]]; then
-    echo "==> make tidy (full mode)"
+    print_header "make tidy (full mode)"
     find src -name '*.cpp' -print0 |
       xargs -0 "${CLANG_TIDY}" --config-file=.config/.clang-tidy -- -std=c++17 -I src/ 2>&1 |
       grep "warning:" | grep -v "${FILTER}" && exit 1 || true
   else
-    echo "==> make tidy (smart incremental mode)"
+    print_header "make tidy (smart incremental mode)"
     local branch diff_base files
     branch="$(git rev-parse --abbrev-ref HEAD)"
     diff_base="$([[ "${branch}" == "main" ]] && echo "HEAD^" || echo "origin/main")"
@@ -49,7 +50,7 @@ main() {
     fi
 
     if [[ -z "${files}" ]]; then
-      echo "  [skip] no changed files vs ${diff_base}"
+      print_step "" "$(basename "$0" .sh)" skip "no changed files vs ${diff_base}"
     else
       for dir in src $(find src -maxdepth 1 -mindepth 1 -type d); do
         dir_files="$(echo "${files}" | grep "^${dir}/[^/]*\.cpp$" || true)"
@@ -61,7 +62,6 @@ main() {
       done
     fi
   fi
-  echo "  [done] tidy"
 }
 
 main "$@"

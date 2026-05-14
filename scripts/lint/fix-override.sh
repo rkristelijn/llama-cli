@@ -6,7 +6,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Auto-fixing missing override keywords..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Auto-fixing missing override keywords..."
 
 # First check if we have any virtual functions that need override
 NEEDS_FIX=0

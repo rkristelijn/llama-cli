@@ -18,6 +18,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 MODEL="${MODEL:-llama3.2:3b}"
 # OLLAMA_HOST may include port (e.g. localhost:11434)
 _HOST="${OLLAMA_HOST:-localhost:11434}"

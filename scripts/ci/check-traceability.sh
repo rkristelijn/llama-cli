@@ -15,6 +15,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 REGISTRY="docs/feature-registry.yml"
 ADR_DIR="docs/adr"
 FAIL=0

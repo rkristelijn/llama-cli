@@ -6,6 +6,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 PII_FILE="${PII_FILE:-}"
 
 # Check for .pii in .config/ first, then root
@@ -18,12 +20,12 @@ if [[ -z "$PII_FILE" ]]; then
 fi
 
 if [[ -z "$PII_FILE" || ! -f "$PII_FILE" ]]; then
-  echo "==> No .pii file found"
+  print_header "No .pii file found"
   echo "    Run check-pii.sh first to create template"
   exit 1
 fi
 
-echo "==> Auto-obfuscating PII patterns..."
+print_header "Auto-obfuscating PII patterns..."
 echo "    WARNING: This will modify files. Review changes carefully!"
 read -p "    Continue? [y/N] " -n 1 -r
 echo
@@ -43,7 +45,7 @@ while IFS= read -r line; do
 done <"$PII_FILE"
 
 if [[ ${#PATTERNS[@]} -eq 0 ]]; then
-  echo "  [skip] No PII patterns defined in $PII_FILE"
+  print_step "" "$(basename "$0" .sh)" skip "No PII patterns defined in $PII_FILE"
   exit 0
 fi
 

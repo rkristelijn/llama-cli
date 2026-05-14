@@ -6,10 +6,12 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Checking for variable shadowing..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Checking for variable shadowing..."
 
 if ! command -v g++ >/dev/null && ! command -v clang++ >/dev/null; then
-  echo "  [skip] no C++ compiler found"
+  print_step "" "$(basename "$0" .sh)" skip "no C++ compiler found"
   exit 0
 fi
 

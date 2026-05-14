@@ -14,6 +14,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 LOG_FILE="${1:-.tmp/events.jsonl}"
 LAST=""
 

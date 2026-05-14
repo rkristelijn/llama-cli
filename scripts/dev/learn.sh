@@ -24,6 +24,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # --- Configuration ---
 shopt -s globstar 2>/dev/null || true
 LEARN_TIMEOUT="${LEARN_TIMEOUT:-300}"

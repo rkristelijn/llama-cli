@@ -18,6 +18,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 FAIL=0
 WARN=0
 
@@ -37,7 +38,7 @@ pass() {
 }
 
 main() {
-  echo "==> inclusivity check ╰(*°▽°*)╯"
+  print_header "inclusivity check ╰(*°▽°*)╯"
   echo ""
 
   # ── 1. Branch naming ──
@@ -182,7 +183,6 @@ main() {
   else
     echo "  ✗ $FAIL failure(s), $WARN warning(s) — needs attention (╥_╥)"
   fi
-  echo "  [done] inclusivity"
 
   [[ $FAIL -eq 0 ]] || exit 1
 }

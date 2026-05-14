@@ -7,11 +7,13 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-echo "==> checking for AI slop patterns..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+print_header "checking for AI slop patterns..."
+set +e
 
 DIFF=$(git diff main...HEAD -- 'src/*.cpp' 'src/*.h' 'src/**/*.cpp' 'src/**/*.h' 2>/dev/null || true)
 if [[ -z "$DIFF" ]]; then
-  echo "  [skip] no C++ changes vs main"
+  print_step "" "$(basename "$0" .sh)" skip "no C++ changes vs main"
   exit 0
 fi
 
@@ -257,4 +259,5 @@ if [[ $WARNINGS -eq 0 ]]; then
 else
   echo "  $WARNINGS pattern(s) found — review for AI-generated bloat"
 fi
-echo "  [done] slop"
+
+exit 0

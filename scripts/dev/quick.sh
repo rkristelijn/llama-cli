@@ -12,6 +12,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 BUILD_DIR="${1:-build}"
 TESTS=(test_config test_json test_repl test_command test_annotation test_exec)
 

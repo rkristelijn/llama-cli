@@ -2,6 +2,8 @@
  * @file repl_commands.cpp
  * @brief Slash command handlers for the REPL (extracted from repl.cpp).
  *
+ * FILE-SIZE-EXEMPT: dispatch-table
+ *
  * SRP: This file handles all /slash commands. repl.cpp only handles the loop.
  *
  * Command categories:

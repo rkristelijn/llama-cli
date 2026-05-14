@@ -13,6 +13,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Ensure we're on main before releasing
 # Safety: prevents accidental release from feature branches
 BRANCH=$(git branch --show-current)

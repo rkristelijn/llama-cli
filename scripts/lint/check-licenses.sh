@@ -16,6 +16,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Known dependencies and their licenses (from CMakeLists.txt FetchContent)
 # Update this when adding new deps.
 declare -A DEPS=(
@@ -29,7 +30,7 @@ declare -A DEPS=(
 ALLOWED="MIT BSD-2-Clause BSD-3-Clause Apache-2.0 Zlib ISC Unlicense"
 
 main() {
-  echo "==> license check"
+  print_header "license check"
   local fail=0
 
   for dep in "${!DEPS[@]}"; do
@@ -54,11 +55,10 @@ main() {
 
   echo ""
   if [[ $fail -gt 0 ]]; then
-    echo "  FAIL: $fail license issue(s)"
+    print_error "$fail license issue(s)"
     exit 1
   fi
   echo "  ✓ all dependencies have permissive licenses"
-  echo "  [done] licenses"
 }
 
 main "$@"

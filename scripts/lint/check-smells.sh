@@ -16,6 +16,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 WARN=0
 FAIL=0
 
@@ -30,7 +31,7 @@ pass() {
 }
 
 main() {
-  echo "==> engineering smell check (¬_¬)"
+  print_header "engineering smell check (¬_¬)"
   echo ""
 
   # ── #58: "Temporary fix" that stays forever ──
@@ -170,7 +171,6 @@ main() {
     echo "  ✗ $FAIL serious smell(s) — fix before shipping"
     exit 1
   fi
-  echo "  [done] smells"
 }
 
 main "$@"

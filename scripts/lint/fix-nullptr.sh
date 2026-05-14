@@ -6,7 +6,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Auto-fixing NULL to nullptr..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Auto-fixing NULL to nullptr..."
 
 FIXED=0
 

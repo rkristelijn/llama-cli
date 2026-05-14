@@ -22,7 +22,8 @@ set -o pipefail
 
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
-echo "==> checking for user-facing string literals..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+print_header "checking for user-facing string literals..."
 
 # Find user-facing strings in src/ (exclude: tests, debug, comments, log messages)
 # Pattern: strings in cout, printf, error messages, UI prompts

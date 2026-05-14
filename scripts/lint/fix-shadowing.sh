@@ -6,7 +6,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Auto-fixing variable shadowing..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Auto-fixing variable shadowing..."
 echo "  Note: Only fixes loop variables declared outside loop"
 
 FIXED=0

@@ -16,6 +16,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 PROJECT="rkristelijn_llama-cli"
 API="https://sonarcloud.io/api"
 

@@ -8,6 +8,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 export GH_PAGER=cat
 
 BRANCH=$(git branch --show-current)

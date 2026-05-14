@@ -17,14 +17,15 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 DATES_FILE=".config/research-dates.env"
 MAX_AGE_DAYS=30
 STALE=0
 
-echo "==> checking research freshness..."
+print_header "checking research freshness..."
 
 if [[ ! -f "$DATES_FILE" ]]; then
-  echo "  [skip] $DATES_FILE not found"
+  print_step "" "$(basename "$0" .sh)" skip "$DATES_FILE not found"
   exit 0
 fi
 
@@ -128,4 +129,3 @@ if [[ $STALE -eq 0 ]]; then
 else
   echo "  $STALE topic(s) need re-research"
 fi
-echo "  [done] research-freshness"

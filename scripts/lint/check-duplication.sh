@@ -13,11 +13,12 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 THRESHOLD="${DUPLICATION_THRESHOLD:-3}"
 MIN_TOKENS="${MIN_TOKENS:-50}"
 MIN_LINES="${MIN_LINES:-6}"
 
-echo "==> checking for code duplication..."
+print_header "checking for code duplication..."
 
 # Option 1: jscpd via npx (no install needed, supports C++)
 if command -v npx >/dev/null 2>&1; then
@@ -27,12 +28,11 @@ if command -v npx >/dev/null 2>&1; then
     --silent 2>&1) || {
     # jscpd exits non-zero when threshold exceeded
     echo "$output" | grep -E "Clone|duplicate|%|Total" | head -20
-    echo "  FAIL: duplication exceeds ${THRESHOLD}% threshold"
+    print_error "duplication exceeds ${THRESHOLD}% threshold"
     exit 1
   }
   echo "$output" | grep -E "Clone|duplicate|%|Total" | head -10
   echo "  ✓ duplication within ${THRESHOLD}% threshold"
-  echo "  [done] duplication"
   exit 0
 fi
 
@@ -47,9 +47,7 @@ if command -v pmd >/dev/null 2>&1 || command -v cpd >/dev/null 2>&1; then
     echo "$output" | grep -A2 "^Found a" | head -20
     echo "  [${dupes} duplicate blocks]"
   fi
-  echo "  [done] duplication"
   exit 0
 fi
 
-echo "  [skip] no duplication tool available (install: npm, pmd, or cpd)"
-echo "  [done] duplication"
+print_step "" "$(basename "$0" .sh)" skip "no duplication tool available (install: npm, pmd, or cpd)"

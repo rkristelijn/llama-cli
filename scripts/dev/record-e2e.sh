@@ -9,6 +9,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 FORCE="${1:-}"
 OUTPUT_DIR="docs/features"
 BINARY="./build/llama-cli"

@@ -12,6 +12,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 main() {
   echo "==> Markdown TODOs"
   find . -name "*.md" -not -path "./build/*" -not -path "./.git/*" -exec awk '

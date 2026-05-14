@@ -15,8 +15,9 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 main() {
-  echo "==> checking cross-references..."
+  print_header "checking cross-references..."
   local errors=0
 
   # Check 1: ADR-NNN references in source have matching files
@@ -63,7 +64,6 @@ main() {
   else
     echo "  [${errors} broken references found]"
   fi
-  echo "  [done] check-xref"
 }
 
 main "$@"

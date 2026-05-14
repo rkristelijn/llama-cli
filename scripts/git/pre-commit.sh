@@ -11,6 +11,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 # Block direct commits to main and validate branch naming
 branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 if [[ "${branch}" == "main" ]]; then

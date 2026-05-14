@@ -17,6 +17,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 echo "==> mutation testing (mull)..."
 
 # macOS: skip — Mull needs native Linux (Apple libc++ incompatible, Docker too slow)

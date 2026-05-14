@@ -2,6 +2,8 @@
 #
 # setup.sh — Install all development dependencies at pinned versions.
 #
+# FILE-SIZE-EXEMPT: dispatch-table
+#
 # Detects macOS (brew) or Linux (apt) and installs what's missing.
 # Reads tool versions from .config/versions.env (single source of truth).
 #
@@ -18,6 +20,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Navigate to project root (setup.sh lives in scripts/dev/)
 cd "$(dirname "$0")/../.."
 

@@ -5,6 +5,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 if ! command -v gitleaks >/dev/null; then
   echo "  [skip] gitleaks not installed"
   exit 0

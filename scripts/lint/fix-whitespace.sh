@@ -6,7 +6,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "==> Removing trailing whitespace..."
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
+print_header "Removing trailing whitespace..."
 
 FIXED=0
 

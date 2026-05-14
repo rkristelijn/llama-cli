@@ -9,6 +9,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 TECHDEBT_FILE="TECHDEBT.md"
 SRC_DIR="src"
 

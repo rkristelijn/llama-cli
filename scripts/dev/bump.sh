@@ -6,6 +6,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
+
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 VER="${LAST_TAG#v}"
 IFS='.' read -r major minor patch <<<"$VER"

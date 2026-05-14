@@ -6,6 +6,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Detect which file types are staged
 STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
 HAS_CPP=false

@@ -7,6 +7,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 REPO="${1:-$(git remote get-url origin 2>/dev/null | sed 's/.*github.com[/:]//' | sed 's/\.git$//')}"
 BRANCH="$(git branch --show-current 2>/dev/null)"
 PR="${2:-$(gh pr view "$BRANCH" --json number --jq .number 2>/dev/null || echo "")}"

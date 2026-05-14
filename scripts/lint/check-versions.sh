@@ -13,6 +13,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # shellcheck source=../../.config/versions.env
 source .config/versions.env
 
@@ -34,7 +35,7 @@ check() {
 }
 
 main() {
-  echo "==> Checking tool versions against .config/versions.env"
+  print_header "Checking tool versions against .config/versions.env"
 
   local clang_tidy="clang-tidy"
   if ! command -v clang-tidy >/dev/null 2>&1 && [[ -f "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then

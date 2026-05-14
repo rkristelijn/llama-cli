@@ -14,6 +14,7 @@ set -o nounset
 set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
+source lib/cpm/shell/init.sh 2>/dev/null || true
 # Targets that are intentionally NOT in CI (with reason)
 declare -A DENYLIST=(
   [mutation]="too slow for every PR (30+ min)"
@@ -87,7 +88,7 @@ declare -A DENYLIST=(
   [pipeline - coverage]="meta-check, check-all only"
 )
 
-echo "==> checking pipeline coverage..."
+print_header "checking pipeline coverage..."
 
 CI_FILE=".github/workflows/ci.yml"
 if [[ ! -f "$CI_FILE" ]]; then
@@ -124,4 +125,3 @@ else
   echo "  [${missing} targets missing — add to CI or denylist in this script]"
   exit 1
 fi
-echo "  [done] pipeline-coverage"
