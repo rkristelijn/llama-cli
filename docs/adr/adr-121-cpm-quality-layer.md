@@ -701,6 +701,38 @@ make gpc              make review             # full review
 
 **Principle:** if a command name requires tribal knowledge, add a readable alias. Both work, neither is deprecated.
 
+### Reality check: current state assessment
+
+| Principle | Status | Issue |
+|-----------|--------|-------|
+| DRY | ❌ | 79 Makefile targets duplicate what cpm.toml already defines |
+| KISS | ⚠️ | Two systems (Makefile + cpm) orchestrate the same checks |
+| SOLID (SRP) | ⚠️ | Makefile does orchestration AND check definition |
+| Pluggable | ✅ | cpm.toml registry is extensible |
+| Performance | ✅ | Delta detection, timing, trend analysis work |
+| Framework as intended | ❌ | cpm is the framework but Makefile still does the work |
+| Inclusivity | ✅ | Human-readable aliases, `make workflow` |
+
+**Root cause:** The Makefile grew organically (120+ scripts) before cpm existed. Now cpm.toml is the source of truth for checks, but the Makefile still has individual targets for each one.
+
+**Target state:**
+
+```text
+Current:  Makefile (511 lines) → scripts/
+          cpm.toml (19 checks) → scripts/   ← duplicate path
+
+Target:   Makefile (thin) → cpm → scripts/
+          Only workflow aliases + build/run/install in Makefile
+```
+
+**Migration path (backwards compatible):**
+
+1. Phase A (done): cpm.toml registry + `make cpm-fast` / `make quick-check`
+2. Phase B (next): individual Makefile targets become one-liners calling cpm
+3. Phase C (later): remove individual targets, only workflow aliases remain
+
+The Makefile's role shrinks to: build, run, install, workflow aliases. Everything else is cpm's job.
+
 ### Implicit decisions captured
 
 | Decision | Rationale |
