@@ -41,6 +41,22 @@ cpm: ## Tier 2: lint + complexity + tests (<60s, pre-push)
 cpm-full: ## Tier 3: everything — dead-code, xref, e2e (CI)
 	@bash lib/cpm/shell/cpm-check.sh full
 
+##@ Workflow (daily flow: code → check → push → PR → merge)
+
+workflow: ## Show the recommended workflow steps
+	@echo ""
+	@echo "  Daily workflow:"
+	@echo "  ─────────────────────────────────────────────"
+	@echo "  1. make build          Build the project"
+	@echo "  2. make cpm-fast       Quick checks (<5s)"
+	@echo "  3. make cpm            Full checks before push"
+	@echo "  4. make gpr            Create draft PR"
+	@echo "  5. make gps            Check CI status"
+	@echo "  6. make gprr           Mark ready for review"
+	@echo "  7. make gpc            Review: CI + Sonar + CodeRabbit"
+	@echo "  8. make merge          Merge when green"
+	@echo ""
+
 ##@ Getting Started
 
 setup: ## Install all dependencies
