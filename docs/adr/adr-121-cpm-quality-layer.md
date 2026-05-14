@@ -683,6 +683,40 @@ Built-in providers:
 
 ## Consequences
 
+### Developer experience: inclusivity by design
+
+Every target has two names: a short alias for power users and a human-readable name for newcomers.
+
+```makefile
+# Power user          # Newcomer              # Same thing
+make cpm-fast         make quick-check        # quick quality check
+make cpm              make full-check         # full check before push
+make gpr              make create-pr          # create PR
+make gps              make status             # CI status
+make gprr             make ready              # mark ready for review
+make gpc              make review             # full review
+```
+
+`make workflow` shows the numbered daily flow — no guessing which of 50+ targets to use.
+
+**Principle:** if a command name requires tribal knowledge, add a readable alias. Both work, neither is deprecated.
+
+### Implicit decisions captured
+
+| Decision | Rationale |
+|----------|-----------|
+| `cpm.toml` in root, tool configs in `.config/` | Project manifest = root (like Cargo.toml), tool configs = hidden |
+| Shell scripts for checks, not the binary | Binary doesn't support [[checks]] yet; shell is portable and debuggable |
+| `init.sh` as single source line | One line per script, fallback logic in one place, not 108 copies |
+| `set +o pipefail` around tee in run.sh | grep-based scripts return exit 1 on no match; tee propagates this |
+| Severity warning = non-blocking | Only `error` blocks the build; warnings are informational until CMMI level 4 |
+| Delta detection via git diff | No file watcher, no daemon — simple, stateless, works in CI |
+| Timer uses temp files not associative arrays | macOS /bin/bash is 3.2 (no `declare -A`); temp files work everywhere |
+| JUnit XML in `.tmp/reports/` | Single output dir, CI configures artifact upload path once |
+| Checks run sequentially (not parallel) | Simpler output, no interleaving; parallel is a future optimization |
+
+## Consequences
+
 - Scripts get consistent output via shared TUI library
 - Quality checks become portable across repos
 - New repos start at level 0.3 and grow organically
