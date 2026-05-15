@@ -14,18 +14,18 @@ set -o pipefail
 
 source lib/cpm/shell/init.sh 2>/dev/null || true
 
-# Types with descriptions
+# Types with descriptions (ordered: specific first, chore last)
 TYPES=(
   "feat:     A new feature"
   "fix:      A bug fix"
   "refactor: Code change (no new feature, no bug fix)"
   "docs:     Documentation only"
-  "chore:    Maintenance (deps, config, tooling)"
   "test:     Adding or fixing tests"
-  "ci:       CI/CD changes"
-  "style:    Formatting (no code change)"
+  "ci:       CI/CD pipeline changes"
+  "build:    Build system, deps, tooling"
   "perf:     Performance improvement"
-  "build:    Build system changes"
+  "style:    Formatting (no code change)"
+  "chore:    Truly nothing else fits"
 )
 
 # Detect scopes from git history + directory structure
@@ -50,6 +50,23 @@ printf "  Type [1-${#TYPES[@]}]: "
 read -r type_num
 type_num=${type_num:-1}
 TYPE=$(echo "${TYPES[$((type_num - 1))]}" | cut -d: -f1 | tr -d ' ')
+
+# Nudge: chore is often a lazy choice
+if [[ "$TYPE" == "chore" ]]; then
+  echo ""
+  echo "  Hmm — could it be more specific?"
+  echo "    refactor  → code change, no new behavior"
+  echo "    build     → deps, tooling, config"
+  echo "    ci        → pipeline/workflow"
+  echo "    docs      → only documentation"
+  printf "  Still chore? [y/N]: "
+  read -r still_chore
+  if [[ ! "$still_chore" =~ ^[yY] ]]; then
+    printf "  New type [1-${#TYPES[@]}]: "
+    read -r type_num
+    TYPE=$(echo "${TYPES[$((type_num - 1))]}" | cut -d: -f1 | tr -d ' ')
+  fi
+fi
 
 # 2. Scope (optional)
 echo ""
