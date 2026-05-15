@@ -415,6 +415,9 @@ precommit: ## Run pre-commit checks
 prepush: ## Run pre-push checks
 	@bash lib/cpm/shell/run.sh prepush-check bash scripts/git/prepush-check.sh
 
+commit: ## Interactive conventional commit (like commitizen)
+	@bash scripts/git/commit.sh
+
 pre-pr: ## Full pre-PR validation (build both compilers, lint, test)
 	@echo "==> Pre-PR validation"
 	@$(MAKE) build
