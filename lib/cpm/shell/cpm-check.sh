@@ -2,7 +2,7 @@
 # cpm-check.sh — Orchestrator: runs checks from registry with delta detection.
 #
 # Usage:
-#   bash lib/cpm/shell/cpm-check.sh [fast|normal|full]
+#   bash lib/cpm/shell/cpm-check.sh [fast|default|full]
 #
 # Responsibilities (single): coordinate modules, report results.
 # Delegates to: delta.sh (what changed), registry.sh (what to run),
@@ -19,7 +19,7 @@ source "$SCRIPT_DIR/delta.sh"
 source "$SCRIPT_DIR/registry.sh"
 source "$SCRIPT_DIR/junit.sh"
 
-TIER="${1:-normal}"
+TIER="${1:-default}"
 CPM_RUN_MODE="${CPM_RUN_MODE:-collect}"
 
 # Counters

@@ -37,7 +37,7 @@ cpm-fast: ## Tier 1: format + file-size + slop (<5s, AI loop)
 	@bash lib/cpm/shell/cpm-check.sh fast
 
 cpm: ## Tier 2: lint + complexity + tests (<60s, pre-push)
-	@bash lib/cpm/shell/cpm-check.sh normal
+	@bash lib/cpm/shell/cpm-check.sh default
 
 cpm-full: ## Tier 3: everything — dead-code, xref, e2e (CI)
 	@bash lib/cpm/shell/cpm-check.sh full

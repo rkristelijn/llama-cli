@@ -238,7 +238,7 @@ timeout = 30
 # --- Tiers ---
 [tiers]
 fast = ["format-*", "check-file-size", "check-slop", "sast-secret"]
-normal = ["lint-*", "check-*", "run-tidy", "test-unit"]
+default = ["lint-*", "check-*", "run-tidy", "test-unit"]
 full = ["dead-code", "check-xref", "e2e"]
 
 # --- Project-specific checks (extend cpm, not portable) ---
