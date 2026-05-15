@@ -87,15 +87,36 @@ print_summary() { echo ""; echo -e "${GREEN}All checks passed${RESET} in ${GRAY}
 print_header()  { echo ""; echo -e "${GREEN}$1${RESET}"; echo ""; }
 
 # Spinner — for unknown-duration tasks
-# Usage: spinner_start "waiting..."; do_work; spinner_stop
+# CPM_SPINNER: dots, dots2, dots9, line, arc, pipe, random (default)
 _spinner_pid=""
 spinner_start() {
   local msg="${1:-working...}"
   [[ "$CPM_UI_MODE" == "silent" ]] && return
   [[ "$CPM_UI_MODE" == "compact" ]] && return
 
+  local all_styles=("⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
+                    "⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷"
+                    "⢹ ⢺ ⢼ ⣸ ⣇ ⡧ ⡗ ⡏"
+                    "⠁ ⠂ ⠄ ⡀ ⢀ ⠠ ⠐ ⠈"
+                    "┤ ┘ ┴ └ ├ ┌ ┬ ┐"
+                    "◜ ◝ ◞ ◟"
+                    "← ↖ ↑ ↗ → ↘ ↓ ↙")
+
+  local style="${CPM_SPINNER:-random}"
+  local frame_str
+  case "$style" in
+    dots)  frame_str="${all_styles[0]}" ;;
+    dots2) frame_str="${all_styles[1]}" ;;
+    dots9) frame_str="${all_styles[2]}" ;;
+    bounce) frame_str="${all_styles[3]}" ;;
+    pipe)  frame_str="${all_styles[4]}" ;;
+    arc)   frame_str="${all_styles[5]}" ;;
+    arrow) frame_str="${all_styles[6]}" ;;
+    *)     frame_str="${all_styles[$((RANDOM % ${#all_styles[@]}))]}" ;;
+  esac
+
   (
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    IFS=' ' read -ra frames <<< "$frame_str"
     local i=0
     while true; do
       printf "\r  ${GRAY}${frames[$i]} %s${RESET}" "$msg" >&2
