@@ -14,63 +14,60 @@ set -o pipefail
 
 source lib/cpm/shell/init.sh 2>/dev/null || true
 
-# Types with descriptions (ordered: specific first, chore last)
-TYPES=(
-  "feat:     A new feature"
-  "fix:      A bug fix"
-  "refactor: Code change (no new feature, no bug fix)"
-  "docs:     Documentation only"
-  "test:     Adding or fixing tests"
-  "ci:       CI/CD pipeline changes"
-  "build:    Build system, deps, tooling"
-  "perf:     Performance improvement"
-  "style:    Formatting (no code change)"
-  "chore:    Truly nothing else fits"
-)
-
-# Detect scopes from git history + directory structure
-detect_scopes() {
-  # From recent commits
-  git log --oneline -50 2>/dev/null | grep -oP '\(\K[^)]+' | sort -u
-  # From src/ directories
-  find src -maxdepth 1 -type d 2>/dev/null | sed 's|src/||' | grep -v '^src$'
-}
-
+# Type selection via decision flow
 echo ""
 print_header "Conventional Commit"
-
-# 1. Type
-echo "  Select type:"
+echo "  What does this commit do?"
 echo ""
-for i in "${!TYPES[@]}"; do
-  printf "    %2d) %s\n" $((i + 1)) "${TYPES[$i]}"
-done
+echo "    f) fix        Fix a bug"
+echo "    a) feat       Add new functionality"
+echo "    r) refactor   Restructure code (no behavior change)"
+echo "    d) docs       Documentation only"
+echo "    t) test       Add or fix tests"
+echo "    b) build      Deps, tooling, config"
+echo "    c) ci         Pipeline/workflow"
+echo "    p) perf       Performance improvement"
+echo "    s) style      Formatting only"
+echo "    x) chore      Truly nothing else fits"
 echo ""
-printf "  Type [1-${#TYPES[@]}]: "
-read -r type_num
-type_num=${type_num:-1}
-TYPE=$(echo "${TYPES[$((type_num - 1))]}" | cut -d: -f1 | tr -d ' ')
+printf "  [f/a/r/d/t/b/c/p/s/x]: "
+read -r type_key
+case "${type_key:-f}" in
+  f) TYPE="fix" ;;
+  a) TYPE="feat" ;;
+  r) TYPE="refactor" ;;
+  d) TYPE="docs" ;;
+  t) TYPE="test" ;;
+  b) TYPE="build" ;;
+  c) TYPE="ci" ;;
+  p) TYPE="perf" ;;
+  s) TYPE="style" ;;
+  x) TYPE="chore" ;;
+  *) TYPE="fix" ;;
+esac
 
 # Nudge: chore is often a lazy choice
 if [[ "$TYPE" == "chore" ]]; then
   echo ""
   echo "  Hmm — could it be more specific?"
-  echo "    refactor  → code change, no new behavior"
-  echo "    build     → deps, tooling, config"
-  echo "    ci        → pipeline/workflow"
-  echo "    docs      → only documentation"
-  printf "  Still chore? [y/N]: "
+  echo "    r) refactor  → code change, no new behavior"
+  echo "    b) build     → deps, tooling, config"
+  echo "    c) ci        → pipeline/workflow"
+  echo "    d) docs      → only documentation"
+  printf "  Still chore? [y/r/b/c/d]: "
   read -r still_chore
-  if [[ ! "$still_chore" =~ ^[yY] ]]; then
-    printf "  New type [1-${#TYPES[@]}]: "
-    read -r type_num
-    TYPE=$(echo "${TYPES[$((type_num - 1))]}" | cut -d: -f1 | tr -d ' ')
-  fi
+  case "$still_chore" in
+    r) TYPE="refactor" ;;
+    b) TYPE="build" ;;
+    c) TYPE="ci" ;;
+    d) TYPE="docs" ;;
+  esac
 fi
 
 # 2. Scope (optional)
 echo ""
-echo "  Known scopes: $(detect_scopes 2>/dev/null | tr '\n' ', ' | sed 's/,$//')"
+SCOPES=$(git log --oneline -50 2>/dev/null | sed 's/^[a-f0-9]* //' | grep -oE '\([^)]+\)' | tr -d '()' | sort -u | tr '\n' ', ' | sed 's/,$//')
+[[ -n "$SCOPES" ]] && echo "  Recent scopes: $SCOPES"
 printf "  Scope (optional, enter to skip): "
 read -r SCOPE
 
