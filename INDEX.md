@@ -117,12 +117,14 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-122-ci-caching-portability.md`](docs/adr/adr-122-ci-caching-portability.md) — The ADR proposal effectively outlines a two-layer caching strategy for CI build caching across multiple providers, including GitHub Actions, GitLab CI, Codeberg/Forgejo, and self-hosted runners, aiming to reduce pipeline time by 40-60%.
 - [`docs/adr/adr-123-accessible-tui-output.md`](docs/adr/adr-123-accessible-tui-output.md) — Ensure all TUI output is accessible — never rely on color alone for status.
 - [`docs/adr/adr-124-responsive-terminal-ui.md`](docs/adr/adr-124-responsive-terminal-ui.md) — Responsive terminal UI with breakpoints, V-model visualization, and accessible status indicators.
+- [`docs/adr/adr-125-cross-platform-tool-registry.md`](docs/adr/adr-125-cross-platform-tool-registry.md) — Map tool binary names to package manager install commands across platforms.
 - [`docs/adr/README.md`](docs/adr/README.md)
 - [`docs/architecture-v2.md`](docs/architecture-v2.md) — Architecture V2: Multi-Model Provider System
 - [`docs/architecture.md`](docs/architecture.md) — The provided text is a documentation for a command-line interface (CLI) tool called `llama-cli`. The documentation covers various aspects of the tool's architecture, startup flow, provider switching, auto-routing tiers, legacy overview, modules, request flow, and more. Here are some key takeaways f
 - [`docs/clang-tidy.md`](docs/clang-tidy.md) — Clang-Tidy Guide
 - [`docs/code-rabbit.md`](docs/code-rabbit.md) — > ## Documentation Index
 - [`docs/credits-in-ai.md`](docs/credits-in-ai.md) — Using AI Efficiently
+- [`docs/demos/record.sh`](docs/demos/record.sh) — record.sh — Record a tape with shared defaults prepended.
 - [`docs/design/tgpt-integration.md`](docs/design/tgpt-integration.md) — Design: tgpt Provider Integration & /model Command
 - [`docs/feature-coverage.md`](docs/feature-coverage.md) — Feature Coverage Matrix
 - [`docs/features/README.md`](docs/features/README.md) — Feature Demos
@@ -181,11 +183,7 @@ Auto-generated overview of all files in this repo.
 - [`scripts/dev/todo.sh`](scripts/dev/todo.sh)
 - [`scripts/dev/trivi.sh`](scripts/dev/trivi.sh)
 - [`scripts/dev/update-tools.sh`](scripts/dev/update-tools.sh)
-- [`scripts/fmt/format-code.sh`](scripts/fmt/format-code.sh) — format-code.sh — Auto-format C++ source files using clang-format.
 - [`scripts/fmt/format-emojis.sh`](scripts/fmt/format-emojis.sh) — format-emojis.sh — Replace emojis with Unicode equivalents in markdown
-- [`scripts/fmt/format-md.sh`](scripts/fmt/format-md.sh) — format-md.sh — Auto-format Markdown files using rumdl.
-- [`scripts/fmt/format-scripts.sh`](scripts/fmt/format-scripts.sh) — format-scripts.sh — Auto-format shell scripts using shfmt.
-- [`scripts/fmt/format-yaml.sh`](scripts/fmt/format-yaml.sh) — format-yaml.sh — Auto-format YAML files (strip trailing whitespace).
 - [`scripts/gh/ci-analysis.sh`](scripts/gh/ci-analysis.sh)
 - [`scripts/gh/create-issue.sh`](scripts/gh/create-issue.sh)
 - [`scripts/gh/create-pr.sh`](scripts/gh/create-pr.sh)
@@ -198,37 +196,17 @@ Auto-generated overview of all files in this repo.
 - [`scripts/gh/pr-status.sh`](scripts/gh/pr-status.sh)
 - [`scripts/gh/release.sh`](scripts/gh/release.sh) — release.sh — Trigger a GitHub Actions release from the CLI.
 - [`scripts/git/commit-msg.sh`](scripts/git/commit-msg.sh)
+- [`scripts/git/commit.sh`](scripts/git/commit.sh) — commit.sh — Interactive conventional commit (ctrl-c to abort)
 - [`scripts/git/pre-commit.sh`](scripts/git/pre-commit.sh)
 - [`scripts/git/pre-push.sh`](scripts/git/pre-push.sh)
 - [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
 - [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
-- [`scripts/lint/check-casts.sh`](scripts/lint/check-casts.sh)
 - [`scripts/lint/check-ci-yaml.sh`](scripts/lint/check-ci-yaml.sh)
 - [`scripts/lint/check-cmmi.sh`](scripts/lint/check-cmmi.sh)
-- [`scripts/lint/check-comment-ratio.sh`](scripts/lint/check-comment-ratio.sh)
-- [`scripts/lint/check-complexity.sh`](scripts/lint/check-complexity.sh)
-- [`scripts/lint/check-consistency.sh`](scripts/lint/check-consistency.sh)
-- [`scripts/lint/check-conversions.sh`](scripts/lint/check-conversions.sh)
-- [`scripts/lint/check-dead-code.sh`](scripts/lint/check-dead-code.sh)
-- [`scripts/lint/check-dead-docs.sh`](scripts/lint/check-dead-docs.sh)
-- [`scripts/lint/check-deps.sh`](scripts/lint/check-deps.sh)
-- [`scripts/lint/check-duplication.sh`](scripts/lint/check-duplication.sh)
-- [`scripts/lint/check-file-size.sh`](scripts/lint/check-file-size.sh)
-- [`scripts/lint/check-inclusivity.sh`](scripts/lint/check-inclusivity.sh)
 - [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
-- [`scripts/lint/check-licenses.sh`](scripts/lint/check-licenses.sh)
-- [`scripts/lint/check-makefile.sh`](scripts/lint/check-makefile.sh)
-- [`scripts/lint/check-pii.sh`](scripts/lint/check-pii.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
-- [`scripts/lint/check-portability.sh`](scripts/lint/check-portability.sh)
-- [`scripts/lint/check-scripts.sh`](scripts/lint/check-scripts.sh)
-- [`scripts/lint/check-shadowing.sh`](scripts/lint/check-shadowing.sh)
-- [`scripts/lint/check-slop.sh`](scripts/lint/check-slop.sh) — check-slop.sh — Detect common AI-generated code slop patterns.
-- [`scripts/lint/check-smells.sh`](scripts/lint/check-smells.sh)
 - [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
-- [`scripts/lint/check-unicode.sh`](scripts/lint/check-unicode.sh)
 - [`scripts/lint/check-user-facing-strings.sh`](scripts/lint/check-user-facing-strings.sh) — check-user-facing-strings.sh — Find hardcoded user-facing strings (not test/debug)
-- [`scripts/lint/check-version-pins.sh`](scripts/lint/check-version-pins.sh)
 - [`scripts/lint/check-versions.sh`](scripts/lint/check-versions.sh)
 - [`scripts/lint/check-xref.sh`](scripts/lint/check-xref.sh)
 - [`scripts/lint/fix-braces.sh`](scripts/lint/fix-braces.sh)
@@ -239,20 +217,10 @@ Auto-generated overview of all files in this repo.
 - [`scripts/lint/fix-pii.sh`](scripts/lint/fix-pii.sh)
 - [`scripts/lint/fix-shadowing.sh`](scripts/lint/fix-shadowing.sh)
 - [`scripts/lint/fix-whitespace.sh`](scripts/lint/fix-whitespace.sh)
-- [`scripts/lint/lint-code.sh`](scripts/lint/lint-code.sh) — lint-code.sh — Run cppcheck static analysis on C++ code.
-- [`scripts/lint/lint-md.sh`](scripts/lint/lint-md.sh) — lint-md.sh — Run rumdl checks on Markdown files.
-- [`scripts/lint/lint-yaml.sh`](scripts/lint/lint-yaml.sh) — lint-yaml.sh — Run yamllint on YAML files.
-- [`scripts/lint/run-tidy.sh`](scripts/lint/run-tidy.sh)
-- [`scripts/security/checkov-scan.sh`](scripts/security/checkov-scan.sh)
 - [`scripts/security/codeql-scan.sh`](scripts/security/codeql-scan.sh)
-- [`scripts/security/grype-scan.sh`](scripts/security/grype-scan.sh)
-- [`scripts/security/osv-scan.sh`](scripts/security/osv-scan.sh)
-- [`scripts/security/sast-secret.sh`](scripts/security/sast-secret.sh) — sast-secret.sh — Run gitleaks with version-aware flags.
 - [`scripts/security/sonar-report.sh`](scripts/security/sonar-report.sh)
 - [`scripts/security/sonar-scan.sh`](scripts/security/sonar-scan.sh)
-- [`scripts/security/steg-check.sh`](scripts/security/steg-check.sh)
 - [`scripts/security/syft-sbom.sh`](scripts/security/syft-sbom.sh)
-- [`scripts/security/trufflehog-scan.sh`](scripts/security/trufflehog-scan.sh)
 - [`scripts/test/bench-models.sh`](scripts/test/bench-models.sh)
 - [`scripts/test/check-feature-coverage.sh`](scripts/test/check-feature-coverage.sh)
 - [`scripts/test/check-feature-density.sh`](scripts/test/check-feature-density.sh)
@@ -413,4 +381,4 @@ Auto-generated overview of all files in this repo.
 - [`src/util/util.cpp`](src/util/util.cpp) — /**
 - [`src/util/util.h`](src/util/util.h) — /**
 
-_410 files indexed._
+_378 files indexed._
