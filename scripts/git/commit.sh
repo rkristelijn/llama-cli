@@ -59,7 +59,9 @@ read -r SCOPE
 
 # 3. Short description
 echo ""
-printf "  Short description (max 72 chars): "
+echo "  Write as imperative: \"when applied, this commit will...\""
+echo "  Examples: add streaming support, fix empty input crash, remove unused dep"
+printf "  Description (max 72 chars): "
 read -r DESC
 
 if [[ -z "$DESC" ]]; then
