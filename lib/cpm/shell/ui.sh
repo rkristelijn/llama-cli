@@ -50,7 +50,8 @@ print_step() {
 
   local name_width=$((term_width < 80 ? 18 : 22))
 
-  local prefix="  [${num}] "
+  local prefix="  "
+  [[ -n "$num" ]] && prefix="  [${num}] "
   printf "%s%-${name_width}s " "$prefix" "$name"
 
   case "$status" in
