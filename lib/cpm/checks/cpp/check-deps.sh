@@ -15,10 +15,16 @@ set -o pipefail
 if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
 
 source lib/cpm/shell/init.sh 2>/dev/null || true
-# TODO: !! move clang-tidy and pmccabe back to REQUIRED after brew install llvm
-# See docs/backlog/022-fix-make-setup.md for install instructions
-REQUIRED=(cmake clang-format cppcheck cloc doxygen)
-OPTIONAL=(clang-tidy pmccabe semgrep zsteg gitleaks shellcheck yamllint rumdl)
+
+# Read tool list from cpm.toml [tools] section, or use defaults
+# Tools listed in cpm.toml are REQUIRED; unlisted common tools are OPTIONAL
+if [[ -f cpm.toml ]] && grep -q '^\[tools\]' cpm.toml; then
+  REQUIRED=($(sed -n '/^\[tools\]/,/^\[/p' cpm.toml | grep -v '^\[' | grep '=' | awk -F= '{print $1}' | tr -d ' "'))
+  OPTIONAL=()
+else
+  REQUIRED=(cmake clang-format cppcheck cloc doxygen)
+  OPTIONAL=(clang-tidy pmccabe semgrep zsteg gitleaks shellcheck yamllint rumdl)
+fi
 
 missing=0
 warnings=0
