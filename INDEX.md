@@ -113,7 +113,7 @@ Auto-generated overview of all files in this repo.
 - [`docs/adr/adr-118-cognitive-engagement.md`](docs/adr/adr-118-cognitive-engagement.md) — File content has been updated with recommendations for cognitive engagement while using AI-assisted development tools, emphasizing user review and modification of generated outputs, and incorporating anti-patterns to avoid in the UX design.
 - [`docs/adr/adr-119-slop-detection.md`](docs/adr/adr-119-slop-detection.md) — 25 deterministic grep-based patterns in check-slop.sh detect AI-generated code anti-patterns (pass-through wrappers, catch-log-rethrow, AI naming, uniform line length, emoji bullets, em-dash overuse) in git diffs, backed by arxiv research and slop-scan benchmarks.
 - [`docs/adr/adr-120-research-freshness.md`](docs/adr/adr-120-research-freshness.md) — Track last-researched dates per topic in .config/research-dates.env; warn during make lint when any topic exceeds 30 days with a ready-to-use research prompt. Covers slop detection, model guide, security tools, and portability.
-- [`docs/adr/adr-121-cpm-quality-layer.md`](docs/adr/adr-121-cpm-quality-layer.md) — Adopt CPM (Compliance Process Management) as the shared quality layer across all repos, replacing ad-hoc scripts with a universal framework that provides gamified CMMI levels, shared TUI output, and language-agnostic quality gates.
+- [`docs/adr/adr-121-cpm-quality-layer.md`](docs/adr/adr-121-cpm-quality-layer.md) — Adopt CPM (Compliance Process Management) as the shared quality layer across all repos, replacing ad-hoc scripts with a universal framework that provides gamified maturity levels, shared TUI output, and language-agnostic quality gates.
 - [`docs/adr/adr-122-ci-caching-portability.md`](docs/adr/adr-122-ci-caching-portability.md) — The ADR proposal effectively outlines a two-layer caching strategy for CI build caching across multiple providers, including GitHub Actions, GitLab CI, Codeberg/Forgejo, and self-hosted runners, aiming to reduce pipeline time by 40-60%.
 - [`docs/adr/adr-123-accessible-tui-output.md`](docs/adr/adr-123-accessible-tui-output.md) — Ensure all TUI output is accessible — never rely on color alone for status.
 - [`docs/adr/adr-124-responsive-terminal-ui.md`](docs/adr/adr-124-responsive-terminal-ui.md) — Responsive terminal UI with breakpoints, V-model visualization, and accessible status indicators.
@@ -202,8 +202,8 @@ Auto-generated overview of all files in this repo.
 - [`scripts/git/precommit-check.sh`](scripts/git/precommit-check.sh) — precommit-check.sh — Auto-fix formatting + secret scan (smart: skips unchanged file types).
 - [`scripts/git/prepush-check.sh`](scripts/git/prepush-check.sh) — prepush-check.sh — Validate all checks before pushing (smart: skips unchanged file types).
 - [`scripts/lint/check-ci-yaml.sh`](scripts/lint/check-ci-yaml.sh)
-- [`scripts/lint/check-cmmi.sh`](scripts/lint/check-cmmi.sh)
 - [`scripts/lint/check-interactive-input.sh`](scripts/lint/check-interactive-input.sh) — Check for direct std::cin usage in interactive code (ADR-088).
+- [`scripts/lint/check-maturity.sh`](scripts/lint/check-maturity.sh)
 - [`scripts/lint/check-pipeline-coverage.sh`](scripts/lint/check-pipeline-coverage.sh)
 - [`scripts/lint/check-theme.sh`](scripts/lint/check-theme.sh)
 - [`scripts/lint/check-user-facing-strings.sh`](scripts/lint/check-user-facing-strings.sh) — check-user-facing-strings.sh — Find hardcoded user-facing strings (not test/debug)
