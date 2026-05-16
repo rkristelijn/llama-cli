@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/rkristelijn/llama-cli)](LICENSE)
 [![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkristelijn/a190f75bd7e08ea08f9c16f90571213f/raw/tests.json)](https://github.com/rkristelijn/llama-cli/actions/workflows/ci.yml?query=job%3Aunit-test)
 [![Features](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkristelijn/a190f75bd7e08ea08f9c16f90571213f/raw/features.json)](https://github.com/rkristelijn/llama-cli/actions/workflows/ci.yml?query=job%3Afeature-coverage)
-[![CMMI](https://img.shields.io/badge/CMMI-Level_3-brightgreen)](docs/adr/adr-048-quality-framework.md)
+[![Maturity](https://img.shields.io/badge/Maturity-Level_3-brightgreen)](docs/adr/adr-048-quality-framework.md)
 [![Inclusivity](https://img.shields.io/badge/Inclusivity-0_failures-brightgreen)](scripts/lint/check-inclusivity.sh)
 [![Licenses](https://img.shields.io/badge/Licenses-4%2F4_permissive-brightgreen)](scripts/lint/check-licenses.sh)
 [![Deps](https://img.shields.io/badge/Dependencies-4-blue)](CMakeLists.txt)

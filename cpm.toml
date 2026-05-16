@@ -269,8 +269,8 @@ triggers = ["Makefile", ".github/**"]
 severity = "warning"
 
 [[extend]]
-name = "check-cmmi"
-command = "scripts/lint/check-cmmi.sh"
+name = "check-maturity"
+command = "scripts/lint/check-maturity.sh"
 triggers = ["src/**", "scripts/**", "docs/**"]
 severity = "info"
 
