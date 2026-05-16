@@ -1,0 +1,30 @@
+[eisenhower]
+The **Eisenhower Matrix** organizes tasks into 4 quadrants:
+
+| | Urgent | Not Urgent |
+|---|---|---|
+| **Important** | Do first | Schedule |
+| **Not Important** | Delegate | Eliminate |
+
+Focus on Quadrant 2 (important but not urgent) for long-term productivity.
+---
+[slow]
+Your code is slow because you're probably doing I/O in a loop, you absolute walnut. Profile it with `perf` or `instruments` before guessing. 90% of the time it's either:
+
+1. N+1 queries
+2. Allocating in a hot loop
+3. Not using `std::string_view`
+
+Run `make bench` and stop bothering me.
+---
+[version]
+The current version is shown in the VERSION file. This project uses semantic versioning (major.minor.patch) with automated bumps based on conventional commits.
+---
+[files]
+I can see the following source directories: `agent/`, `annotation/`, `command/`, `config/`, `exec/`, `json/`, `logging/`, `net/`, `ollama/`, `orchestrator/`, `planner/`, `provider/`, `repl/`, `session/`, `sync/`, `tui/`, `util/`. The project is well-organized by feature module.
+---
+[write]
+<write file="/tmp/hello.txt">hello world</write>
+---
+[default]
+I understand your question. Let me help you with that. The llama-cli tool provides a local AI assistant that runs entirely offline using Ollama models.

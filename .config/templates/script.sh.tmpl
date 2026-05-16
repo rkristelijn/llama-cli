@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# {{NAME}}.sh — {{BRIEF}}
+#
+# Usage:
+#   bash scripts/{{DIR}}/{{NAME}}.sh
+#
+# @see docs/adr/{{ADR}}
+
+set -o errexit
+set -o nounset
+set -o pipefail
+if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
+
+# --- Configuration ---
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# --- Functions ---
+
+main() {
+  echo "==> {{NAME}}..."
+
+  # TODO: implement
+
+  echo "  [done] {{NAME}}"
+}
+
+main "$@"

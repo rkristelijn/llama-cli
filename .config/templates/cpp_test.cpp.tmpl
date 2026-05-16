@@ -1,0 +1,28 @@
+/**
+ * @file {{NAME}}_test.cpp
+ * @brief Unit tests for {{NAME}} module.
+ * @see docs/adr/adr-008-test-framework.md
+ */
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "{{MODULE}}/{{NAME}}.h"
+
+#include <doctest/doctest.h>
+
+#include <sstream>
+#include <string>
+
+SCENARIO ("{{NAME}}: basic behavior") {
+  GIVEN ("a default setup") {
+    // TODO: setup
+
+    WHEN ("action is performed") {
+      // TODO: act
+
+      THEN ("expected result occurs") {
+        CHECK (true)
+          ;  // TODO: real assertion
+      }
+    }
+  }
+}
