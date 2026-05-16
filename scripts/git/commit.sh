@@ -42,9 +42,9 @@ echo "  t)test b)build c)ci p)perf s)style"
 printf "  Type [f]: "
 read -r k
 case "${k:-f}" in
-  f) T=fix;; a) T=feat;; r) T=refactor;; d) T=docs;;
-  t) T=test;; b) T=build;; c) T=ci;; p) T=perf;;
-  s) T=style;; x) T=chore;; *) T=fix;;
+f) T=fix ;; a) T=feat ;; r) T=refactor ;; d) T=docs ;;
+t) T=test ;; b) T=build ;; c) T=ci ;; p) T=perf ;;
+s) T=style ;; x) T=chore ;; *) T=fix ;;
 esac
 
 # Scope
@@ -55,12 +55,16 @@ read -r S
 echo "  Imperative: add X, fix Y, remove Z"
 printf "  Desc: "
 read -r D
-[[ -z "$D" ]] && { echo "  Required."; exit 1; }
+[[ -z "$D" ]] && {
+  echo "  Required."
+  exit 1
+}
 
 # Breaking?
 printf "  Breaking? [y/N]: "
 read -r B
-BP=""; [[ "$B" =~ ^[yY] ]] && BP="!"
+BP=""
+[[ "$B" =~ ^[yY] ]] && BP="!"
 
 # Build + preview
 [[ -n "$S" ]] && LINE="${T}${BP}(${S}): ${D}" || LINE="${T}${BP}: ${D}"
@@ -68,6 +72,9 @@ echo ""
 echo "  → $LINE"
 printf "  Commit? [Y/n]: "
 read -r C
-[[ "$C" =~ ^[nN] ]] && { echo "  Aborted."; exit 0; }
+[[ "$C" =~ ^[nN] ]] && {
+  echo "  Aborted."
+  exit 0
+}
 
 git commit -m "$LINE"
