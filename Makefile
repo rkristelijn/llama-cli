@@ -244,8 +244,8 @@ check-traceability: ## Bidirectional traceability check (ADR-095)
 pipeline-coverage: ## Verify all make targets are in CI or denylist
 	@bash lib/cpm/shell/run.sh check-pipeline-coverage bash scripts/lint/check-pipeline-coverage.sh
 
-cmmi: ## CMMI maturity level audit (ADR-048)
-	@bash lib/cpm/shell/run.sh check-cmmi bash scripts/lint/check-cmmi.sh
+maturity: ## Engineering maturity audit (inspired by CMMI) (ADR-048)
+	@bash lib/cpm/shell/run.sh check-maturity bash scripts/lint/check-maturity.sh
 
 smells: ## Detect engineering anti-patterns (fun but real)
 	@bash lib/cpm/shell/run.sh check-smells bash lib/cpm/checks/cpp/check-smells.sh

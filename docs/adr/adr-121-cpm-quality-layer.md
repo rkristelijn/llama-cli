@@ -1,5 +1,5 @@
 ---
-summary: Adopt CPM (Compliance Process Management) as the shared quality layer across all repos, replacing ad-hoc scripts with a universal framework that provides gamified CMMI levels, shared TUI output, and language-agnostic quality gates.
+summary: Adopt CPM (Compliance Process Management) as the shared quality layer across all repos, replacing ad-hoc scripts with a universal framework that provides gamified maturity levels, shared TUI output, and language-agnostic quality gates.
 status: accepted
 ---
 
@@ -23,7 +23,7 @@ Adopt **CPM (Compliance Process Management)** as the shared quality framework fo
 ### What CPM provides (to any repo, any language)
 
 1. **Shared TUI library** — `lib/shell/ui.sh` for consistent output across all scripts
-2. **Quality gates per CMMI level** — progressive checks unlocked as maturity grows
+2. **Quality gates per maturity level** — progressive checks unlocked as maturity grows
 3. **Gamification** — score, level, progression tracking
 4. **Language-agnostic checks** — ADR enforcement, commit conventions, research freshness, slop detection, portability
 5. **Language-specific plugins** — C++ (clang-tidy, cppcheck), TypeScript (biome), Python (ruff), etc.
@@ -48,7 +48,7 @@ repo/
 3. Gradually move generic checks (slop, portability, research-freshness) into cpm
 4. Keep llama-cli-specific checks (C++ complexity, mermaid tests) local
 
-## CMMI Levels (CPM definition)
+## Maturity Levels (inspired by CMMI)
 
 | Level | Name | What you get |
 |-------|------|-------------|
@@ -310,7 +310,7 @@ This maps to cpm's `install-mode = "nix"` — the most reproducible option.
 | Level | Meaning | Blocks build? |
 |-------|---------|---------------|
 | `error` | Must fix, breaks the gate | Yes |
-| `warning` | Should fix, not urgent | Only at CMMI level 4+ |
+| `warning` | Should fix, not urgent | Only at maturity level 4+ |
 | `info` | Informational, no action needed | Never |
 
 Each tool has an adapter that translates tool-specific output:
@@ -627,7 +627,7 @@ Industry-standard phase names mapped to cpm check categories:
 | **Acceptance** | `test.acceptance` | Feature coverage markers, manual gate |
 | **Release** | `release` | Version bump, changelog, no regressions |
 
-### Severity Progression per CMMI Level
+### Severity Progression per Maturity Level
 
 The same check can be a warning at one level and an error at the next. The V-model grows stricter as maturity increases:
 
@@ -795,7 +795,7 @@ The Makefile's role shrinks to: build, run, install, workflow aliases. Everythin
 | Shell scripts for checks, not the binary | Binary doesn't support [[checks]] yet; shell is portable and debuggable |
 | `init.sh` as single source line | One line per script, fallback logic in one place, not 108 copies |
 | `set +o pipefail` around tee in run.sh | grep-based scripts return exit 1 on no match; tee propagates this |
-| Severity warning = non-blocking | Only `error` blocks the build; warnings are informational until CMMI level 4 |
+| Severity warning = non-blocking | Only `error` blocks the build; warnings are informational until maturity level 4 |
 | Delta detection via git diff | No file watcher, no daemon — simple, stateless, works in CI |
 | Timer uses temp files not associative arrays | macOS /bin/bash is 3.2 (no `declare -A`); temp files work everywhere |
 | JUnit XML in `.tmp/reports/` | Single output dir, CI configures artifact upload path once |

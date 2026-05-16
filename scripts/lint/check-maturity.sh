@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# check-cmmi.sh — Automated CMMI maturity level audit (ADR-048).
+# check-maturity.sh — Automated maturity maturity level audit (ADR-048).
 #
-# Verifies which CMMI level checks pass and reports the current level.
+# Verifies which maturity level checks pass and reports the current level.
 # A level is achieved when ALL checks at that level (and below) pass.
 #
 # Usage:
-#   bash scripts/lint/check-cmmi.sh
+#   bash scripts/lint/check-maturity.sh
 #   make cmmi
 #
 # @see docs/adr/adr-048-quality-framework.md
@@ -22,7 +22,7 @@ FAIL=0
 LEVEL_PASS=(-1) # Track which levels fully pass
 
 check() {
-  local level="$1" id="$2" desc="$3" cmd="$4"
+  local id="$2" desc="$3" cmd="$4"
   if eval "$cmd" >/dev/null 2>&1; then
     printf "  ✓ %s %s\n" "$id" "$desc"
     PASS=$((PASS + 1))
@@ -35,10 +35,10 @@ check() {
 }
 
 main() {
-  print_header "CMMI Maturity Audit (ADR-048)"
+  print_header "maturity Maturity Audit (ADR-048)"
   echo ""
 
-  # ── CMMI 0: Essentials ──
+  # ── maturity 0: Essentials ──
   echo "── Level 0: Essentials ──"
   local l0_fail=0
   check 0 "0.1" "Conventional commits (hook exists)" \
@@ -60,7 +60,7 @@ main() {
   [[ $l0_fail -eq 0 ]] && LEVEL_PASS+=(0)
   echo ""
 
-  # ── CMMI 1: Managed ──
+  # ── maturity 1: Managed ──
   echo "── Level 1: Managed ──"
   local l1_fail=0
   check 1 "1.1" "Unit tests exist (≥100 scenarios)" \
@@ -82,7 +82,7 @@ main() {
   [[ $l1_fail -eq 0 && $l0_fail -eq 0 ]] && LEVEL_PASS+=(1)
   echo ""
 
-  # ── CMMI 2: Defined ──
+  # ── maturity 2: Defined ──
   echo "── Level 2: Defined ──"
   local l2_fail=0
   check 2 "2.1" "Coverage ≥ 55%" \
@@ -104,7 +104,7 @@ main() {
   [[ $l2_fail -eq 0 && $l1_fail -eq 0 && $l0_fail -eq 0 ]] && LEVEL_PASS+=(2)
   echo ""
 
-  # ── CMMI 3: Optimizing ──
+  # ── maturity 3: Optimizing ──
   echo "── Level 3: Optimizing ──"
   local l3_fail=0
   check 3 "3.2" "Auto-generated release notes" \
@@ -124,14 +124,15 @@ main() {
   echo ""
   if [[ $max_level -ge 0 ]]; then
     echo "  ╔══════════════════════════════════╗"
-    printf "  ║  CMMI Level: %-2d %-16s ║\n" "$max_level" \
+    printf "  ║  maturity Level: %-2d %-16s ║\n" "$max_level" \
       "$(case $max_level in 0) echo "(Essentials)" ;; 1) echo "(Managed)" ;; 2) echo "(Defined)" ;; 3) echo "(Optimizing)" ;; *) echo "(Unknown)" ;; esac)"
     echo "  ╚══════════════════════════════════╝"
   else
-    echo "  ⚠ CMMI Level 0 not yet achieved"
+    echo "  ⚠ maturity Level 0 not yet achieved"
   fi
   echo ""
   echo "  @see docs/adr/adr-048-quality-framework.md"
+  return 0
 }
 
 main "$@"
