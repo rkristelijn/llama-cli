@@ -310,6 +310,61 @@ SCENARIO ("REPL write annotations") {
   }
 }
 
+SCENARIO ("REPL confirmation feedback") {
+  // When user declines with a reason, the LLM should retry with that feedback
+
+  GIVEN ("user declines write with a reason") {
+    // "n, use tabs instead" → LLM gets feedback and retries
+    int calls = 0;
+    auto retry_chat = [&](const std::vector<Message>& msgs) -> std::string {
+      calls++;
+      if (calls == 1) {
+        return "<write file=\"/tmp/llama-feedback-test.txt\">spaces</write>";
+      }
+      // Second call: check that decline reason is in history
+      bool has_feedback = false;
+      for (const auto& m : msgs) {
+        if (m.content.find("use tabs instead") != std::string::npos) {
+          has_feedback = true;
+        }
+      }
+      CHECK (has_feedback)
+        ;
+      return "ok, noted";
+    };
+    std::istringstream in("fix it\nn, use tabs instead\nexit\n");
+    std::ostringstream out;
+    WHEN ("the REPL runs") {
+      run_repl(retry_chat, test_cfg(), in, out);
+      THEN ("LLM is called again with the feedback") {
+        CHECK (calls == 2)
+          ;
+      }
+      THEN ("skipped message is shown") {
+        CHECK (out.str().find("[skipped]") != std::string::npos)
+          ;
+      }
+    }
+  }
+
+  GIVEN ("user declines write without a reason") {
+    int calls = 0;
+    auto count_chat = [&](const std::vector<Message>&) -> std::string {
+      calls++;
+      return "<write file=\"/tmp/llama-feedback-test.txt\">content</write>";
+    };
+    std::istringstream in("fix it\nn\nexit\n");
+    std::ostringstream out;
+    WHEN ("the REPL runs") {
+      run_repl(count_chat, test_cfg(), in, out);
+      THEN ("LLM is NOT called again (no feedback to give)") {
+        CHECK (calls == 1)
+          ;
+      }
+    }
+  }
+}
+
 SCENARIO ("REPL command execution") {
   GIVEN ("user runs !echo hello") {
     std::istringstream in("!echo hello\nexit\n");

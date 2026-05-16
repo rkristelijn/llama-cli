@@ -204,13 +204,21 @@ bool handle_response(const std::string& response, ReplState& s) {
     s.out << colorize_ai(tui::render_markdown(strip_exec_annotations(strip_annotations(response)), s.color && s.markdown), s) << "\n";
   }
 
+  bool has_followup = false;
   for (const auto& action : writes) {
-    process_write(action, s.in, s.out, s.color, s.trust, s.cfg.auto_confirm_write);
+    std::string reason = process_write(action, s.in, s.out, s.color, s.trust, s.cfg.auto_confirm_write);
+    if (!reason.empty()) {
+      s.history.push_back({"user", "[declined write to " + action.path + "] " + reason});
+      has_followup = true;
+    }
   }
   for (const auto& action : str_replaces) {
-    process_str_replace(action, s.in, s.out, s.color, s.trust);
+    std::string reason = process_str_replace(action, s.in, s.out, s.color, s.trust);
+    if (!reason.empty()) {
+      s.history.push_back({"user", "[declined str_replace on " + action.path + "] " + reason});
+      has_followup = true;
+    }
   }
-  bool has_followup = false;
   std::set<std::string> seen_reads;
   for (const auto& action : reads) {
     std::string key = action.path + "|" + std::to_string(action.from_line) + "-" + std::to_string(action.to_line) + "|" + action.search;
@@ -225,7 +233,11 @@ bool handle_response(const std::string& response, ReplState& s) {
   }
   for (const auto& cmd : execs) {
     std::string output = confirm_exec(cmd, s.cfg, s.in, s.out, s.trust);
-    if (!output.empty()) {
+    if (output.rfind("DECLINED:", 0) == 0) {
+      // User declined with a reason — feed back to LLM
+      s.history.push_back({"user", "[declined exec: " + cmd + "] " + output.substr(9)});
+      has_followup = true;
+    } else if (!output.empty()) {
       s.history.push_back({"user", "[command: " + cmd + "]\n" + output});
       has_followup = true;
     }
