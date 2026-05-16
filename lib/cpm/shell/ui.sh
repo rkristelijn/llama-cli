@@ -50,7 +50,8 @@ print_step() {
 
   local name_width=$((term_width < 80 ? 18 : 22))
 
-  local prefix="  [${num}] "
+  local prefix="  "
+  [[ -n "$num" ]] && prefix="  [${num}] "
   printf "%s%-${name_width}s " "$prefix" "$name"
 
   case "$status" in
@@ -86,15 +87,58 @@ print_summary() { echo ""; echo -e "${GREEN}All checks passed${RESET} in ${GRAY}
 print_header()  { echo ""; echo -e "${GREEN}$1${RESET}"; echo ""; }
 
 # Spinner — for unknown-duration tasks
-# Usage: spinner_start "waiting..."; do_work; spinner_stop
+# CPM_SPINNER: name or "random" (default). Custom via cpm.toml [ui] spinner-frames
 _spinner_pid=""
 spinner_start() {
   local msg="${1:-working...}"
   [[ "$CPM_UI_MODE" == "silent" ]] && return
   [[ "$CPM_UI_MODE" == "compact" ]] && return
 
+  local all_styles=(
+    "⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
+    "⣾ ⣽ ⣻ ⢿ ⡿ ⣟ ⣯ ⣷"
+    "⠋ ⠙ ⠚ ⠞ ⠖ ⠦ ⠴ ⠲ ⠳ ⠓"
+    "⠄ ⠆ ⠇ ⠋ ⠙ ⠸ ⠰ ⠠ ⠰ ⠸ ⠙ ⠋ ⠇ ⠆"
+    "⢹ ⢺ ⢼ ⣸ ⣇ ⡧ ⡗ ⡏"
+    "⢄ ⢂ ⢁ ⡁ ⡈ ⡐ ⡠"
+    "⠁ ⠂ ⠄ ⡀ ⢀ ⠠ ⠐ ⠈"
+    "⣼ ⣹ ⢻ ⠿ ⡟ ⣏ ⣧ ⣶"
+    "┤ ┘ ┴ └ ├ ┌ ┬ ┐"
+    "◜ ◝ ◞ ◟"
+    "← ↖ ↑ ↗ → ↘ ↓ ↙"
+    "- \\ | /"
+    "✶ ✸ ✹ ✺ ✹ ✷"
+    "+ x *"
+    "⠁ ⠂ ⠄ ⡀ ⡈ ⡐ ⡠ ⣀ ⣁ ⣂ ⣄ ⣌ ⣔ ⣤ ⣥ ⣦ ⣮ ⣶ ⣷ ⣿ ⡿ ⠿ ⢟ ⠟ ⡛ ⠛ ⠫ ⢋ ⠋ ⠍ ⡉ ⠉ ⠑ ⠡ ⢁"
+  )
+
+  # Custom frames from env (set by config.sh from cpm.toml [ui] spinner-frames)
+  local frame_str="${CPM_SPINNER_FRAMES:-}"
+
+  if [[ -z "$frame_str" ]]; then
+    local style="${CPM_SPINNER:-random}"
+    case "$style" in
+      dots)    frame_str="${all_styles[0]}" ;;
+      dots2)   frame_str="${all_styles[1]}" ;;
+      dots3)   frame_str="${all_styles[2]}" ;;
+      dots4)   frame_str="${all_styles[3]}" ;;
+      dots9)   frame_str="${all_styles[4]}" ;;
+      dots10)  frame_str="${all_styles[5]}" ;;
+      bounce)  frame_str="${all_styles[6]}" ;;
+      dots13)  frame_str="${all_styles[7]}" ;;
+      pipe)    frame_str="${all_styles[8]}" ;;
+      arc)     frame_str="${all_styles[9]}" ;;
+      arrow)   frame_str="${all_styles[10]}" ;;
+      line)    frame_str="${all_styles[11]}" ;;
+      star)    frame_str="${all_styles[12]}" ;;
+      star2)   frame_str="${all_styles[13]}" ;;
+      sand)    frame_str="${all_styles[14]}" ;;
+      *)       frame_str="${all_styles[$((RANDOM % ${#all_styles[@]}))]}" ;;
+    esac
+  fi
+
   (
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    IFS=' ' read -ra frames <<< "$frame_str"
     local i=0
     while true; do
       printf "\r  ${GRAY}${frames[$i]} %s${RESET}" "$msg" >&2

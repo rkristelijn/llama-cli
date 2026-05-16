@@ -37,7 +37,7 @@ cpm-fast: ## Tier 1: format + file-size + slop (<5s, AI loop)
 	@bash lib/cpm/shell/cpm-check.sh fast
 
 cpm: ## Tier 2: lint + complexity + tests (<60s, pre-push)
-	@bash lib/cpm/shell/cpm-check.sh normal
+	@bash lib/cpm/shell/cpm-check.sh default
 
 cpm-full: ## Tier 3: everything — dead-code, xref, e2e (CI)
 	@bash lib/cpm/shell/cpm-check.sh full
@@ -141,7 +141,7 @@ check-ai: ## Run checks with condensed output
 ##@ Formatting
 
 format-code: ## Format C++ code (clang-format)
-	@bash lib/cpm/shell/run.sh format-code bash scripts/fmt/format-code.sh
+	@bash lib/cpm/shell/run.sh format-code bash lib/cpm/checks/cpp/format-code.sh
 
 format-md: ## Format Markdown files (rumdl)
 	@bash lib/cpm/shell/run.sh format-md bash lib/cpm/checks/universal/format-md.sh
@@ -162,7 +162,7 @@ lint-format-code: ## Check C++ formatting (no changes)
 	@echo "  [done] lint-format-code"
 
 lint-cppcheck: ## Run cppcheck static analysis
-	@bash lib/cpm/shell/run.sh lint-code bash scripts/lint/lint-code.sh
+	@bash lib/cpm/shell/run.sh lint-code bash lib/cpm/checks/cpp/lint-code.sh
 
 lint-md: ## Lint Markdown files (rumdl)
 	@bash lib/cpm/shell/run.sh lint-md bash lib/cpm/checks/universal/lint-md.sh
@@ -180,16 +180,16 @@ lint-versions: ## Check version pinning (no hardcoded versions)
 	@bash lib/cpm/shell/run.sh check-version-pins bash lib/cpm/checks/universal/check-version-pins.sh
 
 tidy: ## Run clang-tidy (smart: changed files only)
-	@bash lib/cpm/shell/run.sh run-tidy bash scripts/lint/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
+	@bash lib/cpm/shell/run.sh run-tidy bash lib/cpm/checks/cpp/run-tidy.sh $(if $(filter 1,$(FULL)),--full)
 
 complexity: ## Check cyclomatic complexity (pmccabe)
-	@bash lib/cpm/shell/run.sh check-complexity bash scripts/lint/check-complexity.sh
+	@bash lib/cpm/shell/run.sh check-complexity bash lib/cpm/checks/cpp/check-complexity.sh
 
 comment-ratio: ## Show comment ratio per file
 	@bash lib/cpm/shell/run.sh check-comment-ratio bash lib/cpm/checks/universal/check-comment-ratio.sh
 
 consistency: ## Check code consistency (ADR-065)
-	@bash lib/cpm/shell/run.sh check-consistency bash scripts/lint/check-consistency.sh
+	@bash lib/cpm/shell/run.sh check-consistency bash lib/cpm/checks/cpp/check-consistency.sh
 
 check-theme: ## Check no hardcoded ANSI outside tui/ (ADR-080)
 	@bash lib/cpm/shell/run.sh check-theme bash scripts/lint/check-theme.sh
@@ -204,7 +204,7 @@ check-pii: ## Check for PII in source code (ADR-098)
 	@bash lib/cpm/shell/run.sh check-pii bash lib/cpm/checks/universal/check-pii.sh
 
 dead-code: ## Detect unused functions and orphaned scripts (ADR-064)
-	@bash lib/cpm/shell/run.sh check-dead-code bash scripts/lint/check-dead-code.sh
+	@bash lib/cpm/shell/run.sh check-dead-code bash lib/cpm/checks/cpp/check-dead-code.sh
 
 dead-docs: ## Detect unreferenced docs, configs, and backlog items
 	@bash lib/cpm/shell/run.sh check-dead-docs bash lib/cpm/checks/universal/check-dead-docs.sh
@@ -230,13 +230,13 @@ research-update: ## Mark a research topic as freshly researched (TOPIC=...)
 	@echo "  ✓ $(TOPIC) updated to $$(date +%Y-%m-%d)"
 
 check-casts: ## Detect C-style casts (ES.48, slow — compiles)
-	@bash lib/cpm/shell/run.sh check-casts bash scripts/lint/check-casts.sh
+	@bash lib/cpm/shell/run.sh check-casts bash lib/cpm/checks/cpp/check-casts.sh
 
 check-conversions: ## Detect implicit conversions (slow — compiles)
-	@bash lib/cpm/shell/run.sh check-conversions bash scripts/lint/check-conversions.sh
+	@bash lib/cpm/shell/run.sh check-conversions bash lib/cpm/checks/cpp/check-conversions.sh
 
 check-shadowing: ## Detect variable shadowing (ES.12, slow — compiles)
-	@bash lib/cpm/shell/run.sh check-shadowing bash scripts/lint/check-shadowing.sh
+	@bash lib/cpm/shell/run.sh check-shadowing bash lib/cpm/checks/cpp/check-shadowing.sh
 
 check-traceability: ## Bidirectional traceability check (ADR-095)
 	@bash lib/cpm/shell/run.sh check-traceability bash scripts/ci/check-traceability.sh
@@ -248,7 +248,7 @@ cmmi: ## CMMI maturity level audit (ADR-048)
 	@bash lib/cpm/shell/run.sh check-cmmi bash scripts/lint/check-cmmi.sh
 
 smells: ## Detect engineering anti-patterns (fun but real)
-	@bash lib/cpm/shell/run.sh check-smells bash scripts/lint/check-smells.sh
+	@bash lib/cpm/shell/run.sh check-smells bash lib/cpm/checks/cpp/check-smells.sh
 
 inclusivity: ## Inclusivity & accessibility lint (C4I)
 	@bash lib/cpm/shell/run.sh check-inclusivity bash lib/cpm/checks/universal/check-inclusivity.sh
@@ -415,6 +415,9 @@ precommit: ## Run pre-commit checks
 prepush: ## Run pre-push checks
 	@bash lib/cpm/shell/run.sh prepush-check bash scripts/git/prepush-check.sh
 
+commit: ## Interactive conventional commit (like commitizen)
+	@bash scripts/git/commit.sh
+
 pre-pr: ## Full pre-PR validation (build both compilers, lint, test)
 	@echo "==> Pre-PR validation"
 	@$(MAKE) build
@@ -494,7 +497,7 @@ all: $(if $(filter 1,$(SKIP_DEPS)),,check-deps)
 	@cp $(BINARY) .
 
 check-deps:
-	@bash lib/cpm/shell/run.sh check-deps bash scripts/lint/check-deps.sh
+	@bash lib/cpm/shell/run.sh check-deps bash lib/cpm/checks/cpp/check-deps.sh
 
 check-versions:
 	@bash lib/cpm/shell/run.sh check-versions bash scripts/lint/check-versions.sh

@@ -15,4 +15,4 @@ if ! command -v shfmt >/dev/null; then
 fi
 
 print_header "formatting scripts..."
-find scripts e2e -name '*.sh' -exec shfmt -i 2 -w {} \;
+find scripts e2e -name '*.sh' -exec shfmt -i 2 -w {} \; 2>/dev/null || find scripts -name '*.sh' -exec shfmt -i 2 -w {} \;

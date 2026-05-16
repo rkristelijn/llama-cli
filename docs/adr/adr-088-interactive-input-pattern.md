@@ -1,9 +1,9 @@
 ---
-summary: All interactive user input must use `linenoise::Readline()` for reliable confirmation prompts.
+summary: The file provides detailed guidance on using `linenoise::Readline()` for reliable confirmation prompts in C++ programs, due to issues with `std::cin` and `std::getline` handling after raw mode manipulation by linenoise.
 status: accepted
 ---
 
-summary: All interactive user input must use `linenoise::Readline()` for reliable confirmation prompts.
+summary: The file provides detailed guidance on using `linenoise::Readline()` for reliable confirmation prompts in C++ programs, due to issues with `std::cin` and `std::getline` handling after raw mode manipulation by linenoise.
 
 # ADR-088: Interactive Input Pattern — Use linenoise for All User Prompts
 
