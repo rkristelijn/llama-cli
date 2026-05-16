@@ -22,7 +22,7 @@ FAIL=0
 LEVEL_PASS=(-1) # Track which levels fully pass
 
 check() {
-  local level="$1" id="$2" desc="$3" cmd="$4"
+  local id="$2" desc="$3" cmd="$4"
   if eval "$cmd" >/dev/null 2>&1; then
     printf "  ✓ %s %s\n" "$id" "$desc"
     PASS=$((PASS + 1))
@@ -132,6 +132,7 @@ main() {
   fi
   echo ""
   echo "  @see docs/adr/adr-048-quality-framework.md"
+  return 0
 }
 
 main "$@"
