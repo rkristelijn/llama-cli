@@ -44,7 +44,7 @@ run_step() {
 print_header "pre-commit"
 
 # Formatting (autofix)
-$HAS_CPP && run_step "format-code" bash scripts/fmt/format-code.sh
+$HAS_CPP && run_step "format-code" bash lib/cpm/checks/cpp/format-code.sh
 $HAS_YAML && run_step "format-yaml" bash lib/cpm/checks/universal/format-yaml.sh
 $HAS_YAML && run_step "check-ci" bash scripts/lint/check-ci-yaml.sh
 $HAS_MD && run_step "format-md" bash lib/cpm/checks/universal/format-md.sh

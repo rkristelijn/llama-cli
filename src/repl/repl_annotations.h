@@ -26,10 +26,12 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
 // --- Annotation action handlers ---
 
 /// Prompt user and write a file if confirmed (backup existing, show diff).
-void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm);
+/// Returns decline reason if user declined with feedback, empty string otherwise.
+std::string process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm);
 
 /// Prompt user and apply a str_replace if confirmed (show diff, backup).
-void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust);
+/// Returns decline reason if user declined with feedback, empty string otherwise.
+std::string process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust);
 
 /// Execute a <read> action and return context string for the LLM.
 std::string process_read(const ReadAction& action, std::ostream& out, bool color);
@@ -38,7 +40,8 @@ std::string process_read(const ReadAction& action, std::ostream& out, bool color
 std::string strip_exec_annotations(const std::string& text);
 
 /// Confirm and execute an LLM-proposed command (ADR-015).
-/// Returns command output if executed, empty string if declined.
+/// Returns command output if executed, empty string if declined without reason.
+/// Returns decline reason prefixed with "DECLINED:" if user gave feedback.
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust);
 
 #endif

@@ -203,17 +203,38 @@ void show_diff(const std::string& old_text, const std::string& new_text, std::os
   }
 }
 
+/// Extract decline reason from user answer (e.g. "n, use sed" → "use sed").
+/// Returns empty string if no reason given (bare "n" or "no").
+static std::string extract_decline_reason(const std::string& answer) {
+  // Strip leading "n"/"no" and optional separator (, or space)
+  std::string rest;
+  if (answer.size() > 1 && (answer[0] == 'n' || answer[0] == 'N')) {
+    if (answer.substr(0, 2) == "no" || answer.substr(0, 2) == "No") {
+      rest = answer.substr(2);
+    } else {
+      rest = answer.substr(1);
+    }
+  }
+  // Trim leading separators: comma, space
+  size_t start = rest.find_first_not_of(", \t");
+  if (start == std::string::npos) {
+    return "";
+  }
+  return rest.substr(start);
+}
+
 // --- Write confirmation ---
 
 /// Prompt user to confirm a file write. Shows diff or content, accepts y/n/s/t/c.
-/// y=confirm, n=decline, s=show content again, t=trust all, c=copy to clipboard.
-/// Returns true if the write should proceed, false if declined.
-/// Prompt user to confirm a file write. Supports y/n/s (skip) and trust mode.
+/// y=confirm, n=decline (with optional reason), s=show content again, t=trust all, c=copy.
+/// Returns empty string if confirmed, decline reason if declined with feedback,
+/// or special marker "\x01" for bare decline (no reason).
 // pmccabe:skip-complexity
-static bool confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
+static std::string confirm_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust,
+                                 bool auto_confirm) {
   // Trust mode: auto-approve all remaining actions this session
   if (trust) {
-    return true;
+    return "";
   }
   // Check if file exists to decide between diff and full-content display
   std::ifstream check(action.path);
@@ -235,23 +256,24 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
   if (auto_confirm) {
     LOG_EVENT("repl", "file_write", action.path, "auto-confirmed", 0, 0, 0);
     out << "[auto-written: " << action.path << "]\n";
-    return true;
+    return "";
   }
   std::string opts = "[y/n/s/t/c/?]";
   std::string prompt = "Write to " + action.path + "? " + opts + " ";
   std::string answer;
   while (read_answer(in, answer, prompt, &out)) {
     if (answer == "y" || answer == "yes") {
-      return true;
+      return "";
     }
-    if (answer == "n" || answer == "no") {
-      return false;
+    if (answer.empty() || answer[0] == 'n' || answer[0] == 'N') {
+      std::string reason = extract_decline_reason(answer);
+      return reason.empty() ? "\x01" : reason;
     }
     if (answer == "s" || answer == "show") {
       out << action.content << "\n";
     } else if (answer == "t" || answer == "trust") {
       trust = true;
-      return true;
+      return "";
     } else if (answer == "c" || answer == "copy") {
       // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
@@ -269,7 +291,7 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
       out << "  c = copy content to clipboard\n";
     }
   }
-  return false;
+  return "\x01";
 }
 
 // --- Action processors ---
@@ -279,10 +301,11 @@ static bool confirm_write(const WriteAction& action, std::istream& in, std::ostr
 /// Present a proposed file write to the user and perform the write if confirmed.
 /// Creates a .bak backup of existing files before overwriting.
 /// Logs both confirmed and declined writes for audit trail.
-void process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
+std::string process_write(const WriteAction& action, std::istream& in, std::ostream& out, bool color, bool& trust, bool auto_confirm) {
   LOG_FEATURE("write_annotation");
-  if (permission_blocked("write", out, color)) return;
-  if (confirm_write(action, in, out, color, trust, auto_confirm)) {
+  if (permission_blocked("write", out, color)) return "";
+  std::string decline = confirm_write(action, in, out, color, trust, auto_confirm);
+  if (decline.empty()) {
     // Backup existing file before overwriting
     std::ifstream exists_check(action.path);
     if (exists_check.good()) {
@@ -313,29 +336,31 @@ void process_write(const WriteAction& action, std::istream& in, std::ostream& ou
       tui::error(out, color, "Error: could not write to " + action.path);
       LOG_EVENT("repl", "file_write", action.path, "error: could not write", 0, 0, 0);
     }
-  } else {
-    out << "[skipped]\n";
-    LOG_FEATURE("write_declined");
-    LOG_EVENT("repl", "file_write_declined", action.path, "", 0, 0, 0);
+    return "";
   }
+  out << "[skipped]\n";
+  LOG_FEATURE("write_declined");
+  LOG_EVENT("repl", "file_write_declined", action.path, "", 0, 0, 0);
+  // Return reason (or empty if bare decline with no feedback)
+  return (decline == "\x01") ? "" : decline;
 }
 
 /// Apply a <str_replace> action: show diff, prompt user, then do targeted replacement.
 /// In trust mode, auto-applies without prompting.
 /// Creates a .bak backup before modifying the file.
-void process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
+std::string process_str_replace(const StrReplaceAction& action, std::istream& in, std::ostream& out, bool color, bool& trust) {
   LOG_FEATURE("str_replace_annotation");
-  if (permission_blocked("str_replace", out, color)) return;
+  if (permission_blocked("str_replace", out, color)) return "";
   if (trust) {
     std::ifstream check(action.path);
     if (!check.good()) {
       tui::error(out, color, "str_replace: file not found: " + action.path);
-      return;
+      return "";
     }
     std::string existing = read_file(action.path);
     if (existing.find(action.old_str) == std::string::npos) {
       tui::error(out, color, "str_replace: old string not found in " + action.path);
-      return;
+      return "";
     }
     std::string updated = existing;
     auto replace_pos = updated.find(action.old_str);
@@ -359,17 +384,17 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     } else {
       tui::error(out, color, "str_replace: could not write to " + action.path);
     }
-    return;
+    return "";
   }
   std::ifstream check(action.path);
   if (!check.good()) {
     tui::error(out, color, "str_replace: file not found: " + action.path);
-    return;
+    return "";
   }
   std::string existing = read_file(action.path);
   if (existing.find(action.old_str) == std::string::npos) {
     tui::error(out, color, "str_replace: old string not found in " + action.path);
-    return;
+    return "";
   }
 
   // Compute updated file for preview
@@ -384,7 +409,7 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     if (!read_answer(in, answer, sr_prompt, &out)) {
       out << "[skipped]\n";
       LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-      return;
+      return "";
     }
     if (answer == "y" || answer == "yes") {
       break;
@@ -394,7 +419,6 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
       break;
     }
     if (answer == "c" || answer == "copy") {
-      // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
       FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
       if (pipe) {
@@ -402,17 +426,23 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
         pclose(pipe);
         out << "[copied to clipboard]\n";
       }
-      return;
+      return "";
     }
     if (answer == "?") {
       out << "  y = apply this change\n";
       out << "  n = skip this change\n";
       out << "  t = trust — auto-approve all remaining changes this session\n";
       out << "  c = copy new content to clipboard\n";
+    } else if (answer[0] == 'n' || answer[0] == 'N') {
+      // Decline with optional reason
+      std::string reason = extract_decline_reason(answer);
+      out << "[skipped]\n";
+      LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
+      return reason;
     } else {
       out << "[skipped]\n";
       LOG_EVENT("repl", "str_replace_declined", action.path, "", 0, 0, 0);
-      return;
+      return "";
     }
   }
 
@@ -436,6 +466,7 @@ void process_str_replace(const StrReplaceAction& action, std::istream& in, std::
     tui::error(out, color, "Error: could not write to " + action.path);
     LOG_EVENT("repl", "str_replace", action.path, "error: could not write", 0, 0, 0);
   }
+  return "";
 }
 
 /// Execute a <read> action and return the result as context for the LLM.
@@ -534,7 +565,8 @@ std::string strip_exec_annotations(const std::string& text) {
 
 /// Confirm and execute an LLM-proposed command (ADR-015).
 /// Prompts user with y/n/t/c. In trust mode, auto-executes.
-/// Returns command output if executed, empty string if declined/copied.
+/// Returns command output if executed, empty string if declined without reason.
+/// Returns "DECLINED:" + reason if user declined with feedback.
 std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream& in, std::ostream& out, bool& trust) {
   LOG_FEATURE("exec_annotation");
   if (permission_blocked("exec", out, false)) return "";
@@ -553,7 +585,6 @@ std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream
         break;
       }
       if (answer == "c" || answer == "copy") {
-        // TODO: popen hangs when pbcopy/xclip unavailable — needs timeout or availability check
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
         FILE* pipe = popen("pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null", "w");
         if (pipe) {
@@ -568,6 +599,12 @@ std::string confirm_exec(const std::string& cmd, const Config& cfg, std::istream
         out << "  n = skip this command\n";
         out << "  t = trust — auto-run all remaining commands this session\n";
         out << "  c = copy command to clipboard\n";
+      } else if (answer[0] == 'n' || answer[0] == 'N') {
+        // Decline with optional reason
+        std::string reason = extract_decline_reason(answer);
+        LOG_EVENT("repl", "exec_declined", cmd, reason, 0, 0, 0);
+        out << "[skipped]\n";
+        return reason.empty() ? "" : "DECLINED:" + reason;
       } else {
         LOG_EVENT("repl", "exec_declined", cmd, "", 0, 0, 0);
         out << "[skipped]\n";
