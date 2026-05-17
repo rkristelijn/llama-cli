@@ -1,0 +1,13 @@
+[hello]
+<write file="/tmp/demo.txt">hello world</write>
+---
+[goodbye]
+Sure, here's the corrected version:
+<write file="/tmp/demo.txt">goodbye world</write>
+---
+[declined]
+Got it, let me try again with your feedback.
+<write file="/tmp/demo.txt">corrected content</write>
+---
+[default]
+I understand your question. Let me help you with that. The llama-cli tool provides a local AI assistant that runs entirely offline using Ollama models.
